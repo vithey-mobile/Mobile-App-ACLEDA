@@ -1,17 +1,30 @@
 # Finance Service — Service Prompt
 
-Build the Finance microservice.
+Authoritative API contract and build checklist for the Vithey Finance microservice.
+Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
 
-## API Endpoints
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/v1/payments` | STUDENT | Payment history for current student |
-| GET | `/api/v1/payments/{id}` | STUDENT | Payment detail |
-| GET | `/api/v1/fees` | STUDENT | All assigned fees |
-| GET | `/api/v1/fees/categories` | STUDENT | Fee categories |
-| GET | `/api/v1/payments/alerts` | STUDENT | Upcoming due payments (7 days) |
+## Conventions (avoid drift)
 
-## Payment Response
+- **JSON fields:** `snake_case`. **Java fields:** `camelCase`. Map via MapStruct/Jackson.
+- **All responses** use the root envelope (`{ "data": ... }` / `{ "error": ... }`).
+- **All IDs** are UUID strings. Lists are paginated per root pagination rules.
+- **Amounts** are raw integers with a separate `currency` code — no formatting server-side.
+- **Current student** comes from the JWT (`sub` → `studentId`), never from the request.
+
+## API Endpoints (all require `STUDENT` role)
+
+| Method | Path                      | Description                                     | Success |
+| ------ | ------------------------- | ----------------------------------------------- | ------- |
+| GET    | `/api/v1/payments`        | Payment history for current student (paginated) | 200     |
+| GET    | `/api/v1/payments/{id}`   | Payment detail (must belong to caller)          | 200     |
+| GET    | `/api/v1/fees`            | All fees assigned to current student            | 200     |
+| GET    | `/api/v1/fees/categories` | Fee categories                                  | 200     |
+| GET    | `/api/v1/payments/alerts` | Upcoming due payments (next 7 days)             | 200     |
+
+## Response Shapes
+
+### Payment list — response
+
 ```json
 {
   "data": [
@@ -29,7 +42,8 @@ Build the Finance microservice.
 }
 ```
 
-## Alert Response
+### Alerts — response
+
 ```json
 {
   "data": {
@@ -48,19 +62,47 @@ Build the Finance microservice.
 ```
 
 ## Business Rules
-- Status `OVERDUE` when `due_date < today` and not PAID
-- Scheduled job (daily): scan unpaid fees → publish `payment.due` (7 days before) and `payment.overdue`
-- Amounts formatted with `intl` compatible numbers (no formatting in API — raw numbers)
 
-## Student Verified Listener
-On `student.verified`, create or link `studentId` in finance records (seed sample fees for dev).
+- A payment is `OVERDUE` when `due_date < today` and status is not `PAID`.
+- Daily scheduled job scans unpaid fees and:
+  - publishes `payment.due` when a fee is due within 7 days,
+  - publishes `payment.overdue` when `due_date` has passed and it is unpaid.
+- Amounts are raw integers (intl-compatible); never format currency in the API.
+
+## Student-Verified Listener
+
+On `student.verified`, create or link the `studentId` in finance records.
+In the `dev` profile, seed sample fees for that student.
+
+## Error Behavior (use root envelope + codes)
+
+| Case                                         | Code               | HTTP |
+| -------------------------------------------- | ------------------ | ---- |
+| Non-student / unverified caller              | `FORBIDDEN`        | 403  |
+| Payment/fee not found or not owned by caller | `NOT_FOUND`        | 404  |
+| Validation failure (bad query params)        | `VALIDATION_ERROR` | 400  |
 
 ## Required Modules
-- `PaymentController`, `FeeController`
-- `PaymentService`, `FeeService`, `PaymentAlertScheduler`
-- `StudentVerifiedEventListener`, `PaymentEventPublisher`
-- `AuthServiceClient` — verify STUDENT role
-- Flyway with seed data for dev, OpenAPI, tests
+
+- Controllers: `PaymentController`, `FeeController`
+- Services: `PaymentService`, `FeeService`, `PaymentAlertScheduler`
+- Events: `StudentVerifiedEventListener`, `PaymentEventPublisher`
+- Client: `AuthServiceClient` (verify `STUDENT` role when needed)
+- Config: `GlobalExceptionHandler`
+- Migration: `V1__init_finance_schema.sql` (+ dev seed data)
+
+## Testing
+
+- Access-control test: non-student gets `403`.
+- Ownership test: student cannot read another student's payment (`404`).
+- Overdue-status calculation test.
+- Scheduler publishes `payment.due` / `payment.overdue` (mocked RabbitMQ) test.
+- `student.verified` listener links/seeds records test.
+
+## Docs
+
+`README.md` (run, env vars, port), `API.md` (endpoint summary), `ARCHITECTURE.md` (boundaries, DB, events, scheduler).
 
 ## Output
-Runnable finance-service on port 8086.
+
+Complete, runnable finance-service on port 8086.
