@@ -166,7 +166,7 @@ Global access:
 ## Repo Layout
 
 ```text
-aub_connect_app/
+vithey_app/
 ├── android/
 ├── ios/
 ├── assets/
