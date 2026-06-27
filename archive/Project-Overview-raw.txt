@@ -1,0 +1,54 @@
+# Vithey App — Project Overview
+
+> **Documentation has been reorganized.** Edit screen specs in `docs/screens/` — not this file.
+
+## Start here
+
+| Document | Description |
+|----------|-------------|
+| [docs/README.md](docs/README.md) | **Main index** — all screens + how to update |
+| [docs/00-project-summary.md](docs/00-project-summary.md) | What the app does |
+| [docs/01-navigation-and-flow.md](docs/01-navigation-and-flow.md) | Screen flow & routes |
+
+## All screens (one file each)
+
+1. [Splash](docs/screens/01-splash-screen.md)
+2. [Onboarding](docs/screens/02-onboarding-screen.md)
+3. [Auth](docs/screens/03-auth-screen.md)
+4. [Home](docs/screens/04-home-screen.md)
+5. [Create Post](docs/screens/05-create-post-screen.md)
+6. [Post Detail](docs/screens/06-post-detail-screen.md)
+7. [Apply CV](docs/screens/07-apply-cv-screen.md)
+8. [Preview CV](docs/screens/08-preview-cv-screen.md)
+9. [Profile](docs/screens/09-profile-screen.md)
+10. [Finance](docs/screens/10-finance-screen.md)
+11. [Student Verification](docs/screens/11-student-verification-screen.md)
+12. [Chat](docs/screens/12-chat-screen.md)
+13. [Chat Detail](docs/screens/13-chat-detail-screen.md)
+14. [AI Chatbot](docs/screens/14-ai-chatbot-screen.md)
+15. [Notification](docs/screens/15-notification-screen.md)
+16. [Settings](docs/screens/16-settings-screen.md)
+17. [Applicant CV Preview](docs/screens/17-applicant-cv-preview-screen.md)
+
+## Reference
+
+- [Frontend (Flutter)](docs/reference/frontend.md)
+- [Backend (microservices)](docs/reference/backend.md)
+- [API overview](docs/reference/api-overview.md)
+
+## Cursor prompts
+
+- `Prompt Frontend/` — Flutter build prompts
+- `Prompt Backend/` — Spring Boot per service
+- `Prompt Devops/` — Docker + GitHub Actions
+
+## How to update a screen
+
+1. Open `docs/screens/NN-screen-name.md`
+2. Edit Purpose, UI, Logic, API, or Status checklist
+3. Copy `docs/screens/_SCREEN-TEMPLATE.md` when adding a new screen
+4. Update table in `docs/README.md`
+
+## Archive
+
+Full original GitBook export (4418 lines): [archive/Project-Overview-raw.txt](archive/Project-Overview-raw.txt)
