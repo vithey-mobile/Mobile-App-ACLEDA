@@ -1,21 +1,54 @@
-# File Service — Service Prompt
+# File Service — Complete API Design
 
-Build the File microservice with MinIO integration.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API only — upload/download via MinIO.
 
-## API Endpoints
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/v1/files/upload` | JWT | Multipart upload |
-| GET | `/api/v1/files/{fileId}` | JWT | Get metadata + download URL |
-| GET | `/api/v1/files/{fileId}/download` | JWT | Stream/download file |
-| DELETE | `/api/v1/files/{fileId}` | JWT | Delete (owner only) |
+## Identity
 
-## Upload Request
-`multipart/form-data`:
-- `file` — binary
-- `type` — enum: `AVATAR`, `CV`, `POSTER`, `VIDEO`
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/file-service/` |
+| Port | 8083 |
+| Eureka | `file-service` |
+| Storage | MinIO (S3-compatible) |
+| Metadata DB | `auth_db` or dedicated `file_metadata` table in lightweight PG optional |
+| Package | `com.vithey.file` |
 
-## Upload Response
+## Spring Cloud + tools
+
+Eureka, Config, **MinIO Java SDK** (`io.minio:minio`), JPA (metadata), Flyway, springdoc. No RabbitMQ.
+
+## Folder structure
+
+```text
+services/file-service/
+└── src/main/java/com/vithey/file/
+    ├── FileServiceApplication.java
+    ├── config/MinioConfig.java, SecurityConfig.java, OpenApiConfig.java
+    ├── controller/FileController.java
+    ├── service/FileStorageService.java, FileMetadataService.java
+    ├── repository/FileMetadataRepository.java
+    ├── entity/FileMetadata.java
+    ├── dto/response/FileUploadResponse.java, FileMetadataResponse.java
+    ├── mapper/FileMapper.java
+    ├── security/CurrentUserProvider.java
+    └── exception/GlobalExceptionHandler.java
+```
+
+## Entity FileMetadata
+
+`id` UUID, `owner_user_id`, `file_name`, `file_type` AVATAR|CV|POSTER|VIDEO, `mime_type`, `size_bytes`, `bucket`, `object_key`, `created_at`, `deleted_at`
+
+## Complete API (all JWT)
+
+| Method | Path | Input | Response | HTTP |
+|--------|------|-------|----------|------|
+| POST | `/api/v1/files/upload` | multipart: `file`, `type` | File metadata + url | 201 |
+| GET | `/api/v1/files/{fileId}` | — | Metadata + presigned url | 200 |
+| GET | `/api/v1/files/{fileId}/download` | — | Binary stream | 200 |
+| DELETE | `/api/v1/files/{fileId}` | — | — | 204 |
+
+**Upload response:**
 ```json
 {
   "data": {
@@ -24,26 +57,46 @@ Build the File microservice with MinIO integration.
     "file_type": "CV",
     "mime_type": "application/pdf",
     "size_bytes": 102400,
-    "url": "http://minio:9000/cvs/uuid/resume.pdf",
+    "url": "http://localhost:9000/cvs/...",
     "created_at": "2026-01-01T00:00:00Z"
   }
 }
 ```
 
-## Implementation
-- MinIO Java SDK (`io.minio:minio`)
-- Optional `FileMetadata` entity in PostgreSQL or in-memory for MVP
-- Validate MIME type and extension whitelist
-- Generate UUID object key: `{bucket}/{userId}/{uuid}/{filename}`
-- Pre-signed URLs for download (expiry 1 hour)
+## Business logic
 
-## Security
-- Verify `X-User-Id` matches uploader on delete
-- Virus scan hook (optional placeholder interface)
+| Step | Logic |
+|------|-------|
+| Upload | Validate MIME whitelist per `type` → generate object key `{bucket}/{userId}/{uuid}/{filename}` → MinIO put → save metadata |
+| Download | Verify caller owns file OR file referenced in public post (optional) → presigned URL 1h |
+| Delete | Owner only (`X-User-Id` == `owner_user_id`) → soft delete metadata + MinIO remove |
 
-## Required Modules
-- `FileController`, `FileStorageService`, `MinioConfig`
-- `GlobalExceptionHandler`, OpenAPI, tests with Testcontainers MinIO
+## MIME whitelist
+
+| Type | Allowed |
+|------|---------|
+| AVATAR | image/jpeg, image/png, image/webp |
+| CV | application/pdf, application/msword, docx |
+| POSTER | image/jpeg, image/png |
+| VIDEO | video/mp4, video/quicktime |
+
+## MinIO buckets
+
+`avatars`, `cvs`, `posters`, `videos` — create on startup if missing.
+
+## Errors
+
+| Case | HTTP |
+|------|------|
+| File not found | 404 |
+| Not owner on delete | 403 |
+| Invalid MIME | 400 |
+| File too large (>50MB video, >10MB other) | 400 |
+
+## Testing
+
+Testcontainers MinIO; upload+download integration; delete forbidden for non-owner.
 
 ## Output
-Runnable file-service on port 8083.
+
+Runnable file-service on **8083**.

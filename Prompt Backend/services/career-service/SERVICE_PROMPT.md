@@ -1,37 +1,58 @@
-# Career Service — Service Prompt
+# Career Service — Complete API Design
 
-Authoritative API contract and build checklist for the Vithey Career microservice.
-Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API only — job applications, CV metadata.
 
-## Conventions (avoid drift)
+## Identity
 
-- **JSON fields:** `snake_case`. **Java fields:** `camelCase`. Map via MapStruct/Jackson.
-- **All responses** use the root envelope (`{ "data": ... }` / `{ "error": ... }`).
-- **All IDs** are UUID strings. Lists are paginated per root pagination rules.
-- **Current user** comes from the JWT (`sub`), never from the request body.
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/career-service/` |
+| Port | 8085 |
+| Eureka | `career-service` |
+| Database | `career_db` |
+| Package | `com.vithey.career` |
 
-## API Endpoints (all require JWT)
+## Spring Cloud + tools
 
-| Method | Path                                        | Description                              | Success |
-| ------ | ------------------------------------------- | ---------------------------------------- | ------- |
-| POST   | `/api/v1/job-applications`                  | Apply to a job post with a CV            | 201     |
-| GET    | `/api/v1/job-applications`                  | Current user's applications (paginated)  | 200     |
-| GET    | `/api/v1/job-applications?job_post_id={id}` | Applicants for a job — **poster only**   | 200     |
-| GET    | `/api/v1/job-applications/{id}`             | Application detail (applicant or poster) | 200     |
-| PATCH  | `/api/v1/job-applications/{id}/status`      | Update status — **poster only**          | 200     |
-| GET    | `/api/v1/users/me/cv`                       | Current user's CV metadata               | 200     |
-| PUT    | `/api/v1/users/me/cv`                       | Set the default CV file reference        | 200     |
+Eureka, Config, OpenFeign (content-service, file-service), RabbitMQ, JPA, Flyway, MapStruct.
 
-## Request / Response Shapes
+## Folder structure
 
-### Apply — request
-
-```json
-{ "job_post_id": "uuid", "cv_file_id": "uuid-from-file-service" }
+```text
+services/career-service/
+└── src/main/java/com/vithey/career/
+    ├── CareerServiceApplication.java
+    ├── controller/JobApplicationController.java, UserCvController.java
+    ├── service/JobApplicationService.java, UserCvService.java
+    ├── repository/JobApplicationRepository.java, UserCvRepository.java
+    ├── entity/JobApplication.java, UserCv.java
+    ├── dto/request/ApplyJobRequest.java, UpdateApplicationStatusRequest.java, SetCvRequest.java
+    ├── dto/response/JobApplicationResponse.java, UserCvResponse.java
+    ├── client/ContentServiceClient.java, FileServiceClient.java
+    ├── event/publisher/JobApplicationEventPublisher.java
+    └── exception/GlobalExceptionHandler.java
 ```
 
-### Application — response
+## Database
 
+**JobApplication:** `id`, `job_post_id`, `applicant_id`, `cv_file_id`, `status` PENDING|REVIEWED|ACCEPTED|REJECTED, `applied_at`, `updated_at` — unique(job_post_id, applicant_id)
+
+**UserCv:** `user_id` PK, `cv_file_id`, `file_name`, `updated_at`
+
+## Complete API (all JWT)
+
+| Method | Path | Request | HTTP |
+|--------|------|---------|------|
+| POST | `/api/v1/job-applications` | `{ "job_post_id", "cv_file_id" }` | 201 |
+| GET | `/api/v1/job-applications` | my applications, paginated | 200 |
+| GET | `/api/v1/job-applications?job_post_id={id}` | applicants — **poster only** | 200 |
+| GET | `/api/v1/job-applications/{id}` | detail | 200 |
+| PATCH | `/api/v1/job-applications/{id}/status` | `{ "status": "REVIEWED" }` — poster | 200 |
+| GET | `/api/v1/users/me/cv` | current user CV metadata | 200 |
+| PUT | `/api/v1/users/me/cv` | `{ "cv_file_id": "uuid" }` | 200 |
+
+**Application response:**
 ```json
 {
   "data": {
@@ -46,54 +67,28 @@ Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
 }
 ```
 
-### Status update — request
+## Business logic
 
-```json
-{ "status": "REVIEWED" }
-```
+| Flow | Steps |
+|------|-------|
+| Apply | Verify job via ContentServiceClient → verify CV via FileServiceClient → save → publish `job.application.submitted` |
+| List applicants | ContentServiceClient confirms caller is job post author |
+| Status update | Poster only → publish `job.application.status_changed` |
+| Set CV | Validate file type CV → upsert UserCv |
 
-`status` ∈ {`PENDING`, `REVIEWED`, `ACCEPTED`, `REJECTED`}.
+## Events published
 
-## Business Rules
+`job.application.submitted`, `job.application.status_changed`
 
-- One application per user per job post — `409` on duplicate.
-- Verify `cv_file_id` exists via `FileServiceClient` before saving.
-- Verify the job post exists via `ContentServiceClient` before saving.
-- Poster authorization: call Content Service to confirm `authorId == current user`
-  for the applicants list and status-update endpoints.
-- Publish `job.application.submitted` on create and `job.application.status_changed`
-  on every status change.
+## Errors
 
-## Error Behavior (use root envelope + codes)
-
-| Case                                                           | Code               | HTTP |
-| -------------------------------------------------------------- | ------------------ | ---- |
-| Duplicate application                                          | `CONFLICT`         | 409  |
-| Caller is not the post owner (applicants list / status update) | `FORBIDDEN`        | 403  |
-| Job post / CV file / application not found                     | `NOT_FOUND`        | 404  |
-| Validation failure                                             | `VALIDATION_ERROR` | 400  |
-| Content/File service unavailable                               | `UPSTREAM_ERROR`   | 502  |
-
-## Required Modules
-
-- Controllers: `JobApplicationController`, `UserCvController`
-- Services: `JobApplicationService`, `ApplicantCvService`
-- Clients: `ContentServiceClient`, `FileServiceClient`
-- Events: `JobApplicationEventPublisher`
-- Config: `GlobalExceptionHandler`
-- Migration: `V1__init_career_schema.sql`
-
-## Testing
-
-- Apply flow with mocked Content/File clients test.
-- Duplicate application (`409`) test.
-- Non-owner cannot view applicants / update status (`403`) test.
-- Event-published assertions with mocked RabbitMQ.
-
-## Docs
-
-`README.md` (run, env vars, port), `API.md` (endpoint summary), `ARCHITECTURE.md` (boundaries, DB, events, clients).
+| Case | Code | HTTP |
+|------|------|------|
+| Duplicate application | CONFLICT | 409 |
+| Not poster | FORBIDDEN | 403 |
+| Not found | NOT_FOUND | 404 |
+| Upstream down | UPSTREAM_ERROR | 502 |
 
 ## Output
 
-Complete, runnable career-service on port 8085.
+Runnable career-service on **8085**.

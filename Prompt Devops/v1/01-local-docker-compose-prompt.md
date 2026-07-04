@@ -14,7 +14,8 @@ One-command local stack: infrastructure + all Spring Boot services + API Gateway
 vithey-backend/
 ├── docker-compose.yml           # all-in-one (includes infra)
 ├── docker-compose.infra.yml       # data layer only
-└── docker-compose.apps.yml        # app services only (for dev iteration)
+├── docker-compose.apps.yml        # app services only (for dev iteration)
+└── docker-compose.<service>.yml   # added by prompt 06 for independent services
 ```
 
 ## Infrastructure Services (`docker-compose.infra.yml`)
@@ -96,6 +97,7 @@ API_BASE_URL=http://localhost:8080/api/v1  # iOS simulator
 - Use named volumes for postgres, minio, rabbitmq data.
 - No production secrets in compose files — reference `.env`.
 - All services on same bridge network.
+- Full-stack Compose must not block independent per-service Compose from prompt `06`.
 
 ## Verification Checklist
 - [ ] `docker compose up -d --build` succeeds

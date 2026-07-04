@@ -1,58 +1,89 @@
-# Chat Service — Service Prompt
+# Chat Service — Complete API Design
 
-Authoritative API contract and build checklist for the Vithey Chat microservice
-(REST + WebSocket). Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API + WebSocket (STOMP) — conversations, messages, requests.
 
-## Conventions (avoid drift)
+## Identity
 
-- **JSON fields:** `snake_case`. **Java fields:** `camelCase`. Map via MapStruct/Jackson.
-- **All responses** use the root envelope (`{ "data": ... }` / `{ "error": ... }`).
-- **All IDs** are UUID strings. Lists are paginated per root pagination rules.
-- **Current user** comes from the JWT (`sub`), never from the request body.
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/chat-service/` |
+| Port | 8087 |
+| Eureka | `chat-service` |
+| Database | `chat_db` |
+| Package | `com.vithey.chat` |
 
-## API Endpoints
+## Spring Cloud + tools
+
+Eureka, Config, RabbitMQ, **WebSocket/STOMP**, Redis (optional presence), JPA, Flyway.
+
+## Folder structure
+
+```text
+services/chat-service/
+└── src/main/java/com/vithey/chat/
+    ├── ChatServiceApplication.java
+    ├── config/WebSocketConfig.java, SecurityConfig.java, RabbitMqConfig.java, RedisConfig.java
+    ├── controller/
+    │   ├── ConversationController.java
+    │   ├── MessageController.java
+    │   ├── MessageRequestController.java
+    │   └── ReportController.java
+    ├── websocket/ChatMessageController.java, ChatEventListener.java
+    ├── service/ConversationService.java, MessageService.java, BlockService.java, ReportService.java
+    ├── repository/ConversationRepository.java, MessageRepository.java, BlockRepository.java, UserReportRepository.java
+    ├── entity/Conversation.java, Message.java, ConversationParticipant.java, Block.java, UserReport.java
+    ├── dto/request/SendMessageRequest.java, MessageRequestDto.java, ReportUserRequest.java
+    ├── dto/response/ConversationResponse.java, MessageResponse.java
+    ├── event/publisher/ChatEventPublisher.java
+    └── exception/GlobalExceptionHandler.java
+```
+
+## Database
+
+**Conversation:** `id`, `status` PENDING|ACTIVE|BLOCKED|DECLINED, `created_at`
+
+**ConversationParticipant:** `conversation_id`, `user_id`, `role` REQUESTER|RECIPIENT
+
+**Message:** `id`, `conversation_id`, `sender_id`, `text`, `status` SENT|DELIVERED|READ, `created_at`
+
+**Block:** `blocker_id`, `blocked_id`, unique pair
+
+**UserReport:** `id`, `reporter_id`, `reported_id`, `reason`, `created_at`
+
+## Complete REST API (all JWT)
 
 ### Conversations
 
-| Method | Path                                 | Description                            | Success |
-| ------ | ------------------------------------ | -------------------------------------- | ------- |
-| GET    | `/api/v1/conversations`              | Chat list for current user (paginated) | 200     |
-| POST   | `/api/v1/conversations/request`      | Send a message request to a user       | 201     |
-| POST   | `/api/v1/conversations/{id}/accept`  | Accept request → status `ACTIVE`       | 200     |
-| POST   | `/api/v1/conversations/{id}/decline` | Decline request → status stays/closed  | 200     |
-| POST   | `/api/v1/conversations/{id}/block`   | Block the other participant            | 200     |
-| POST   | `/api/v1/users/{userId}/report`      | Report a user                          | 201     |
+| Method | Path | Request | HTTP |
+|--------|------|---------|------|
+| GET | `/api/v1/conversations` | paginated list | 200 |
+| POST | `/api/v1/conversations/request` | `{ "to_user_id", "initial_message" }` | 201 |
+| POST | `/api/v1/conversations/{id}/accept` | — | 200 |
+| POST | `/api/v1/conversations/{id}/decline` | — | 200 |
+| POST | `/api/v1/conversations/{id}/block` | — | 200 |
 
 ### Messages
 
-| Method | Path                                  | Description                       | Success |
-| ------ | ------------------------------------- | --------------------------------- | ------- |
-| GET    | `/api/v1/conversations/{id}/messages` | Paginated messages (newest first) | 200     |
-| POST   | `/api/v1/conversations/{id}/messages` | Send a message                    | 201     |
-| PATCH  | `/api/v1/messages/{id}/read`          | Mark a message as read            | 200     |
+| Method | Path | Request | HTTP |
+|--------|------|---------|------|
+| GET | `/api/v1/conversations/{id}/messages` | paginated | 200 |
+| POST | `/api/v1/conversations/{id}/messages` | `{ "text": "Hello!" }` | 201 |
+| PATCH | `/api/v1/messages/{id}/read` | — | 200 |
 
-### Message Requests
+### Message requests
 
-| Method | Path                       | Description                       | Success |
-| ------ | -------------------------- | --------------------------------- | ------- |
-| GET    | `/api/v1/message-requests` | Pending requests for current user | 200     |
+| Method | Path | HTTP |
+|--------|------|------|
+| GET | `/api/v1/message-requests` | 200 pending for current user |
 
-## Request / Response Shapes
+### Reports
 
-### Send message request — request
+| Method | Path | Request | HTTP |
+|--------|------|---------|------|
+| POST | `/api/v1/users/{userId}/report` | `{ "reason": "..." }` | 201 |
 
-```json
-{ "to_user_id": "uuid", "initial_message": "Hi, I'd like to connect" }
-```
-
-### Send message — request
-
-```json
-{ "text": "Hello!" }
-```
-
-### Message — response
-
+**Message response:**
 ```json
 {
   "data": {
@@ -66,60 +97,41 @@ Authoritative API contract and build checklist for the Vithey Chat microservice
 }
 ```
 
-### Report user — request
-
-```json
-{ "reason": "Spam or harassment" }
-```
-
 ## WebSocket (STOMP)
 
-- Connect: `ws://localhost:8087/ws/chat` with JWT in the handshake header.
-- Subscribe: `/user/queue/messages` (server routes to `/user/{userId}/queue/messages`).
-- Send: `/app/chat.send`.
-- Server pushes new messages to the recipient in real time.
-- Status transitions: `SENT` → `DELIVERED` on recipient receive → `READ` when the
-  recipient opens the conversation.
+| Item | Value |
+|------|-------|
+| Endpoint | `ws://localhost:8087/ws/chat` (or via gateway `/ws` proxy) |
+| Connect | JWT in `Authorization` header on handshake |
+| Subscribe | `/user/queue/messages` |
+| Send | `/app/chat.send` with `{ conversation_id, text }` |
+| Push | Server delivers to recipient in real time |
 
-## Business Rules
+Status flow: `SENT` → `DELIVERED` on receive → `READ` on PATCH read.
 
-- First contact between two users creates a `MessageRequest`; the recipient must
-  accept before the `Conversation` becomes `ACTIVE`.
-- Sending into a `PENDING`/`BLOCKED` conversation is rejected.
-- Blocked users cannot send messages.
-- A user cannot message themselves.
+## Business logic
 
-## Error Behavior (use root envelope + codes)
+| Rule | Logic |
+|------|-------|
+| First contact | Create PENDING conversation + message request → publish `chat.request.received` |
+| Accept | Status ACTIVE — both can message |
+| Send | Reject if PENDING/BLOCKED; reject self-message |
+| Block | Set BLOCKED; blocked user cannot send |
+| New message | Publish `chat.message.sent` for notification |
 
-| Case                               | Code                      | HTTP |
-| ---------------------------------- | ------------------------- | ---- |
-| Message to self                    | `BUSINESS_RULE_VIOLATION` | 422  |
-| Sender blocked / not a participant | `FORBIDDEN`               | 403  |
-| Conversation/message not found     | `NOT_FOUND`               | 404  |
-| Duplicate request to same user     | `CONFLICT`                | 409  |
-| Validation failure                 | `VALIDATION_ERROR`        | 400  |
+## Events published
 
-## Required Modules
+`chat.request.received`, `chat.message.sent`
 
-- Controllers: `ConversationController`, `MessageController`, `MessageRequestController`, `ReportController`
-- Services: `ChatService`, `MessageService`, `BlockService`, `ReportService`
-- Real-time: `WebSocketConfig`, `ChatMessageController` (STOMP)
-- Events: `ChatEventPublisher`
-- Config: Redis config (optional presence), `GlobalExceptionHandler`
-- Migration: `V1__init_chat_schema.sql`
+## Errors
 
-## Testing
-
-- WebSocket/STOMP integration test (send → recipient receives).
-- Message-request accept/decline flow test.
-- Block prevents send (403) test.
-- Cannot-message-self (422) test.
-- Event-published assertions with mocked RabbitMQ.
-
-## Docs
-
-`README.md` (run, env vars, port), `API.md` (endpoint summary), `ARCHITECTURE.md` (boundaries, DB, events, WebSocket).
+| Case | HTTP |
+|------|------|
+| Message self | 422 |
+| Blocked / not participant | 403 |
+| Not found | 404 |
+| Duplicate request | 409 |
 
 ## Output
 
-Complete, runnable chat-service on port 8087.
+Runnable chat-service on **8087** with REST + STOMP.

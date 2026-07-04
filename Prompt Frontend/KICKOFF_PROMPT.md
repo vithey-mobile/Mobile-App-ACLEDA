@@ -3,8 +3,9 @@
 You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank AUB App Competition. Use the provided context files and work **one screen/module at a time**.
 
 ## Read First
-1. `COMMON_CONTEXT.md`
-2. The specific screen prompt you are about to execute (in `v1/`)
+1. `Prompt Frontend/api-intergration/integration-contract.md` — API contract with backend
+2. `COMMON_CONTEXT.md`
+3. The specific screen prompt in `Screen prompt/`
 
 ## Competition Context
 - Target users: AUB students and general youth users
@@ -23,27 +24,20 @@ You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank 
 - **Reuse components:** put shared UI in `lib/core/widgets/`; screen-specific UI in `lib/modules/<feature>/widgets/`.
 - Mock API responses when backend is unavailable, but structure repositories/services so real API integration is a drop-in swap.
 - Match the folder structure defined in `COMMON_CONTEXT.md` exactly.
-- Follow UX from `Project Overview.txt` for each screen.
+- Each screen file in `Screen prompt/` contains product/design requirements and implementation instructions.
 
 ## Recommended Execution Order
-1. `v1/00-foundation-prompt.md` — project skeleton, theme, routing, core reusable widgets
-2. `v1/01-splash-prompt.md`
-3. `v1/02-onboarding-prompt.md`
-4. `v1/03-auth-prompt.md`
-5. `v1/04-home-prompt.md`
-6. `v1/05-create-post-prompt.md`
-7. `v1/06-post-detail-prompt.md`
-8. `v1/07-apply-cv-prompt.md`
-9. `v1/08-preview-cv-prompt.md`
-10. `v1/09-profile-prompt.md`
-11. `v1/10-finance-prompt.md`
-12. `v1/11-student-verification-prompt.md`
-13. `v1/12-chat-prompt.md`
-14. `v1/13-chat-detail-prompt.md`
-15. `v1/14-chatbot-prompt.md`
-16. `v1/15-notification-prompt.md`
-17. `v1/16-settings-prompt.md`
-18. `v1/17-applicant-cv-preview-prompt.md`
+1. `Screen prompt/00-foundation-prompt.md` — project skeleton, theme, routing, core reusable widgets
+2. `Screen prompt/auth/01-splash-prompt.md` through `auth/09-startup-3-prompt.md` in order
+3. `Screen prompt/media/README.md` — Home, all card types, comments, share, create
+4. `Screen prompt/media/05.post_detail.md`
+5. `Screen prompt/profile/README.md` — Profile, applicants, CV previews
+6. `Screen prompt/upload_cv/README.md` — Job description, CV update/upload, application
+7. `Screen prompt/finance/README.md` — Verification, status, Finance Home, invoice detail
+8. `Screen prompt/chat/README.md` — Conversation list, thread, participant profile
+9. `Screen prompt/chatbot/README.md`
+10. `Screen prompt/notification/01-notification-prompt.md`
+11. `Screen prompt/setting/README.md`
 
 ## Working Style
 - Build one module fully before moving to the next.
@@ -67,4 +61,4 @@ You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank 
 - Base URL: `http://localhost:8080/api/v1` (dev) — configurable via `.env`
 - Auth header: `Authorization: Bearer <access_token>`
 - Response envelope: `{ "data": ..., "meta": ... }` or `{ "error": { "code", "message", "details" } }`
-- See `Project Overview.txt` API Design section for endpoint details when wiring real calls.
+- See `Prompt Frontend/api-intergration/api-overview.md` for endpoint details.

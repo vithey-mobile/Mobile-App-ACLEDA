@@ -4,7 +4,8 @@ You are building **DevOps infrastructure** for the Vithey App (Flutter frontend 
 
 ## Read First
 1. `COMMON_CONTEXT.md`
-2. The specific prompt in `v1/` you are about to execute
+2. `Prompt Frontend/api-intergration/integration-contract.md` (API + ports context)
+3. The specific prompt in `v1/` or `services/<service>/DEVOPS_PROMPT.md` you are about to execute
 
 ## Scope
 | In Scope | Out of Scope (do NOT build) |
@@ -13,6 +14,8 @@ You are building **DevOps infrastructure** for the Vithey App (Flutter frontend 
 | Dockerfiles (multi-stage) for all services | Nginx reverse proxy |
 | GitHub Actions CI (build + test) | Certbot / SSL |
 | GitHub Actions → push images to **GHCR** | Prometheus |
+| Per-service Docker Compose files | Service business logic changes |
+| Per-service GitHub Actions CI workflows | Manual click-only CI steps |
 | `.env` templates and secrets guidance | Grafana |
 | Production-ready **container images** and compose templates | Loki / ELK logging stack |
 | Health checks, Makefile, developer docs | Kubernetes (optional later) |
@@ -51,12 +54,17 @@ Infrastructure only (use official images locally): PostgreSQL, Redis, RabbitMQ, 
 4. `v1/03-github-actions-ci-prompt.md` — CI: test + build on PR/push
 5. `v1/04-github-actions-ghcr-prompt.md` — build & push images to GHCR
 6. `v1/05-production-ready-prompt.md` — prod compose template, release workflow, secrets map
+7. `v1/06-per-service-docker-compose-prompt.md` — independent Compose file per service
+8. `v1/07-per-service-github-actions-ci-prompt.md` — independent CI workflow per service
+9. `services/<service>/DEVOPS_PROMPT.md` — run one service independently
 
 ## Working Style
 - Complete one prompt fully before the next.
 - Verify locally: `docker compose up -d` → gateway health `http://localhost:8080/actuator/health`
 - GitHub Actions must use path filters so only changed services rebuild.
-- Document every env var in `docs/ENV.md`.
+- Per-service CI must live in `.github/workflows/<service>-ci.yml`.
+- Per-service Compose must live at `vithey-backend/docker-compose.<service>.yml`.
+- Document every env var in `vithey-backend/docs/ENV.md` (created by DevOps prompts).
 
 ## Output Quality
 - Runnable files, not placeholders.

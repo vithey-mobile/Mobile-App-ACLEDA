@@ -45,7 +45,7 @@ GHCR_OWNER=Kimheang-code-IT
 ```
 
 ### `docker/postgres/init-databases.sql`
-Create: `auth_db`, `user_db`, `content_db`, `career_db`, `finance_db`, `chat_db`, `notification_db`, `ai_db`.
+Create: `auth_db`, `user_db`, `file_db`, `content_db`, `career_db`, `finance_db`, `chat_db`, `notification_db`, `ai_db`.
 
 ### `docker/minio/create-buckets.sh`
 Create buckets: `avatars`, `cvs`, `posters`, `videos`.
@@ -58,6 +58,8 @@ Create buckets: `avatars`, `cvs`, `posters`, `videos`.
 | `make down-v` | `docker compose down -v` |
 | `make logs` | `docker compose logs -f` |
 | `make infra` | Start infra only |
+| `make service SERVICE=auth-service` | Start one independent service compose file |
+| `make service-down SERVICE=auth-service` | Stop one independent service compose file |
 | `make health` | Curl gateway health |
 | `make ps` | `docker compose ps` |
 

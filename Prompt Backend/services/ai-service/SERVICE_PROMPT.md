@@ -1,43 +1,72 @@
-# AI Service — Service Prompt
+# AI Service — Complete API Design
 
-Authoritative API contract and build checklist for the Vithey AI microservice.
-Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API only — AI chat sessions, CV suggestions.
 
-## Conventions (avoid drift)
+## Identity
 
-- **JSON fields:** `snake_case`. **Java fields:** `camelCase`. Map via MapStruct/Jackson.
-- **All responses** use the root envelope (`{ "data": ... }` / `{ "error": ... }`).
-- **All IDs** are UUID strings. Lists are paginated per root pagination rules.
-- **Current user** comes from the JWT (`sub`), never from the request body.
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/ai-service/` |
+| Port | 8089 |
+| Eureka | `ai-service` |
+| Database | `ai_db` |
+| Package | `com.vithey.ai` |
 
-## API Endpoints (all require JWT)
+## Spring Cloud + tools
 
-| Method | Path                                | Description                                       | Success |
-| ------ | ----------------------------------- | ------------------------------------------------- | ------- |
-| POST   | `/api/v1/ai/chat`                   | Send a message, get an AI reply                   | 200     |
-| GET    | `/api/v1/ai/sessions`               | List the current user's chat sessions (paginated) | 200     |
-| GET    | `/api/v1/ai/sessions/{id}/messages` | Session message history (paginated)               | 200     |
-| DELETE | `/api/v1/ai/sessions/{id}`          | Clear / delete a session                          | 204     |
-| POST   | `/api/v1/ai/cv/suggest`             | CV section improvement suggestion                 | 200     |
+Eureka, Config, **Redis** (rate limit), JPA, Flyway, RestClient to OpenAI/Gemini.
 
-## Request / Response Shapes
+## Folder structure
 
-### Chat — request
+```text
+services/ai-service/
+└── src/main/java/com/vithey/ai/
+    ├── AiServiceApplication.java
+    ├── config/RedisConfig.java, SecurityConfig.java, OpenApiConfig.java, AiProviderConfig.java
+    ├── controller/AiChatController.java, CvSuggestionController.java
+    ├── service/AiChatService.java, CvSuggestionService.java, AiRateLimitService.java
+    ├── provider/AiProvider.java, OpenAiProvider.java, GeminiProvider.java, AiProviderFactory.java
+    ├── repository/AiChatSessionRepository.java, AiChatMessageRepository.java
+    ├── entity/AiChatSession.java, AiChatMessage.java
+    ├── dto/request/ChatRequest.java, CvSuggestRequest.java
+    ├── dto/response/ChatResponse.java, CvSuggestResponse.java, SessionResponse.java
+    ├── support/PromptLoader.java
+    └── exception/GlobalExceptionHandler.java
+└── resources/prompts/
+    ├── cv-system.md
+    ├── job-system.md
+    ├── interview-system.md
+    ├── student-system.md
+    └── finance-system.md
+```
 
+## Database
+
+**AiChatSession:** `id`, `user_id`, `topic` CV|JOB|INTERVIEW|STUDENT|FINANCE, `created_at`, `updated_at`
+
+**AiChatMessage:** `id`, `session_id`, `role` USER|ASSISTANT, `content`, `created_at`
+
+## Complete API (all JWT)
+
+| Method | Path | Request | HTTP |
+|--------|------|---------|------|
+| POST | `/api/v1/ai/chat` | ChatRequest | 200 |
+| GET | `/api/v1/ai/sessions` | paginated | 200 |
+| GET | `/api/v1/ai/sessions/{id}/messages` | paginated | 200 |
+| DELETE | `/api/v1/ai/sessions/{id}` | — | 204 |
+| POST | `/api/v1/ai/cv/suggest` | CvSuggestRequest | 200 |
+
+**Chat request:**
 ```json
 {
   "message": "How to write a good CV?",
   "topic": "CV",
-  "session_id": "uuid-or-null-for-new"
+  "session_id": null
 }
 ```
 
-`topic` ∈ {`CV`, `JOB`, `INTERVIEW`, `STUDENT`, `FINANCE`}. When `session_id` is
-null, create a new session with this `topic`; otherwise the existing session's
-topic is authoritative.
-
-### Chat — response
-
+**Chat response:**
 ```json
 {
   "data": {
@@ -49,14 +78,12 @@ topic is authoritative.
 }
 ```
 
-### CV suggest — request
-
+**CV suggest request:**
 ```json
 { "section": "experiences", "original_text": "I did coding", "cv_id": "uuid" }
 ```
 
-### CV suggest — response
-
+**CV suggest response:**
 ```json
 {
   "data": {
@@ -66,72 +93,45 @@ topic is authoritative.
 }
 ```
 
-## Implementation
+## Business logic — AiChatService
 
-### `AiProvider` interface
+1. Rate limit check (30 req/hour/user via Redis) → 429
+2. Resolve or create session (validate `user_id` == JWT sub)
+3. Load system prompt from `prompts/{topic}-system.md`
+4. Load last 10 messages from DB for context
+5. Call `AiProvider.chat()` via RestClient
+6. Persist user + assistant messages
+7. Return reply
+
+## AiProvider
 
 ```java
 public interface AiProvider {
-    String chat(List<ChatMessage> messages, String model);
+  String chat(List<ChatMessage> messages, String model);
 }
 ```
 
-Implementations: `OpenAiProvider`, `GeminiProvider` — selected via `AI_PROVIDER`
-env by `AiProviderFactory`.
-
-### `AiChatService` flow
-
-1. Resolve or create the session (validate ownership against JWT `sub`).
-2. Build the message list: system prompt (by topic) + last 10 messages from DB + new user message.
-3. Call the provider via `RestClient`.
-4. Persist both the user and assistant `AiChatMessage` rows.
-5. Return the reply.
-
-### System prompts
-
-Load `.md` files from `src/main/resources/prompts/` via a `PromptLoader`:
-`cv-system.md`, `job-system.md`, `interview-system.md`, `student-system.md`, `finance-system.md`.
-
-### Context window
-
-- Load the last 10 messages from the session for context.
-- Truncate older messages if the token limit would be exceeded.
+Selected by `vithey.ai.provider` = `openai` | `gemini`.
 
 ## Security
 
-- Sanitize user input before sending it to the provider.
-- Never send real payment amounts, passwords, or secrets to the LLM.
-- Rate limit: 30 requests/hour per user (Redis counter) → `429` when exceeded.
+- Sanitize input before LLM
+- Never send passwords, full payment details to provider
+- Session ownership enforced on all session endpoints
 
-## Error Behavior (use root envelope + codes)
+## Errors
 
-| Case                                    | Code               | HTTP |
-| --------------------------------------- | ------------------ | ---- |
-| Session not owned by caller / not found | `NOT_FOUND`        | 404  |
-| Invalid topic or validation failure     | `VALIDATION_ERROR` | 400  |
-| Rate limit exceeded                     | `RATE_LIMITED`     | 429  |
-| Upstream AI provider failure            | `UPSTREAM_ERROR`   | 502  |
-
-## Required Modules
-
-- Controllers: `AiChatController`, `CvSuggestionController`
-- Services: `AiChatService`, `CvSuggestionService`, `AiProviderFactory`
-- Providers: `OpenAiProvider`, `GeminiProvider`
-- Repositories: `AiChatSessionRepository`, `AiChatMessageRepository`
-- Support: `PromptLoader` (loads `.md` prompts), `GlobalExceptionHandler`
-- Migration: `V1__init_ai_schema.sql`
+| Case | HTTP |
+|------|------|
+| Session not found / not owned | 404 |
+| Invalid topic | 400 |
+| Rate limit | 429 |
+| Provider failure | 502 |
 
 ## Testing
 
-- Chat flow test with a **mocked** `AiProvider` (no real API calls).
-- Session ownership / not-found (404) test.
-- Rate-limit (429) test.
-- `PromptLoader` loads each topic prompt test.
-
-## Docs
-
-`README.md` (run, env vars, port), `API.md` (endpoint summary), `ARCHITECTURE.md` (boundaries, DB, provider abstraction).
+Mock AiProvider; no real API calls in CI; rate limit test; session ownership test.
 
 ## Output
 
-Complete, runnable ai-service on port 8089.
+Runnable ai-service on **8089**.

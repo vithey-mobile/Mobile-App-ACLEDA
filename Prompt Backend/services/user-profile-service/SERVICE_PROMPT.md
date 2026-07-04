@@ -1,26 +1,70 @@
-# User Profile Service — Service Prompt
+# User Profile Service — Complete API Design
 
-Build the User/Profile microservice.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API only — profiles, settings, user search.
 
-## API Endpoints
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/v1/users/me` | JWT | Current user profile + settings |
-| GET | `/api/v1/users/{userId}` | JWT | Public profile view |
-| PATCH | `/api/v1/users/me` | JWT | Update bio, social links, university |
-| PATCH | `/api/v1/users/me/avatar` | JWT | Set avatar URL (after file upload) |
-| GET | `/api/v1/users/me/settings` | JWT | Get settings |
-| PATCH | `/api/v1/users/me/settings` | JWT | Update theme, language, notifications |
-| GET | `/api/v1/users/search` | JWT | Search users by name (`?search=john`) |
+## Identity
 
-## Profile Response
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/user-profile-service/` |
+| Port | 8082 |
+| Eureka | `user-profile-service` |
+| Database | `user_db` |
+| Package | `com.vithey.profile` |
+
+## Spring Cloud + tools
+
+Eureka, Config, OpenFeign, RabbitMQ listener, JPA, Flyway, MapStruct, springdoc.
+
+## Folder structure
+
+```text
+services/user-profile-service/
+└── src/main/java/com/vithey/profile/
+    ├── UserProfileServiceApplication.java
+    ├── config/SecurityConfig.java, RabbitMqConfig.java, OpenApiConfig.java
+    ├── controller/
+    │   ├── UserController.java
+    │   └── SettingsController.java
+    ├── service/ProfileService.java, SettingsService.java, UserSearchService.java
+    ├── repository/ProfileRepository.java, UserSettingsRepository.java
+    ├── entity/Profile.java, UserSettings.java
+    ├── dto/request/UpdateProfileRequest.java, UpdateSettingsRequest.java, UpdateAvatarRequest.java
+    ├── dto/response/ProfileResponse.java, SettingsResponse.java, UserSearchResultResponse.java
+    ├── mapper/ProfileMapper.java, SettingsMapper.java
+    ├── client/FileServiceClient.java          # @FeignClient file-service
+    ├── event/listener/UserRegisteredEventListener.java
+    ├── security/CurrentUserProvider.java
+    └── exception/GlobalExceptionHandler.java
+```
+
+## Database
+
+**Profile:** `id` (= user_id UUID), `full_name`, `bio`, `avatar_file_id`, `avatar_url`, `telegram_link`, `facebook_link`, `university`, `major`, `graduation_year`, `created_at`, `updated_at`
+
+**UserSettings:** `user_id` PK, `language` km|en, `theme` light|dark|system, `notification_prefs` JSONB, `fcm_token`, `updated_at`
+
+## Complete API (all JWT)
+
+| Method | Path | Request body | Response | HTTP |
+|--------|------|--------------|----------|------|
+| GET | `/api/v1/users/me` | — | Profile + settings summary | 200 |
+| GET | `/api/v1/users/{userId}` | — | Public profile | 200 |
+| PATCH | `/api/v1/users/me` | Update profile fields | Updated profile | 200 |
+| PATCH | `/api/v1/users/me/avatar` | `{ "avatar_file_id": "uuid" }` | Profile with avatar_url | 200 |
+| GET | `/api/v1/users/me/settings` | — | Settings | 200 |
+| PATCH | `/api/v1/users/me/settings` | Settings JSON | Updated settings | 200 |
+| GET | `/api/v1/users/search` | `?search=john&page=1&limit=20` | Paginated users | 200 |
+
+**Profile response:**
 ```json
 {
   "data": {
     "user_id": "uuid",
     "full_name": "Jane Doe",
     "bio": "AUB CS student",
-    "avatar_url": "https://minio/...",
+    "avatar_url": "https://...",
     "telegram_link": "https://t.me/jane",
     "facebook_link": "https://facebook.com/jane",
     "university": "AUB",
@@ -30,25 +74,39 @@ Build the User/Profile microservice.
 }
 ```
 
-## Settings Request
+**Settings request:**
 ```json
 {
   "language": "km",
   "theme": "dark",
-  "notifications": { "likes": true, "comments": true, "chat": true, "payments": true }
+  "notifications": { "likes": true, "comments": true, "chat": true, "payments": true },
+  "fcm_token": "optional-device-token"
 }
 ```
 
-## Event Listener
-`UserRegisteredListener` — on `user.registered`, create Profile with fullName from event.
+## Business logic
 
-## Required Modules
-- `UserController`, `SettingsController`
-- `ProfileService`, `SettingsService`, `UserSearchService`
-- `ProfileRepository`, `UserSettingsRepository`
-- `UserRegisteredEventListener`
-- `FileServiceClient` (WebClient)
-- Flyway migrations, OpenAPI, tests
+| Flow | Logic |
+|------|-------|
+| User registered event | Create Profile row with `full_name` from event |
+| Update avatar | Validate file exists via FileServiceClient → store `avatar_file_id` + URL |
+| Search | ILIKE on `full_name`, paginated, exclude blocked users (future) |
+| Public profile | Hide email/phone; show bio, links, university |
+
+## Events consumed
+
+| Event | Action |
+|-------|--------|
+| `user.registered` | Insert Profile |
+
+## Errors
+
+| Case | HTTP |
+|------|------|
+| Profile not found | 404 |
+| Invalid file id for avatar | 404 |
+| Validation error | 400 |
 
 ## Output
-Runnable service on port 8082.
+
+Runnable user-profile-service on **8082**.

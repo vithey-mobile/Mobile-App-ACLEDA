@@ -1,49 +1,74 @@
-# Finance Service — Service Prompt
+# Finance Service — Complete API Design
 
-Authoritative API contract and build checklist for the Vithey Finance microservice.
-Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
+> **Scope:** Backend REST API only — student payments, fees, alerts. **STUDENT role required.**
 
-## Conventions (avoid drift)
+## Identity
 
-- **JSON fields:** `snake_case`. **Java fields:** `camelCase`. Map via MapStruct/Jackson.
-- **All responses** use the root envelope (`{ "data": ... }` / `{ "error": ... }`).
-- **All IDs** are UUID strings. Lists are paginated per root pagination rules.
-- **Amounts** are raw integers with a separate `currency` code — no formatting server-side.
-- **Current student** comes from the JWT (`sub` → `studentId`), never from the request.
+| Item | Value |
+|------|-------|
+| Path | `vithey-backend/services/finance-service/` |
+| Port | 8086 |
+| Eureka | `finance-service` |
+| Database | `finance_db` |
+| Package | `com.vithey.finance` |
 
-## API Endpoints (all require `STUDENT` role)
+## Spring Cloud + tools
 
-| Method | Path                      | Description                                     | Success |
-| ------ | ------------------------- | ----------------------------------------------- | ------- |
-| GET    | `/api/v1/payments`        | Payment history for current student (paginated) | 200     |
-| GET    | `/api/v1/payments/{id}`   | Payment detail (must belong to caller)          | 200     |
-| GET    | `/api/v1/fees`            | All fees assigned to current student            | 200     |
-| GET    | `/api/v1/fees/categories` | Fee categories                                  | 200     |
-| GET    | `/api/v1/payments/alerts` | Upcoming due payments (next 7 days)             | 200     |
+Eureka, Config, OpenFeign (optional auth verify), RabbitMQ, JPA, Flyway, `@Scheduled` for alerts.
 
-## Response Shapes
+## Folder structure
 
-### Payment list — response
+```text
+services/finance-service/
+└── src/main/java/com/vithey/finance/
+    ├── FinanceServiceApplication.java
+    ├── controller/PaymentController.java, FeeController.java
+    ├── service/PaymentService.java, FeeService.java
+    ├── scheduler/PaymentAlertScheduler.java
+    ├── repository/PaymentRepository.java, FeeRepository.java, StudentFinanceAccountRepository.java
+    ├── entity/Payment.java, Fee.java, FeeCategory.java, StudentFinanceAccount.java
+    ├── dto/response/PaymentResponse.java, FeeResponse.java, PaymentAlertsResponse.java
+    ├── event/listener/StudentVerifiedEventListener.java
+    ├── event/publisher/PaymentEventPublisher.java
+    ├── security/StudentRoleRequiredAspect.java
+    └── exception/GlobalExceptionHandler.java
+```
 
+## Database
+
+**StudentFinanceAccount:** `user_id` PK, `student_id`, `linked_at`
+
+**FeeCategory:** `id`, `name`, `description`
+
+**Fee:** `id`, `category_id`, `name`, `amount`, `currency` KHR|USD
+
+**Payment:** `id`, `user_id`, `fee_id`, `amount`, `currency`, `status` UNPAID|PAID|OVERDUE, `due_date`, `paid_at`, `created_at`
+
+## Complete API (all JWT + `@PreAuthorize("hasRole('STUDENT')")`)
+
+| Method | Path | Description | HTTP |
+|--------|------|-------------|------|
+| GET | `/api/v1/payments` | Payment history, paginated | 200 |
+| GET | `/api/v1/payments/{id}` | Detail (own only) | 200 |
+| GET | `/api/v1/fees` | Fees assigned to student | 200 |
+| GET | `/api/v1/fees/categories` | Fee categories | 200 |
+| GET | `/api/v1/payments/alerts` | Due within 7 days + overdue | 200 |
+
+**Payment list item:**
 ```json
 {
-  "data": [
-    {
-      "payment_id": "uuid",
-      "fee_name": "Tuition Semester 1",
-      "amount": 1500000,
-      "currency": "KHR",
-      "status": "UNPAID",
-      "due_date": "2026-03-15",
-      "paid_at": null
-    }
-  ],
-  "meta": { "page": 1, "limit": 20, "total": 5, "total_pages": 1 }
+  "payment_id": "uuid",
+  "fee_name": "Tuition Semester 1",
+  "amount": 1500000,
+  "currency": "KHR",
+  "status": "UNPAID",
+  "due_date": "2026-03-15",
+  "paid_at": null
 }
 ```
 
-### Alerts — response
-
+**Alerts:**
 ```json
 {
   "data": {
@@ -61,48 +86,27 @@ Read `KICKOFF_PROMPT.md` and both `COMMON_CONTEXT.md` files first.
 }
 ```
 
-## Business Rules
+## Business logic
 
-- A payment is `OVERDUE` when `due_date < today` and status is not `PAID`.
-- Daily scheduled job scans unpaid fees and:
-  - publishes `payment.due` when a fee is due within 7 days,
-  - publishes `payment.overdue` when `due_date` has passed and it is unpaid.
-- Amounts are raw integers (intl-compatible); never format currency in the API.
+| Rule | Logic |
+|------|-------|
+| Access | Reject non-STUDENT with 403 |
+| OVERDUE | `due_date < today` AND status != PAID |
+| Scheduler daily | Publish `payment.due` (within 7 days), `payment.overdue` (past due) |
+| student.verified | Create StudentFinanceAccount + seed dev sample payments |
 
-## Student-Verified Listener
+## Events
 
-On `student.verified`, create or link the `studentId` in finance records.
-In the `dev` profile, seed sample fees for that student.
+**Consumed:** `student.verified`  
+**Published:** `payment.due`, `payment.overdue`
 
-## Error Behavior (use root envelope + codes)
+## Errors
 
-| Case                                         | Code               | HTTP |
-| -------------------------------------------- | ------------------ | ---- |
-| Non-student / unverified caller              | `FORBIDDEN`        | 403  |
-| Payment/fee not found or not owned by caller | `NOT_FOUND`        | 404  |
-| Validation failure (bad query params)        | `VALIDATION_ERROR` | 400  |
-
-## Required Modules
-
-- Controllers: `PaymentController`, `FeeController`
-- Services: `PaymentService`, `FeeService`, `PaymentAlertScheduler`
-- Events: `StudentVerifiedEventListener`, `PaymentEventPublisher`
-- Client: `AuthServiceClient` (verify `STUDENT` role when needed)
-- Config: `GlobalExceptionHandler`
-- Migration: `V1__init_finance_schema.sql` (+ dev seed data)
-
-## Testing
-
-- Access-control test: non-student gets `403`.
-- Ownership test: student cannot read another student's payment (`404`).
-- Overdue-status calculation test.
-- Scheduler publishes `payment.due` / `payment.overdue` (mocked RabbitMQ) test.
-- `student.verified` listener links/seeds records test.
-
-## Docs
-
-`README.md` (run, env vars, port), `API.md` (endpoint summary), `ARCHITECTURE.md` (boundaries, DB, events, scheduler).
+| Case | HTTP |
+|------|------|
+| Non-student | 403 |
+| Payment not owned | 404 |
 
 ## Output
 
-Complete, runnable finance-service on port 8086.
+Runnable finance-service on **8086**.

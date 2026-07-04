@@ -1,54 +1,77 @@
 # Vithey App — Project Overview
 
-> **Documentation has been reorganized.** Edit screen specs in `docs/screens/` — not this file.
+**App:** Vithey App  
+**Package:** `aub_connect_app`  
+**Audience:** AUB students + youth users
 
-## Start here
+This repository stores AI prompts and product/API specifications only. Generated code should be created later under:
 
-| Document | Description |
-|----------|-------------|
-| [docs/README.md](docs/README.md) | **Main index** — all screens + how to update |
-| [docs/00-project-summary.md](docs/00-project-summary.md) | What the app does |
-| [docs/01-navigation-and-flow.md](docs/01-navigation-and-flow.md) | Screen flow & routes |
+- `vithey_app/` — Flutter app
+- `vithey-backend/` — Spring Boot backend
 
-## All screens (one file each)
+## Root Layout
 
-1. [Splash](docs/screens/01-splash-screen.md)
-2. [Onboarding](docs/screens/02-onboarding-screen.md)
-3. [Auth](docs/screens/03-auth-screen.md)
-4. [Home](docs/screens/04-home-screen.md)
-5. [Create Post](docs/screens/05-create-post-screen.md)
-6. [Post Detail](docs/screens/06-post-detail-screen.md)
-7. [Apply CV](docs/screens/07-apply-cv-screen.md)
-8. [Preview CV](docs/screens/08-preview-cv-screen.md)
-9. [Profile](docs/screens/09-profile-screen.md)
-10. [Finance](docs/screens/10-finance-screen.md)
-11. [Student Verification](docs/screens/11-student-verification-screen.md)
-12. [Chat](docs/screens/12-chat-screen.md)
-13. [Chat Detail](docs/screens/13-chat-detail-screen.md)
-14. [AI Chatbot](docs/screens/14-ai-chatbot-screen.md)
-15. [Notification](docs/screens/15-notification-screen.md)
-16. [Settings](docs/screens/16-settings-screen.md)
-17. [Applicant CV Preview](docs/screens/17-applicant-cv-preview-screen.md)
+```text
+Acleda Mobile App/
+├── MASTER_AI_PROMPT.md
+├── Project Overview.txt
+├── Prompt Frontend/
+├── Prompt Backend/
+└── Prompt Devops/
+```
 
-## Reference
+## Prompt Frontend
 
-- [Frontend (Flutter)](docs/reference/frontend.md)
-- [Backend (microservices)](docs/reference/backend.md)
-- [API overview](docs/reference/api-overview.md)
+| Path | Purpose |
+|------|---------|
+| `KICKOFF_PROMPT.md` | Frontend build rules |
+| `COMMON_CONTEXT.md` | Flutter architecture and package rules |
+| `Screen prompt/` | Screen prompts organized by feature flow |
+| `screen image/` | UI reference images |
+| `api-intergration/README.md` | API integration prompt index |
+| `api-intergration/integration-contract.md` | **Only source of truth for frontend ↔ backend API contract** |
+| `api-intergration/api-overview.md` | Endpoint index |
+| `api-intergration/00-api-intergration-prompt.md` | Live Flutter API wiring prompt |
 
-## Cursor prompts
+## Prompt Backend
 
-- `Prompt Frontend/` — Flutter build prompts
-- `Prompt Backend/` — Spring Boot per service
-- `Prompt Devops/` — Docker + GitHub Actions
+| Path | Purpose |
+|------|---------|
+| `KICKOFF_PROMPT.md` | Backend build rules |
+| `COMMON_CONTEXT.md` | Shared API envelope, ports, events, RBAC |
+| `SERVICE_BLUEPRINT.md` | Spring Cloud + service folder template |
+| `services/*/API_ENDPOINTS.md` | Per-service endpoint contract aligned to frontend |
+| `services/*/FOLDER_STRUCTURE.md` | Per-service Spring Boot output tree |
+| `services/*/SERVICE_LOGIC.md` | Per-service business logic, boundaries, events |
+| `services/*/DB_SCHEMA.md` | Per-service database schema and migration notes |
+| `services/*/SERVICE_PROMPT.md` | Combined final build prompt/checklist |
+| `backend plan.png` | Backend architecture diagram |
 
-## How to update a screen
+## Prompt Devops
 
-1. Open `docs/screens/NN-screen-name.md`
-2. Edit Purpose, UI, Logic, API, or Status checklist
-3. Copy `docs/screens/_SCREEN-TEMPLATE.md` when adding a new screen
-4. Update table in `docs/README.md`
+| Path | Purpose |
+|------|---------|
+| `KICKOFF_PROMPT.md` | DevOps build rules |
+| `COMMON_CONTEXT.md` | Docker/GHCR/env standards |
+| `v1/*.md` | Docker Compose, Dockerfiles, CI, GHCR, production prompts |
+| `services/*/DEVOPS_PROMPT.md` | Per-service Docker Compose + per-service GitHub Actions CI |
 
-## Archive
+## Build Order
 
-Full original GitBook export (4418 lines): [archive/Project-Overview-raw.txt](archive/Project-Overview-raw.txt)
+1. DevOps: `Prompt Devops/v1/00-foundation-prompt.md`
+   - For independent service DevOps, use `Prompt Devops/services/<service>/DEVOPS_PROMPT.md`
+2. Backend: `Prompt Backend/services/infrastructure/SERVICE_PROMPT.md`
+3. Backend services in order: gateway → auth → user-profile → file → content → career → finance → chat → notification → ai
+4. Frontend screens: use `Prompt Frontend/Screen prompt/README.md`
+5. API integration: `Prompt Frontend/api-intergration/00-api-intergration-prompt.md`
+
+## API Rule
+
+All frontend API integration content lives in:
+
+```text
+Prompt Frontend/api-intergration/
+```
+
+Do not create duplicate API integration prompt files in `reference/`, screen folders, or other locations.
+

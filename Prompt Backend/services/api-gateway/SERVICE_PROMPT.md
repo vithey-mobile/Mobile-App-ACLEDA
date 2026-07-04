@@ -1,81 +1,118 @@
-# API Gateway — Service Prompt
+# API Gateway — Complete API Design
 
-Build the Spring Cloud Gateway for Vithey App.
+> Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`, and `integration-contract.md`.  
+> **Scope:** Routing + JWT + CORS + rate limit only. No domain business logic.
 
-## Goal
-Route all `/api/v1/**` traffic to the correct microservice with JWT authentication, rate limiting, and CORS.
+## Monorepo
 
-## Stack
-- Java 21, Spring Boot 3+, Maven
-- spring-cloud-starter-gateway
-- spring-cloud-starter-netflix-eureka-client
-- spring-cloud-starter-config
-- spring-boot-starter-actuator
-- spring-boot-starter-data-redis-reactive (rate limit bucket)
-- jjwt or spring-security-oauth2-resource-server (JWT validation)
+`vithey-backend/services/api-gateway/` · Port **8080** · Eureka: `api-gateway`
 
-## Required Files
+## Spring Cloud stack
+
+| Dependency | Purpose |
+|------------|---------|
+| `spring-cloud-starter-gateway` | Reactive gateway |
+| `spring-cloud-starter-netflix-eureka-client` | `lb://service-name` routing |
+| `spring-cloud-starter-config` | JWT secret, CORS origins |
+| `spring-boot-starter-data-redis-reactive` | Rate limiting |
+| `spring-boot-starter-actuator` | Health |
+| `jjwt-api` + `jjwt-impl` + `jjwt-jackson` | JWT validation |
+
+**No JPA, no PostgreSQL, no RabbitMQ.**
+
+## Folder structure
+
 ```text
-api-gateway/
+services/api-gateway/
 ├── pom.xml
 ├── README.md
 └── src/main/java/com/vithey/gateway/
-    ├── ApiGatewayApplication.java
+    ├── ApiGatewayApplication.java          # @EnableDiscoveryClient
     ├── config/
-    │   ├── GatewayConfig.java
+    │   ├── GatewayRouteConfig.java         # ordered routes (Java DSL or yaml)
     │   ├── CorsConfig.java
-    │   └── RateLimitConfig.java
+    │   ├── RedisRateLimiterConfig.java
+    │   └── OpenApiConfig.java              # optional gateway swagger
     ├── filter/
-    │   ├── JwtAuthenticationFilter.java
-    │   ├── RequestIdFilter.java
-    │   └── RateLimitFilter.java
-    └── exception/
-        └── GatewayExceptionHandler.java
+    │   ├── JwtAuthenticationGlobalFilter.java
+    │   ├── RequestIdGlobalFilter.java
+    │   └── UserHeaderForwardFilter.java    # X-User-Id, X-User-Roles
+    ├── security/
+    │   └── JwtValidator.java
+    ├── exception/
+    │   └── GatewayErrorHandler.java        # standard error envelope
+    └── util/
+        └── PublicPathMatcher.java
+└── src/main/resources/
+    ├── bootstrap.yml
+    └── application.yml
 ```
 
-## Route Definitions
-| Path | Target (Eureka) | StripPrefix |
-|------|-----------------|-------------|
-| `/api/v1/auth/**` | `lb://auth-service` | 0 |
-| `/api/v1/users/**` | `lb://user-profile-service` | 0 |
-| `/api/v1/files/**` | `lb://file-service` | 0 |
-| `/api/v1/posts/**` | `lb://content-service` | 0 |
-| `/api/v1/comments/**` | `lb://content-service` | 0 |
-| `/api/v1/reactions/**` | `lb://content-service` | 0 |
-| `/api/v1/follows/**` | `lb://content-service` | 0 |
-| `/api/v1/jobs/**` | `lb://career-service` | 0 |
-| `/api/v1/job-applications/**` | `lb://career-service` | 0 |
-| `/api/v1/fees/**` | `lb://finance-service` | 0 |
-| `/api/v1/payments/**` | `lb://finance-service` | 0 |
-| `/api/v1/students/verify` | `lb://auth-service` | 0 |
-| `/api/v1/conversations/**` | `lb://chat-service` | 0 |
-| `/api/v1/messages/**` | `lb://chat-service` | 0 |
-| `/api/v1/notifications/**` | `lb://notification-service` | 0 |
-| `/api/v1/ai/**` | `lb://ai-service` | 0 |
+## Public paths (no JWT)
 
-## JWT Filter Logic
-1. Skip public auth paths.
-2. Extract `Authorization: Bearer <token>`.
-3. Validate signature + expiry using shared secret from config.
-4. On failure → `401` with standard error envelope.
-5. On success → add `X-User-Id`, `X-User-Roles` headers.
+```
+/api/v1/auth/register
+/api/v1/auth/login
+/api/v1/auth/refresh
+/api/v1/auth/forgot-password
+/api/v1/auth/reset-password
+/actuator/**
+/swagger-ui/**
+/v3/api-docs/**
+```
+
+## Route definitions (order matters)
+
+| Order | Path | Target |
+|-------|------|--------|
+| 0 | `/api/v1/auth/**` | `lb://auth-service` |
+| 0 | `/api/v1/users/me/cv`, `/api/v1/users/me/cv/**` | `lb://career-service` |
+| 0 | `/api/v1/users/*/follow`, `*/followers`, `*/following` | `lb://content-service` |
+| 0 | `/api/v1/files/**` | `lb://file-service` |
+| 0 | `/api/v1/posts/**`, `/comments/**`, `/reactions/**`, `/follows/**` | `lb://content-service` |
+| 0 | `/api/v1/jobs/**`, `/job-applications/**` | `lb://career-service` |
+| 0 | `/api/v1/fees/**`, `/payments/**` | `lb://finance-service` |
+| 0 | `/api/v1/students/verify` | `lb://auth-service` |
+| 0 | `/api/v1/conversations/**`, `/messages/**`, `/message-requests/**` | `lb://chat-service` |
+| 0 | `/api/v1/notifications/**` | `lb://notification-service` |
+| 0 | `/api/v1/ai/**` | `lb://ai-service` |
+| 1 | `/api/v1/users/**` | `lb://user-profile-service` |
+
+Strip prefix: **0** (full path forwarded).
+
+## JWT filter logic
+
+1. If public path → pass through
+2. Extract `Authorization: Bearer <token>`
+3. Validate signature + expiry (`vithey.jwt.secret` from config)
+4. On failure → `401` + `{ "error": { "code": "UNAUTHORIZED", ... } }`
+5. On success → set headers `X-User-Id`, `X-User-Roles`, `X-Request-ID`
+
+## Rate limit
+
+Redis token bucket: **100 req/min** per `X-User-Id` or client IP → `429 RATE_LIMITED`.
 
 ## CORS
-- Allow origins: `*` (dev) or configurable list (prod)
-- Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-- Headers: Authorization, Content-Type, X-Request-ID
 
-## Rate Limit
-- Redis-backed token bucket per `X-User-Id` or client IP
-- 100 req/min default
+Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS  
+Headers: Authorization, Content-Type, X-Request-ID  
+Origins: `*` (dev) / configurable list (prod)
 
-## Health
-- `GET /actuator/health` — include Eureka registry status
+## Gateway API surface
+
+The gateway exposes **no business APIs** — only proxies `/api/v1/**` to services.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /actuator/health` | Gateway + discovery health |
 
 ## Testing
-- WebTestClient tests for public route passthrough
-- JWT filter unit tests (valid, expired, missing token)
-- Rate limit returns 429 after threshold
+
+- WebTestClient: public `/auth/login` proxied without token
+- Protected route without token → 401
+- Valid JWT → 200 from downstream (mock or wiremock)
+- Rate limit → 429 after threshold
 
 ## Output
-Complete runnable gateway registering with Eureka on port 8080.
+
+Runnable gateway on 8080, registered in Eureka, all routes working via `lb://`.

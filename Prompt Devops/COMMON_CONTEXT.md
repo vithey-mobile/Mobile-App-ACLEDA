@@ -31,7 +31,10 @@ vithey-platform/                    # or monorepo root
 │   └── workflows/
 │       ├── ci.yml                  # test + maven build
 │       ├── docker-publish.yml      # push to GHCR
-│       └── release.yml             # tag-based release images
+│       ├── release.yml             # tag-based release images
+│       ├── auth-service-ci.yml      # per-service CI
+│       ├── content-service-ci.yml
+│       └── ... one <service>-ci.yml per backend service
 ├── docker/
 │   ├── postgres/init-databases.sql
 │   └── minio/create-buckets.sh
@@ -44,6 +47,10 @@ vithey-platform/                    # or monorepo root
 │   ├── docker-compose.infra.yml    # postgres, redis, rabbitmq, minio only
 │   ├── docker-compose.apps.yml     # microservices only
 │   ├── docker-compose.prod.yml     # image-based prod template
+│   ├── docker-compose.auth-service.yml
+│   ├── docker-compose.content-service.yml
+│   ├── docker-compose.ai-service.yml
+│   ├── ... one docker-compose.<service>.yml per backend service
 │   ├── .env.example
 │   ├── Makefile
 │   └── services/
@@ -124,6 +131,15 @@ See `docs/ENV.md` for full list. Key groups:
 2. **docker-build** — build images, push to GHCR with proper tags
 3. **compose-validate** — `docker compose config` lint
 
+### Per-Service CI Jobs
+Each backend service also has a dedicated workflow:
+
+```text
+.github/workflows/<service>-ci.yml
+```
+
+Each per-service workflow runs only when its service folder, service Compose file, service config, or workflow file changes.
+
 ## Local Development Commands
 ```bash
 # Start infrastructure only
@@ -131,6 +147,9 @@ docker compose -f docker-compose.infra.yml up -d
 
 # Start full stack
 docker compose up -d --build
+
+# Start one service independently
+docker compose -f docker-compose.auth-service.yml up -d --build
 
 # View logs
 docker compose logs -f api-gateway
@@ -188,5 +207,7 @@ Use `depends_on` + `healthcheck` + Spring `spring.cloud.discovery.wait` where ne
 ## Standardization Rule
 - One Dockerfile pattern for all Java microservices.
 - One reusable GitHub Actions workflow with matrix for services.
+- One independent Docker Compose file per service: `docker-compose.<service>.yml`.
+- One independent GitHub Actions workflow per service: `.github/workflows/<service>-ci.yml`.
 - Local and prod use the same images — only env vars differ.
 - Goal: developer runs `make up` locally; CI publishes images ready for future production host.

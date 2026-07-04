@@ -13,7 +13,8 @@ Automated quality gate: Maven test + build for all backend services without publ
 ```text
 .github/
 └── workflows/
-    └── ci.yml
+    ├── ci.yml
+    └── <service>-ci.yml       # added by prompt 07 for independent service CI
 ```
 
 ## Workflow: `ci.yml`
@@ -103,6 +104,7 @@ Document in `docs/LOCAL_DEV.md`:
 - Cache Maven: `actions/setup-java` with `cache: maven`
 - Timeout: 15 min per job
 - Concurrency: cancel in-progress on same PR
+- Keep `ci.yml` as the full backend gate; prompt `07` creates one workflow per service for focused checks.
 
 ## Output
 Working `ci.yml` that runs on push/PR.

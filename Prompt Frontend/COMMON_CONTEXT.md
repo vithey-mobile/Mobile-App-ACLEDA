@@ -9,11 +9,27 @@ Build a production-quality Flutter mobile app for AUB students combining social 
 | Item             | Value                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------- |
 | App name         | **Vithey App**                                                                        |
-| Package / folder | `vithey_app`                                                                          |
+| Package / folder | `vithey_app/` (repo folder); `pubspec.yaml` name: `aub_connect_app`                   |
 | Audience         | AUB students + youth users                                                            |
 | Competition      | [ACLEDA Bank App Competition 2026](https://www.acledabank.com.kh/sl/app-competition/) |
 
-## Core Features (Competition + Product)
+## Brand assets (official)
+
+| Asset | Source (repo) | App path | Use |
+|-------|---------------|----------|-----|
+| **App logo** | `Prompt Frontend/screen image/auth/logo app.png` | `assets/images/brand/logo_app.png` | Splash, Auth, app bar |
+| Onboarding Screen | `Prompt Frontend/screen image/auth/Onboarding Screen.png` | reference only | Onboarding layout (3 slides) |
+
+**On foundation setup:** copy `screen image/auth/logo app.png` → `assets/images/brand/logo_app.png` and register in `pubspec.yaml`.
+
+**Code constant** (`lib/core/constants/app_assets.dart`):
+```dart
+class AppAssets {
+  static const logoApp = 'assets/images/brand/logo_app.png';
+}
+```
+
+**Reusable widget:** `lib/core/widgets/app_logo.dart` — `AppLogo(size: 120)` wraps `Image.asset(AppAssets.logoApp)`.
 
 1. **Social Feed** — video, poster, and job posts with like, comment, mention, follow
 2. **Job Apply** — upload CV and apply to job posts
@@ -146,7 +162,7 @@ Global access:
 | #   | Screen               | Main Purpose                              |
 | --- | -------------------- | ----------------------------------------- |
 | 1   | Splash               | Logo + check login token                  |
-| 2   | Onboarding           | 2 slides intro (first-time only)          |
+| 2   | Onboarding           | 3 slides intro (first-time only)          |
 | 3   | Auth                 | Login, register, OAuth2                   |
 | 4   | Home                 | Social feed (video, poster, job)          |
 | 5   | Create Post          | New video / poster / job post             |
@@ -216,7 +232,7 @@ vithey_app/
 | Files         | `POST /files/upload`                                            |
 | Finance       | `GET /fees`, `GET /payments`                                    |
 | Verification  | `POST /students/verify`                                         |
-| Chat          | `GET /conversations`, `POST /messages`                          |
+| Chat          | `GET /conversations`, `GET /message-requests`, `GET/POST /conversations/{id}/messages` |
 | AI            | `POST /ai/chat`                                                 |
 | Notifications | `GET /notifications`                                            |
 

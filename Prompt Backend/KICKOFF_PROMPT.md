@@ -3,10 +3,16 @@
 You are building the **Vithey App** Spring Boot microservice backend for the ACLEDA Bank AUB App Competition. Use the provided context files and work **one service at a time**.
 
 ## Read First
-1. `COMMON_CONTEXT.md` (root — shared standards for all services)
-2. The target service folder's `KICKOFF_PROMPT.md`
-3. The target service folder's `COMMON_CONTEXT.md`
-4. The target service folder's `SERVICE_PROMPT.md`
+1. `SERVICE_BLUEPRINT.md` — monorepo layout, parent POM, Spring Cloud 2023.0.3, package tree
+2. `Prompt Frontend/api-intergration/integration-contract.md` — gateway routes, screen↔API map
+3. `COMMON_CONTEXT.md` (root — shared standards for all services)
+4. The target service folder's `KICKOFF_PROMPT.md`
+5. The target service folder's `COMMON_CONTEXT.md`
+6. The target service folder's `API_ENDPOINTS.md`
+7. The target service folder's `FOLDER_STRUCTURE.md`
+8. The target service folder's `SERVICE_LOGIC.md`
+9. The target service folder's `DB_SCHEMA.md`
+10. The target service folder's `SERVICE_PROMPT.md` — final combined build prompt/checklist
 
 ## Architecture Overview
 Microservice platform with:
@@ -20,7 +26,8 @@ Microservice platform with:
 
 ## Rules
 - **Backend API only.** No Flutter/frontend code.
-- **Java 21**, **Spring Boot 3+**, **Maven**.
+- **Java 21**, **Spring Boot 3.3.5**, **Spring Cloud 2023.0.3**, **Maven** multi-module.
+- Follow folder structure in `SERVICE_BLUEPRINT.md` for every service.
 - One **independently runnable** Spring Boot app per service folder.
 - **Database per service** — no shared tables across services.
 - Service-to-service calls via **REST over HTTP** (WebClient or OpenFeign).
@@ -28,7 +35,7 @@ Microservice platform with:
 - JWT validated at Gateway; services trust internal network or re-validate.
 - Build **complete runnable code**, not placeholders.
 - Every service must expose **OpenAPI/Swagger** via springdoc-openapi.
-- Follow API contract in `Project Overview.txt` API Design section.
+- Follow API contract in `Prompt Frontend/api-intergration/integration-contract.md` and the target service's `API_ENDPOINTS.md`.
 
 ## Recommended Execution Order
 | # | Service Folder | Port (default) |

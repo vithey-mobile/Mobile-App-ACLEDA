@@ -40,23 +40,31 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 
 ## Mandatory Tech Stack (per service)
 - Java 21
-- Spring Boot 3.3+ (or latest 3.x stable)
-- Maven
+- Spring Boot 3.3.5
+- **Spring Cloud 2023.0.3** (Eureka, Config, Gateway, OpenFeign, LoadBalancer)
+- Maven multi-module (`vithey-backend/pom.xml` parent)
 - Spring Web
 - Spring Data JPA
 - PostgreSQL 16 (per-service DB)
-- Spring Security + JWT (resource server pattern)
-- springdoc-openapi-starter-webmvc-ui
+- Spring Security + JWT (auth issues; gateway validates; services trust `X-User-Id`)
+- springdoc-openapi-starter-webmvc-ui 2.6.0
 - Lombok
-- MapStruct (or explicit mapper classes)
+- MapStruct 1.5.5
 - spring-boot-starter-validation
 - spring-boot-starter-actuator
-- spring-boot-starter-test, Mockito, Testcontainers (integration)
+- spring-boot-starter-amqp (services with events)
+- Flyway migrations
+- spring-boot-starter-test, Mockito, Testcontainers
 
-## Gateway / Cloud (gateway + infrastructure only)
-- Spring Cloud Gateway
-- Spring Cloud Netflix Eureka Client/Server
-- Spring Cloud Config Server
+**Full monorepo layout, parent POM, and package tree:** see `SERVICE_BLUEPRINT.md`.
+
+## Gateway / Cloud
+| Component | Module | Technology |
+|-----------|--------|------------|
+| API Gateway | `services/api-gateway` | Spring Cloud Gateway + Redis rate limit |
+| Service Discovery | `eureka-server` | Netflix Eureka Server |
+| Config | `config-server` + `config-repo/` | Spring Cloud Config (native) |
+| Inter-service HTTP | all domain services | OpenFeign + Eureka + LoadBalancer |
 
 ## RBAC Roles
 | Role | Description |
@@ -254,14 +262,20 @@ Format: `<domain>.<action>` — e.g. `post.created`, `comment.added`, `payment.d
 | Config Server | 8888 | — |
 
 ## Gateway Route Prefixes
+
+**Order matters** — specific `/users/...` paths before `/api/v1/users/**`. Full table: `Prompt Frontend/api-intergration/integration-contract.md`.
+
 | Prefix | Target Service |
 |--------|----------------|
 | `/api/v1/auth/**` | auth-service |
-| `/api/v1/users/**` | user-profile-service |
+| `/api/v1/users/me/cv`, `/api/v1/users/me/cv/**` | career-service |
+| `/api/v1/users/*/follow`, `/api/v1/users/*/followers`, `/api/v1/users/*/following` | content-service |
+| `/api/v1/users/**` (wildcard, lowest priority) | user-profile-service |
 | `/api/v1/posts/**`, `/api/v1/comments/**`, `/api/v1/reactions/**`, `/api/v1/follows/**` | content-service |
 | `/api/v1/jobs/**`, `/api/v1/job-applications/**` | career-service |
-| `/api/v1/fees/**`, `/api/v1/payments/**`, `/api/v1/students/**` | finance-service + auth (verify) |
-| `/api/v1/conversations/**`, `/api/v1/messages/**` | chat-service |
+| `/api/v1/fees/**`, `/api/v1/payments/**` | finance-service |
+| `/api/v1/students/verify` | auth-service |
+| `/api/v1/conversations/**`, `/api/v1/messages/**`, `/api/v1/message-requests/**` | chat-service |
 | `/api/v1/notifications/**` | notification-service |
 | `/api/v1/ai/**` | ai-service |
 | `/api/v1/files/**` | file-service |
