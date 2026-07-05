@@ -2,7 +2,7 @@ name: api-gateway CI
 
 on:
   push:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/api-gateway.yml'
@@ -11,7 +11,7 @@ on:
       - 'backend/services/api-gateway/**'
       - '.github/workflows/api-gateway-ci.yml'
   pull_request:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/api-gateway.yml'

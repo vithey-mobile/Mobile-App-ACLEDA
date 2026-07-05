@@ -2,7 +2,7 @@ name: notification-service CI
 
 on:
   push:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/notification-service.yml'
@@ -12,7 +12,7 @@ on:
       - 'backend/services/api-gateway/**'
       - '.github/workflows/notification-service-ci.yml'
   pull_request:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/notification-service.yml'

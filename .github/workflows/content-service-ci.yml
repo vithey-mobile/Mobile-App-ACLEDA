@@ -2,7 +2,7 @@ name: content-service CI
 
 on:
   push:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/content-service.yml'
@@ -11,7 +11,7 @@ on:
       - 'backend/services/content-service/**'
       - '.github/workflows/content-service-ci.yml'
   pull_request:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/content-service.yml'

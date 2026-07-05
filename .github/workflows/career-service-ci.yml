@@ -2,7 +2,7 @@ name: career-service CI
 
 on:
   push:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/career-service.yml'
@@ -11,7 +11,7 @@ on:
       - 'backend/services/career-service/**'
       - '.github/workflows/career-service-ci.yml'
   pull_request:
-    branches: [main, Prompt, develop]
+    branches: [main, Prompt, dev, kimheang]
     paths:
       - 'backend/pom.xml'
       - 'backend/infrastructure/config-repo/career-service.yml'
