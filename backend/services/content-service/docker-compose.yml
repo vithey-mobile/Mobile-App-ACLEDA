@@ -1,0 +1,50 @@
+services:
+  content-postgres:
+    image: postgres:16-alpine
+    container_name: vithey-content-postgres
+    environment:
+      POSTGRES_DB: content_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - content-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d content_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - vithey-network
+
+  content-service:
+    build:
+      context: ../..
+      dockerfile: services/content-service/Dockerfile
+      args:
+        SERVICE_PORT: 8084
+    image: vithey-content-service:local
+    container_name: vithey-content-service
+    env_file:
+      - .env.example
+    ports:
+      - "8084:8084"
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+volumes:
+  content-postgres-data:
+
+networks:
+  vithey-network:
+    external: true

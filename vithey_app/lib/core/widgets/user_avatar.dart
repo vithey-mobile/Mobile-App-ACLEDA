@@ -1,0 +1,41 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+
+/// Avatar with network image and initials fallback.
+class UserAvatar extends StatelessWidget {
+  const UserAvatar({
+    super.key,
+    this.imageUrl,
+    this.name,
+    this.radius = 24,
+  });
+
+  final String? imageUrl;
+  final String? name;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = _initials(name);
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: CachedNetworkImageProvider(imageUrl!),
+        onBackgroundImageError: (_, __) {},
+        child: imageUrl == null ? Text(initials) : null,
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      child: Text(initials, style: TextStyle(fontSize: radius * 0.45)),
+    );
+  }
+
+  String _initials(String? value) {
+    if (value == null || value.trim().isEmpty) return '?';
+    final parts = value.trim().split(' ');
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+}

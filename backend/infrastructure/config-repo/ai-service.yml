@@ -1,0 +1,19 @@
+server:
+  port: ${SERVER_PORT:8089}
+
+spring:
+  application:
+    name: ai-service
+  datasource:
+    url: ${AI_DB_URL:jdbc:postgresql://localhost:5432/ai_db}
+    username: ${AI_DB_USERNAME:postgres}
+    password: ${AI_DB_PASSWORD:postgres}
+
+vithey:
+  jwt:
+    secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
+  ai:
+    general:
+      base-url: ${GENERAL_SERVICE_URL:http://general-service:8005}
+      timeout-seconds: ${GENERAL_TIMEOUT_SECONDS:90}
+      top-k: ${GENERAL_TOP_K:10}

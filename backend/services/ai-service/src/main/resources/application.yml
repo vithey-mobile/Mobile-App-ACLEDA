@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8089}
+
+spring:
+  application:
+    name: ai-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  datasource:
+    url: ${AI_DB_URL:jdbc:postgresql://localhost:5432/ai_db}
+    username: ${AI_DB_USERNAME:postgres}
+    password: ${AI_DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+vithey:
+  jwt:
+    secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
+  ai:
+    general:
+      base-url: ${GENERAL_SERVICE_URL:http://general-service:8005}
+      timeout-seconds: ${GENERAL_TIMEOUT_SECONDS:90}
+      top-k: ${GENERAL_TOP_K:10}

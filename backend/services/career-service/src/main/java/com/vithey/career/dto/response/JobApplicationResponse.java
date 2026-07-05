@@ -1,0 +1,17 @@
+package com.vithey.career.dto.response;
+
+import com.vithey.career.entity.ApplicationStatus;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+public record JobApplicationResponse(
+    UUID applicationId,
+    UUID jobPostId,
+    ApplicantSummaryResponse applicant,
+    UUID cvFileId,
+    String cvFileName,
+    ApplicationStatus status,
+    String coverNote,
+    OffsetDateTime appliedAt
+) {
+}
