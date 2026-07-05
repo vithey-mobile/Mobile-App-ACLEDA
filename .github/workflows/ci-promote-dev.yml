@@ -1,11 +1,11 @@
-# Full-stack CI: run backend + Flutter tests, then update `dev` when all jobs pass.
+# Full-stack CI:
+# 1. Backend + Flutter tests
+# 2. Build & push Docker images to GHCR (on push only)
+# 3. Update `dev` branch when all tests pass
 #
-# Source branches (push only): kimheang, main
-# Target branch after success: dev
-#
-# PRs run tests only — no auto-promote.
+# Images: ghcr.io/<owner>/vithey-<service>:latest and :sha-<commit>
 
-name: CI — Test & Promote to dev
+name: CI — Test, Build Images & Promote to dev
 
 on:
   push:
@@ -20,6 +20,7 @@ concurrency:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   backend-test:
@@ -65,6 +66,108 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
+
+  docker-build-push:
+    name: Build & push ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [backend-test, flutter-test]
+    if: github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: eureka-server
+            dockerfile: infrastructure/eureka-server/Dockerfile
+            port: 8761
+          - service: config-server
+            dockerfile: infrastructure/config-server/Dockerfile
+            port: 8888
+          - service: api-gateway
+            dockerfile: services/api-gateway/Dockerfile
+            port: 8080
+          - service: auth-service
+            dockerfile: services/auth-service/Dockerfile
+            port: 8081
+          - service: user-profile-service
+            dockerfile: services/user-profile-service/Dockerfile
+            port: 8082
+          - service: file-service
+            dockerfile: services/file-service/Dockerfile
+            port: 8083
+          - service: content-service
+            dockerfile: services/content-service/Dockerfile
+            port: 8084
+          - service: career-service
+            dockerfile: services/career-service/Dockerfile
+            port: 8085
+          - service: finance-service
+            dockerfile: services/finance-service/Dockerfile
+            port: 8086
+          - service: chat-service
+            dockerfile: services/chat-service/Dockerfile
+            port: 8087
+          - service: notification-service
+            dockerfile: services/notification-service/Dockerfile
+            port: 8088
+          - service: ai-service
+            dockerfile: services/ai-service/Dockerfile
+            port: 8089
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase GHCR owner
+        id: vars
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.vars.outputs.owner }}/vithey-${{ matrix.service }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: SERVICE_PORT=${{ matrix.port }}
+          cache-from: type=gha,scope=vithey-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=vithey-${{ matrix.service }}
+
+  docker-summary:
+    name: Docker publish summary
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    if: github.event_name == 'push'
+    steps:
+      - name: Write image list
+        run: |
+          OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          SHA=$(echo '${{ github.sha }}' | cut -c1-7)
+          {
+            echo "## Published Docker images"
+            echo ""
+            echo "Registry: \`ghcr.io/${OWNER}\`"
+            echo "Tags: \`latest\`, \`sha-${SHA}\`"
+            echo ""
+            for svc in eureka-server config-server api-gateway auth-service user-profile-service file-service content-service career-service finance-service chat-service notification-service ai-service; do
+              echo "- \`ghcr.io/${OWNER}/vithey-${svc}:latest\`"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
 
   promote-to-dev:
     name: Promote passing commit to dev
