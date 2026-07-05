@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 
-/// Official Vithey app logo.
+/// Official Vithey app logo (`assets/images/brand/app_logo.png`).
 class AppLogo extends StatelessWidget {
   const AppLogo({
     super.key,

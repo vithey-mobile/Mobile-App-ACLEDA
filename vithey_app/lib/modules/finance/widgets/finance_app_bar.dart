@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 
 class FinanceAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -17,7 +18,7 @@ class FinanceAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: Padding(
         padding: const EdgeInsets.all(10),
-        child: Image.asset('assets/images/brand/logo_app.png', fit: BoxFit.contain),
+        child: Image.asset(AppAssets.logoApp, fit: BoxFit.contain),
       ),
       actions: [
         IconButton(
