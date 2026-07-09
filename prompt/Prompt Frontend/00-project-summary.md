@@ -59,7 +59,7 @@ Prompt Devops/                 ← Docker, GitHub Actions, GHCR
 |-------|------|------|
 | Product screens | Complete in `Screen prompt/` | Not started |
 | Flutter prompts | `Screen prompt/` feature flows | Not started → `vithey_app/` |
-| Backend prompts | `Prompt Backend/services/` | Not started → `vithey-backend/` |
+| Backend prompts | `Prompt Backend/services/` | Not started → `backend/` |
 | API contract | `api-intergration/integration-contract.md` | Aligned across prompts |
 | DevOps | `Prompt Devops/v1/` | Not started |
 

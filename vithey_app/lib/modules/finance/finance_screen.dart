@@ -14,7 +14,6 @@ class FinanceScreen extends GetView<FinanceController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
       appBar: const FinanceAppBar(),
       body: Obx(() {
         if (controller.isLoading.value) return const LoadingWidget();

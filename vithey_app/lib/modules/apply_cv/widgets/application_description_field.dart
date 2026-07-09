@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ApplicationDescriptionField extends StatelessWidget {
   const ApplicationDescriptionField({
@@ -18,9 +18,9 @@ class ApplicationDescriptionField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Application Description (Optional)',
-            style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.authHeading),
+            style: TextStyle(fontWeight: FontWeight.w600, color: context.appColors.heading),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -28,11 +28,11 @@ class ApplicationDescriptionField extends StatelessWidget {
             enabled: enabled,
             maxLines: 4,
             maxLength: 2000,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Write a short message to the employer…',
               filled: true,
-              fillColor: AppColors.authInputFill,
-              border: OutlineInputBorder(),
+              fillColor: context.appColors.inputFill,
+              border: const OutlineInputBorder(),
             ),
           ),
         ],

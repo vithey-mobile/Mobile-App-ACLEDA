@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CvUploadZone extends StatelessWidget {
   const CvUploadZone({
@@ -31,21 +31,21 @@ class CvUploadZone extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.authBorder, width: 1.5, style: BorderStyle.solid),
+                  border: Border.all(color: context.appColors.border, width: 1.5, style: BorderStyle.solid),
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.cloud_upload_outlined, size: 48, color: enabled ? AppColors.authMuted : AppColors.authBorder),
+                    Icon(Icons.cloud_upload_outlined, size: 48, color: enabled ? context.appColors.muted : context.appColors.border),
                     const SizedBox(height: 12),
                     Text(
                       'Tap to upload',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: enabled ? AppColors.authHeading : AppColors.authMuted,
+                        color: enabled ? context.appColors.heading : context.appColors.muted,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(policyLabel, style: const TextStyle(color: AppColors.authMuted, fontSize: 13)),
+                    Text(policyLabel, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
                   ],
                 ),
               ),

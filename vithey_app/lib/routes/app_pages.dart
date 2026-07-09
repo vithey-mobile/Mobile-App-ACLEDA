@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
-import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/modules/auth/auth_binding.dart';
 import 'package:aub_connect_app/modules/auth/google_auth_screen.dart';
 import 'package:aub_connect_app/modules/auth/login_screen.dart';
@@ -54,11 +53,10 @@ import 'package:aub_connect_app/modules/startup/startup_screens.dart';
 class SplashBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<SplashController>(
-      () => SplashController(
+    Get.put<SplashController>(
+      SplashController(
         Get.find<SecureStorageService>(),
         Get.find<LocalStorageService>(),
-        Get.find<AuthRepository>(),
       ),
     );
   }

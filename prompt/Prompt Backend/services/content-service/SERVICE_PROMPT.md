@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/content-service/` |
+| Path | `backend/services/content-service/` |
 | Port | 8084 |
 | Eureka | `content-service` |
 | Database | `content_db` |

@@ -12,6 +12,7 @@ import 'package:aub_connect_app/modules/student_verification/widgets/verificatio
 import 'package:aub_connect_app/modules/student_verification/widgets/verification_status_card.dart';
 import 'package:aub_connect_app/modules/student_verification/widgets/verification_timeline.dart';
 import 'package:aub_connect_app/modules/student_verification/widgets/submitted_document_card.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VerificationStatusController extends GetxController {
   VerificationStatusController(this._repository);
@@ -90,10 +91,8 @@ class VerificationStatusScreen extends GetView<VerificationStatusController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.scheme.onSurface,
         elevation: 0,
         title: const Text('Verification Status', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
@@ -110,11 +109,11 @@ class VerificationStatusScreen extends GetView<VerificationStatusController> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Text(_subtitleFor(data.status), style: const TextStyle(color: Colors.black54)),
+              Text(_subtitleFor(data.status), style: TextStyle(color: context.scheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               VerificationStatusCard(status: data.status),
               const SizedBox(height: 20),
-              ..._buildBodyFor(data),
+              ..._buildBodyFor(context, data),
             ],
           ),
         );
@@ -135,7 +134,7 @@ class VerificationStatusScreen extends GetView<VerificationStatusController> {
     }
   }
 
-  List<Widget> _buildBodyFor(StudentVerificationModel data) {
+  List<Widget> _buildBodyFor(BuildContext context, StudentVerificationModel data) {
     switch (data.status) {
       case VerificationStatus.pending:
         return [
@@ -150,14 +149,14 @@ class VerificationStatusScreen extends GetView<VerificationStatusController> {
       case VerificationStatus.verified:
         return [
           if (data.verifiedAt != null)
-            Text('Verified on ${_formatDate(data.verifiedAt!)}', style: const TextStyle(color: Colors.black54)),
+            Text('Verified on ${_formatDate(data.verifiedAt!)}', style: TextStyle(color: context.scheme.onSurfaceVariant)),
           const SizedBox(height: 20),
           CustomButton(label: 'Continue to Finance', onPressed: controller.continueToFinance),
         ];
       case VerificationStatus.rejected:
         return [
           if (data.rejectionReason != null)
-            Text(data.rejectionReason!, style: const TextStyle(color: Colors.black87, height: 1.4)),
+            Text(data.rejectionReason!, style: TextStyle(color: context.scheme.onSurface, height: 1.4)),
           const SizedBox(height: 20),
           CustomButton(label: 'Update and Resubmit', onPressed: controller.openVerificationForm),
           const SizedBox(height: 12),

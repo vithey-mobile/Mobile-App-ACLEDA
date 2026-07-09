@@ -10,29 +10,29 @@ class VerificationStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case VerificationStatus.pending:
-        return _GradientCard(
-          colors: const [Color(0xFFFF8A50), Color(0xFFE53935)],
+        return const _GradientCard(
+          colors: [Color(0xFFFF8A50), Color(0xFFE53935)],
           icon: Icons.hourglass_top,
           title: 'Verification Pending',
           subtitle: 'Your application is under review',
         );
       case VerificationStatus.verified:
-        return _GradientCard(
-          colors: const [Color(0xFF43A047), Color(0xFF2E7D32)],
+        return const _GradientCard(
+          colors: [Color(0xFF43A047), Color(0xFF2E7D32)],
           icon: Icons.verified_user_outlined,
           title: 'Verified Student',
           subtitle: 'Your student status has been confirmed',
         );
       case VerificationStatus.rejected:
-        return _GradientCard(
-          colors: const [Color(0xFFFFB74D), Color(0xFFD84315)],
+        return const _GradientCard(
+          colors: [Color(0xFFFFB74D), Color(0xFFD84315)],
           icon: Icons.warning_amber_outlined,
           title: 'Verification Needs Attention',
           subtitle: 'Please review the message below',
         );
       case VerificationStatus.notSubmitted:
-        return _GradientCard(
-          colors: const [Color(0xFF455A64), Color(0xFF37474F)],
+        return const _GradientCard(
+          colors: [Color(0xFF455A64), Color(0xFF37474F)],
           icon: Icons.cancel_outlined,
           title: 'Not Verified',
           subtitle: 'You haven\'t submitted your verification yet',

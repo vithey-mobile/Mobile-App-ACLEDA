@@ -2,51 +2,47 @@
 
 Create independent Docker Compose and GitHub Actions CI for `chat-service`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/chat-service` |
+| Source path | `backend/services/chat-service` |
 | Port | `8087` |
 | Image | `ghcr.io/<owner>/vithey-chat-service` |
 | Database | `chat_db` |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/chat-service/docker-compose.yml
-vithey-backend/services/chat-service/.env.example
+backend/services/chat-service/docker-compose.yml
+backend/services/chat-service/.env.example
 ```
 
-Required containers:
+**Service compose containers only:**
 
 - `chat-service`
 - `chat-postgres`
-- `chat-redis`
-- `chat-rabbitmq`
-- `chat-eureka-server`
-- `chat-config-server`
 
-Expose WebSocket endpoint `/ws/chat` on port `8087`.
+**Shared infra:** `redis`, `rabbitmq`, `eureka-server`, `config-server`
 
-Verification:
+Expose WebSocket `/ws/chat` on port `8087`.
+
+## Verification
 
 ```bash
-cd vithey-backend/services/chat-service
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/chat-service && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8087/actuator/health
-docker compose down -v
+docker compose down
 ```
 
 ## GitHub Actions Output
-
-Create:
 
 ```text
 .github/workflows/chat-service-ci.yml
 ```
 
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8087`, and validate `services/chat-service/docker-compose.yml`.
-
+CI: Maven test, Docker build `SERVICE_PORT=8087`, validate compose file.

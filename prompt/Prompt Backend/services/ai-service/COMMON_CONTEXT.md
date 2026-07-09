@@ -45,4 +45,4 @@ See `API_ENDPOINTS.md`. Response envelope matches all Java services.
 - Eureka client code
 - Docker image for Python service
 
-See `backend/services/ai-service/INTEGRATION.md` for wiring guide.
+See `INTEGRATION.md` in this folder for wiring guide.

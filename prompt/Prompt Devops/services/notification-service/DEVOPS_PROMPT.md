@@ -2,50 +2,36 @@
 
 Create independent Docker Compose and GitHub Actions CI for `notification-service`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/notification-service` |
+| Source path | `backend/services/notification-service` |
 | Port | `8088` |
 | Image | `ghcr.io/<owner>/vithey-notification-service` |
 | Database | `notification_db` |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/notification-service/docker-compose.yml
-vithey-backend/services/notification-service/.env.example
+backend/services/notification-service/docker-compose.yml
+backend/services/notification-service/.env.example
 ```
 
-Required containers:
+**Service compose containers only:** `notification-service`, `notification-postgres`  
+**Shared infra:** `rabbitmq`, `eureka-server`, `config-server`
 
-- `notification-service`
-- `notification-postgres`
-- `notification-rabbitmq`
-- `notification-eureka-server`
-- `notification-config-server`
-
-Firebase credentials must be optional in local dev. Use env vars only, never commit JSON credentials.
-
-Verification:
+## Verification
 
 ```bash
-cd vithey-backend/services/notification-service
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/notification-service && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8088/actuator/health
-docker compose down -v
 ```
 
-## GitHub Actions Output
+## GitHub Actions
 
-Create:
-
-```text
-.github/workflows/notification-service-ci.yml
-```
-
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8088`, and validate `services/notification-service/docker-compose.yml`.
-
+`.github/workflows/notification-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8088`.

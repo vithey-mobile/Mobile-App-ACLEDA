@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationActionSheet extends StatelessWidget {
   const NotificationActionSheet({
@@ -26,7 +27,7 @@ class NotificationActionSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.authBorder,
+                color: context.appColors.border,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -45,9 +46,9 @@ class NotificationActionSheet extends StatelessWidget {
                 onTap: onMarkRead,
               )
             else
-              const ListTile(
-                leading: Icon(Icons.check_circle, color: AppColors.authMuted),
-                title: Text('Already read'),
+              ListTile(
+                leading: Icon(Icons.check_circle, color: context.appColors.muted),
+                title: const Text('Already read'),
                 enabled: false,
               ),
             ListTile(

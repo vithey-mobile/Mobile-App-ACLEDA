@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PostDetailMedia extends StatefulWidget {
   const PostDetailMedia({super.key, required this.post});
@@ -115,7 +115,7 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: context.scheme.onSurfaceVariant, shape: BoxShape.circle),
               child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
             ),
           if (_error != null)
@@ -123,7 +123,7 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
               bottom: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                color: Colors.black54,
+                color: context.scheme.onSurfaceVariant,
                 child: Text(_error!, style: const TextStyle(color: Colors.white)),
               ),
             ),
@@ -135,7 +135,7 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
   Widget _placeholder({bool loading = false}) {
     return Container(
       height: 240,
-      color: AppColors.authInputFill,
+      color: context.appColors.inputFill,
       alignment: Alignment.center,
       child: loading ? const CircularProgressIndicator(strokeWidth: 2) : const Icon(Icons.image_not_supported_outlined),
     );

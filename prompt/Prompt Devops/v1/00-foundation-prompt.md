@@ -6,14 +6,14 @@ Build the **DevOps foundation** for Vithey App — folder structure, ignore file
 Create the repo-level DevOps skeleton so Docker Compose and GitHub Actions can be added in later prompts.
 
 ## Depends On
-- Backend services exist or will exist under `vithey-backend/`
+- Backend services exist or will exist under `backend/`
 - Read `../COMMON_CONTEXT.md`
 
 ## Must Create
 
 ### Root / Backend DevOps Files
 ```text
-vithey-backend/
+backend/
 ├── .dockerignore
 ├── .env.example
 ├── Makefile

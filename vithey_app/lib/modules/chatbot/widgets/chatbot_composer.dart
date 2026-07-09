@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChatbotComposer extends StatelessWidget {
   const ChatbotComposer({
@@ -26,7 +27,7 @@ class ChatbotComposer extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor: AppColors.authInputFill,
+              backgroundColor: context.appColors.inputFill,
               child: IconButton(
                 icon: const Icon(Icons.add, size: 20),
                 tooltip: 'Attachments coming soon',
@@ -42,7 +43,7 @@ class ChatbotComposer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Ask me anything…',
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.appColors.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),

@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/career-service/` |
+| Path | `backend/services/career-service/` |
 | Port | 8085 |
 | Eureka | `career-service` |
 | Database | `career_db` |

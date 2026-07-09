@@ -1,13 +1,27 @@
 # User Profile Service — Kickoff Prompt
 
-Build the **User/Profile Service** — profiles, avatars, bios, social links, and user settings.
+You are building the **User Profile Service** for Vithey App — profiles, avatars, bios, social links, and settings.
 
-## Read First
-1. `../../COMMON_CONTEXT.md` → 2. `COMMON_CONTEXT.md` → 3. `SERVICE_PROMPT.md`
+## Read first
 
-## Port
-**8082** | Database: **user_db**
+Follow `_shared/READ_ORDER.md` → Backend — one service.
 
-## Rules
-- Listens to `user.registered` from Auth Service to create profile.
-- Avatar file stored via File Service — store URL only.
+In this folder, read in order:
+
+1. `../../COMMON_CONTEXT.md`
+2. `COMMON_CONTEXT.md`
+3. `API_ENDPOINTS.md`
+4. `FOLDER_STRUCTURE.md`
+5. `SERVICE_LOGIC.md`
+6. `DB_SCHEMA.md`
+7. `SERVICE_PROMPT.md`
+
+**Precedence:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
+
+## Identity
+
+Port, DB, package: see service `COMMON_CONTEXT.md`. Registry: `_shared/SERVICE_REGISTRY.md`.
+
+## Definition of done
+
+Runnable Spring Boot on port 8082 implementing every endpoint in `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`.

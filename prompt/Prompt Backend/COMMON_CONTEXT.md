@@ -7,7 +7,7 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 | Item | Value |
 |------|-------|
 | App name | **Vithey App** |
-| Backend repo | `vithey-backend` |
+| Backend repo | `backend` |
 | Base package | `com.vithey.<service>` |
 | API version | `v1` |
 | Competition | [ACLEDA Bank App Competition 2026](https://www.acledabank.com.kh/sl/app-competition/) |
@@ -45,7 +45,7 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 - Java 21
 - Spring Boot 3.3.5
 - **Spring Cloud 2023.0.3** (Eureka, Config, Gateway, OpenFeign, LoadBalancer)
-- Maven multi-module (`vithey-backend/pom.xml` parent)
+- Maven multi-module (`backend/pom.xml` parent)
 - Spring Web
 - Spring Data JPA
 - PostgreSQL 16 (per-service DB)
@@ -59,13 +59,13 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 - Flyway migrations
 - spring-boot-starter-test, Mockito, Testcontainers
 
-**Exception — `ai-service` / chatbot (Python, external):**
+**Exception — `ai-service`:**
 
-- Built by you in Python — **not** in this Java/Maven repo
-- Integration docs: `backend/services/ai-service/` (README, INTEGRATION.md, API.md)
+- Java stub exists in `backend/services/ai-service/` for gateway routing and local Docker
+- Optional Python replacement: see `Prompt Backend/services/ai-service/INTEGRATION.md`
 - Registers with Eureka as `ai-service` on port 8089
-- Gateway route `/api/v1/ai/**` already configured in Java api-gateway
-- `chat-service` (Java) is user messaging; chatbot is separate Python `ai-service`
+- Gateway route `/api/v1/ai/**` already configured in api-gateway
+- `chat-service` (Java) is user messaging; AI chatbot is `ai-service`
 
 **Full monorepo layout, parent POM, and package tree:** see `SERVICE_BLUEPRINT.md`.
 
@@ -134,38 +134,9 @@ src/test/java/...
 
 ## Standard API Response Envelope
 
-### Success (single resource)
-```json
-{
-  "data": { }
-}
-```
+**Single source of truth:** `Prompt Frontend/api-intergration/integration-contract.md` → Response envelope.
 
-### Success (list with pagination)
-```json
-{
-  "data": [ ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 150,
-    "total_pages": 8
-  }
-}
-```
-
-### Error
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": [
-      { "field": "email", "message": "Invalid email format" }
-    ]
-  }
-}
-```
+Backend must implement the same `{ data }`, `{ data, meta }`, and `{ error }` shapes with `snake_case` JSON fields.
 
 ## HTTP Status Codes
 | Code | When |
@@ -240,10 +211,10 @@ Format: `<domain>.<action>` — e.g. `post.created`, `comment.added`, `payment.d
 - Soft delete via `deleted_at` where appropriate
 
 ## Docker / Local Dev
-`docker-compose.yml` at monorepo root must include:
-- PostgreSQL instances (or one PG with multiple DBs for dev)
-- Redis, RabbitMQ, MinIO, Eureka, Config Server
-- All microservices (profile `dev`)
+
+Per-service Docker layout — **do not** use a root all-in-one compose.
+
+See `Prompt Devops/DOCKER.md` and `_shared/SERVICE_REGISTRY.md` for start order and compose rules.
 
 ## Testing Requirements (each service)
 - Unit tests for service layer
@@ -251,45 +222,21 @@ Format: `<domain>.<action>` — e.g. `post.created`, `comment.added`, `payment.d
 - Testcontainers integration test for repository (at least one)
 - Mock external clients (AI, FCM, MinIO, other services)
 
-## Documentation (each service)
-- `README.md` — run, env vars, port
-- `API.md` — endpoint summary
-- `ARCHITECTURE.md` — boundaries, DB, events, dependencies
+## Documentation
+
+Prompt docs live in `prompt/` only — **no** `README.md` or `API.md` inside `backend/`.
+
+Per-service specs: `Prompt Backend/services/<name>/` (`API_ENDPOINTS.md`, `SERVICE_LOGIC.md`, `DB_SCHEMA.md`).
 
 ## Service Port Registry
-| Service | Port | Eureka Name |
-|---------|------|-------------|
-| API Gateway | 8080 | `api-gateway` |
-| Auth | 8081 | `auth-service` |
-| User/Profile | 8082 | `user-profile-service` |
-| File | 8083 | `file-service` |
-| Content | 8084 | `content-service` |
-| Career | 8085 | `career-service` |
-| Finance | 8086 | `finance-service` |
-| Chat | 8087 | `chat-service` |
-| Notification | 8088 | `notification-service` |
-| AI | 8089 | `ai-service` |
-| Eureka | 8761 | — |
-| Config Server | 8888 | — |
+
+See `_shared/SERVICE_REGISTRY.md` (single source — do not copy port table here).
 
 ## Gateway Route Prefixes
 
-**Order matters** — specific `/users/...` paths before `/api/v1/users/**`. Full table: `Prompt Frontend/api-intergration/integration-contract.md`.
+**Order matters** — specific `/users/...` paths before `/api/v1/users/**`.
 
-| Prefix | Target Service |
-|--------|----------------|
-| `/api/v1/auth/**` | auth-service |
-| `/api/v1/users/me/cv`, `/api/v1/users/me/cv/**` | career-service |
-| `/api/v1/users/*/follow`, `/api/v1/users/*/followers`, `/api/v1/users/*/following` | content-service |
-| `/api/v1/users/**` (wildcard, lowest priority) | user-profile-service |
-| `/api/v1/posts/**`, `/api/v1/comments/**`, `/api/v1/reactions/**`, `/api/v1/follows/**` | content-service |
-| `/api/v1/jobs/**`, `/api/v1/job-applications/**` | career-service |
-| `/api/v1/fees/**`, `/api/v1/payments/**` | finance-service |
-| `/api/v1/students/verify` | auth-service |
-| `/api/v1/conversations/**`, `/api/v1/messages/**`, `/api/v1/message-requests/**` | chat-service |
-| `/api/v1/notifications/**` | notification-service |
-| `/api/v1/ai/**` | ai-service |
-| `/api/v1/files/**` | file-service |
+Full table: `Prompt Frontend/api-intergration/integration-contract.md` → Gateway routes.
 
 ## Standardization Rule
 - Each service prompt is the single source of truth for that service's API.

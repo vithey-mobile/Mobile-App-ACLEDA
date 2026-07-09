@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/constants/api_endpoints.dart';
+import 'package:aub_connect_app/core/network/api_response.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
 import 'package:aub_connect_app/data/models/auth_result_model.dart';
 import 'package:aub_connect_app/data/models/user_model.dart';
@@ -18,14 +19,27 @@ class AuthService {
       fromJson: (json) => AuthResultModel.fromJson(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
-      throw AuthServiceException(response.error?.message ?? 'Login failed');
+      throw AuthServiceException(_formatError(response.error, 'Login failed'));
     }
     return response.data!;
+  }
+
+  String _formatError(ApiError? error, String fallback) {
+    if (error == null) return fallback;
+    final details = error.details;
+    if (details is List && details.isNotEmpty) {
+      final first = details.first;
+      if (first is Map && first['message'] != null) {
+        return first['message'].toString();
+      }
+    }
+    return error.message.isNotEmpty ? error.message : fallback;
   }
 
   Future<AuthResultModel> register({
     required String fullName,
     required String email,
+    required String phone,
     required String password,
   }) async {
     final response = await _api.post(
@@ -33,13 +47,14 @@ class AuthService {
       data: {
         'full_name': fullName,
         'email': email,
+        'phone': phone,
         'password': password,
         'role': 'USER',
       },
       fromJson: (json) => AuthResultModel.fromJson(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
-      throw AuthServiceException(response.error?.message ?? 'Registration failed');
+      throw AuthServiceException(_formatError(response.error, 'Registration failed'));
     }
     return response.data!;
   }

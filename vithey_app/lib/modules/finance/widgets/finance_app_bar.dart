@@ -12,7 +12,6 @@ class FinanceAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
       elevation: 0,
       title: const Text('Finance', style: TextStyle(fontWeight: FontWeight.bold)),
       centerTitle: true,

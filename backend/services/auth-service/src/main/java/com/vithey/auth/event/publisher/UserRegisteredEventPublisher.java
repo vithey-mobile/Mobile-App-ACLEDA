@@ -3,7 +3,6 @@ package com.vithey.auth.event.publisher;
 import com.vithey.auth.event.payload.UserRegisteredEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,7 @@ public class UserRegisteredEventPublisher {
   public void publish(UserRegisteredEvent event) {
     try {
       rabbitTemplate.convertAndSend(exchangeName, ROUTING_KEY, event);
-    } catch (AmqpException exception) {
+    } catch (RuntimeException exception) {
       log.warn("Unable to publish {} event for user {}", ROUTING_KEY, event.userId(), exception);
     }
   }

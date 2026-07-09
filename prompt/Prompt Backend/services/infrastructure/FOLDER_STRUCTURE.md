@@ -3,7 +3,7 @@
 Target output:
 
 ```text
-vithey-backend/
+backend/
 ├── pom.xml
 ├── config-repo/
 │   ├── application.yml

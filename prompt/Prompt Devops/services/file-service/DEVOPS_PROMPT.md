@@ -2,54 +2,36 @@
 
 Create independent Docker Compose and GitHub Actions CI for `file-service`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/file-service` |
+| Source path | `backend/services/file-service` |
 | Port | `8083` |
 | Image | `ghcr.io/<owner>/vithey-file-service` |
 | Database | `file_db` |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/file-service/docker-compose.yml
-vithey-backend/services/file-service/.env.example
+backend/services/file-service/docker-compose.yml
+backend/services/file-service/.env.example
 ```
 
-Required containers in service compose:
+**Service compose containers only:** `file-service`, `file-postgres`  
+**Shared infra:** `minio`, `eureka-server`, `config-server`
 
-- `file-service`
-- `file-postgres`
-
-Uses shared infrastructure on external network `vithey-network`:
-
-- `minio`
-- `eureka-server`
-- `config-server`
-
-Verification:
+## Verification
 
 ```bash
-cd vithey-backend/infrastructure
-docker compose up -d --build
-
-cd ../services/file-service
-copy .env.example .env
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/file-service && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8083/actuator/health
-docker compose down
 ```
 
-## GitHub Actions Output
+## GitHub Actions
 
-Create:
-
-```text
-.github/workflows/file-service-ci.yml
-```
-
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8083`, and validate `services/file-service/docker-compose.yml`.
+`.github/workflows/file-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8083`.

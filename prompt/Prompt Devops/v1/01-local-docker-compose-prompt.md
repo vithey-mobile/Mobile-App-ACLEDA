@@ -1,5 +1,8 @@
 # 01 - Local Docker Compose Prompt
 
+> **Deprecated.** Use `v1/06-per-service-docker-compose-prompt.md` + `DOCKER.md` instead.  
+> Do **not** create `backend/docker-compose.yml` all-in-one. Each folder has its own compose.
+
 Build **Docker Compose** files for full local development of Vithey App microservices.
 
 ## Goal
@@ -7,11 +10,11 @@ One-command local stack: infrastructure + all Spring Boot services + API Gateway
 
 ## Depends On
 - `00-foundation-prompt.md`
-- Backend service code under `vithey-backend/services/`
+- Backend service code under `backend/services/`
 
 ## Must Create
 ```text
-vithey-backend/
+backend/
 ├── docker-compose.yml           # all-in-one (includes infra)
 ├── docker-compose.infra.yml       # data layer only
 ├── docker-compose.apps.yml        # app services only (for dev iteration)

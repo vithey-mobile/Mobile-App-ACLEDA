@@ -1,15 +1,17 @@
 # Integration Contract — Frontend ↔ Backend
 
-**Single source of truth** for how the Flutter app (`vithey_app/`) talks to the Spring Boot gateway (`vithey-backend/`).  
+**Single source of truth** for how the Flutter app (`vithey_app/`) talks to the Spring Boot gateway (`backend/`).  
 All AI prompts, screen docs, and service prompts must match this file.
 
 ## Repos (this monorepo)
 
 | Output folder | Stack | Entry prompt |
-|---------------|-------|--------------|
+| --- | --- | --- |
 | `vithey_app/` | Flutter + GetX + Dio | `Prompt Frontend/KICKOFF_PROMPT.md` |
-| `vithey-backend/` | Spring Boot microservices | `Prompt Backend/KICKOFF_PROMPT.md` |
-| `vithey-backend/docker-compose.yml` | Infra + services | `Prompt Devops/KICKOFF_PROMPT.md` |
+| `backend/` | Spring Boot microservices | `Prompt Backend/KICKOFF_PROMPT.md` |
+| `backend/infrastructure/` + `backend/services/*/docker-compose.yml` | Per-service Docker | `Prompt Devops/DOCKER.md` |
+
+Paths: `_shared/REPO_PATHS.md` · Ports: `_shared/SERVICE_REGISTRY.md`
 
 **App name:** Vithey App · **Competition package name:** `aub_connect_app` (set in `pubspec.yaml` `name:` field; repo folder is `vithey_app/`).
 

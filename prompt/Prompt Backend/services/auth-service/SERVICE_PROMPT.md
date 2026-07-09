@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/auth-service/` |
+| Path | `backend/services/auth-service/` |
 | Port | 8081 |
 | Eureka | `auth-service` |
 | Database | `auth_db` |

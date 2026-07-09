@@ -1,23 +1,4 @@
-services:
-  ai-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-ai-postgres
-    environment:
-      POSTGRES_DB: ai_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5440:5432"
-    volumes:
-      - ai-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   ai-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8089:8089"
-    depends_on:
-      ai-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8089/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -42,9 +20,6 @@ services:
     networks:
       - vithey-network
       - gdce-network
-
-volumes:
-  ai-postgres-data:
 
 networks:
   vithey-network:

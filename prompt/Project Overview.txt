@@ -4,74 +4,45 @@
 **Package:** `aub_connect_app`  
 **Audience:** AUB students + youth users
 
-This repository stores AI prompts and product/API specifications only. Generated code should be created later under:
+This repository stores AI prompts and specifications. Generated code goes to:
 
 - `vithey_app/` — Flutter app
-- `vithey-backend/` — Spring Boot backend
+- `backend/` — Spring Boot backend
 
-## Root Layout
+See `_shared/REPO_PATHS.md` for canonical paths.
+
+## Root layout
 
 ```text
 Acleda Mobile App/
-├── MASTER_AI_PROMPT.md
-├── Project Overview.txt
+├── MASTER_AI_PROMPT.md      ← AI session entry
+├── Project Overview.txt     ← this file
+├── _shared/                 ← SERVICE_REGISTRY, REPO_PATHS, READ_ORDER
 ├── Prompt Frontend/
 ├── Prompt Backend/
 └── Prompt Devops/
 ```
 
-## Prompt Frontend
+## Layer index
 
-| Path | Purpose |
-|------|---------|
-| `KICKOFF_PROMPT.md` | Frontend build rules |
-| `COMMON_CONTEXT.md` | Flutter architecture and package rules |
-| `Screen prompt/` | Screen prompts organized by feature flow |
-| `screen image/` | UI reference images |
-| `api-intergration/README.md` | API integration prompt index |
-| `api-intergration/integration-contract.md` | **Only source of truth for frontend ↔ backend API contract** |
-| `api-intergration/api-overview.md` | Endpoint index |
-| `api-intergration/00-api-intergration-prompt.md` | Live Flutter API wiring prompt |
+| Layer | Start here | Owns |
+| --- | --- | --- |
+| Frontend | `Prompt Frontend/KICKOFF_PROMPT.md` | UI, screens, Flutter structure |
+| Backend | `Prompt Backend/KICKOFF_PROMPT.md` | Spring Boot services, domain logic |
+| DevOps | `Prompt Devops/KICKOFF_PROMPT.md` | Docker, CI/CD, runbooks |
+| API contract | `Prompt Frontend/api-intergration/integration-contract.md` | Endpoints, envelope, gateway routes |
+| Registry | `_shared/SERVICE_REGISTRY.md` | Ports, build order, screen map |
 
-## Prompt Backend
+## Build order
 
-| Path | Purpose |
-|------|---------|
-| `KICKOFF_PROMPT.md` | Backend build rules |
-| `COMMON_CONTEXT.md` | Shared API envelope, ports, events, RBAC |
-| `SERVICE_BLUEPRINT.md` | Spring Cloud + service folder template |
-| `services/*/API_ENDPOINTS.md` | Per-service endpoint contract aligned to frontend |
-| `services/*/FOLDER_STRUCTURE.md` | Per-service Spring Boot output tree |
-| `services/*/SERVICE_LOGIC.md` | Per-service business logic, boundaries, events |
-| `services/*/DB_SCHEMA.md` | Per-service database schema and migration notes |
-| `services/*/SERVICE_PROMPT.md` | Combined final build prompt/checklist |
-| `backend plan.png` | Backend architecture diagram |
-
-## Prompt Devops
-
-| Path | Purpose |
-|------|---------|
-| `KICKOFF_PROMPT.md` | DevOps build rules |
-| `COMMON_CONTEXT.md` | Docker/GHCR/env standards |
-| `v1/*.md` | Docker Compose, Dockerfiles, CI, GHCR, production prompts |
-| `services/*/DEVOPS_PROMPT.md` | Per-service Docker Compose + per-service GitHub Actions CI |
-
-## Build Order
-
-1. DevOps: `Prompt Devops/v1/00-foundation-prompt.md`
-   - For independent service DevOps, use `Prompt Devops/services/<service>/DEVOPS_PROMPT.md`
-2. Backend: `Prompt Backend/infrastructure/SERVICE_PROMPT.md`
-3. Backend services in order: gateway → auth → user-profile → file → content → career → finance → chat → notification → ai
-4. Frontend screens: use `Prompt Frontend/Screen prompt/README.md`
+1. DevOps: `Prompt Devops/v1/00` → `07`, or per-service `Prompt Devops/services/<name>/DEVOPS_PROMPT.md`
+2. Backend infrastructure: `Prompt Backend/infrastructure/SERVICE_PROMPT.md`
+3. Backend services: order in `_shared/SERVICE_REGISTRY.md`
+4. Frontend screens: `Prompt Frontend/Screen prompt/README.md`
 5. API integration: `Prompt Frontend/api-intergration/00-api-intergration-prompt.md`
 
-## API Rule
+## Rules
 
-All frontend API integration content lives in:
-
-```text
-Prompt Frontend/api-intergration/
-```
-
-Do not create duplicate API integration prompt files in `reference/`, screen folders, or other locations.
-
+- **No duplicate tables** — link `_shared/SERVICE_REGISTRY.md` and `integration-contract.md`
+- **No docs in `backend/`** — all markdown stays in `prompt/`
+- **One compose per Docker folder** — see `Prompt Devops/DOCKER.md`

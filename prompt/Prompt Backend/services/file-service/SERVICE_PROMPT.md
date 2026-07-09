@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/file-service/` |
+| Path | `backend/services/file-service/` |
 | Port | 8083 |
 | Eureka | `file-service` |
 | Storage | MinIO (S3-compatible) |

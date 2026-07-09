@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class GoogleAccountChooserScreen extends GetView<AuthController> {
   const GoogleAccountChooserScreen({super.key});
@@ -11,7 +12,6 @@ class GoogleAccountChooserScreen extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -19,17 +19,17 @@ class GoogleAccountChooserScreen extends GetView<AuthController> {
             children: [
               const AppLogo(size: 70, onWhiteCircle: true),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Sign in with Google',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.authHeading),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.appColors.heading),
               ),
               const SizedBox(height: 8),
-              const Text('To continue to Vithey', style: TextStyle(color: AppColors.authMuted)),
+              Text('To continue to Vithey', style: TextStyle(color: context.appColors.muted)),
               const SizedBox(height: 24),
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(color: AppColors.authBorder),
+                  side: BorderSide(color: context.appColors.border),
                 ),
                 child: Column(
                   children: [
@@ -55,7 +55,7 @@ class GoogleAccountChooserScreen extends GetView<AuthController> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Back to ', style: TextStyle(color: AppColors.authMuted)),
+                  Text('Back to ', style: TextStyle(color: context.appColors.muted)),
                   GestureDetector(
                     onTap: controller.cancelGoogleAuth,
                     child: const Text(AppStrings.signIn, style: TextStyle(color: AppColors.primary)),
@@ -63,10 +63,10 @@ class GoogleAccountChooserScreen extends GetView<AuthController> {
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'To continue, Google will share your name, email address, language preference, and profile picture with Vithey.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.authMuted, fontSize: 12),
+                style: TextStyle(color: context.appColors.muted, fontSize: 12),
               ),
             ],
           ),
@@ -83,7 +83,6 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     final account = controller.selectedGoogleAccount;
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFBFC),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -103,7 +102,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
                       Text(account?.displayName ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      Text(account?.email ?? '', style: const TextStyle(color: AppColors.authMuted)),
+                      Text(account?.email ?? '', style: TextStyle(color: context.appColors.muted)),
                       const SizedBox(height: 24),
                       const Text(
                         'Vithey wants to access your basic profile info',

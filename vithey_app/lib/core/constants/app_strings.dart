@@ -19,10 +19,12 @@ class AppStrings {
   static const emailAddress = 'Email Address';
   static const password = 'Password';
   static const fullName = 'Full Name';
+  static const phoneNumber = 'Phone Number';
   static const signIn = 'Sign In';
   static const signUp = 'Sign Up';
   static const signInWith = 'Sign in with';
   static const continueWithGoogle = 'Continue with Google';
+  static const googleAuthComingSoon = 'Google sign-in is coming soon';
   static const noAccount = "Don't have an account?";
   static const hasAccount = 'Already have an account.';
   static const skip = 'Skip';

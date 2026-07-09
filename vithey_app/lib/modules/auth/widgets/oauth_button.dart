@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class OAuthButton extends StatelessWidget {
   const OAuthButton({
@@ -21,8 +21,7 @@ class OAuthButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: AppColors.authBorder),
+          side: BorderSide(color: context.appColors.border),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: isLoading
@@ -36,7 +35,7 @@ class OAuthButton extends StatelessWidget {
                 children: [
                   const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const SizedBox(width: 8),
-                  Text(label, style: const TextStyle(color: AppColors.authHeading, fontWeight: FontWeight.w600)),
+                  Text(label, style: TextStyle(color: context.appColors.heading, fontWeight: FontWeight.w600)),
                 ],
               ),
       ),
@@ -53,12 +52,12 @@ class SocialDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.authBorder)),
+        Expanded(child: Divider(color: context.appColors.border)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(label, style: const TextStyle(color: AppColors.authMuted, fontSize: 12)),
+          child: Text(label, style: TextStyle(color: context.appColors.muted, fontSize: 12)),
         ),
-        const Expanded(child: Divider(color: AppColors.authBorder)),
+        Expanded(child: Divider(color: context.appColors.border)),
       ],
     );
   }

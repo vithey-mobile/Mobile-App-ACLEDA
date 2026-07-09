@@ -83,5 +83,5 @@ if ($healthOk -eq 5) {
     exit 0
 }
 
-Write-Host "Some checks failed. See DOCKER-VERIFY.md for fixes." -ForegroundColor Yellow
+Write-Host "Some checks failed. See prompt/Prompt Devops/DOCKER-VERIFY.md for fixes." -ForegroundColor Yellow
 exit 1

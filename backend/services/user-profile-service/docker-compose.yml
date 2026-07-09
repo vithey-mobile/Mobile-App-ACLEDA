@@ -1,23 +1,4 @@
-services:
-  profile-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-profile-postgres
-    environment:
-      POSTGRES_DB: user_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - profile-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d user_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   user-profile-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8082:8082"
-    depends_on:
-      profile-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -41,9 +19,6 @@ services:
       retries: 12
     networks:
       - vithey-network
-
-volumes:
-  profile-postgres-data:
 
 networks:
   vithey-network:

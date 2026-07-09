@@ -1,23 +1,4 @@
-services:
-  career-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-career-postgres
-    environment:
-      POSTGRES_DB: career_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5436:5432"
-    volumes:
-      - career-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d career_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   career-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8085:8085"
-    depends_on:
-      career-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -41,9 +19,6 @@ services:
       retries: 12
     networks:
       - vithey-network
-
-volumes:
-  career-postgres-data:
 
 networks:
   vithey-network:

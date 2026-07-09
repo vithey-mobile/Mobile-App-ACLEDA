@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VerificationInfoCard extends StatelessWidget {
   const VerificationInfoCard({super.key});
@@ -9,27 +9,27 @@ class VerificationInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.authBorder,
-            child: Icon(Icons.info_outline, size: 18, color: AppColors.authMuted),
+            backgroundColor: context.appColors.border,
+            child: Icon(Icons.info_outline, size: 18, color: context.appColors.muted),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Verification takes 24–48 hours', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 6),
+                const Text('Verification takes 24–48 hours', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
                 Text(
                   'You\'ll receive an email when your student status is verified. You can continue using Vithey in the meantime!',
-                  style: TextStyle(color: AppColors.authMuted, height: 1.4),
+                  style: TextStyle(color: context.appColors.muted, height: 1.4),
                 ),
               ],
             ),

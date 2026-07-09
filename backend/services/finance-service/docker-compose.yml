@@ -1,23 +1,4 @@
-services:
-  finance-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-finance-postgres
-    environment:
-      POSTGRES_DB: finance_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5437:5432"
-    volumes:
-      - finance-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d finance_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   finance-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8086:8086"
-    depends_on:
-      finance-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -41,9 +19,6 @@ services:
       retries: 12
     networks:
       - vithey-network
-
-volumes:
-  finance-postgres-data:
 
 networks:
   vithey-network:

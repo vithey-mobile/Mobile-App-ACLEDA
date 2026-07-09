@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class FeedActionBar extends StatelessWidget {
   const FeedActionBar({
@@ -25,7 +26,7 @@ class FeedActionBar extends StatelessWidget {
           _ActionButton(
             icon: post.userReacted ? Icons.thumb_up : Icons.thumb_up_outlined,
             label: post.reactionCount > 0 ? '${post.reactionCount}' : 'Like',
-            color: post.userReacted ? AppColors.primary : AppColors.authMuted,
+            color: post.userReacted ? AppColors.primary : context.appColors.muted,
             onTap: onLike,
           ),
           _ActionButton(
@@ -68,9 +69,9 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: color ?? AppColors.authMuted),
+              Icon(icon, size: 18, color: color ?? context.appColors.muted),
               const SizedBox(width: 6),
-              Text(label, style: TextStyle(color: color ?? AppColors.authHeading, fontSize: 13)),
+              Text(label, style: TextStyle(color: color ?? context.appColors.heading, fontSize: 13)),
             ],
           ),
         ),

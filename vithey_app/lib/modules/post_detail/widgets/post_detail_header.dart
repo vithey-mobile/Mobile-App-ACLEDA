@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PostDetailHeader extends StatelessWidget {
   const PostDetailHeader({
@@ -27,7 +27,7 @@ class PostDetailHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(post.author.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(RelativeTime.format(post.createdAt), style: const TextStyle(color: AppColors.authMuted, fontSize: 12)),
+                Text(RelativeTime.format(post.createdAt), style: TextStyle(color: context.appColors.muted, fontSize: 12)),
               ],
             ),
           ),

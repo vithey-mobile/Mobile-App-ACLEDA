@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_author_header.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({
@@ -34,7 +34,7 @@ class PostCard extends StatelessWidget {
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.authBorder),
+        side: BorderSide(color: context.appColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,9 +69,9 @@ class PostMediaImage extends StatelessWidget {
     if (url == null || url!.isEmpty) {
       return Container(
         height: height,
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         alignment: Alignment.center,
-        child: const Icon(Icons.image_not_supported_outlined, color: AppColors.authMuted),
+        child: Icon(Icons.image_not_supported_outlined, color: context.appColors.muted),
       );
     }
 
@@ -82,12 +82,12 @@ class PostMediaImage extends StatelessWidget {
       fit: BoxFit.contain,
       placeholder: (_, __) => Container(
         height: height,
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       errorWidget: (_, __, ___) => Container(
         height: height,
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         alignment: Alignment.center,
         child: const Icon(Icons.broken_image_outlined),
       ),

@@ -17,15 +17,15 @@ class ShimmerListTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            Container(width: 48, height: 48, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+            Container(width: 48, height: 48, decoration: BoxDecoration(color: highlight, shape: BoxShape.circle)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(height: 14, width: double.infinity, color: Colors.white),
+                  Container(height: 14, width: double.infinity, color: highlight),
                   const SizedBox(height: 8),
-                  Container(height: 12, width: 120, color: Colors.white),
+                  Container(height: 12, width: 120, color: highlight),
                 ],
               ),
             ),

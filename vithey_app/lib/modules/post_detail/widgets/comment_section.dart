@@ -7,6 +7,7 @@ import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/post_detail/post_detail_controller.dart';
 import 'package:aub_connect_app/modules/post_detail/widgets/mention_user_box.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CommentSection extends StatelessWidget {
   const CommentSection({super.key});
@@ -53,9 +54,9 @@ class CommentSection extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.authInputFill,
+                          color: context.appColors.inputFill,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.authBorder),
+                          border: Border.all(color: context.appColors.border),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +67,7 @@ class CommentSection extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               RelativeTime.format(comment.createdAt),
-                              style: const TextStyle(color: AppColors.authMuted, fontSize: 11),
+                              style: TextStyle(color: context.appColors.muted, fontSize: 11),
                             ),
                             if (comment.isFailed)
                               TextButton(
@@ -106,7 +107,7 @@ class CommentSection extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Write a comment…',
                       filled: true,
-                      fillColor: AppColors.authInputFill,
+                      fillColor: context.appColors.inputFill,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),

@@ -17,9 +17,9 @@ class AuthWaveHeader extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           CustomPaint(painter: _AuthWavePainter()),
-          Center(
+          const Center(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
+              padding: EdgeInsets.only(bottom: 24),
               child: AppLogo(size: 82, onWhiteCircle: true),
             ),
           ),

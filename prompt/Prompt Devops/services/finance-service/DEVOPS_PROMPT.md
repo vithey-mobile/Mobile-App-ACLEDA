@@ -2,48 +2,36 @@
 
 Create independent Docker Compose and GitHub Actions CI for `finance-service`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/finance-service` |
+| Source path | `backend/services/finance-service` |
 | Port | `8086` |
 | Image | `ghcr.io/<owner>/vithey-finance-service` |
 | Database | `finance_db` |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/finance-service/docker-compose.yml
-vithey-backend/services/finance-service/.env.example
+backend/services/finance-service/docker-compose.yml
+backend/services/finance-service/.env.example
 ```
 
-Required containers:
+**Service compose containers only:** `finance-service`, `finance-postgres`  
+**Shared infra:** `rabbitmq`, `eureka-server`, `config-server`
 
-- `finance-service`
-- `finance-postgres`
-- `finance-rabbitmq`
-- `finance-eureka-server`
-- `finance-config-server`
-
-Verification:
+## Verification
 
 ```bash
-cd vithey-backend/services/finance-service
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/finance-service && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8086/actuator/health
-docker compose down -v
 ```
 
-## GitHub Actions Output
+## GitHub Actions
 
-Create:
-
-```text
-.github/workflows/finance-service-ci.yml
-```
-
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8086`, and validate `services/finance-service/docker-compose.yml`.
-
+`.github/workflows/finance-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8086`.

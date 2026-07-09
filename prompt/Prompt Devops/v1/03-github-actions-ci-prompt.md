@@ -25,12 +25,12 @@ on:
   push:
     branches: [main, Prompt, develop]
     paths:
-      - 'vithey-backend/**'
+      - 'backend/**'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main, Prompt, develop]
     paths:
-      - 'vithey-backend/**'
+      - 'backend/**'
 ```
 
 ### Permissions
@@ -66,7 +66,7 @@ strategy:
 - Steps:
   1. `actions/checkout@v4`
   2. `actions/setup-java@v4` with Java 21, Maven cache
-  3. `mvn -B -f vithey-backend/services/${{ matrix.service }} test`
+  3. `mvn -B -f backend/services/${{ matrix.service }} test`
   4. Upload test reports artifact on failure
 
 #### Job 3: `infrastructure-test`
@@ -75,7 +75,7 @@ strategy:
 
 #### Job 4: `compose-validate`
 - Install Docker
-- `docker compose -f vithey-backend/docker-compose.yml config`
+- `docker compose -f backend/docker-compose.yml config`
 - Fails if compose YAML invalid
 
 #### Job 5: `flutter-analyze` (optional, if frontend in repo)

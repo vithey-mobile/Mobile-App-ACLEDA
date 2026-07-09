@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/modules/settings/settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_logout_button.dart';
@@ -8,6 +7,7 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_switch_tile.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsHomeScreen extends GetView<SettingsController> {
   const SettingsHomeScreen({super.key});
@@ -103,10 +103,10 @@ class _CardGroup extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.lightSurface,
+          color: context.appColors.cardSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
         child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Column(children: children)),

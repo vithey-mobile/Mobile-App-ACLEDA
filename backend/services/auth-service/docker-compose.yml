@@ -1,23 +1,4 @@
-services:
-  auth-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-auth-postgres
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5441:5432"
-    volumes:
-      - auth-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   auth-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8081:8081"
-    depends_on:
-      auth-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -41,9 +19,6 @@ services:
       retries: 12
     networks:
       - vithey-network
-
-volumes:
-  auth-postgres-data:
 
 networks:
   vithey-network:

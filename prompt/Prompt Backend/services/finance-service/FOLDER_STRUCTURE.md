@@ -3,7 +3,7 @@
 Target output:
 
 ```text
-vithey-backend/services/finance-service/
+backend/services/finance-service/
 ├── pom.xml
 ├── README.md
 ├── API.md

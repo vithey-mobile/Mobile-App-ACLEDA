@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/assistant_message.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_composer.dart';
@@ -18,10 +19,8 @@ class ChatbotScreen extends GetView<ChatbotController> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: controller.scaffoldKey,
-      backgroundColor: const Color(0xFFF8FAFB),
       drawer: ChatbotHistoryDrawer(controller: controller),
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.menu),
@@ -103,7 +102,7 @@ class ChatbotScreen extends GetView<ChatbotController> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'Vithey AI may make mistakes. Verify important information.',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 11, color: context.scheme.onSurfaceVariant),
             ),
           ),
         ],

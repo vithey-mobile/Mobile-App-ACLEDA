@@ -1,13 +1,31 @@
 # File Service — Kickoff Prompt
 
-Build the **File Service** — media upload to MinIO for CV, avatar, poster, and video files.
+You are building the **File Service** for Vithey App — upload, storage, and download via MinIO.
 
-## Read First
-1. `../../COMMON_CONTEXT.md` → 2. `COMMON_CONTEXT.md` → 3. `SERVICE_PROMPT.md`
+## Read first
 
-## Port
-**8083** | Storage: **MinIO** (no PostgreSQL required; optional metadata DB)
+Follow `_shared/READ_ORDER.md` → Backend — one service.
+
+In this folder, read in order:
+
+1. `../../COMMON_CONTEXT.md`
+2. `COMMON_CONTEXT.md`
+3. `API_ENDPOINTS.md`
+4. `FOLDER_STRUCTURE.md`
+5. `SERVICE_LOGIC.md`
+6. `DB_SCHEMA.md`
+7. `SERVICE_PROMPT.md`
+
+**Precedence:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
+
+## Identity
+
+Port, storage buckets, package: see service `COMMON_CONTEXT.md`. Registry: `_shared/SERVICE_REGISTRY.md`.
 
 ## Rules
-- All file bytes go to MinIO — never store files on local disk in production.
-- Return public/signed URLs for other services to reference.
+
+- Build **before** content-service and career-service (they depend on file URLs).
+
+## Definition of done
+
+Runnable Spring Boot on port 8083 implementing every endpoint in `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`.

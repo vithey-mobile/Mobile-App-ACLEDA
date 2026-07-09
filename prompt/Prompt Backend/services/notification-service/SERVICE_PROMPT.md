@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/notification-service/` |
+| Path | `backend/services/notification-service/` |
 | Port | 8088 |
 | Eureka | `notification-service` |
 | Database | `notification_db` |

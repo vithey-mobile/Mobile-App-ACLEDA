@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ApplyJobContext extends StatelessWidget {
   const ApplyJobContext({
@@ -57,10 +58,10 @@ class ApplyJobContext extends StatelessWidget {
         children: [
           Text(
             'Applying for $title',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.authHeading),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.appColors.heading),
           ),
           const SizedBox(height: 4),
-          Text(job!.author.fullName, style: const TextStyle(color: AppColors.authMuted)),
+          Text(job!.author.fullName, style: TextStyle(color: context.appColors.muted)),
           if (job!.jobMeta.description != null && job!.jobMeta.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(job!.jobMeta.description!, style: const TextStyle(height: 1.4)),
@@ -86,7 +87,7 @@ class _SkeletonLine extends StatelessWidget {
       width: width,
       height: 14,
       decoration: BoxDecoration(
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         borderRadius: BorderRadius.circular(4),
       ),
     );

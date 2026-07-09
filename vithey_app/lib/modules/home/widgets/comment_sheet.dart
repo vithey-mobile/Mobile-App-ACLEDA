@@ -7,6 +7,7 @@ import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CommentSheet extends StatefulWidget {
   const CommentSheet({
@@ -104,7 +105,7 @@ class _CommentSheetState extends State<CommentSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.authMuted,
+                  color: context.appColors.muted,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -145,9 +146,9 @@ class _CommentSheetState extends State<CommentSheet> {
                               child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.authInputFill,
+                                  color: context.appColors.inputFill,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.authBorder),
+                                  border: Border.all(color: context.appColors.border),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +159,7 @@ class _CommentSheetState extends State<CommentSheet> {
                                     const SizedBox(height: 6),
                                     Text(
                                       RelativeTime.format(comment.createdAt),
-                                      style: const TextStyle(color: AppColors.authMuted, fontSize: 11),
+                                      style: TextStyle(color: context.appColors.muted, fontSize: 11),
                                     ),
                                   ],
                                 ),
@@ -182,7 +183,7 @@ class _CommentSheetState extends State<CommentSheet> {
                           decoration: InputDecoration(
                             hintText: 'Write a comment…',
                             filled: true,
-                            fillColor: AppColors.authInputFill,
+                            fillColor: context.appColors.inputFill,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           ),

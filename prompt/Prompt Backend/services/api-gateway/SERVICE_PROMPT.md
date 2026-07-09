@@ -5,7 +5,7 @@
 
 ## Monorepo
 
-`vithey-backend/services/api-gateway/` · Port **8080** · Eureka: `api-gateway`
+`backend/services/api-gateway/` · Port **8080** · Eureka: `api-gateway`
 
 ## Spring Cloud stack
 

@@ -1,23 +1,4 @@
-services:
-  chat-postgres:
-    image: postgres:16-alpine
-    container_name: vithey-chat-postgres
-    environment:
-      POSTGRES_DB: chat_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5438:5432"
-    volumes:
-      - chat-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d chat_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - vithey-network
-
+﻿services:
   chat-service:
     build:
       context: ../..
@@ -30,9 +11,6 @@ services:
       - .env.example
     ports:
       - "8087:8087"
-    depends_on:
-      chat-postgres:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
@@ -41,9 +19,6 @@ services:
       retries: 12
     networks:
       - vithey-network
-
-volumes:
-  chat-postgres-data:
 
 networks:
   vithey-network:

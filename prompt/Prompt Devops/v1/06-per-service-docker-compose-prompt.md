@@ -18,12 +18,8 @@ Every business service has its own `docker-compose.yml` with only the service an
 ## Output Pattern
 
 ```text
-vithey-backend/
+backend/
 ├── infrastructure/
-│   ├── eureka-server/
-│   ├── config-server/
-│   ├── config-repo/
-│   ├── scripts/
 │   └── docker-compose.yml
 └── services/
     └── <service>/
@@ -33,18 +29,20 @@ vithey-backend/
         └── src/
 ```
 
+Registry (ports, shared infra deps): `_shared/SERVICE_REGISTRY.md`.
+
 Examples:
 
 ```text
-vithey-backend/services/auth-service/docker-compose.yml
-vithey-backend/services/content-service/docker-compose.yml
-vithey-backend/services/ai-service/docker-compose.yml
+backend/services/auth-service/docker-compose.yml
+backend/services/content-service/docker-compose.yml
+backend/services/ai-service/docker-compose.yml
 ```
 
 ## Compose Rules
 
 - Use Docker Compose v2 syntax.
-- Shared infrastructure must already be running from `vithey-backend/infrastructure/docker-compose.yml`.
+- Shared infrastructure must already be running from `backend/infrastructure/docker-compose.yml`.
 - Each service compose file must join the external network:
 
 ```yaml
@@ -96,7 +94,7 @@ ai-service -> ai_db
 Each service compose file must document:
 
 ```bash
-cd vithey-backend/infrastructure
+cd backend/infrastructure
 docker compose up -d --build
 
 cd ../services/<service>

@@ -12,7 +12,7 @@ Optimized, secure, consistent container images for local build and GHCR publish.
 ## Must Create
 One `Dockerfile` per buildable module:
 ```text
-vithey-backend/
+backend/
 ├── eureka-server/Dockerfile
 ├── config-server/Dockerfile
 └── services/

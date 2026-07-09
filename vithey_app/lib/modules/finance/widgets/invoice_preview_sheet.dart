@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class InvoicePreviewSheet {
   static Future<void> show({
@@ -13,7 +14,7 @@ class InvoicePreviewSheet {
     return Get.bottomSheet<void>(
       _InvoiceSheet(invoice: invoice, onDownload: onDownload),
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Get.context!.scheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -64,7 +65,7 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
             child: Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(color: AppColors.authBorder, borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(color: context.appColors.border, borderRadius: BorderRadius.circular(4)),
             ),
           ),
           Align(
@@ -72,12 +73,12 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
             child: IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
           ),
           Text(invoice.feeName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          Text(invoice.invoiceReference, style: const TextStyle(color: AppColors.authMuted)),
+          Text(invoice.invoiceReference, style: TextStyle(color: context.appColors.muted)),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.authInputFill,
+              color: context.appColors.inputFill,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -132,7 +133,7 @@ class _BreakdownRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(color: AppColors.authMuted)),
+          Text(label, style: TextStyle(color: context.appColors.muted)),
           const Spacer(),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],

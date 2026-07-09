@@ -1,38 +1,42 @@
-# AI Service — DevOps Prompt (Integration Only)
+# AI Service — DevOps Prompt
 
-> Python chatbot/AI is built **outside** the Vithey Java repo.  
-> No Maven module, no Java Docker image, no `ai-service-ci.yml` in Java repo.
+Java `ai-service` stub exists in `backend/services/ai-service/` with its own `docker-compose.yml`.
 
-## What Java DevOps provides
+**Integration (Python optional):** `Prompt Backend/services/ai-service/INTEGRATION.md`  
+**Registry:** `_shared/SERVICE_REGISTRY.md`
 
-| Item | Location |
+## Service
+
+| Item | Value |
 | --- | --- |
-| Gateway route | `services/api-gateway` — `/api/v1/ai/**` → `lb://ai-service` |
-| Eureka | `infrastructure/eureka-server` |
-| Integration docs | `services/ai-service/INTEGRATION.md` |
-| Network example | `services/ai-service/docker-compose.integration.example.yml` |
+| Source path | `backend/services/ai-service` |
+| Port | `8089` |
+| Image | `ghcr.io/<owner>/vithey-ai-service` |
+| Database | `ai_db` |
 
-## What you do in your Python project
+## Docker Compose Output
 
-1. Docker image for your Python `ai-service`
-2. `docker-compose.yml` joining `vithey-network` (and optionally `gdce-network`)
-3. Register Eureka name `ai-service` on port 8089
-4. CI with pytest in **your Python repo** (not Vithey Java CI)
+```text
+backend/services/ai-service/docker-compose.yml
+backend/services/ai-service/.env.example
+```
+
+**Service compose containers only:** `ai-service`, `ai-postgres`  
+**Shared infra:** `redis`, `eureka-server`, `config-server`  
+**Optional:** join external `gdce-network` if bridging to external Python stack.
 
 ## Verification
 
-```powershell
-# Vithey infrastructure + gateway running
-curl http://localhost:8761/eureka/apps/AI-SERVICE
+```bash
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/ai-service && copy .env.example .env
+docker compose up -d --build
 curl http://localhost:8089/actuator/health
-curl -X POST http://localhost:8080/api/v1/ai/chat -H "Authorization: Bearer <token>" ...
+curl http://localhost:8761/eureka/apps/AI-SERVICE
 ```
 
-## Optional: start your existing GDCE stack
+## GitHub Actions
 
-```powershell
-cd D:\GDCE-chatbot\chatbot_review\backend\api-layer\scripts
-.\start-development.ps1 -SkipBuild
-```
+`.github/workflows/ai-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8089`.
 
-Your Python Vithey adapter must bridge `vithey-network` ↔ `gdce-network` if using GDCE upstream.
+For a **Python-only** replacement, build CI in your Python repo; keep Eureka name `ai-service` and port `8089`.

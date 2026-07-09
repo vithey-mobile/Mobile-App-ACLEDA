@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CreatePostComposer extends StatelessWidget {
   const CreatePostComposer({
@@ -26,13 +27,13 @@ class CreatePostComposer extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.authInputFill,
+                  color: context.appColors.inputFill,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.authBorder),
+                  border: Border.all(color: context.appColors.border),
                 ),
-                child: const Text(
+                child: Text(
                   'What\'s on your mind?',
-                  style: TextStyle(color: AppColors.authMuted),
+                  style: TextStyle(color: context.appColors.muted),
                 ),
               ),
             ),

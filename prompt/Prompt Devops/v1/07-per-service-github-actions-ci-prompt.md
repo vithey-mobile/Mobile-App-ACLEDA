@@ -47,18 +47,18 @@ on:
   push:
     branches: [main, Prompt, develop]
     paths:
-      - 'vithey-backend/services/auth-service/**'
-      - 'vithey-backend/pom.xml'
-      - 'vithey-backend/config-repo/auth-service.yml'
-      - 'vithey-backend/infrastructure/docker-compose.auth-service.yml'
+      - 'backend/services/auth-service/**'
+      - 'backend/pom.xml'
+      - 'backend/config-repo/auth-service.yml'
+      - 'backend/infrastructure/docker-compose.auth-service.yml'
       - '.github/workflows/auth-service-ci.yml'
   pull_request:
     branches: [main, Prompt, develop]
     paths:
-      - 'vithey-backend/services/auth-service/**'
-      - 'vithey-backend/pom.xml'
-      - 'vithey-backend/config-repo/auth-service.yml'
-      - 'vithey-backend/infrastructure/docker-compose.auth-service.yml'
+      - 'backend/services/auth-service/**'
+      - 'backend/pom.xml'
+      - 'backend/config-repo/auth-service.yml'
+      - 'backend/infrastructure/docker-compose.auth-service.yml'
 ```
 
 ## Required Jobs
@@ -67,20 +67,20 @@ on:
 | --- | --- |
 | `test` | Maven tests for one service |
 | `docker-build` | Build local Docker image |
-| `compose-validate` | `docker compose -f vithey-backend/infrastructure/docker-compose.<service>.yml config` |
+| `compose-validate` | `docker compose -f backend/infrastructure/docker-compose.<service>.yml config` |
 
 ## Maven Command
 
 Prefer parent-module build when the backend parent POM exists:
 
 ```bash
-mvn -B -f vithey-backend/pom.xml -pl services/<service> -am test
+mvn -B -f backend/pom.xml -pl services/<service> -am test
 ```
 
 If the service is standalone:
 
 ```bash
-mvn -B -f vithey-backend/services/<service>/pom.xml test
+mvn -B -f backend/services/<service>/pom.xml test
 ```
 
 ## Docker Build Command
@@ -89,10 +89,10 @@ mvn -B -f vithey-backend/services/<service>/pom.xml test
 docker build \
   --build-arg SERVICE_PORT=<port> \
   -t vithey-<service>:ci \
-  vithey-backend/services/<service>
+  backend/services/<service>
 ```
 
 ## Output
 
-One independent workflow per service plus documentation in `vithey-backend/docs/LOCAL_DEV.md` explaining which workflow protects which service.
+One independent workflow per service plus documentation in `prompt/Prompt Devops/docs/LOCAL_DEV.md` explaining which workflow protects which service.
 

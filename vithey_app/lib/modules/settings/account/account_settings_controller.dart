@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AccountSettingsController extends GetxController {
   AccountSettingsController(this._profileRepository);
@@ -120,7 +121,7 @@ class AccountSettingsController extends GetxController {
         ),
       ),
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Get.context!.scheme.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     );
   }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/modules/settings/change_password/change_password_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChangePasswordScreen extends GetView<ChangePasswordController> {
   const ChangePasswordScreen({super.key});
@@ -32,11 +33,11 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
               child: Text('Update your password', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 4),
-            const Center(
+            Center(
               child: Text(
                 'Choose a strong password to keep your account safe',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.authMuted),
+                style: TextStyle(color: context.appColors.muted),
               ),
             ),
             const SizedBox(height: 24),
@@ -103,13 +104,13 @@ class _PasswordField extends StatelessWidget {
       obscureText: obscure,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.authMuted),
+        prefixIcon: Icon(Icons.lock_outline, color: context.appColors.muted),
         suffixIcon: IconButton(
           icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
           onPressed: onToggle,
         ),
         filled: true,
-        fillColor: AppColors.authInputFill,
+        fillColor: context.appColors.inputFill,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
     );
@@ -126,9 +127,9 @@ class _RequirementsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.authBorder),
+        border: Border.all(color: context.appColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,9 +158,9 @@ class _RequirementRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(Icons.circle, size: 8, color: met ? AppColors.primary : AppColors.authMuted),
+          Icon(Icons.circle, size: 8, color: met ? AppColors.primary : context.appColors.muted),
           const SizedBox(width: 10),
-          Text(text, style: TextStyle(color: met ? AppColors.primary : AppColors.authMuted)),
+          Text(text, style: TextStyle(color: met ? AppColors.primary : context.appColors.muted)),
         ],
       ),
     );

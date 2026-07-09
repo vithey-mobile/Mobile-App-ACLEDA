@@ -33,7 +33,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'vithey-backend/**'
+      - 'backend/**'
       - '.github/workflows/docker-publish.yml'
   workflow_dispatch:
     inputs:
@@ -64,17 +64,17 @@ strategy:
   matrix:
     include:
       - service: api-gateway
-        context: vithey-backend/services/api-gateway
+        context: backend/services/api-gateway
         port: 8080
       - service: auth-service
-        context: vithey-backend/services/auth-service
+        context: backend/services/auth-service
         port: 8081
       # ... all services
       - service: eureka-server
-        context: vithey-backend/eureka-server
+        context: backend/eureka-server
         port: 8761
       - service: config-server
-        context: vithey-backend/config-server
+        context: backend/config-server
         port: 8888
 ```
 
@@ -116,7 +116,7 @@ docker pull ghcr.io/<owner>/vithey-auth-service:latest
 ```
 
 ## Path-Filtered Builds (optimization)
-Only build services with changes in `vithey-backend/services/<name>/**` unless `workflow_dispatch` with `all`.
+Only build services with changes in `backend/services/<name>/**` unless `workflow_dispatch` with `all`.
 
 Use `dorny/paths-filter` output to skip unchanged services.
 

@@ -3,19 +3,17 @@
 > **Use with:** `COMMON_CONTEXT.md` + each `services/<name>/SERVICE_PROMPT.md`  
 > **Scope:** Backend REST API only — no Flutter, no admin UI.
 
-## Monorepo layout (`vithey-backend/`)
+## Monorepo layout (`backend/`)
 
 ```text
-vithey-backend/
+backend/
 ├── pom.xml                              # parent POM — Spring Boot + Spring Cloud BOM
-├── docker-compose.yml                   # from DevOps prompts
-├── config-repo/                         # Spring Cloud Config (native/git)
-│   ├── application.yml                  # shared defaults
-│   ├── auth-service.yml
-│   ├── api-gateway.yml
-│   └── ... (one per service)
-├── eureka-server/                       # port 8761
-├── config-server/                       # port 8888
+├── infrastructure/
+│   ├── eureka-server/                   # port 8761
+│   ├── config-server/                   # port 8888
+│   ├── config-repo/                     # Spring Cloud Config (native)
+│   ├── scripts/
+│   └── docker-compose.yml               # shared infra only
 └── services/
     ├── api-gateway/                     # port 8080
     ├── auth-service/                    # port 8081
@@ -26,13 +24,15 @@ vithey-backend/
     ├── finance-service/                 # port 8086
     ├── chat-service/                    # port 8087
     ├── notification-service/            # port 8088
-    └── ai-service/                      # integration docs only — Python built separately
+    └── ai-service/                      # port 8089
 ```
+
+Ports and build order: `_shared/SERVICE_REGISTRY.md`.
 
 ## Parent POM (required)
 
 ```xml
-<!-- vithey-backend/pom.xml -->
+<!-- backend/pom.xml -->
 <parent>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-parent</artifactId>
@@ -58,7 +58,7 @@ vithey-backend/
 </dependencyManagement>
 ```
 
-Each service module: `<parent>` → `vithey-backend` parent, `<artifactId>auth-service</artifactId>`.
+Each service module: `<parent>` → `backend` parent, `<artifactId>auth-service</artifactId>`.
 
 ## Spring Cloud — every domain service
 

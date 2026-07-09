@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/user-profile-service/` |
+| Path | `backend/services/user-profile-service/` |
 | Port | 8082 |
 | Eureka | `user-profile-service` |
 | Database | `user_db` |

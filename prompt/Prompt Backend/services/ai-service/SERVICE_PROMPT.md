@@ -11,7 +11,7 @@
 | Eureka | `ai-service` |
 | Port | 8089 |
 | Gateway | `/api/v1/ai/**` → `lb://ai-service` (Java — already configured) |
-| Java repo | `backend/services/ai-service/` — integration docs only |
+| Java repo | `backend/services/ai-service/` — Docker/runtime; prompts in `Prompt Backend/services/ai-service/` |
 
 ## Java platform (already built — do not duplicate)
 
@@ -43,7 +43,7 @@ Accept `X-User-Id`, `X-User-Email`, `X-User-Roles` from gateway, or validate Vit
 | POST | `/api/v1/ai/cv/suggest` |
 | GET | `/actuator/health` |
 
-Full schemas: `API_ENDPOINTS.md` and `backend/services/ai-service/API.md`.
+Full schemas: `API_ENDPOINTS.md` in this folder.
 
 ### 4. Response envelope
 
@@ -57,7 +57,7 @@ Snake_case JSON. Same error codes as Java services.
 
 Join external network `vithey-network`. Optionally `gdce-network` if reusing existing Python stack.
 
-Example: `backend/services/ai-service/docker-compose.integration.example.yml`
+Example: `backend/services/ai-service/docker-compose.yml`
 
 ## Chatbot vs chat-service
 

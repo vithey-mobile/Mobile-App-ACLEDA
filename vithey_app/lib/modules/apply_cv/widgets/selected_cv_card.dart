@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SavedCvOption extends StatelessWidget {
   const SavedCvOption({
@@ -27,7 +28,7 @@ class SavedCvOption extends StatelessWidget {
         label: Text('Use saved CV: ${savedCv.fileName}'),
         style: OutlinedButton.styleFrom(
           alignment: Alignment.centerLeft,
-          backgroundColor: selected ? AppColors.authInputFill : null,
+          backgroundColor: selected ? context.appColors.inputFill : null,
         ),
       ),
     );
@@ -71,9 +72,9 @@ class SelectedCvCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.authInputFill,
+              color: context.appColors.inputFill,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: errorText.isEmpty ? AppColors.authBorder : AppColors.error),
+              border: Border.all(color: errorText.isEmpty ? context.appColors.border : AppColors.error),
             ),
             child: Row(
               children: [
@@ -83,9 +84,9 @@ class SelectedCvCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.authMuted)),
+                      Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
                       Text(fileName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text(sizeLabel, style: const TextStyle(fontSize: 12, color: AppColors.authMuted)),
+                      Text(sizeLabel, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
                     ],
                   ),
                 ),

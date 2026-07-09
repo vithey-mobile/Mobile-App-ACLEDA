@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CreatePostController extends GetxController {
   CreatePostController(this._postRepository);
@@ -121,16 +122,16 @@ class CreatePostScreen extends GetView<CreatePostController> {
               height: 160,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.authInputFill,
+                color: context.appColors.inputFill,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.authBorder),
+                border: Border.all(color: context.appColors.border),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppColors.authMuted),
-                  SizedBox(height: 8),
-                  Text('Media picker coming with file-service integration'),
+                  Icon(Icons.add_photo_alternate_outlined, size: 40, color: context.appColors.muted),
+                  const SizedBox(height: 8),
+                  const Text('Media picker coming with file-service integration'),
                 ],
               ),
             ),
@@ -168,16 +169,16 @@ class _TypeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: selected ? AppColors.primary : AppColors.authMuted),
+      leading: Icon(icon, color: selected ? AppColors.primary : context.appColors.muted),
       title: Text(label),
       trailing: Icon(
         selected ? Icons.radio_button_checked : Icons.radio_button_off,
-        color: selected ? AppColors.primary : AppColors.authMuted,
+        color: selected ? AppColors.primary : context.appColors.muted,
       ),
       onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: selected ? AppColors.primary : AppColors.authBorder),
+        side: BorderSide(color: selected ? AppColors.primary : context.appColors.border),
       ),
     );
   }

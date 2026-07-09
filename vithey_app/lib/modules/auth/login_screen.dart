@@ -9,6 +9,7 @@ import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_wave_header.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class LoginScreen extends GetView<AuthController> {
   const LoginScreen({super.key});
@@ -16,7 +17,6 @@ class LoginScreen extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -32,7 +32,7 @@ class LoginScreen extends GetView<AuthController> {
                       Text(
                         AppStrings.welcomeBack,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: AppColors.authHeading,
+                              color: context.appColors.heading,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -91,7 +91,7 @@ class LoginScreen extends GetView<AuthController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(AppStrings.noAccount, style: TextStyle(color: AppColors.authMuted)),
+                          Text(AppStrings.noAccount, style: TextStyle(color: context.appColors.muted)),
                           TextButton(
                             onPressed: () => Get.toNamed(AppRoutes.register),
                             child: const Text(AppStrings.signUp, style: TextStyle(color: AppColors.primary)),
@@ -116,7 +116,6 @@ class RegisterScreen extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -132,7 +131,7 @@ class RegisterScreen extends GetView<AuthController> {
                       Text(
                         AppStrings.createAccount,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: AppColors.authHeading,
+                              color: context.appColors.heading,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -154,6 +153,17 @@ class RegisterScreen extends GetView<AuthController> {
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: Validators.email,
+                        onChanged: (_) => controller.clearError(),
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomTextField(
+                        controller: controller.phoneController,
+                        label: AppStrings.phoneNumber,
+                        hint: '012345678',
+                        prefixIcon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                        validator: Validators.phone,
                         onChanged: (_) => controller.clearError(),
                         textInputAction: TextInputAction.next,
                       ),
@@ -201,7 +211,7 @@ class RegisterScreen extends GetView<AuthController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(AppStrings.hasAccount, style: TextStyle(color: AppColors.authMuted)),
+                          Text(AppStrings.hasAccount, style: TextStyle(color: context.appColors.muted)),
                           TextButton(
                             onPressed: () => Get.back(),
                             child: const Text(AppStrings.signIn, style: TextStyle(color: AppColors.primary)),

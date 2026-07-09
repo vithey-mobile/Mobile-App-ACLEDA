@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 /// Official Vithey app logo (`assets/images/brand/app_logo.png`).
 class AppLogo extends StatelessWidget {
@@ -27,11 +27,11 @@ class AppLogo extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.splashCircleWhite,
+        color: context.scheme.surface,
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(color: context.appColors.subtleShadow, blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       alignment: Alignment.center,

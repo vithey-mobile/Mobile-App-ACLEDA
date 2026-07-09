@@ -1,50 +1,41 @@
-# AI / Chatbot — Kickoff Prompt (Integration Only)
+# AI Service — Kickoff Prompt
 
-> **Do not build AI or chatbot in Java.**  
-> You build chatbot + AI in **Python** (your own project).  
-> This prompt folder defines the **integration contract** only.
+You are building the **AI Service** for Vithey App — CV help, interview advice, job tips, and finance Q&A.
 
-## Read First
+## Read first
 
-1. `../../COMMON_CONTEXT.md` — platform rules (envelope, auth, HTTP codes)
-2. `INTEGRATION.md` — how Python plugs into Java gateway + Eureka
-3. `API_ENDPOINTS.md` — API your Python service must expose
-4. `../../../backend/services/ai-service/` — integration docs in the Java repo
+Follow `_shared/READ_ORDER.md` → Backend — one service.
 
-## Fixed Facts
+In this folder, read in order:
 
-| Item | Value |
+1. `../../COMMON_CONTEXT.md`
+2. `COMMON_CONTEXT.md`
+3. `INTEGRATION.md`
+4. `API_ENDPOINTS.md`
+5. `FOLDER_STRUCTURE.md`
+6. `SERVICE_LOGIC.md`
+7. `DB_SCHEMA.md`
+8. `SERVICE_PROMPT.md`
+
+**Precedence:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
+
+## Identity
+
+Port 8089, Eureka name `ai-service`. Registry: `_shared/SERVICE_REGISTRY.md`.
+
+## Implementation options
+
+| Option | Where |
 | --- | --- |
-| Implementation | **Python** — built by you, outside Java repo |
-| Eureka name | `ai-service` |
-| Port | 8089 |
-| Gateway route | `/api/v1/ai/**` → `lb://ai-service` (already in Java gateway) |
-| Java repo folder | `backend/services/ai-service/` — **docs only**, no code |
-| Maven module | **No** |
+| Java stub (current repo) | `backend/services/ai-service/` — gateway routing + local Docker |
+| Python replacement | Your project — follow `INTEGRATION.md` contract |
 
-## What Java already provides
+## Rules
 
-- API Gateway JWT validation + `X-User-*` headers
-- Eureka service discovery
-- Route `/api/v1/ai/**` configured
+- Not the same as `chat-service` (user-to-user messaging).
+- Must expose `/api/v1/ai/**` per `API_ENDPOINTS.md` and Vithey response envelope.
+- Optional: bridge to external Python stack on `gdce-network` (see `INTEGRATION.md`).
 
-## What you build (Python)
+## Definition of done
 
-- FastAPI (or your stack) on port 8089
-- Vithey API contract from `API_ENDPOINTS.md`
-- Eureka registration as `ai-service`
-- Your chatbot / LLM / RAG logic internally
-
-## Non-Negotiable Rules
-
-- **No Java AI code** in Vithey backend
-- **No chatbot logic** in Java `chat-service` (that is user messaging)
-- Python must use Vithey response envelope and snake_case JSON
-- Python must accept gateway headers or Vithey JWT
-
-## Definition of Done (integration)
-
-- [ ] Python service registers in Eureka as `ai-service`
-- [ ] `POST http://localhost:8080/api/v1/ai/chat` works through gateway with Vithey JWT
-- [ ] Flutter chatbot screens can call AI endpoints
-- [ ] Java repo contains integration docs only (no implementation)
+Service registers in Eureka as `ai-service` on port 8089; `POST /api/v1/ai/chat` works through gateway with Vithey JWT per `SERVICE_PROMPT.md`.

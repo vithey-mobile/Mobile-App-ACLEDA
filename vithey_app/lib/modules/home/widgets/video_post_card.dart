@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VideoPostCard extends StatelessWidget {
   const VideoPostCard({
@@ -40,7 +40,7 @@ class VideoPostCard extends StatelessWidget {
     if (post.processingState == VideoProcessingState.processing) {
       body = Container(
         height: 220,
-        color: AppColors.authInputFill,
+        color: context.appColors.inputFill,
         alignment: Alignment.center,
         child: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -68,7 +68,7 @@ class VideoPostCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.black54,
+                color: context.scheme.onSurfaceVariant,
                 shape: BoxShape.circle,
               ),
               child: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 32),
@@ -81,7 +81,7 @@ class VideoPostCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
+                  color: context.scheme.onSurfaceVariant,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(

@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/modules/chat/chat_detail_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChatDetailScreen extends GetView<ChatDetailController> {
   const ChatDetailScreen({super.key});
@@ -13,9 +14,7 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0.5,
         title: Obx(() {
           final p = controller.participant.value;
@@ -94,8 +93,8 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOwn = message.isOwn;
-    final bubbleColor = isOwn ? AppColors.primary : Colors.white;
-    final textColor = isOwn ? Colors.white : AppColors.authHeading;
+    final bubbleColor = isOwn ? AppColors.primary : context.appColors.cardSurface;
+    final textColor = isOwn ? Colors.white : context.appColors.heading;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -122,7 +121,7 @@ class _MessageBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(isOwn ? 16 : 4),
                       bottomRight: Radius.circular(isOwn ? 4 : 16),
                     ),
-                    border: isOwn ? null : Border.all(color: AppColors.authBorder),
+                    border: isOwn ? null : Border.all(color: context.appColors.border),
                   ),
                   child: Text(message.text, style: TextStyle(color: textColor)),
                 ),
@@ -132,7 +131,7 @@ class _MessageBubble extends StatelessWidget {
                   children: [
                     Text(
                       DateFormat('h:mm a').format(message.createdAt),
-                      style: const TextStyle(fontSize: 11, color: AppColors.authMuted),
+                      style: TextStyle(fontSize: 11, color: context.appColors.muted),
                     ),
                     if (isOwn) ...[
                       const SizedBox(width: 4),
@@ -207,7 +206,7 @@ class _Composer extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: 'Write a message…',
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.appColors.inputFill,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),

@@ -2,18 +2,25 @@
 
 ## In Vithey Java repo (`backend/services/ai-service/`)
 
-Integration docs only — **no source code**:
+Docker/runtime files only — **no markdown docs in backend**. Integration prompts live in `Prompt Backend/services/ai-service/`:
 
 ```text
 backend/services/ai-service/
-├── README.md
-├── INTEGRATION.md
-├── API.md
-├── PYTHON_CHECKLIST.md
-└── docker-compose.integration.example.yml
+├── docker-compose.yml
+├── Dockerfile
+├── .env.example
+└── src/                        # Java ai-service if implemented here
 ```
 
-**Not present:** `pom.xml`, `src/`, `Dockerfile`, Maven CI.
+Prompt docs (this folder):
+
+```text
+Prompt Backend/services/ai-service/
+├── INTEGRATION.md
+├── API_ENDPOINTS.md
+├── SERVICE_PROMPT.md
+└── ...
+```
 
 ## In your Python project (you build this)
 

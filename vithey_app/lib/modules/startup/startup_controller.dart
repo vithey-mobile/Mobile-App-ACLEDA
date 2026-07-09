@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class StartupController extends GetxController {
   StartupController(this._localStorage);
@@ -69,13 +70,13 @@ class StartupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.authBorder)),
+      decoration: BoxDecoration(
+        color: context.scheme.surface,
+        border: Border(bottom: BorderSide(color: context.appColors.border)),
       ),
       child: Row(
         children: [
-          Text(AppStrings.vitheyStartup, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const Text(AppStrings.vitheyStartup, style: TextStyle(fontWeight: FontWeight.bold)),
           const Spacer(),
           TextButton(onPressed: onSkip, child: const Text(AppStrings.skip, style: TextStyle(color: AppColors.primary))),
         ],
@@ -134,7 +135,11 @@ class StartupBottomNav extends StatelessWidget {
           else
             const SizedBox(width: 72),
           const Spacer(),
-          ElevatedButton(onPressed: onNext, child: Text(nextLabel)),
+          ElevatedButton(
+            onPressed: onNext,
+            style: ElevatedButton.styleFrom(minimumSize: const Size(96, 48)),
+            child: Text(nextLabel),
+          ),
         ],
       ),
     );

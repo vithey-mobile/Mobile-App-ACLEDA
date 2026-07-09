@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/settings/account/account_settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AccountSettingsScreen extends GetView<AccountSettingsController> {
   const AccountSettingsScreen({super.key});
@@ -33,10 +34,10 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
                 children: [
                   UserAvatar(name: profile.fullName, imageUrl: profile.avatarUrl, radius: 48),
                   if (controller.isUploadingAvatar.value)
-                    Positioned.fill(
+                    const Positioned.fill(
                       child: DecoratedBox(
                         decoration: BoxDecoration(color: Colors.black26, shape: BoxShape.circle),
-                        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                        child: Center(child: CircularProgressIndicator(color: Colors.white)),
                       ),
                     ),
                   Positioned(
@@ -87,18 +88,18 @@ class _InfoCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: AppColors.authMuted),
+              Icon(icon, size: 18, color: context.appColors.muted),
               const SizedBox(width: 8),
-              Text(label, style: const TextStyle(color: AppColors.authMuted, fontSize: 13)),
+              Text(label, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 8),

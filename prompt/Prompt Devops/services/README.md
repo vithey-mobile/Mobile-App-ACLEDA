@@ -1,14 +1,13 @@
 # Per-Service DevOps Prompt Index
 
-Use this folder when you want one backend service to run independently with its own Docker Compose file and GitHub Actions CI workflow.
+Use this folder for one backend service's Docker Compose and GitHub Actions CI.
 
 ## Read order
 
-1. `Prompt Devops/COMMON_CONTEXT.md`
+1. `_shared/READ_ORDER.md` → DevOps — one service
 2. `Prompt Devops/v1/06-per-service-docker-compose-prompt.md`
-3. `Prompt Devops/v1/07-per-service-github-actions-ci-prompt.md`
-4. The target service prompt below
-5. The matching backend service docs in `Prompt Backend/services/<service>/`
+3. Target `services/<service>/DEVOPS_PROMPT.md`
+4. Matching `Prompt Backend/services/<service>/` if wiring env or ports
 
 ## Service prompts
 
@@ -28,13 +27,10 @@ Use this folder when you want one backend service to run independently with its 
 
 ## Output pattern
 
-Each service prompt creates:
-
 ```text
-vithey-backend/services/<service>/docker-compose.yml
-vithey-backend/services/<service>/.env.example
+backend/services/<service>/docker-compose.yml
+backend/services/<service>/.env.example
 .github/workflows/<service>-ci.yml
 ```
 
-Each service must remain compatible with the full-stack DevOps prompts in `Prompt Devops/v1/`.
-
+Compose rules and shared infra deps: `_shared/SERVICE_REGISTRY.md`.

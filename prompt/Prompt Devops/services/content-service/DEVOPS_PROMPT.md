@@ -2,48 +2,45 @@
 
 Create independent Docker Compose and GitHub Actions CI for `content-service`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/content-service` |
+| Source path | `backend/services/content-service` |
 | Port | `8084` |
 | Image | `ghcr.io/<owner>/vithey-content-service` |
 | Database | `content_db` |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/content-service/docker-compose.yml
-vithey-backend/services/content-service/.env.example
+backend/services/content-service/docker-compose.yml
+backend/services/content-service/.env.example
 ```
 
-Required containers:
+**Service compose containers only:**
 
 - `content-service`
 - `content-postgres`
-- `content-rabbitmq`
-- `content-eureka-server`
-- `content-config-server`
 
-Verification:
+**Shared infra:** `rabbitmq`, `eureka-server`, `config-server`
+
+## Verification
 
 ```bash
-cd vithey-backend/services/content-service
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/content-service && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8084/actuator/health
-docker compose down -v
+docker compose down
 ```
 
 ## GitHub Actions Output
-
-Create:
 
 ```text
 .github/workflows/content-service-ci.yml
 ```
 
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8084`, and validate `services/content-service/docker-compose.yml`.
-
+CI: Maven test, Docker build `SERVICE_PORT=8084`, validate compose file.

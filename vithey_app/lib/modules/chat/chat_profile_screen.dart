@@ -9,6 +9,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChatProfileController extends GetxController {
   ChatProfileController(this._chatRepository);
@@ -92,7 +93,6 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -151,7 +151,7 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
             Center(
               child: Text(
                 p.isOnline ? 'Active now' : 'Offline',
-                style: const TextStyle(color: AppColors.authMuted),
+                style: TextStyle(color: context.appColors.muted),
               ),
             ),
             const SizedBox(height: 20),
@@ -162,7 +162,7 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.authInputFill,
+                  color: context.appColors.inputFill,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -173,9 +173,9 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined, size: 16, color: AppColors.authMuted),
+                          Icon(Icons.location_on_outlined, size: 16, color: context.appColors.muted),
                           const SizedBox(width: 4),
-                          Text(p.location!, style: const TextStyle(color: AppColors.authMuted)),
+                          Text(p.location!, style: TextStyle(color: context.appColors.muted)),
                         ],
                       ),
                     ],

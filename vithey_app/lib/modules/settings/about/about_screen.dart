@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/settings/about/about_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AboutScreen extends GetView<AboutController> {
   const AboutScreen({super.key});
@@ -21,15 +22,15 @@ class AboutScreen extends GetView<AboutController> {
             const SizedBox(height: 12),
             const Center(child: Text('Vithey', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
             const SizedBox(height: 4),
-            const Center(child: Text('AUB student community app', style: TextStyle(color: AppColors.authMuted))),
+            Center(child: Text('AUB student community app', style: TextStyle(color: context.appColors.muted))),
             const SizedBox(height: 8),
             Center(
               child: controller.isLoading.value
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text(controller.version.value, style: const TextStyle(color: AppColors.authMuted, fontSize: 13)),
+                  : Text(controller.version.value, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
             ),
             const SizedBox(height: 24),
-            _InfoCard(
+            const _InfoCard(
               title: 'About Vithey',
               body: 'Connect with students, apply for jobs with your CV, track finance, chat privately, and use AI support — all in one app built for the AUB community.',
             ),
@@ -72,16 +73,16 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
-          Text(body, style: const TextStyle(color: AppColors.authHeading, height: 1.4)),
+          Text(body, style: TextStyle(color: context.appColors.heading, height: 1.4)),
           if (linkLabel != null && onLinkTap != null) ...[
             const SizedBox(height: 8),
             GestureDetector(
@@ -104,9 +105,9 @@ class _LinkGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Column(children: children)),
     );

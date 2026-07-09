@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class JobPosterCard extends StatelessWidget {
   const JobPosterCard({
@@ -75,9 +75,9 @@ class _JobActionButton extends StatelessWidget {
 
     switch (post.applicationState) {
       case JobApplicationState.applied:
-        return const Padding(
-          padding: EdgeInsets.only(right: 8),
-          child: Text('Applied', style: TextStyle(color: AppColors.authMuted, fontWeight: FontWeight.w600)),
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: Text('Applied', style: TextStyle(color: context.appColors.muted, fontWeight: FontWeight.w600)),
         );
       case JobApplicationState.checking:
         return const Padding(
@@ -86,9 +86,9 @@ class _JobActionButton extends StatelessWidget {
         );
       case JobApplicationState.notApplied:
         if (post.lifecycleState != JobLifecycleState.open) {
-          return const Padding(
-            padding: EdgeInsets.only(right: 8),
-            child: Text('Closed', style: TextStyle(color: AppColors.authMuted)),
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text('Closed', style: TextStyle(color: context.appColors.muted)),
           );
         }
         return TextButton(

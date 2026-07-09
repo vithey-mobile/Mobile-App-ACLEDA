@@ -8,6 +8,15 @@ class DioClient {
   final SecureStorageService _secureStorage;
   Dio? _dio;
 
+  static const _publicAuthPaths = {
+    '/auth/register',
+    '/auth/login',
+    '/auth/refresh',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/verify-email',
+  };
+
   Dio get dio {
     _dio ??= _createDio();
     return _dio!;
@@ -26,14 +35,18 @@ class DioClient {
     client.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _secureStorage.readAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          final isPublicAuth = _publicAuthPaths.contains(options.path);
+          if (!isPublicAuth) {
+            final token = await _secureStorage.readAccessToken();
+            if (token != null && token.isNotEmpty && !token.startsWith('mock')) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           handler.next(options);
         },
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
+          if (error.response?.statusCode == 401 &&
+              !_publicAuthPaths.contains(error.requestOptions.path)) {
             final refreshed = await _tryRefreshToken(client);
             if (refreshed) {
               final request = error.requestOptions;
@@ -54,7 +67,9 @@ class DioClient {
 
   Future<bool> _tryRefreshToken(Dio client) async {
     final refreshToken = await _secureStorage.readRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty || refreshToken.startsWith('mock')) {
+      return false;
+    }
 
     try {
       final response = await client.post(

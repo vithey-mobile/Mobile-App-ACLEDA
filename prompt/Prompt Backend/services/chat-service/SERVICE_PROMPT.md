@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/chat-service/` |
+| Path | `backend/services/chat-service/` |
 | Port | 8087 |
 | Eureka | `chat-service` |
 | Database | `chat_db` |

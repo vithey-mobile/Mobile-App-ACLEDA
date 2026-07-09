@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
@@ -18,8 +17,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     final notificationRepo = Get.find<NotificationRepository>();
 
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: AppColors.authHeading,
       elevation: 0.5,
       title: Row(
         children: [
@@ -51,8 +48,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () {},
           tooltip: 'Search',
         ),
-        IconButton(
-          icon: const Icon(Icons.account_balance_wallet_outlined),
+        const IconButton(
+          icon: Icon(Icons.account_balance_wallet_outlined),
           onPressed: FinanceNavigation.openFinanceEntry,
           tooltip: 'Finance',
         ),

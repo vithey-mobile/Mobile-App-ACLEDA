@@ -10,7 +10,7 @@ Production compose template, release workflow, secrets documentation, and image-
 
 ## Must Create
 ```text
-vithey-backend/
+backend/
 ├── docker-compose.prod.yml
 ├── .env.prod.example
 └── docs/

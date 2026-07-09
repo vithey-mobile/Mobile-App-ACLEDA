@@ -8,13 +8,42 @@ class SplashBrandTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      AppStrings.appName.split(' ').first,
-      style: const TextStyle(
-        color: AppColors.splashTextWhite,
-        fontSize: 30,
-        fontWeight: FontWeight.w600,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.6,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.splashTextWhite),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              AppStrings.loading,
+              style: TextStyle(
+                color: AppColors.splashTextWhite.withOpacity(0.9),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          AppStrings.appName.split(' ').first,
+          style: const TextStyle(
+            color: AppColors.splashTextWhite,
+            fontSize: 30,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

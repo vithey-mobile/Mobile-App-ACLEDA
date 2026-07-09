@@ -86,8 +86,9 @@ class ProfileScreen extends GetView<ProfileController> {
       bottomNavigationBar: HomeBottomNavigation(
         currentIndex: 4,
         onTap: (index) {
-          if (index == 0) Get.offAllNamed(AppRoutes.home);
-          else if (index == 2) Get.toNamed(AppRoutes.createPost);
+          if (index == 0) {
+            Get.offAllNamed(AppRoutes.home);
+          } else if (index == 2) Get.toNamed(AppRoutes.createPost);
           else if (index != 4) Get.snackbar('Vithey', 'Coming soon');
         },
       ),

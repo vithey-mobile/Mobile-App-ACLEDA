@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ShareSheet extends StatefulWidget {
   const ShareSheet({
@@ -64,7 +65,7 @@ class _ShareSheetState extends State<ShareSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.authMuted,
+              color: context.appColors.muted,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -114,14 +115,14 @@ class _ShareOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: selected ? AppColors.primary : AppColors.authBorder),
+          border: Border.all(color: selected ? AppColors.primary : context.appColors.border),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected ? AppColors.primary : AppColors.authMuted,
+              color: selected ? AppColors.primary : context.appColors.muted,
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(title)),

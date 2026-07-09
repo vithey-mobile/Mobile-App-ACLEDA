@@ -24,7 +24,7 @@ Your Python ai-service :8089  (Eureka name: ai-service)
 | Gateway route `/api/v1/ai/**` | `GatewayRouteConfig.java` |
 | JWT + identity headers | `JwtAuthenticationGlobalFilter` |
 | Eureka server | `infrastructure/eureka-server` |
-| Integration docs | `backend/services/ai-service/` |
+| Integration docs | `Prompt Backend/services/ai-service/` |
 
 **No Java implementation** for AI or chatbot in this repo.
 
@@ -39,7 +39,7 @@ Your Python ai-service :8089  (Eureka name: ai-service)
 | Envelope | `{ data, meta, error }`, snake_case |
 | Health | `GET /actuator/health` → `{"status":"UP"}` |
 
-Full guide: `backend/services/ai-service/INTEGRATION.md`
+Full guide: this file (`Prompt Backend/services/ai-service/INTEGRATION.md`)
 
 ## chat-service vs ai-service
 
@@ -82,4 +82,8 @@ curl -X POST http://localhost:8080/api/v1/ai/chat `
 
 ## Checklist
 
-See `backend/services/ai-service/PYTHON_CHECKLIST.md`
+- [ ] Register with Eureka as `ai-service` on port 8089
+- [ ] Expose `/api/v1/ai/**` routes per `API_ENDPOINTS.md`
+- [ ] Return `{ data, meta, error }` envelope with snake_case JSON
+- [ ] Implement `GET /actuator/health` → `{"status":"UP"}`
+- [ ] Join Docker network `vithey-network` (and `gdce-network` if using GDCE stack)

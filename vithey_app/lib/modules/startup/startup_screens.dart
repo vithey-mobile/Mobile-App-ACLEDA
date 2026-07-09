@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
 import 'package:aub_connect_app/modules/startup/startup_controller.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class StartupSkillsScreen extends GetView<StartupController> {
   const StartupSkillsScreen({super.key});
@@ -11,7 +12,6 @@ class StartupSkillsScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 1;
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -21,14 +21,14 @@ class StartupSkillsScreen extends GetView<StartupController> {
               padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Text('What are your skills?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('Select your top skills to stand out to employers.', style: TextStyle(color: AppColors.authMuted, fontSize: 12)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Select your top skills to stand out to employers.', style: TextStyle(color: context.appColors.muted, fontSize: 12)),
             ),
             const SizedBox(height: 16),
             Expanded(
               child: GetBuilder<StartupController>(
-                builder: (_) => Padding(
+                builder: (_) => SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Wrap(
                     spacing: 8,
@@ -36,7 +36,7 @@ class StartupSkillsScreen extends GetView<StartupController> {
                     children: startupSkills.map((skill) {
                       final selected = controller.draft.skillIds.contains(skill.id);
                       return FilterChip(
-                        avatar: Icon(skill.icon, size: 16, color: AppColors.authMuted),
+                        avatar: Icon(skill.icon, size: 16, color: context.appColors.muted),
                         label: Text(skill.label),
                         selected: selected,
                         onSelected: (_) => controller.toggleSkill(skill.id),
@@ -48,7 +48,8 @@ class StartupSkillsScreen extends GetView<StartupController> {
                 ),
               ),
             ),
-            StartupStepIndicator(currentStep: 1),
+            const SizedBox(height: 8),
+            const StartupStepIndicator(currentStep: 1),
             StartupBottomNav(
               showBack: false,
               onBack: null,
@@ -68,7 +69,6 @@ class StartupInterestsScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 2;
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,9 +78,9 @@ class StartupInterestsScreen extends GetView<StartupController> {
               padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Text('What are you interested in?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('Choose your favorite topics to personalize your feed.', style: TextStyle(color: AppColors.authMuted, fontSize: 12)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Choose your favorite topics to personalize your feed.', style: TextStyle(color: context.appColors.muted, fontSize: 12)),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -102,14 +102,14 @@ class StartupInterestsScreen extends GetView<StartupController> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.primary.withOpacity(0.12) : AppColors.authInputFill,
+                          color: selected ? AppColors.primary.withOpacity(0.12) : context.appColors.inputFill,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: selected ? AppColors.primary : AppColors.authBorder),
+                          border: Border.all(color: selected ? AppColors.primary : context.appColors.border),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(item.icon, size: 18, color: AppColors.authMuted),
+                            Icon(item.icon, size: 18, color: context.appColors.muted),
                             const Spacer(),
                             Text(item.label, style: const TextStyle(fontWeight: FontWeight.w500)),
                           ],
@@ -120,7 +120,7 @@ class StartupInterestsScreen extends GetView<StartupController> {
                 ),
               ),
             ),
-            StartupStepIndicator(currentStep: 2),
+            const StartupStepIndicator(currentStep: 2),
             StartupBottomNav(
               onBack: controller.backFromInterests,
               onNext: controller.nextFromInterests,
@@ -139,7 +139,6 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 3;
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,9 +148,9 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
               padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
               child: Text('How did you find us?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('Select one option to help us improve your experience.', style: TextStyle(color: AppColors.authMuted, fontSize: 12)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Select one option to help us improve your experience.', style: TextStyle(color: context.appColors.muted, fontSize: 12)),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -166,9 +165,9 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
                     return ListTile(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: selected ? AppColors.primary : AppColors.authBorder),
+                        side: BorderSide(color: selected ? AppColors.primary : context.appColors.border),
                       ),
-                      tileColor: selected ? AppColors.primary.withOpacity(0.08) : AppColors.authInputFill,
+                      tileColor: selected ? AppColors.primary.withOpacity(0.08) : context.appColors.inputFill,
                       leading: Icon(item.icon),
                       title: Text(item.label),
                       onTap: () => controller.selectDiscovery(item.id),
@@ -177,7 +176,7 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
                 ),
               ),
             ),
-            StartupStepIndicator(currentStep: 3),
+            const StartupStepIndicator(currentStep: 3),
             StartupBottomNav(
               onBack: controller.backFromDiscovery,
               onNext: () => controller.finish(),

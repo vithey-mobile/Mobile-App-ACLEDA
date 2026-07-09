@@ -10,6 +10,7 @@ import 'package:aub_connect_app/modules/post_detail/post_detail_controller.dart'
 import 'package:aub_connect_app/modules/post_detail/widgets/comment_section.dart';
 import 'package:aub_connect_app/modules/post_detail/widgets/post_detail_header.dart';
 import 'package:aub_connect_app/modules/post_detail/widgets/post_detail_media.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PostDetailScreen extends GetView<PostDetailController> {
   const PostDetailScreen({super.key});
@@ -98,7 +99,7 @@ class _JobDetailBlock extends StatelessWidget {
             Text(meta.title!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           if (meta.description != null) ...[
             const SizedBox(height: 8),
-            Text(meta.description!, style: const TextStyle(color: AppColors.authMuted)),
+            Text(meta.description!, style: TextStyle(color: context.appColors.muted)),
           ],
           if (meta.requirement != null) ...[
             const SizedBox(height: 8),
@@ -110,7 +111,7 @@ class _JobDetailBlock extends StatelessWidget {
           else if (canApply)
             CustomButton(label: 'Apply CV', icon: Icons.description_outlined, onPressed: onApply)
           else if (!post.isOwnPost)
-            const Text('Applications closed', style: TextStyle(color: AppColors.authMuted)),
+            Text('Applications closed', style: TextStyle(color: context.appColors.muted)),
         ],
       ),
     );

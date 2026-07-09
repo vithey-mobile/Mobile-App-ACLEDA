@@ -58,7 +58,5 @@ You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank 
 - Animations: use subtle transitions (page routes, button feedback, list items).
 
 ## API Assumption
-- Base URL: `http://localhost:8080/api/v1` (dev) — configurable via `.env`
-- Auth header: `Authorization: Bearer <access_token>`
-- Response envelope: `{ "data": ..., "meta": ... }` or `{ "error": { "code", "message", "details" } }`
-- See `Prompt Frontend/api-intergration/api-overview.md` for endpoint details.
+
+See `Prompt Frontend/api-intergration/integration-contract.md` for base URL, auth header, and response envelope.

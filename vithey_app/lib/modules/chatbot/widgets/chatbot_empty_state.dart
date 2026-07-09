@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChatbotEmptyState extends StatelessWidget {
   const ChatbotEmptyState({
@@ -33,10 +34,10 @@ class ChatbotEmptyState extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Ask about CVs, jobs, interviews, student life, or Finance guidance.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.authMuted),
+              style: TextStyle(color: context.appColors.muted),
             ),
             const SizedBox(height: 28),
             ...prompts.map(

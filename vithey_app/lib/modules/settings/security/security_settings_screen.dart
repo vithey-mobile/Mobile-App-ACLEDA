@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/modules/settings/security/security_settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
   const SecuritySettingsScreen({super.key});
@@ -17,7 +18,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
         children: [
           const Text('Security Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('Manage your account security and authentication', style: TextStyle(color: AppColors.authMuted)),
+          Text('Manage your account security and authentication', style: TextStyle(color: context.appColors.muted)),
           const SizedBox(height: 20),
           _Card(
             child: Column(
@@ -61,13 +62,13 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Current Device', style: TextStyle(fontWeight: FontWeight.w600)),
-                            SizedBox(height: 4),
-                            Text('Last active: Just now', style: TextStyle(fontSize: 12, color: AppColors.authMuted)),
+                            const Text('Current Device', style: TextStyle(fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Text('Last active: Just now', style: TextStyle(fontSize: 12, color: context.appColors.muted)),
                           ],
                         ),
                       ),
@@ -96,7 +97,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFEBEE),
+                      color: context.appColors.dangerSurface,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
@@ -108,7 +109,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text('Manage your active sessions', style: TextStyle(color: AppColors.authMuted, fontSize: 13)),
+                  Text('Manage your active sessions', style: TextStyle(color: context.appColors.muted, fontSize: 13)),
                   const SizedBox(height: 8),
                   const Text('This will sign you out from all devices except this one.'),
                   const Text("You'll need to sign in again on other devices."),
@@ -144,9 +145,9 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: ClipRRect(borderRadius: BorderRadius.circular(12), child: child),
     );
@@ -172,7 +173,7 @@ class _SecuritySwitchTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.authMuted, size: 22),
+          Icon(icon, color: context.appColors.muted, size: 22),
           const SizedBox(width: 14),
           Expanded(child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
           Switch.adaptive(value: value, onChanged: onChanged, activeColor: AppColors.primary),

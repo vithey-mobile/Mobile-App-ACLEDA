@@ -124,4 +124,5 @@ volumes:
 
 networks:
   vithey-network:
-    external: true
+    name: vithey-network
+    driver: bridge

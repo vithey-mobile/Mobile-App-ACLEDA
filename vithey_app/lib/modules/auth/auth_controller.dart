@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
@@ -19,6 +20,7 @@ class AuthController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final fullNameController = TextEditingController();
+  final phoneController = TextEditingController();
 
   final isLoading = false.obs;
   final isGoogleLoading = false.obs;
@@ -26,6 +28,10 @@ class AuthController extends GetxController {
   final authIntent = AuthIntent.signIn.obs;
 
   GoogleAccountSummary? selectedGoogleAccount;
+
+  /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
+  bool get isGoogleAuthEnabled =>
+      dotenv.env['ENABLE_GOOGLE_AUTH']?.toLowerCase() == 'true';
 
   void clearError() {
     if (errorMessage.isNotEmpty) errorMessage.value = '';
@@ -58,6 +64,7 @@ class AuthController extends GetxController {
       await _authRepository.register(
         fullName: fullNameController.text.trim(),
         email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
         password: passwordController.text,
       );
       await AuthNavigation.goAfterAuth(isNewUser: true);
@@ -71,6 +78,15 @@ class AuthController extends GetxController {
   }
 
   void beginGoogleAuth({required AuthIntent intent}) {
+    if (!isGoogleAuthEnabled) {
+      Get.snackbar(
+        AppStrings.appName,
+        AppStrings.googleAuthComingSoon,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
     authIntent.value = intent;
     Get.toNamed(AppRoutes.googleAccountChooser);
   }
@@ -111,6 +127,7 @@ class AuthController extends GetxController {
     emailController.dispose();
     passwordController.dispose();
     fullNameController.dispose();
+    phoneController.dispose();
     super.onClose();
   }
 }

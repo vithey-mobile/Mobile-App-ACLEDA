@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/modules/settings/help_center/help_center_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class HelpCenterScreen extends GetView<HelpCenterController> {
   const HelpCenterScreen({super.key});
@@ -18,9 +19,9 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
             onChanged: (v) => controller.query.value = v,
             decoration: InputDecoration(
               hintText: 'Search help topics',
-              prefixIcon: const Icon(Icons.search, color: AppColors.authMuted),
+              prefixIcon: Icon(Icons.search, color: context.appColors.muted),
               filled: true,
-              fillColor: AppColors.authInputFill,
+              fillColor: context.appColors.inputFill,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
@@ -31,12 +32,12 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
               color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('How can we help?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Text('Find answers or contact support.', style: TextStyle(color: AppColors.authMuted)),
+                const Text('How can we help?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Find answers or contact support.', style: TextStyle(color: context.appColors.muted)),
               ],
             ),
           ),
@@ -61,10 +62,10 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.lightSurface,
+              color: context.appColors.cardSurface,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
             child: Column(
@@ -72,7 +73,7 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
               children: [
                 const Text('Contact Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 8),
-                const Text('Need more help? Reach out to our support team.', style: TextStyle(color: AppColors.authMuted)),
+                Text('Need more help? Reach out to our support team.', style: TextStyle(color: context.appColors.muted)),
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -99,7 +100,7 @@ class _FaqTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.lightSurface,
+      color: context.appColors.cardSurface,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -108,10 +109,10 @@ class _FaqTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              const Icon(Icons.help_outline, color: AppColors.authMuted),
+              Icon(Icons.help_outline, color: context.appColors.muted),
               const SizedBox(width: 12),
               Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500))),
-              const Icon(Icons.chevron_right, color: AppColors.authMuted),
+              Icon(Icons.chevron_right, color: context.appColors.muted),
             ],
           ),
         ),

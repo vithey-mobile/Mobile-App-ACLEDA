@@ -8,6 +8,7 @@ import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/modules/notification/notification_controller.dart';
 import 'package:aub_connect_app/modules/notification/widgets/notification_item.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationScreen extends GetView<NotificationController> {
   const NotificationScreen({super.key});
@@ -15,9 +16,7 @@ class NotificationScreen extends GetView<NotificationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
@@ -142,7 +141,7 @@ class _Chip extends StatelessWidget {
       onSelected: (_) => onTap(),
       selectedColor: AppColors.primary.withOpacity(0.15),
       labelStyle: TextStyle(
-        color: selected ? AppColors.primary : AppColors.authMuted,
+        color: selected ? AppColors.primary : context.appColors.muted,
         fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );

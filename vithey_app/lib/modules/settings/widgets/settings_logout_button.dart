@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsLogoutButton extends StatelessWidget {
   const SettingsLogoutButton({super.key, required this.onPressed});
@@ -17,8 +18,8 @@ class SettingsLogoutButton extends StatelessWidget {
           icon: const Icon(Icons.logout, color: AppColors.error),
           label: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(
-            backgroundColor: const Color(0xFFFFEBEE),
-            side: const BorderSide(color: Color(0xFFFFCDD2)),
+            backgroundColor: context.appColors.dangerSurface,
+            side: BorderSide(color: AppColors.error.withOpacity(0.35)),
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),

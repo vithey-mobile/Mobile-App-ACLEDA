@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key, required this.profile});
@@ -70,7 +71,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       children: [
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        Text(label, style: const TextStyle(color: AppColors.authMuted, fontSize: 12)),
+        Text(label, style: TextStyle(color: context.appColors.muted, fontSize: 12)),
       ],
     );
   }

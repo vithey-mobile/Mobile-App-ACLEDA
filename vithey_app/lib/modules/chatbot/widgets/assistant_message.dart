@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AssistantMessage extends StatelessWidget {
   const AssistantMessage({
@@ -48,7 +49,7 @@ class AssistantMessage extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                       ),
                       if (message.status == AiMessageStatus.stopped)
-                        const Text('Stopped', style: TextStyle(fontSize: 12, color: AppColors.authMuted)),
+                        Text('Stopped', style: TextStyle(fontSize: 12, color: context.appColors.muted)),
                     ],
                   ),
                 ],

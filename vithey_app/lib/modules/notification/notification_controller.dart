@@ -8,6 +8,7 @@ import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/modules/notification/widgets/delete_notification_dialog.dart';
 import 'package:aub_connect_app/modules/notification/widgets/notification_action_sheet.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationController extends GetxController {
   NotificationController(this._repository);
@@ -80,7 +81,7 @@ class NotificationController extends GetxController {
         onDelete: () => requestDelete(notification.id),
       ),
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Get.context!.scheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

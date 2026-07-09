@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PostAuthorHeader extends StatelessWidget {
   const PostAuthorHeader({
@@ -39,7 +39,7 @@ class PostAuthorHeader extends StatelessWidget {
                   ),
                   Text(
                     RelativeTime.format(post.createdAt),
-                    style: const TextStyle(color: AppColors.authMuted, fontSize: 12),
+                    style: TextStyle(color: context.appColors.muted, fontSize: 12),
                   ),
                 ],
               ),

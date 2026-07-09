@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class StudentIdUploadBox extends StatelessWidget {
   const StudentIdUploadBox({
@@ -31,15 +32,15 @@ class StudentIdUploadBox extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 36),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.authBorder, width: 1.5),
+                  border: Border.all(color: context.appColors.border, width: 1.5),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
-                    Icon(Icons.cloud_upload_outlined, size: 42, color: AppColors.authMuted),
-                    SizedBox(height: 10),
-                    Text('Click to upload', style: TextStyle(fontWeight: FontWeight.w600)),
-                    SizedBox(height: 4),
-                    Text('PNG, JPG or PDF (max. 5MB)', style: TextStyle(color: AppColors.authMuted, fontSize: 13)),
+                    Icon(Icons.cloud_upload_outlined, size: 42, color: context.appColors.muted),
+                    const SizedBox(height: 10),
+                    const Text('Click to upload', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text('PNG, JPG or PDF (max. 5MB)', style: TextStyle(color: context.appColors.muted, fontSize: 13)),
                   ],
                 ),
               ),
@@ -49,9 +50,9 @@ class StudentIdUploadBox extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.authInputFill,
+              color: context.appColors.inputFill,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.authBorder),
+              border: Border.all(color: context.appColors.border),
             ),
             child: Row(
               children: [

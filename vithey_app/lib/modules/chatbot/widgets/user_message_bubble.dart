@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class UserMessageBubble extends StatelessWidget {
   const UserMessageBubble({super.key, required this.content});
@@ -17,9 +17,9 @@ class UserMessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.authInputFill,
+                color: context.appColors.inputFill,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.authBorder),
+                border: Border.all(color: context.appColors.border),
               ),
               child: Text(content),
             ),

@@ -2,41 +2,37 @@
 
 Create independent Docker Compose and GitHub Actions CI for `api-gateway`.
 
+**Compose rules:** `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` · **Registry:** `_shared/SERVICE_REGISTRY.md`
+
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `vithey-backend/services/api-gateway` |
+| Source path | `backend/services/api-gateway` |
 | Port | `8080` |
 | Image | `ghcr.io/<owner>/vithey-api-gateway` |
 | Database | none |
 
 ## Docker Compose Output
 
-Create:
-
 ```text
-vithey-backend/services/api-gateway/docker-compose.yml
-vithey-backend/services/api-gateway/.env.example
+backend/services/api-gateway/docker-compose.yml
+backend/services/api-gateway/.env.example
 ```
 
-Required containers:
+**Service compose containers only:**
 
 - `api-gateway`
-- `gateway-redis`
-- `gateway-eureka-server`
-- `gateway-config-server`
 
-Do not add PostgreSQL or RabbitMQ.
+**Shared infra:** `redis`, `eureka-server`, `config-server` — no Postgres or RabbitMQ in this compose.
 
-Verification:
+Start **after** domain services register in Eureka.
+
+## Verification
 
 ```bash
-cd vithey-backend/infrastructure
-docker compose up -d --build
-
-cd ../services/api-gateway
-copy .env.example .env
+cd backend/infrastructure && docker compose up -d --build
+cd ../services/api-gateway && copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8080/actuator/health
 docker compose down
@@ -44,18 +40,10 @@ docker compose down
 
 ## GitHub Actions Output
 
-Create:
-
 ```text
 .github/workflows/api-gateway-ci.yml
 ```
 
-Triggers:
+Triggers: `backend/services/api-gateway/**`, `backend/infrastructure/config-repo/api-gateway.yml`
 
-- `vithey-backend/services/api-gateway/**`
-- `vithey-backend/infrastructure/config-repo/api-gateway.yml`
-- `vithey-backend/services/api-gateway/docker-compose.yml`
-- `.github/workflows/api-gateway-ci.yml`
-
-CI must run Maven tests, build the Docker image with `SERVICE_PORT=8080`, and validate `services/api-gateway/docker-compose.yml`.
-
+CI: Maven test, Docker build `SERVICE_PORT=8080`, validate compose file.

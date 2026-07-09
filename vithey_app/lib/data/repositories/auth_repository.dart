@@ -28,6 +28,7 @@ class AuthRepository {
   Future<AuthResultModel> register({
     required String fullName,
     required String email,
+    required String phone,
     required String password,
   }) async {
     if (useMockAuth) {
@@ -36,6 +37,7 @@ class AuthRepository {
     final result = await _authService.register(
       fullName: fullName,
       email: email,
+      phone: phone,
       password: password,
     );
     await _saveTokens(result);
@@ -49,7 +51,9 @@ class AuthRepository {
     if (useMockAuth) {
       return _mockAuth(email: email, fullName: displayName);
     }
-    throw AuthServiceException('Google sign-in is not configured. Enable USE_MOCK_AUTH for development.');
+    throw AuthServiceException(
+      'Google sign-in is not configured yet. Set ENABLE_GOOGLE_AUTH=true when ready.',
+    );
   }
 
   Future<bool> validateSession() async {

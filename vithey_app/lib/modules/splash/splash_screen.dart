@@ -9,15 +9,18 @@ class SplashScreen extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
+    // Ensure SplashController is created so bootstrap runs.
+    controller;
+
+    return const PopScope(
       canPop: false,
       child: Scaffold(
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const SplashBackground(),
-            const Center(child: SplashLogo()),
-            const Positioned(
+            SplashBackground(),
+            Center(child: SplashLogo()),
+            Positioned(
               left: 0,
               right: 0,
               bottom: 40,

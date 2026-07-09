@@ -93,10 +93,7 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.authHeading,
         elevation: 0,
         title: const Text('Student Verification', style: TextStyle(fontWeight: FontWeight.bold)),
       ),

@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:intl/intl.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationTypeBadge extends StatelessWidget {
   const NotificationTypeBadge({super.key, required this.type});
@@ -82,8 +83,8 @@ class NotificationItem extends StatelessWidget {
                   else
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: AppColors.authInputFill,
-                      child: const Icon(Icons.notifications_none, color: AppColors.authMuted),
+                      backgroundColor: context.appColors.inputFill,
+                      child: Icon(Icons.notifications_none, color: context.appColors.muted),
                     ),
                   Positioned(
                     right: -2,
@@ -107,7 +108,7 @@ class NotificationItem extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _formatRelativeTime(notification.createdAt),
-                      style: const TextStyle(fontSize: 12, color: AppColors.authMuted),
+                      style: TextStyle(fontSize: 12, color: context.appColors.muted),
                     ),
                   ],
                 ),

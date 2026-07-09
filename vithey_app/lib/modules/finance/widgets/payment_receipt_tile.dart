@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PaymentReceiptTile extends StatelessWidget {
   const PaymentReceiptTile({
@@ -39,7 +40,7 @@ class PaymentReceiptTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(payment.feeName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(payment.dateLabel, style: const TextStyle(color: AppColors.authMuted, fontSize: 12)),
+                    Text(payment.dateLabel, style: TextStyle(color: context.appColors.muted, fontSize: 12)),
                   ],
                 ),
               ),

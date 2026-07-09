@@ -25,41 +25,21 @@ Do **not** create prompts, configs, or workflows for:
 Production readiness in v1 means: **versioned images on GHCR + documented env vars + `docker-compose.prod.yml` template** that any future host can run.
 
 ## Target Repo Layout
+
+See `_shared/REPO_PATHS.md` for canonical paths.
+
 ```text
-vithey-platform/                    # or monorepo root
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                  # test + maven build
-│       ├── docker-publish.yml      # push to GHCR
-│       ├── release.yml             # tag-based release images
-│       ├── auth-service-ci.yml      # per-service CI
-│       ├── content-service-ci.yml
-│       └── ... one <service>-ci.yml per backend service
-├── docker/
-│   ├── postgres/init-databases.sql
-│   └── minio/create-buckets.sh
-├── docs/
-│   ├── ENV.md
-│   ├── LOCAL_DEV.md
-│   └── DEPLOYMENT.md               # future host instructions (generic)
-├── vithey-backend/
-│   ├── docker-compose.yml          # local full stack
-│   ├── docker-compose.infra.yml    # postgres, redis, rabbitmq, minio only
-│   ├── docker-compose.apps.yml     # microservices only
-│   ├── docker-compose.prod.yml     # image-based prod template
-│   ├── .env.example
-│   ├── Makefile
-│   └── services/
-│       ├── infrastructure/
-│       │   ├── docker-compose.yml
-│       │   ├── docker-compose.auth-service.yml
-│       │   ├── docker-compose.api-gateway.yml
-│       │   └── ... one docker-compose.<service>.yml per backend service
-│       └── <service>/
-│           ├── Dockerfile
-│           └── .env.example
-├── aub_connect_app/                # Flutter (local dev)
-└── README.md
+monorepo/
+├── .github/workflows/           # ci.yml, <service>-ci.yml, docker-publish.yml
+├── backend/
+│   ├── infrastructure/docker-compose.yml
+│   ├── scripts/start-all.ps1
+│   └── services/<name>/
+│       ├── Dockerfile
+│       ├── docker-compose.yml
+│       └── .env.example
+├── vithey_app/                  # Flutter
+└── prompt/                      # all markdown docs
 ```
 
 ## Docker Image Registry
@@ -144,46 +124,18 @@ Each backend service also has a dedicated workflow:
 Each per-service workflow runs only when its service folder, service Compose file, service config, or workflow file changes.
 
 ## Local Development Commands
-```bash
-# Start infrastructure only
-docker compose -f docker-compose.infra.yml up -d
 
-# Start full stack
-docker compose up -d --build
+See `Prompt Devops/DOCKER.md` for current per-folder commands.
 
-# Start one service independently
-cd infrastructure
-docker compose -f docker-compose.auth-service.yml up -d --build
-
-# View logs
-docker compose logs -f api-gateway
-
-# Stop and remove
-docker compose down -v
-
-# Health check
+```powershell
+cd backend
+.\scripts\start-all.ps1
 curl http://localhost:8080/actuator/health
 ```
 
 ## Service Ports (local)
-| Service | Port |
-|---------|------|
-| API Gateway | 8080 |
-| Auth | 8081 |
-| User Profile | 8082 |
-| File | 8083 |
-| Content | 8084 |
-| Career | 8085 |
-| Finance | 8086 |
-| Chat | 8087 |
-| Notification | 8088 |
-| AI | 8089 |
-| Eureka | 8761 |
-| Config | 8888 |
-| PostgreSQL | 5432 |
-| Redis | 6379 |
-| RabbitMQ | 5672 / UI 15672 |
-| MinIO | 9000 / Console 9001 |
+
+See `_shared/SERVICE_REGISTRY.md` (do not copy port table here).
 
 ## Network
 - Compose network name: `vithey-network`
@@ -204,14 +156,15 @@ Use `depends_on` + `healthcheck` + Spring `spring.cloud.discovery.wait` where ne
 - Scan images with `docker scout` or Trivy in CI (optional step)
 
 ## Documentation Deliverables
-- `docs/LOCAL_DEV.md` — step-by-step local setup
-- `docs/ENV.md` — all environment variables
-- `docs/DEPLOYMENT.md` — how to pull GHCR images and run `docker-compose.prod.yml` on any Docker host (no VPS-specific steps)
+
+In `prompt/Prompt Devops/` only (not in `backend/`):
+
+- `docs/LOCAL_DEV.md`, `docs/ENV.md`, `DOCKER.md`, `DOCKER-VERIFY.md`
 
 ## Standardization Rule
-- One Dockerfile pattern for all Java microservices.
-- One reusable GitHub Actions workflow with matrix for services.
-- One independent Docker Compose file per service in the infrastructure folder: `infrastructure/docker-compose.<service>.yml`.
-- One independent GitHub Actions workflow per service: `.github/workflows/<service>-ci.yml`.
-- Local and prod use the same images — only env vars differ.
-- Goal: developer runs `make up` locally; CI publishes images ready for future production host.
+
+- One Dockerfile pattern for all Java microservices
+- One compose file per service folder: `backend/services/<name>/docker-compose.yml`
+- Shared infra only in `backend/infrastructure/docker-compose.yml`
+- One CI workflow per service: `.github/workflows/<service>-ci.yml`
+- Local and prod use the same images — only env vars differ

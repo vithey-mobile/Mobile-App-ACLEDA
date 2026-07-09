@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/modules/settings/privacy/privacy_settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
   const PrivacySettingsScreen({super.key});
@@ -20,9 +21,9 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
           children: [
             const Text('Privacy Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Control how your data is used and shared',
-              style: TextStyle(color: AppColors.authMuted),
+              style: TextStyle(color: context.appColors.muted),
             ),
             const SizedBox(height: 20),
             _SwitchCard(
@@ -56,10 +57,10 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.lightSurface,
+                color: context.appColors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                  BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
                 ],
               ),
               child: Column(
@@ -103,9 +104,9 @@ class _SwitchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.lightSurface,
+        color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Column(children: children)),
     );
@@ -134,7 +135,7 @@ class _PrivacySwitchTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.authMuted, size: 22),
+          Icon(icon, color: context.appColors.muted, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -142,7 +143,7 @@ class _PrivacySwitchTile extends StatelessWidget {
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.authMuted)),
+                Text(subtitle, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
               ],
             ),
           ),

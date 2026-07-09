@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsSectionLabel extends StatelessWidget {
   const SettingsSectionLabel({super.key, required this.label});
@@ -12,10 +12,10 @@ class SettingsSectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.authMuted,
+          color: context.appColors.muted,
         ),
       ),
     );

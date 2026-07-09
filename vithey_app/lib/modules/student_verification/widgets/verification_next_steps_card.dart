@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VerificationNextStepsCard extends StatelessWidget {
   const VerificationNextStepsCard({super.key});
@@ -9,17 +10,17 @@ class VerificationNextStepsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE3F2FD),
+        color: AppColors.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('What happens next?', style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
+          const Text('What happens next?', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
           Text(
             'Authorized reviewers are checking your submitted data. You will receive an email or in-app notification after completion, usually within 24–48 hours.',
-            style: TextStyle(color: AppColors.authHeading, height: 1.4),
+            style: TextStyle(color: context.appColors.heading, height: 1.4),
           ),
         ],
       ),

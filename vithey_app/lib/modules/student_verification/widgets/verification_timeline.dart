@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VerificationTimeline extends StatelessWidget {
   const VerificationTimeline({super.key, this.submittedAt});
@@ -19,13 +20,13 @@ class VerificationTimeline extends StatelessWidget {
           completed: true,
           active: false,
         ),
-        _TimelineStep(
+        const _TimelineStep(
           title: 'Under Review',
           subtitle: 'In progress…',
           completed: false,
           active: true,
         ),
-        _TimelineStep(
+        const _TimelineStep(
           title: 'Verification Complete',
           subtitle: 'Pending',
           completed: false,
@@ -63,7 +64,7 @@ class _TimelineStep extends StatelessWidget {
         ? AppColors.success
         : active
             ? AppColors.warning
-            : AppColors.authMuted;
+            : context.appColors.muted;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -73,7 +74,7 @@ class _TimelineStep extends StatelessWidget {
               completed ? Icons.check_circle : active ? Icons.timelapse : Icons.radio_button_unchecked,
               color: color,
             ),
-            if (!isLast) Container(width: 2, height: 28, color: AppColors.authBorder),
+            if (!isLast) Container(width: 2, height: 28, color: context.appColors.border),
           ],
         ),
         const SizedBox(width: 12),
@@ -84,7 +85,7 @@ class _TimelineStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(subtitle, style: const TextStyle(color: AppColors.authMuted)),
+                Text(subtitle, style: TextStyle(color: context.appColors.muted)),
               ],
             ),
           ),

@@ -7,7 +7,7 @@
 
 | Item | Value |
 |------|-------|
-| Path | `vithey-backend/services/finance-service/` |
+| Path | `backend/services/finance-service/` |
 | Port | 8086 |
 | Eureka | `finance-service` |
 | Database | `finance_db` |

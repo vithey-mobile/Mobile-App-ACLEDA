@@ -12,6 +12,7 @@ import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_bottom_navigation.dart';
 import 'package:intl/intl.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ChatListScreen extends GetView<ChatListController> {
   const ChatListScreen({super.key});
@@ -19,9 +20,7 @@ class ChatListScreen extends GetView<ChatListController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: Row(
           children: [
@@ -236,13 +235,13 @@ class _ConversationTile extends StatelessWidget {
         conversation.lastMessagePreview,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.authMuted),
+        style: TextStyle(color: context.appColors.muted),
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(time, style: const TextStyle(fontSize: 12, color: AppColors.authMuted)),
+          Text(time, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
           if (conversation.unreadCount > 0) ...[
             const SizedBox(height: 4),
             CircleAvatar(
@@ -261,7 +260,7 @@ class _ConversationTile extends StatelessWidget {
               size: 16,
               color: conversation.lastMessageStatus == MessageDeliveryStatus.read
                   ? AppColors.primary
-                  : AppColors.authMuted,
+                  : context.appColors.muted,
             ),
         ],
       ),

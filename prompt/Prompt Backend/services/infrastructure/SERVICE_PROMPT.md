@@ -10,7 +10,7 @@ Runnable Eureka Server + Config Server + `config-repo/` so all microservices dis
 ## Monorepo output
 
 ```text
-vithey-backend/
+backend/
 ├── pom.xml
 ├── config-repo/
 │   ├── application.yml

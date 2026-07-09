@@ -14,8 +14,7 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     required T Function(dynamic json) fromJson,
   }) async {
-    final response = await _dio.get<Map<String, dynamic>>(path, queryParameters: queryParameters);
-    return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    return _request(() => _dio.get<Map<String, dynamic>>(path, queryParameters: queryParameters), fromJson);
   }
 
   Future<ApiResponse<T>> post<T>(
@@ -23,8 +22,7 @@ class ApiService {
     dynamic data,
     required T Function(dynamic json) fromJson,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(path, data: data);
-    return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    return _request(() => _dio.post<Map<String, dynamic>>(path, data: data), fromJson);
   }
 
   Future<ApiResponse<T>> put<T>(
@@ -32,8 +30,7 @@ class ApiService {
     dynamic data,
     required T Function(dynamic json) fromJson,
   }) async {
-    final response = await _dio.put<Map<String, dynamic>>(path, data: data);
-    return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    return _request(() => _dio.put<Map<String, dynamic>>(path, data: data), fromJson);
   }
 
   Future<ApiResponse<T>> patch<T>(
@@ -41,15 +38,34 @@ class ApiService {
     dynamic data,
     required T Function(dynamic json) fromJson,
   }) async {
-    final response = await _dio.patch<Map<String, dynamic>>(path, data: data);
-    return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    return _request(() => _dio.patch<Map<String, dynamic>>(path, data: data), fromJson);
   }
 
   Future<ApiResponse<T>> delete<T>(
     String path, {
     required T Function(dynamic json) fromJson,
   }) async {
-    final response = await _dio.delete<Map<String, dynamic>>(path);
-    return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    return _request(() => _dio.delete<Map<String, dynamic>>(path), fromJson);
+  }
+
+  Future<ApiResponse<T>> _request<T>(
+    Future<Response<Map<String, dynamic>>> Function() call,
+    T Function(dynamic json) fromJson,
+  ) async {
+    try {
+      final response = await call();
+      return ApiResponse.fromJson(response.data ?? {}, fromJson);
+    } on DioException catch (error) {
+      final body = error.response?.data;
+      if (body is Map<String, dynamic>) {
+        return ApiResponse.fromJson(body, fromJson);
+      }
+      return ApiResponse(
+        error: ApiError(
+          code: 'NETWORK_ERROR',
+          message: error.message ?? 'Network request failed',
+        ),
+      );
+    }
   }
 }

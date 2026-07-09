@@ -9,6 +9,7 @@ import 'package:aub_connect_app/modules/apply_cv/widgets/application_description
 import 'package:aub_connect_app/modules/apply_cv/widgets/apply_job_context.dart';
 import 'package:aub_connect_app/modules/apply_cv/widgets/cv_upload_zone.dart';
 import 'package:aub_connect_app/modules/apply_cv/widgets/selected_cv_card.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class ApplyCvScreen extends GetView<ApplyCvController> {
   const ApplyCvScreen({super.key});
@@ -16,15 +17,12 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.authHeading,
         elevation: 0,
         title: const Text('Upload CV', style: TextStyle(fontWeight: FontWeight.bold)),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: AppColors.authBorder),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: context.appColors.border),
         ),
       ),
       body: SafeArea(

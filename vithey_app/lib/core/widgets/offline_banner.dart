@@ -17,9 +17,9 @@ class OfflineBanner extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: Text(
+          child: const Text(
             AppStrings.offline,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ),

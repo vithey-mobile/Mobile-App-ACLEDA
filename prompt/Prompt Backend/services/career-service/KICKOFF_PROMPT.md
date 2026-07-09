@@ -1,30 +1,31 @@
 # Career Service — Kickoff Prompt
 
-You are building the **Career Service** for Vithey App: job applications, CV file
-references, application-status tracking, and applicant review for job posters.
+You are building the **Career Service** for Vithey App — job applications, CV references, and applicant review.
 
-## Read First (in this order, then stop and build)
+## Read first
 
-1. `../../COMMON_CONTEXT.md` — global platform rules (stack, layout, envelopes, codes).
-2. `COMMON_CONTEXT.md` — this service's identity, entities, events, clients, authorization, boundaries.
-3. `SERVICE_PROMPT.md` — the authoritative API contract and build checklist.
+Follow `_shared/READ_ORDER.md` → Backend — one service.
 
-> Precedence on conflict: `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
+In this folder, read in order:
 
-## Fixed Facts
+1. `../../COMMON_CONTEXT.md`
+2. `COMMON_CONTEXT.md`
+3. `API_ENDPOINTS.md`
+4. `FOLDER_STRUCTURE.md`
+5. `SERVICE_LOGIC.md`
+6. `DB_SCHEMA.md`
+7. `SERVICE_PROMPT.md`
 
-- **Port:** 8085 · **Database:** `career_db` · **Package:** `com.vithey.career`
+**Precedence:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
 
-## Non-Negotiable Rules
+## Identity
 
-- Job posts are created in **Content Service**; this service handles applications against `postId`.
-- CV files are uploaded via **File Service**; store only the `cvFileId` reference.
-- One application per user per job post (`409` on duplicate).
-- Status updates are restricted to the post owner (verify via Content Service).
-- Publishes `job.application.submitted` / `job.application.status_changed`; never calls Notification directly.
-- Follow the standard response envelope and HTTP status codes from root `COMMON_CONTEXT.md`.
+Port, DB, package: see service `COMMON_CONTEXT.md`. Registry: `_shared/SERVICE_REGISTRY.md`.
 
-## Definition of Done
+## Rules
 
-A runnable Spring Boot service on port 8085 implementing every endpoint in
-`SERVICE_PROMPT.md`, with the required modules, tests, and docs.
+- Job posts live in content-service; CV files in file-service — store references only.
+
+## Definition of done
+
+Runnable Spring Boot on port 8085 implementing every endpoint in `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`.
