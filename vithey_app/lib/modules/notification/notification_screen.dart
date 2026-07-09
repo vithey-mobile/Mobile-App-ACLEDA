@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/modules/notification/notification_controller.dart';
+import 'package:aub_connect_app/modules/notification/widgets/notification_filter_bar.dart';
+import 'package:aub_connect_app/modules/notification/widgets/notification_group_header.dart';
 import 'package:aub_connect_app/modules/notification/widgets/notification_item.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationScreen extends GetView<NotificationController> {
   const NotificationScreen({super.key});
@@ -20,6 +20,21 @@ class NotificationScreen extends GetView<NotificationController> {
         elevation: 0,
         title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          Obx(() {
+            if (controller.filter.value != NotificationFilter.all ||
+                controller.notifications.every((n) => n.isRead)) {
+              return const SizedBox.shrink();
+            }
+            return TextButton(
+              onPressed: controller.markAllAsRead,
+              child: const Text('Mark all read'),
+            );
+          }),
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search',
+            onPressed: () => Get.toNamed(AppRoutes.search),
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Notification settings',
@@ -28,23 +43,25 @@ class NotificationScreen extends GetView<NotificationController> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: Obx(() => _FilterBar(
-                selected: controller.filter.value,
-                onSelected: controller.selectFilter,
-              )),
+          child: Obx(
+            () => NotificationFilterBar(
+              selected: controller.filter.value,
+              onSelected: controller.selectFilter,
+            ),
+          ),
         ),
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (controller.isLoading.value && controller.notifications.isEmpty) {
           return ListView.builder(
             itemCount: 8,
-            itemBuilder: (_, __) => const Card(
-              margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            itemBuilder: (_, __) => const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: ShimmerListTile(),
             ),
           );
         }
-        if (controller.hasError.value) {
+        if (controller.hasError.value && controller.notifications.isEmpty) {
           return AppErrorWidget(
             message: controller.errorMessage.value,
             onRetry: controller.loadNotifications,
@@ -63,101 +80,41 @@ class NotificationScreen extends GetView<NotificationController> {
 
         return RefreshIndicator(
           onRefresh: controller.refreshNotifications,
-          child: ListView(
-            children: [
-              if (controller.filter.value == NotificationFilter.all &&
-                  controller.newNotifications.isNotEmpty) ...[
-                const _SectionHeader(title: 'New'),
-                ...controller.newNotifications.map((n) => NotificationItem(
-                      notification: n,
-                      onTap: () => controller.openNotification(n.id),
-                      onMore: () => controller.openActionSheet(n),
-                    )),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scroll) {
+              if (scroll.metrics.pixels >= scroll.metrics.maxScrollExtent - 200) {
+                controller.loadMore();
+              }
+              return false;
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                if (controller.filter.value == NotificationFilter.unread)
+                  ...controller.notifications.map(_buildItem)
+                else
+                  ...controller.sections.expand((section) => [
+                        NotificationGroupHeader(title: section.title),
+                        ...section.items.map(_buildItem),
+                      ]),
+                if (controller.isLoadingMore.value)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
               ],
-              if (controller.filter.value == NotificationFilter.all &&
-                  controller.earlierNotifications.isNotEmpty) ...[
-                const _SectionHeader(title: 'Earlier'),
-                ...controller.earlierNotifications.map((n) => NotificationItem(
-                      notification: n,
-                      onTap: () => controller.openNotification(n.id),
-                      onMore: () => controller.openActionSheet(n),
-                    )),
-              ],
-              if (controller.filter.value == NotificationFilter.unread)
-                ...controller.notifications.map((n) => NotificationItem(
-                      notification: n,
-                      onTap: () => controller.openNotification(n.id),
-                      onMore: () => controller.openActionSheet(n),
-                    )),
-            ],
+            ),
           ),
         );
       }),
     );
   }
-}
 
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({required this.selected, required this.onSelected});
-
-  final NotificationFilter selected;
-  final ValueChanged<NotificationFilter> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Row(
-        children: [
-          _Chip(
-            label: 'All',
-            selected: selected == NotificationFilter.all,
-            onTap: () => onSelected(NotificationFilter.all),
-          ),
-          const SizedBox(width: 8),
-          _Chip(
-            label: 'Unread',
-            selected: selected == NotificationFilter.unread,
-            onTap: () => onSelected(NotificationFilter.unread),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.selected, required this.onTap});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      selectedColor: AppColors.primary.withOpacity(0.15),
-      labelStyle: TextStyle(
-        color: selected ? AppColors.primary : context.appColors.muted,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+  Widget _buildItem(AppNotification notification) {
+    return NotificationItem(
+      notification: notification,
+      onTap: () => controller.openNotification(notification.id),
+      onMore: () => controller.openActionSheet(notification),
     );
   }
 }

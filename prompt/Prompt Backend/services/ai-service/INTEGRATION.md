@@ -21,7 +21,7 @@ Your Python ai-service :8089  (Eureka name: ai-service)
 
 | Component | Status |
 | --- | --- |
-| Gateway route `/api/v1/ai/**` | `GatewayRouteConfig.java` |
+| Gateway route `/api/v1/ai/**` | `config-repo/api-gateway.yml` (+ local `application.yml` fallback) |
 | JWT + identity headers | `JwtAuthenticationGlobalFilter` |
 | Eureka server | `infrastructure/eureka-server` |
 | Integration docs | `Prompt Backend/services/ai-service/` |

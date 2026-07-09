@@ -1,41 +1,83 @@
-# Profile Jobs Tab Prompt
+# Profile Jobs Tab
 
-Build the Jobs tab shown in `Prompt Frontend/screen image/profile/profile_job.png`.
+Build the **Jobs** tab from `Own Profile (CV).png` (owner view) and visitor apply flow.
 
-## Data and layout
+## Owner layout (reference)
 
-- Fetch `GET /api/v1/users/{userId}/posts?type=JOB`.
-- Compact cards: thumbnail, structured job title, organization, employment type, location, created time, lifecycle state.
-- Use typed job metadata; never OCR the image to drive behavior.
+```
+┌─────────────────────────────────────┐
+│ ┌────┐ Multiple position            │
+│ │img │ Aeon Mall ( Full-time )     │
+│ └────┘ 📍 Phnom Penh, 32nd St...    │
+│        2 days ago                   │
+│ [5 Application]        View List >  │
+└─────────────────────────────────────┘
+```
 
-## Visitor actions
+## Card spec (`profile_job_card.dart`)
 
-- Open/eligible/not applied → **Apply**.
-- Applied → **Applied** or View Application.
-- Closed/expired/full → **Closed**.
-- Apply opens `../upload_cv/01.upload_cv.md` with canonical job ID.
-- View Detail opens Post Detail.
+| Zone | Spec |
+|------|------|
+| Thumbnail | 72×72dp square, left, rounded 8dp |
+| Title | Bold — job title |
+| Subtitle | Company + employment type — muted |
+| Location | Pin icon + address line |
+| Time | `2 days ago` — small muted |
+| Footer left | Teal pill badge **{n} Application** |
+| Footer right | **View List >** text link — teal |
+
+## Data
+
+- `GET /api/v1/users/{userId}/posts?type=JOB`
+- Owner response includes `applicant_count`
 
 ## Owner actions
 
-- Never show Apply on own jobs.
-- Show **View Applicants** and authorized applicant count, or **No applicants**.
-- Open `poster_job/list_cv_apply_job.md` with stable job ID.
-- Owner management/list behavior is detailed in `poster_job/list_poster_job.md`.
+| Tap | Destination |
+|-----|-------------|
+| **View List >** / card | `JobApplicantsArgs(jobPostId)` → `poster_job/list_cv_apply_job.md` |
+| Never show **Apply** on own jobs |
 
-## Contract/state
+## Visitor actions
 
-Feed response needs lifecycle, current-user application state, location/type, and owner-only applicant count. Avoid one request per card.
+| State | Button |
+|-------|--------|
+| Not applied, open | **Apply** → `../job_apply/README.md` |
+| Applied | **Applied** / View Application → `../job_apply/04.application_status.md` |
+| Closed | **Closed** — disabled |
 
-Support skeleton, empty, refresh, pagination/error, stale/race reconciliation, and unavailable jobs. Preserve tab scroll.
+## API extensions
 
-## Reuse/testing
+```json
+{
+  "id": "post-uuid",
+  "job_title": "Multiple position",
+  "company": "Aeon Mall",
+  "employment_type": "FULL_TIME",
+  "location": "Phnom Penh, 32nd Street, SMC",
+  "applicant_count": 5,
+  "lifecycle": "OPEN",
+  "viewer_application_status": null
+}
+```
 
-- Reuse `../media/card_poster/03.poster_job.md` typed job state.
-- Verify owner never Apply; visitor never View Applicants.
-- Verify exact IDs route to Apply/applicants/detail.
-- Closed/duplicate/race states reconcile without invalid submission.
+## States
 
-## Output
+| State | UI |
+|-------|-----|
+| Owner empty | **Post your first job** |
+| Visitor empty | **No job posts yet** |
+| Skeleton | 3 compact cards |
 
-Deliver a typed Profile Jobs tab with correct visitor application and owner applicant-management actions.
+## Reuse
+
+- `../media/card_poster/03.poster_job.md`
+- `poster_job/list_poster_job.md` for owner management list
+
+## Acceptance criteria
+
+- [ ] Matches `Own Profile (CV).png` card layout
+- [ ] Owner sees applicant count + View List
+- [ ] Visitor never sees View List / applicant count
+- [ ] Visitor Apply routes with correct `jobPostId`
+- [ ] Pagination works

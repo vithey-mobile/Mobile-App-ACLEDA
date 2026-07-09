@@ -7,7 +7,9 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/modules/profile/widgets/secure_cv_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class PreviewOwnCvScreen extends StatefulWidget {
   const PreviewOwnCvScreen({super.key});
@@ -52,26 +54,30 @@ class _PreviewOwnCvScreenState extends State<PreviewOwnCvScreen> {
           : _cv == null
               ? const EmptyStateWidget(
                   title: 'No CV uploaded yet',
-                  subtitle: 'Upload your CV from the upload flow',
+                  subtitle: 'Upload your CV from the apply flow',
                   actionLabel: 'Upload CV',
                 )
-              : Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.picture_as_pdf, size: 64, color: AppColors.primary),
-                      const SizedBox(height: 16),
-                      Text(_cv!.fileName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text('Type: ${_cv!.mimeType}'),
-                      const Spacer(),
-                      CustomButton(
-                        label: 'Open CV',
+              : _cv!.downloadUrl == null
+                  ? EmptyStateWidget(
+                      title: _cv!.fileName,
+                      subtitle: 'CV file is saved but preview URL is not available yet.',
+                    )
+                  : Column(
+                  children: [
+                    Expanded(
+                      child: SecureCvPreview(
+                        previewUrl: _cv!.downloadUrl!,
+                        mimeType: _cv!.mimeType,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: CustomButton(
+                        label: 'Open in browser',
                         onPressed: () => launchUrl(Uri.parse(_cv!.downloadUrl!), mode: LaunchMode.externalApplication),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }
@@ -85,47 +91,58 @@ class ApplicantCvScreen extends GetView<ApplicantCvController> {
     final args = Get.arguments as ApplicantCvArgs?;
     return Scaffold(
       appBar: AppBar(title: const Text('View CV')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(args?.applicantName ?? 'Applicant', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(args?.cvFileName ?? 'CV document'),
-            const SizedBox(height: 24),
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.picture_as_pdf, size: 72, color: AppColors.primary),
-                    SizedBox(height: 12),
-                    Text('Secure CV preview placeholder'),
-                  ],
-                ),
+      body: Obx(() {
+        if (controller.isLoading.value) return const LoadingWidget();
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(args?.applicantName ?? 'Applicant', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(args?.cvFileName ?? 'CV document'),
+              const SizedBox(height: 16),
+              Expanded(
+                child: controller.previewUrl.value == null
+                    ? const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.picture_as_pdf, size: 72, color: AppColors.primary),
+                            SizedBox(height: 12),
+                            Text('CV preview is not available for this application'),
+                          ],
+                        ),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SecureCvPreview(
+                          previewUrl: controller.previewUrl.value!,
+                        ),
+                      ),
               ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: controller.decline,
-                    child: const Text('Decline'),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: shad.Button.outline(
+                      onPressed: controller.decline,
+                      child: const shad.Text('Decline'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: controller.accept,
-                    child: const Text('Accept'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: shad.Button.primary(
+                      onPressed: controller.accept,
+                      child: const shad.Text('Accept'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
@@ -134,22 +151,43 @@ class ApplicantCvController extends GetxController {
   ApplicantCvController(this._repository);
 
   final ProfileRepository _repository;
+  final previewUrl = RxnString();
+  final isLoading = true.obs;
   String? _applicationId;
 
   @override
   void onInit() {
     super.onInit();
-    _applicationId = (Get.arguments as ApplicantCvArgs?)?.applicationId;
+    final args = Get.arguments as ApplicantCvArgs?;
+    _applicationId = args?.applicationId;
+    previewUrl.value = args?.cvPreviewUrl;
+    _loadPreview();
+  }
+
+  Future<void> _loadPreview() async {
+    if (_applicationId == null) {
+      isLoading.value = false;
+      return;
+    }
+    if (previewUrl.value != null) {
+      isLoading.value = false;
+      return;
+    }
+    try {
+      previewUrl.value = await _repository.getApplicantCvPreviewUrl(_applicationId!);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> accept() async {
     if (_applicationId == null) return;
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Accept this application?'),
+      shad.AlertDialog(
+        title: const shad.Text('Accept this application?'),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Get.back(result: true), child: const Text('Accept')),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Accept')),
         ],
       ),
     );
@@ -162,11 +200,11 @@ class ApplicantCvController extends GetxController {
   Future<void> decline() async {
     if (_applicationId == null) return;
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Decline this application?'),
+      shad.AlertDialog(
+        title: const shad.Text('Decline this application?'),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Get.back(result: true), child: const Text('Decline')),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Decline')),
         ],
       ),
     );

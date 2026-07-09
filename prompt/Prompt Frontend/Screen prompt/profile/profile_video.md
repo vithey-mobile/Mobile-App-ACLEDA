@@ -1,36 +1,79 @@
-# Profile Videos Prompt
+# Profile Videos Tab
 
-Build the Videos tab shown in `Prompt Frontend/screen image/profile/profile_video.png`.
+Build the **Videos** tab from `Own Profile (Video).png`.
 
-## Layout and behavior
+## Layout
 
-- Heading **Videos** or approved **Featured Insights**.
-- Fetch `GET /api/v1/users/{userId}/posts?type=VIDEO`.
-- Render thumbnail cards/list with play indicator, caption/title, duration/time, and optional engagement summary.
-- Tap opens Post Detail/full player.
-- Do not autoplay multiple profile videos; list starts paused.
-- Use server thumbnail/processing state, not full-video decoding for thumbnails.
+```
+┌─────────────────────────────────────┐
+│ ┌─────────────────────────────────┐ │
+│ │     [thumbnail image]           │ │
+│ │           ▶ (play)              │ │  Semi-transparent overlay
+│ └─────────────────────────────────┘ │
+│ CCNA                                │  Title bold
+│ Design topology for a small...      │  Description muted
+│ 1 week ago                          │
+└─────────────────────────────────────┘
+```
 
-The reference's Design For Scale/Job Applications text is fixture content only.
+## Card spec (`profile_video_card.dart`)
 
-## Owner/visitor and states
+| Element | Spec |
+|---------|------|
+| Thumbnail | 16:9 or reference aspect; `cached_network_image` |
+| Play overlay | Centered circle, white `Icons.play_arrow`, 40% black scrim |
+| Title | Bold 15sp, 1 line ellipsis |
+| Description | Muted 13sp, max 2 lines |
+| Time | Relative — `1 week ago` |
+| Card | Rounded 12dp, subtle border `context.appColors.border` |
+| Margin | 16dp horizontal, 8dp vertical |
 
-- Own items never show self-Follow; optional owner menu only with contracts.
-- Visitor sees server-authorized content.
-- Per-tab skeleton, empty, refresh, pagination, processing, thumbnail error, and playback-unavailable states.
-- Preserve scroll/playback position sensibly; pause on tab switch/background.
+## Data
+
+- `GET /api/v1/users/{userId}/posts?type=VIDEO&page=&limit=`
+- Use server `thumbnail_url`, `duration`, `processing_status`
+
+## Behavior
+
+| Action | Result |
+|--------|--------|
+| Tap card | `PostDetail` with video player |
+| Tab switch | Pause any active preview |
+| Scroll | Paginate at 80% |
+
+Do not autoplay in list — thumbnail + play icon only.
+
+## Processing states
+
+| Status | UI |
+|--------|-----|
+| `READY` | Normal thumbnail |
+| `PROCESSING` | Shimmer + "Processing…" |
+| `FAILED` | Grey placeholder + retry |
 
 ## Reuse
 
-- `../media/card_poster/02.poster_video.md` for video model/player behavior.
+- `../media/card_poster/02.poster_video.md` for player model
 
-## Testing
+## States
 
-- Only VIDEO type renders.
-- Processing/failed/ready states map correctly.
-- Tab switch pauses playback and does not leak controllers.
-- Pagination and large-text/thumbnail errors work.
+| State | Copy |
+|-------|------|
+| Empty owner | **Upload your first video** |
+| Empty visitor | **No videos yet** |
 
-## Output
+## Widget
 
-Deliver a performant Profile Videos tab using the shared video post model and playback coordinator.
+```text
+lib/modules/profile/widgets/
+  profile_videos_tab.dart
+  profile_video_card.dart
+```
+
+## Acceptance criteria
+
+- [ ] Matches `Own Profile (Video).png`
+- [ ] Play overlay centered on thumbnail
+- [ ] Only VIDEO posts render
+- [ ] No autoplay in list
+- [ ] Pagination + processing states

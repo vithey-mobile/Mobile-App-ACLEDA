@@ -1,15 +1,16 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/data/models/money_model.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
 import 'package:aub_connect_app/data/services/finance_service.dart';
 
 class FinanceRepository {
-  FinanceRepository(this._financeService);
+  FinanceRepository(this._financeService, this._flags);
 
   final FinanceService _financeService;
+  final FeatureFlags _flags;
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockApi;
 
   Future<FinanceDashboard> getFinanceDashboard({int page = 1, int limit = 20}) async {
     if (useMockApi) {

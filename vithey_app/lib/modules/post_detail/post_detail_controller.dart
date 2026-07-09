@@ -6,16 +6,22 @@ import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 import 'package:aub_connect_app/data/repositories/comment_repository.dart';
+import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
-import 'package:aub_connect_app/modules/home/home_controller.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 
 class PostDetailController extends GetxController {
-  PostDetailController(this._postRepository, this._commentRepository);
+  PostDetailController(
+    this._postRepository,
+    this._commentRepository,
+    this._jobApplicationRepository,
+  );
 
   final PostRepository _postRepository;
   final CommentRepository _commentRepository;
+  final JobApplicationRepository _jobApplicationRepository;
 
   final post = Rxn<FeedPost>();
   final comments = <CommentModel>[].obs;
@@ -59,7 +65,7 @@ class PostDetailController extends GetxController {
         errorMessage.value = 'Post unavailable';
         return;
       }
-      post.value = _normalize(loaded);
+      post.value = await _normalize(loaded);
       await loadComments(reset: true);
     } catch (e) {
       hasError.value = true;
@@ -97,11 +103,22 @@ class PostDetailController extends GetxController {
     }
   }
 
-  FeedPost _normalize(FeedPost item) {
-    return item.copyWith(
+  Future<FeedPost> _normalize(FeedPost item) async {
+    var normalized = item.copyWith(
       userReacted: _postRepository.isReacted(item.id) || item.userReacted,
       isFollowingAuthor: _postRepository.isFollowing(item.author.id) || item.isFollowingAuthor,
     );
+    if (normalized.type == PostType.job &&
+        !normalized.isOwnPost &&
+        normalized.applicationState != JobApplicationState.applied) {
+      try {
+        final applied = await _jobApplicationRepository.hasUserApplied(normalized.id);
+        if (applied) {
+          normalized = normalized.copyWith(applicationState: JobApplicationState.applied);
+        }
+      } catch (_) {}
+    }
+    return normalized;
   }
 
   Future<void> toggleLike() async {
@@ -147,7 +164,7 @@ class PostDetailController extends GetxController {
     final temp = CommentModel(
       id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
       postId: _postId!,
-      author: HomeController.currentUser,
+      author: Get.find<CurrentUserService>().postAuthor,
       text: text,
       createdAt: DateTime.now(),
       isPending: true,
@@ -164,7 +181,7 @@ class PostDetailController extends GetxController {
       final saved = await _commentRepository.createComment(
         postId: _postId!,
         text: text,
-        currentUser: HomeController.currentUser,
+        currentUser: Get.find<CurrentUserService>().postAuthor,
       );
       final index = comments.indexWhere((c) => c.id == temp.id);
       if (index >= 0) comments[index] = saved;

@@ -82,3 +82,14 @@ Prompt Frontend/api-intergration/integration-contract.md
 - Do not duplicate notification inbox behavior here; Settings can link to notification preferences only when a specific prompt exists.
 - Do not fake unsupported security APIs. Show disabled/coming-soon states or document backend contract gaps.
 
+## Acceptance checklist (release gate)
+
+- [ ] Settings home matches `setting_home.png` — dark mode toggle, logout
+- [ ] Account screen matches `setting_account.png` — avatar, profile fields
+- [ ] Privacy matches `setting_privacy.png` — toggles persist locally or via API
+- [ ] Security matches `setting_security.png` — change password nav; 2FA shows coming-soon if unsupported
+- [ ] Change password matches `setting_change_password.png` — validation rules
+- [ ] Help center and About follow settings visual system
+- [ ] Logout clears token and routes to Auth
+- [ ] Dark mode readable on all settings screens
+- [ ] `flutter analyze` zero errors on touched files

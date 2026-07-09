@@ -1,6 +1,8 @@
 package com.vithey.profile.service;
 
 import com.vithey.profile.dto.response.UserSearchResultResponse;
+import com.vithey.profile.exception.ApiException;
+import com.vithey.profile.exception.ErrorCode;
 import com.vithey.profile.mapper.ProfileMapper;
 import com.vithey.profile.repository.ProfileRepository;
 import com.vithey.profile.util.ApiResponseWrapper;
@@ -26,14 +28,15 @@ public class UserSearchService {
 
   @Transactional(readOnly = true)
   public ApiResponseWrapper<java.util.List<UserSearchResultResponse>> search(String search, int page, int limit) {
-    if (!StringUtils.hasText(search)) {
-      return ApiResponseWrapper.paginated(java.util.List.of(), new ApiResponseWrapper.Meta(page, limit, 0, 0));
+    String trimmed = search == null ? "" : search.trim();
+    if (!StringUtils.hasText(trimmed) || trimmed.length() < 2) {
+      throw new ApiException(ErrorCode.VALIDATION_ERROR, "search must be at least 2 characters");
     }
 
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
-    Page<UserSearchResultResponse> results = profileRepository.searchByFullName(search.trim(), pageable)
+    Page<UserSearchResultResponse> results = profileRepository.searchByFullName(trimmed, pageable)
         .map(profileMapper::toSearchResult);
 
     int totalPages = results.getTotalPages();

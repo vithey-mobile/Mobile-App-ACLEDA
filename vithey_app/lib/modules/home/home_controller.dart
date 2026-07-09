@@ -7,16 +7,20 @@ import 'package:aub_connect_app/data/models/post_author.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
+import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
+import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/home/widgets/comment_sheet.dart';
 import 'package:aub_connect_app/modules/home/widgets/share_sheet.dart';
 
 class HomeController extends GetxController {
-  HomeController(this._postRepository);
+  HomeController(this._postRepository, this._jobApplicationRepository);
 
   final PostRepository _postRepository;
+  final JobApplicationRepository _jobApplicationRepository;
 
   final posts = <FeedPost>[].obs;
   final isInitialLoading = true.obs;
@@ -32,12 +36,15 @@ class HomeController extends GetxController {
   final _mutationPosts = <String>{};
   final _mutationAuthors = <String>{};
 
-  static const currentUser = PostAuthor(id: 'mock-user', fullName: 'Vithey User');
+  PostAuthor get currentUser => Get.find<CurrentUserService>().postAuthor;
 
   @override
   void onInit() {
     super.onInit();
     fetchInitialFeed();
+    if (Get.isRegistered<NotificationRepository>()) {
+      Get.find<NotificationRepository>().onAppResumed();
+    }
   }
 
   Future<void> fetchInitialFeed() async {
@@ -46,7 +53,7 @@ class HomeController extends GetxController {
     _page = 1;
     try {
       final result = await _postRepository.fetchFeed(page: _page);
-      posts.assignAll(_applyLocalState(result.posts));
+      posts.assignAll(await _applyLocalState(result.posts));
       hasMore.value = result.hasMore;
     } catch (e) {
       hasError.value = true;
@@ -62,7 +69,7 @@ class HomeController extends GetxController {
     _page = 1;
     try {
       final result = await _postRepository.fetchFeed(page: _page);
-      posts.assignAll(_applyLocalState(result.posts));
+      posts.assignAll(await _applyLocalState(result.posts));
       hasMore.value = result.hasMore;
       hasError.value = false;
     } catch (e) {
@@ -80,7 +87,7 @@ class HomeController extends GetxController {
       final result = await _postRepository.fetchFeed(page: _page);
       final existingIds = posts.map((p) => p.id).toSet();
       final newPosts = result.posts.where((p) => !existingIds.contains(p.id)).toList();
-      posts.addAll(_applyLocalState(newPosts));
+      posts.addAll(await _applyLocalState(newPosts));
       hasMore.value = result.hasMore;
     } catch (e) {
       _page -= 1;
@@ -92,11 +99,26 @@ class HomeController extends GetxController {
 
   Future<void> retryFeed() => fetchInitialFeed();
 
-  List<FeedPost> _applyLocalState(List<FeedPost> items) {
+  Future<List<FeedPost>> _applyLocalState(List<FeedPost> items) async {
+    Set<String> appliedJobIds = {};
+    if (!_jobApplicationRepository.useMockApi) {
+      try {
+        appliedJobIds = await _jobApplicationRepository.getAppliedJobPostIds();
+      } catch (_) {
+        appliedJobIds = {};
+      }
+    }
+
     return items.map((post) {
       final reacted = _postRepository.isReacted(post.id) || post.userReacted;
       final following = _postRepository.isFollowing(post.author.id) || post.isFollowingAuthor;
-      return post.copyWith(userReacted: reacted, isFollowingAuthor: following);
+      final applied = post.type == PostType.job &&
+          (post.applicationState == JobApplicationState.applied || appliedJobIds.contains(post.id));
+      return post.copyWith(
+        userReacted: reacted,
+        isFollowingAuthor: following,
+        applicationState: applied ? JobApplicationState.applied : post.applicationState,
+      );
     }).toList();
   }
 
@@ -183,10 +205,13 @@ class HomeController extends GetxController {
   }
 
   void openPost(String postId) {
-    Get.toNamed(AppRoutes.postDetail, arguments: postId)?.then((result) {
+    Get.toNamed(AppRoutes.postDetail, arguments: postId)?.then((result) async {
       if (result is FeedPost) {
         final index = posts.indexWhere((p) => p.id == result.id);
-        if (index >= 0) posts[index] = _applyLocalState([result]).first;
+        if (index >= 0) {
+          final normalized = await _applyLocalState([result]);
+          posts[index] = normalized.first;
+        }
       }
     });
   }
@@ -198,9 +223,10 @@ class HomeController extends GetxController {
   }
 
   void insertCreatedPost(FeedPost post) {
-    final normalized = _applyLocalState([post]).first;
-    posts.removeWhere((p) => p.id == normalized.id);
-    posts.insert(0, normalized);
+    _applyLocalState([post]).then((normalized) {
+      posts.removeWhere((p) => p.id == normalized.first.id);
+      posts.insert(0, normalized.first);
+    });
   }
 
   void setActiveVideo(String? postId) => activeVideoId.value = postId;
@@ -230,7 +256,7 @@ class HomeController extends GetxController {
       case 4:
         Get.toNamed(
           AppRoutes.profile,
-          arguments: const ProfileArgs(userId: ProfileRepository.currentUserId),
+          arguments: ProfileArgs(userId: ProfileRepository.currentUserId),
         );
         currentTab.value = 0;
         break;

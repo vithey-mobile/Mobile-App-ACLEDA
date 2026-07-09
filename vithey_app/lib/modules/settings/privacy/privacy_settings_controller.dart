@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/data/models/settings_models.dart';
 import 'package:aub_connect_app/data/repositories/settings_repository.dart';
 
@@ -44,6 +45,6 @@ class PrivacySettingsController extends GetxController {
   }
 
   Future<void> openPrivacyPractices() async {
-    Get.snackbar('Vithey', 'Privacy practices article coming soon');
+    await Get.toNamed(AppRoutes.settingsPrivacyPractices);
   }
 }

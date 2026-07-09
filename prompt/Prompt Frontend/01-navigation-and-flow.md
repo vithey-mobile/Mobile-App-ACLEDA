@@ -4,10 +4,10 @@
 
 ```mermaid
 flowchart TD
-    A[Splash] --> B{Has valid token?}
+    A[Splash /splash] --> B{Has valid token?}
     B -->|Yes| H[Home]
     B -->|No| C{First time user?}
-    C -->|Yes| D[Onboarding 3 slides]
+    C -->|Yes| D[Onboarding]
     C -->|No| E[Auth Login/Register]
     D --> E
     E --> H
@@ -20,13 +20,16 @@ Home (feed)
 ├── Create Post
 ├── Post Detail → Apply CV (job posts)
 ├── Profile (self or other user)
-│   ├── Preview CV
-│   ├── Applicant CV Preview (job poster)
-│   ├── Settings
+│   ├── Preview CV (/profile/cv)
+│   ├── Edit Profile
+│   ├── Applicant list → Applicant Detail → View CV
+│   ├── Settings (+ sub-screens)
 │   └── Student Verification → Finance
-├── Chat list → Chat Detail
+├── Chat list → Chat Detail → Chat Profile
+│   └── Add Chat → Search (pick user mode)
 ├── Notifications
-└── AI Chatbot (FAB or menu item)
+├── Search (app bar icon)
+└── AI Chatbot (app bar icon)
 ```
 
 ## Screen connection table
@@ -34,50 +37,84 @@ Home (feed)
 | From screen | User action | To screen |
 |-------------|-------------|-----------|
 | Splash | Auto after token check | Home, Onboarding, or Auth |
-| Onboarding | Skip / Get Started | Auth |
-| Auth | Login / Register success | Home |
+| Onboarding | Skip / Get Started | Login |
+| Auth | Login / Register success | Home or Startup |
+| Auth | Forgot password? | Forgot Password |
 | Home | Tap post | Post Detail |
 | Home | Tap Apply on job | Apply CV |
 | Home | Tap avatar | Profile |
 | Home | Nav: Chat | Chat |
 | Home | Nav: Notifications | Notification |
 | Home | Nav: Create | Create Post |
+| Home | App bar search icon | Search |
+| Home | App bar AI icon | Chatbot |
+| Search | Tap person | Profile |
+| Search | Tap post | Post Detail |
+| Search | See all (category) | Search See All |
+| Chat | Add Chat | Search (pick user) |
+| Chat | Tap conversation | Chat Detail |
+| Chat Detail | Search icon | In-thread search sheet |
 | Create Post | Publish success | Home |
 | Post Detail | Apply CV (job) | Apply CV |
-| Profile | View CV icon | Preview CV |
-| Profile | Applicants (poster) | Applicant CV Preview |
+| Profile | View CV icon | Preview Own CV |
+| Profile | Applicants (poster) | Applicant list → Detail |
 | Profile | Settings gear | Settings |
 | Profile | Verify student CTA | Student Verification |
+| Student Verification | Contact support | Chatbot (prefilled) |
 | Student Verification | Success | Finance |
 | Finance | Not verified gate | Student Verification |
-| Chat | Tap conversation | Chat Detail |
-| Chat | New message request | Chat Detail (after accept) |
+| Settings | Privacy practices | Privacy Practices article |
 | Settings | Logout | Auth |
 
 ## Route names (Flutter)
 
 Defined in `lib/core/constants/app_routes.dart` — keep in sync with this doc.
 
-| Route constant | Screen |
-|----------------|--------|
-| `SPLASH` | Splash |
-| `ONBOARDING` | Onboarding |
-| `AUTH` | Auth |
-| `HOME` | Home |
-| `CREATE_POST` | Create Post |
-| `POST_DETAIL` | Post Detail |
-| `APPLY_CV` | Apply CV |
-| `PREVIEW_CV` | Preview CV |
-| `PROFILE` | Profile |
-| `FINANCE` | Finance |
-| `STUDENT_VERIFICATION` | Student Verification |
-| `CHAT` | Chat |
-| `CHAT_DETAIL` | Chat Detail |
-| `CHATBOT` | AI Chatbot |
-| `NOTIFICATION` | Notification |
-| `SETTINGS` | Settings |
-| `APPLICANT_CV_PREVIEW` | Applicant CV Preview |
+| Route constant | Path | Screen |
+|----------------|------|--------|
+| `splash` | `/splash` | Splash |
+| `onboarding` | `/onboarding` | Onboarding |
+| `auth` / `login` | `/auth`, `/login` | Login |
+| `register` | `/register` | Register |
+| `forgotPassword` | `/auth/forgot-password` | Forgot Password |
+| `googleAccountChooser` | `/auth/google` | Google account picker |
+| `googleAuthConfirmation` | `/auth/google/confirm` | Google confirm |
+| `startupSkills` | `/startup/skills` | Startup skills |
+| `startupInterests` | `/startup/interests` | Startup interests |
+| `startupDiscovery` | `/startup/discovery` | Startup discovery |
+| `home` | `/home` | Home |
+| `createPost` | `/create-post` | Create Post |
+| `postDetail` | `/posts/detail` | Post Detail |
+| `applyCv` | `/apply-cv` | Apply CV |
+| `applySuccess` | `/apply-cv/success` | Apply success |
+| `applicationStatus` | `/apply-cv/status` | Application status |
+| `profile` | `/profile` | Profile |
+| `editProfile` | `/profile/edit` | Edit profile |
+| `previewOwnCv` | `/profile/cv` | Preview own CV |
+| `jobApplicants` | `/profile/jobs/applicants` | Applicant list |
+| `applicantDetail` | `/profile/applicants/detail` | Applicant detail |
+| `applicantCvPreview` | `/profile/applicants/cv` | Applicant CV preview |
+| `studentVerification` | `/student-verification` | Verification form |
+| `verificationStatus` | `/verification-status` | Verification status |
+| `finance` | `/finance` | Finance |
+| `chat` | `/chat` | Chat list |
+| `chatDetail` | `/chat/detail` | Chat thread |
+| `chatProfile` | `/chat/profile` | Chat participant profile |
+| `chatbot` | `/chatbot` | AI Chatbot |
+| `notifications` | `/notifications` | Notification center |
+| `search` | `/search` | Search |
+| `searchSeeAll` | `/search/see-all` | Search see all |
+| `settings` | `/settings` | Settings home |
+| `settingsAccount` | `/settings/account` | Account |
+| `settingsPrivacy` | `/settings/privacy` | Privacy |
+| `settingsPrivacyPractices` | `/settings/privacy/practices` | Privacy article |
+| `settingsSecurity` | `/settings/security` | Security |
+| `settingsChangePassword` | `/settings/security/change-password` | Change password |
+| `settingsHelpCenter` | `/settings/help-center` | Help center |
+| `settingsAbout` | `/settings/about` | About |
 
 ## API entry point
 
 All mobile API calls go through **API Gateway**: `http://localhost:8080/api/v1` (local dev).
+
+For production/staging, set `APP_ENV=production` and all `USE_MOCK_*=false` in `.env`.

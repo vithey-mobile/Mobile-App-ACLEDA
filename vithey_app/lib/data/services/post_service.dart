@@ -138,6 +138,7 @@ class PostService {
     required String content,
     String? mediaFileId,
     Map<String, dynamic>? jobMeta,
+    DateTime? scheduledAt,
     String? currentUserId,
   }) async {
     final response = await _api.post<FeedPost>(
@@ -147,6 +148,7 @@ class PostService {
         'content': content,
         if (mediaFileId != null) 'media_file_id': mediaFileId,
         if (jobMeta != null) 'job_meta': jobMeta,
+        if (scheduledAt != null) 'scheduled_at': scheduledAt.toUtc().toIso8601String(),
       },
       fromJson: (json) => FeedPost.fromJson(json as Map<String, dynamic>, currentUserId: currentUserId),
     );

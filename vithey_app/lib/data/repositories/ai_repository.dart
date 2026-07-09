@@ -1,13 +1,14 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/services/ai_service.dart';
 
 class AiRepository {
-  AiRepository(this._aiService);
+  AiRepository(this._aiService, this._flags);
 
   final AiService _aiService;
+  final FeatureFlags _flags;
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockAi;
 
   final _mockSessions = <AiSession>[];
   final _mockMessages = <String, List<AiMessage>>{};
@@ -64,7 +65,11 @@ class AiRepository {
       _updateSessionPreview(sid, message, reply);
       return AiChatResponse(sessionId: sid, reply: reply, messageId: assistantMsg.id);
     }
-    return _aiService.sendChat(message: message, sessionId: sessionId, topic: topic);
+    return _aiService.sendChat(
+      message: message,
+      sessionId: sessionId,
+      topic: topic ?? _inferTopic(message),
+    );
   }
 
   Future<void> deleteSession(String sessionId) async {
@@ -97,6 +102,39 @@ class AiRepository {
       }
       return;
     }
+  }
+
+  Future<AiChatResponse> regenerateMessage({
+    required String sessionId,
+    required String assistantMessageId,
+  }) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      final history = _mockMessages[sessionId];
+      if (history == null) throw AiServiceException('Session not found');
+      final index = history.indexWhere((m) => m.id == assistantMessageId);
+      if (index < 0) throw AiServiceException('Message not found');
+      AiMessage? userMessage;
+      for (var i = index - 1; i >= 0; i--) {
+        if (history[i].role == AiMessageRole.user) {
+          userMessage = history[i];
+          break;
+        }
+      }
+      if (userMessage == null) throw AiServiceException('No user message to regenerate from');
+      final reply = _mockRegenerateReply(userMessage.content);
+      final assistantMsg = AiMessage(
+        id: 'a-${DateTime.now().millisecondsSinceEpoch}',
+        sessionId: sessionId,
+        role: AiMessageRole.assistant,
+        content: reply,
+        createdAt: DateTime.now(),
+      );
+      history[index] = assistantMsg;
+      _updateSessionPreview(sessionId, userMessage.content, reply);
+      return AiChatResponse(sessionId: sessionId, reply: reply, messageId: assistantMsg.id);
+    }
+    throw AiServiceException('Regenerate is not available yet');
   }
 
   String _createMockSession(String firstMessage, AiTopic? topic) {
@@ -141,6 +179,10 @@ class AiRepository {
           '- **Task** — explain your responsibility\n'
           '- **Action** — describe what you did\n'
           '- **Result** — share the outcome\n\n'
+          'Example opener:\n\n'
+          '```text\n'
+          'Hi, I am Kimheang — a final-year CS student passionate about mobile apps.\n'
+          '```\n\n'
           'Tell me the role and I can suggest sample questions.';
     }
     if (lower.contains('job') || lower.contains('apply') || topic == AiTopic.job) {
@@ -156,6 +198,40 @@ class AiRepository {
     }
     return 'I\'m Vithey AI, your campus assistant. I can help with CVs, job applications, interview prep, student life, and general Finance guidance.\n\n'
         'What would you like to explore?';
+  }
+
+  String _mockRegenerateReply(String userMessage) {
+    final lower = userMessage.toLowerCase();
+    if (lower.contains('cv') || lower.contains('resume')) {
+      return 'Here is an alternate CV outline:\n\n'
+          '```text\n'
+          'Contact | Summary | Education | Experience | Skills\n'
+          '```\n\n'
+          '- Lead with **measurable outcomes** (%, revenue, users).\n'
+          '- Use action verbs: *designed*, *led*, *improved*.\n'
+          '- Keep formatting consistent across sections.';
+    }
+    if (lower.contains('interview')) {
+      return 'Alternate interview prep:\n\n'
+          '1. Research the company mission and recent news.\n'
+          '2. Prepare 3 STAR stories.\n'
+          '3. Practice a 60-second self-introduction.\n\n'
+          'Want role-specific question drills?';
+    }
+    return 'Here is another perspective:\n\n'
+        '- Break the problem into smaller steps.\n'
+        '- Validate assumptions with a quick checklist.\n'
+        '- Ask me to go deeper on any step.';
+  }
+
+  AiTopic? _inferTopic(String message) {
+    final lower = message.toLowerCase();
+    if (RegExp(r'\b(cv|resume)\b').hasMatch(lower)) return AiTopic.cv;
+    if (lower.contains('interview')) return AiTopic.interview;
+    if (RegExp(r'\b(job|apply|application)\b').hasMatch(lower)) return AiTopic.job;
+    if (RegExp(r'\b(finance|fee|payment|balance)\b').hasMatch(lower)) return AiTopic.finance;
+    if (lower.contains('student')) return AiTopic.student;
+    return null;
   }
 
   void _ensureMockSeed() {

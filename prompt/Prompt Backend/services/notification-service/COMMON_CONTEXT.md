@@ -1,7 +1,7 @@
 # Notification Service — Common Context
 
 ## Service Role
-In-app notification storage and Firebase Cloud Messaging (FCM) push delivery.
+In-app notification storage and Firebase Cloud Messaging (FCM) push delivery for the Facebook-style Notification Center UI.
 
 ## Identity
 | Item | Value |
@@ -12,17 +12,21 @@ In-app notification storage and Firebase Cloud Messaging (FCM) push delivery.
 | Package | `com.vithey.notification` |
 
 ## Entities
-- `Notification` — id, userId, type, title, body, referenceId, referenceType, isRead, createdAt
+- `Notification` — id, userId, type, event, title, body, actorId, actorName, actorAvatarUrl, destination (JSON), referenceId, referenceType, dedupeKey, isRead, readAt, createdAt
 - `DeviceToken` — id, userId, fcmToken, platform (ANDROID/IOS), updatedAt
 
-## Notification Types
-`LIKE`, `COMMENT`, `MENTION`, `FOLLOW`, `CHAT_REQUEST`, `CHAT_MESSAGE`, `PAYMENT_ALERT`, `JOB_APPLICATION`, `JOB_STATUS`
+## Notification Types (API enum)
+`LIKE`, `COMMENT`, `MENTION`, `POST_SHARE`, `FOLLOW`, `CHAT`, `CHAT_REQUEST`, `JOB`, `PAYMENT`, `AI`, `SYSTEM`, `STUDENT_VERIFICATION`
 
 ## Events Consumed (RabbitMQ)
-All events from root COMMON_CONTEXT event table.
+See `SERVICE_LOGIC.md` and `UPGRADE_FOR_UI.md` event table.
 
 ## External
 - Firebase Admin SDK (`firebase-admin`)
+- Redis (optional unread count cache)
 
 ## API Prefix
 `/api/v1/notifications/**`
+
+## UI upgrade
+Read **`UPGRADE_FOR_UI.md`** before implementing or extending this service.

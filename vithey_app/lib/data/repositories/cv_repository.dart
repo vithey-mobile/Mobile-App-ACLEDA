@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/services/upload_service.dart';
@@ -9,10 +9,11 @@ import 'package:aub_connect_app/core/constants/api_endpoints.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
 
 class CvRepository {
-  CvRepository(this._uploadService, this._api);
+  CvRepository(this._uploadService, this._api, this._flags);
 
   final UploadService _uploadService;
   final ApiService _api;
+  final FeatureFlags _flags;
 
   static const maxBytes = 10 * 1024 * 1024;
   static const acceptedExtensions = ['pdf', 'doc', 'docx'];
@@ -22,13 +23,30 @@ class CvRepository {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   };
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockApi;
 
   CvMetadataModel? _mockSavedCv = const CvMetadataModel(
     fileId: 'cv-1',
     fileName: 'Vithey_User_CV.pdf',
     mimeType: 'application/pdf',
+    downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   );
+
+  static const _mockCvPreviewUrl =
+      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+
+  Future<String?> getApplicantCvDownloadUrl(String applicationId) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      return _mockCvPreviewUrl;
+    }
+    final response = await _api.get<Map<String, dynamic>>(
+      ApiEndpoints.jobApplicationCvPreview(applicationId),
+      fromJson: (json) => json as Map<String, dynamic>,
+    );
+    if (!response.isSuccess || response.data == null) return null;
+    return response.data!['download_url'] as String? ?? response.data!['url'] as String?;
+  }
 
   Future<CvMetadataModel?> getSavedCv() async {
     if (useMockApi) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
-import 'package:aub_connect_app/data/models/chat_args.dart';
-import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/data/push/notification_router.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
+import 'package:aub_connect_app/modules/notification/utils/notification_display_text.dart';
+import 'package:aub_connect_app/modules/notification/utils/notification_grouping.dart';
 import 'package:aub_connect_app/modules/notification/widgets/delete_notification_dialog.dart';
 import 'package:aub_connect_app/modules/notification/widgets/notification_action_sheet.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -18,29 +18,64 @@ class NotificationController extends GetxController {
   final filter = NotificationFilter.all.obs;
   final notifications = <AppNotification>[].obs;
   final isLoading = true.obs;
+  final isLoadingMore = false.obs;
   final isRefreshing = false.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
   final mutatingIds = <String>{}.obs;
 
+  int _page = 1;
+  bool _hasMore = true;
+
   @override
   void onInit() {
     super.onInit();
     loadNotifications();
+    _repository.reconcileUnreadCount();
   }
+
+  List<NotificationSection> get sections => groupNotifications(notifications);
 
   Future<void> loadNotifications() async {
     isLoading.value = true;
     hasError.value = false;
+    _page = 1;
+    _hasMore = true;
     try {
-      notifications.assignAll(
-        await _repository.fetchNotifications(filter: filter.value),
-      );
+      final result = await _repository.fetchNotifications(filter: filter.value, page: _page);
+      notifications.assignAll(result.items);
+      _hasMore = result.hasMore;
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (isLoadingMore.value || !_hasMore || isLoading.value) return;
+    isLoadingMore.value = true;
+    try {
+      final nextPage = _page + 1;
+      final result = await _repository.fetchNotifications(
+        filter: filter.value,
+        page: nextPage,
+      );
+      if (result.items.isEmpty) {
+        _hasMore = false;
+        return;
+      }
+      final existingIds = notifications.map((n) => n.id).toSet();
+      for (final item in result.items) {
+        if (!existingIds.contains(item.id)) notifications.add(item);
+      }
+      _page = nextPage;
+      _hasMore = result.hasMore;
+    } catch (_) {
+      // Keep loaded rows; pagination retry on next scroll
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
@@ -60,23 +95,32 @@ class NotificationController extends GetxController {
     await loadNotifications();
   }
 
-  List<AppNotification> get newNotifications =>
-      notifications.where((n) => !n.isRead).toList();
-
-  List<AppNotification> get earlierNotifications =>
-      notifications.where((n) => n.isRead).toList();
+  Future<void> markAllAsRead() async {
+    try {
+      await _repository.markAllAsRead();
+      if (filter.value == NotificationFilter.unread) {
+        notifications.clear();
+      } else {
+        notifications.assignAll(notifications.map((n) => n.copyWith(isRead: true)).toList());
+      }
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not mark all as read');
+    }
+  }
 
   Future<void> openNotification(String notificationId) async {
-    final item = _repository.getById(notificationId);
+    final item = _repository.getById(notificationId) ??
+        notifications.firstWhereOrNull((n) => n.id == notificationId);
     if (item == null) return;
-    if (!item.isRead) await markAsRead(notificationId);
-    _routeToDestination(item);
+    if (!item.isRead) await markAsRead(notificationId, closeSheet: false);
+    NotificationRouter.routeToNotification(item);
   }
 
   void openActionSheet(AppNotification notification) {
     Get.bottomSheet<void>(
       NotificationActionSheet(
         notification: notification,
+        previewText: NotificationDisplayText.build(notification),
         onMarkRead: notification.isRead ? null : () => markAsRead(notification.id),
         onDelete: () => requestDelete(notification.id),
       ),
@@ -88,7 +132,7 @@ class NotificationController extends GetxController {
     );
   }
 
-  Future<void> markAsRead(String notificationId) async {
+  Future<void> markAsRead(String notificationId, {bool closeSheet = true}) async {
     if (mutatingIds.contains(notificationId)) return;
     mutatingIds.add(notificationId);
     try {
@@ -100,7 +144,7 @@ class NotificationController extends GetxController {
           notifications.removeAt(index);
         }
       }
-      Get.back();
+      if (closeSheet && Get.isBottomSheetOpen == true) Get.back();
     } catch (_) {
       Get.snackbar(AppStrings.appName, 'Could not mark as read');
     } finally {
@@ -109,7 +153,7 @@ class NotificationController extends GetxController {
   }
 
   Future<void> requestDelete(String notificationId) async {
-    Get.back();
+    if (Get.isBottomSheetOpen == true) Get.back();
     final confirmed = await DeleteNotificationDialog.show();
     if (confirmed != true) return;
     if (mutatingIds.contains(notificationId)) return;
@@ -121,54 +165,6 @@ class NotificationController extends GetxController {
       Get.snackbar(AppStrings.appName, 'Could not delete notification');
     } finally {
       mutatingIds.remove(notificationId);
-    }
-  }
-
-  void _routeToDestination(AppNotification item) {
-    final dest = item.destination;
-    switch (item.type) {
-      case NotificationType.postLike:
-      case NotificationType.postComment:
-      case NotificationType.postMention:
-      case NotificationType.postShare:
-        if (dest.postId != null) {
-          Get.toNamed(AppRoutes.postDetail, arguments: dest.postId);
-        }
-        break;
-      case NotificationType.newFollower:
-        if (dest.userId != null) {
-          Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: dest.userId!));
-        }
-        break;
-      case NotificationType.jobApplicationReceived:
-        if (dest.jobPostId != null) {
-          Get.toNamed(
-            AppRoutes.jobApplicants,
-            arguments: JobApplicantsArgs(jobPostId: dest.jobPostId!, jobTitle: 'Job'),
-          );
-        }
-        break;
-      case NotificationType.jobApplicationStatus:
-        Get.snackbar(AppStrings.appName, 'Application detail coming soon');
-        break;
-      case NotificationType.chatRequest:
-        Get.toNamed(AppRoutes.chat);
-        break;
-      case NotificationType.chatMessage:
-        if (dest.conversationId != null) {
-          Get.toNamed(AppRoutes.chatDetail, arguments: ChatDetailArgs(conversationId: dest.conversationId!));
-        }
-        break;
-      case NotificationType.paymentDue:
-      case NotificationType.paymentOverdue:
-        Get.toNamed(AppRoutes.finance);
-        break;
-      case NotificationType.studentVerification:
-        Get.toNamed(AppRoutes.verificationStatus);
-        break;
-      case NotificationType.system:
-        Get.snackbar(AppStrings.appName, item.displayText);
-        break;
     }
   }
 }

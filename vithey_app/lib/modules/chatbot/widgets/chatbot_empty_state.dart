@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatbotEmptyState extends StatelessWidget {
   const ChatbotEmptyState({
@@ -23,35 +23,26 @@ class ChatbotEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
+                color: AppColors.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 36),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'How can I help you today?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+            const shad.Text('How can I help you today?').large().bold(),
             const SizedBox(height: 8),
-            Text(
+            shad.Text(
               'Ask about CVs, jobs, interviews, student life, or Finance guidance.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.appColors.muted),
-            ),
+            ).muted().textCenter(),
             const SizedBox(height: 28),
             ...prompts.map(
               (prompt) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
+                  child: shad.Button.outline(
                     onPressed: () => onPromptTap(prompt),
-                    style: OutlinedButton.styleFrom(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                    child: Text(prompt),
+                    child: shad.Text(prompt),
                   ),
                 ),
               ),

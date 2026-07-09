@@ -14,6 +14,7 @@ public interface FileMapper {
   @Mapping(target = "fileType", source = "metadata.fileType")
   @Mapping(target = "mimeType", source = "metadata.mimeType")
   @Mapping(target = "sizeBytes", source = "metadata.sizeBytes")
+  @Mapping(target = "ownerUserId", source = "metadata.ownerUserId")
   @Mapping(target = "createdAt", source = "metadata.createdAt")
   @Mapping(target = "url", source = "accessUrl")
   FileMetadataResponse toMetadataResponse(FileMetadata metadata, String accessUrl);

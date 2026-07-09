@@ -19,6 +19,10 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
 
 eureka:
   client:
@@ -31,7 +35,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 vithey:
   jwt:
@@ -40,3 +47,24 @@ vithey:
     refresh-token-ttl: ${VITHEY_REFRESH_TOKEN_TTL:7d}
   events:
     exchange: ${VITHEY_EVENTS_EXCHANGE:vithey.events}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      content-service:
+        base-config: default
+      file-service:
+        base-config: default
+      user-profile-service:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s

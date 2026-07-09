@@ -5,6 +5,7 @@ import com.vithey.content.dto.response.PostResponse;
 import com.vithey.content.entity.PostType;
 import com.vithey.content.security.CurrentUserProvider;
 import com.vithey.content.service.FeedService;
+import com.vithey.content.service.PostSearchService;
 import com.vithey.content.service.PostService;
 import com.vithey.content.util.ApiResponseWrapper;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,25 +28,33 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
   private final FeedService feedService;
+  private final PostSearchService postSearchService;
   private final PostService postService;
   private final CurrentUserProvider currentUserProvider;
 
   public PostController(
       FeedService feedService,
+      PostSearchService postSearchService,
       PostService postService,
       CurrentUserProvider currentUserProvider
   ) {
     this.feedService = feedService;
+    this.postSearchService = postSearchService;
     this.postService = postService;
     this.currentUserProvider = currentUserProvider;
   }
 
   @GetMapping("/posts")
-  ResponseEntity<ApiResponseWrapper<List<PostResponse>>> getFeed(
+  ResponseEntity<ApiResponseWrapper<List<PostResponse>>> listPosts(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) PostType type,
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "20") int limit
   ) {
     UUID viewerId = currentUserProvider.requireCurrentUser().userId();
+    if (StringUtils.hasText(search)) {
+      return ResponseEntity.ok(postSearchService.search(search, type, viewerId, page, limit));
+    }
     return ResponseEntity.ok(feedService.getFeed(viewerId, page, limit));
   }
 

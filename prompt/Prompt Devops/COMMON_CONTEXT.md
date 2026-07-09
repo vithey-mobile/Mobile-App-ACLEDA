@@ -1,7 +1,7 @@
 # Vithey App — DevOps Common Context
 
 ## Objective
-Provide Docker-based local development and GitHub Actions CI/CD that builds and publishes container images to **GitHub Container Registry (GHCR)**. Prepare the project for future production deployment without provisioning servers, reverse proxies, SSL, or observability stacks in this phase.
+Provide Docker-based local development and GitHub Actions CI/CD that builds and publishes container images to **GitHub Container Registry (GHCR)**. Phase 2 adds a Docker Compose monitoring stack (Prometheus, Grafana, Loki). Production server provisioning (VPS, Nginx, SSL) remains out of scope for now.
 
 ## App Stack
 | Layer | Technology |
@@ -18,11 +18,25 @@ Do **not** create prompts, configs, or workflows for:
 - Ubuntu VPS provisioning
 - Nginx / Traefik / Caddy reverse proxy
 - Certbot / Let's Encrypt SSL
-- Prometheus / Grafana metrics
-- Loki / ELK centralized logging
 - Kubernetes manifests (defer to later phase)
+- OpenTelemetry collectors (defer to later phase)
 
-Production readiness in v1 means: **versioned images on GHCR + documented env vars + `docker-compose.prod.yml` template** that any future host can run.
+## Observability (v2 — `v1/08-monitoring-observability-prompt.md`)
+
+**In scope** — Docker Compose only:
+
+| Tool | Path | Purpose |
+| --- | --- | --- |
+| Prometheus | `monitoring/prometheus/` | Scrape `/actuator/prometheus` from all microservices |
+| Grafana | `monitoring/grafana/` | Dashboards + log UI |
+| Loki | `monitoring/loki/` | Centralized log storage |
+| Promtail | `monitoring/promtail/` | Ship Docker container logs |
+| Node Exporter | `monitoring/docker-compose.yml` | Host metrics |
+| cAdvisor | `monitoring/docker-compose.yml` | Container metrics |
+
+Output folder: `monitoring/` at repo root. Joins external network `vithey-network`.
+
+Production readiness in v1 still means: **versioned images on GHCR + documented env vars + `docker-compose.prod.yml` template** that any future host can run.
 
 ## Target Repo Layout
 
@@ -39,6 +53,7 @@ monorepo/
 │       ├── docker-compose.yml
 │       └── .env.example
 ├── vithey_app/                  # Flutter
+├── monitoring/                  # Prometheus, Grafana, Loki (see v1/08)
 └── prompt/                      # all markdown docs
 ```
 

@@ -122,10 +122,11 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 | Profile | user-profile, content | `GET /users/{id}`, user posts via content |
 | Finance | finance | `GET /payments`, `GET /payments/alerts`, `GET /fees` — **403 if not STUDENT** |
 | Student Verification | auth | `POST /students/verify` |
-| Chat | chat | `GET /conversations`, `GET /message-requests`, `POST /conversations/{id}/accept` |
-| Chat Detail | chat | `GET/POST /conversations/{id}/messages`, `PATCH /messages/{id}/read`, WebSocket/STOMP |
-| AI Chatbot | ai | `POST /ai/chat`, `GET /ai/sessions/{id}/messages` |
+| Chat | chat | `GET /conversations`, `GET /message-requests`, `POST /conversations/{id}/accept` — see `Screen prompt/chat/README.md` |
+| Chat Detail | chat | `GET/POST /conversations/{id}/messages`, `PATCH /messages/{id}/read`, STOMP `/ws` — see `Screen prompt/chat/05.chat_api_realtime.md` |
+| AI Chatbot | ai | `POST /ai/chat`, `GET /ai/sessions`, `GET /ai/sessions/{id}/messages`, `DELETE /ai/sessions/{id}` — see `Screen prompt/chatbot/05.chatbot_api_streaming.md` for streaming/regenerate |
 | Notification | notification | `GET /notifications`, `PATCH /notifications/{id}/read` |
+| Search | user-profile, content | `GET /users/search?search=&page=&limit=`, `GET /posts?search=&type=&page=&limit=` — see `Screen prompt/search/README.md` |
 | Settings | user-profile, auth | `GET/PATCH /users/me/settings`, `POST /auth/logout` |
 | Applicant CV Preview | career, file | `GET /job-applications?job_post_id=`, `GET /files/{id}/download` |
 
@@ -150,23 +151,63 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 2. Auth publishes `student.verified` → Finance creates/links student record
 3. Finance screens call `GET /payments` — return 403 until verified
 
-### Real-time chat
+### Real-time chat (Telegram / Messenger — Flutter)
 
-- REST for history and send: `/conversations/{id}/messages`
-- STOMP over WebSocket at gateway path `/ws` (chat-service) — subscribe `/user/queue/messages`
+Full Flutter spec: `Prompt Frontend/Screen prompt/chat/README.md`
+
+| Layer | Technology |
+|-------|------------|
+| REST | Dio → `GET /conversations`, `GET/POST /conversations/{id}/messages`, `PATCH /messages/{id}/read` |
+| WebSocket | `web_socket_channel` + STOMP at gateway `wss://{host}/ws` |
+| Subscribe | `/user/queue/messages` (filter by `conversation_id` in payload) |
+| Send | `/app/chat.send` with `{ conversation_id, text, client_message_id }` |
+| Offline | Isar local cache — conversations, messages, send outbox |
+| Push | Firebase Messaging → tap opens `ChatDetailArgs(conversationId)` |
+
+**API alias mapping** (simplified names → Vithey):
+
+| Simplified | Vithey canonical |
+|------------|------------------|
+| `GET /chats` | `GET /conversations` |
+| `GET /messages/{conversationId}` | `GET /conversations/{id}/messages` |
+| `POST /messages/read` | `PATCH /messages/{id}/read` (batch endpoint planned) |
+| `ws://server/chat/{id}` | `ws://{gateway}/ws` + STOMP user queue |
+
 - Message requests: `POST /conversations/request`, list via `GET /message-requests`
+
+### Global search (Facebook-style)
+
+Full spec: `Screen prompt/search/README.md`
+
+| Item | Contract |
+|------|----------|
+| People | `GET /users/search?search={q}&page=&limit=` (user-profile-service) |
+| Posts / Jobs / Videos | `GET /posts?search={q}&type=&page=&limit=` (content-service — `search` param required extension) |
+| Recent history | Device-local only via `SearchRecentStore` (shared_preferences); cleared on logout |
+| Entry | Home app bar search icon → `AppRoutes.search` |
+| Debounce | 350ms; min query length 2 before API |
 
 ### Push notifications
 
-- Notification service listens to RabbitMQ events (`comment.added`, `chat.message.sent`, etc.)
-- FCM token registered via `PATCH /users/me/settings` → `fcm_token` field
-- In-app list: `GET /notifications`
+Full spec: `Screen prompt/notification/README.md` → `03` (FCM) + `05` (backend).
+
+| Item | Contract |
+|------|----------|
+| Event source | RabbitMQ — `reaction.added`, `comment.added`, `follow.created`, `post.shared`, `chat.message.sent`, `job.application.*`, `payment.*`, `ai.response.ready`, `system.announcement` |
+| FCM token | `POST /notifications/devices` `{ fcm_token, platform }` |
+| In-app inbox | `GET /notifications?page&limit&is_read=` — response includes `actor`, `destination`, `event` |
+| Unread badge | `GET /notifications/unread-count` |
+| Mark read | `PATCH /notifications/{id}/read` |
+| Delete | `DELETE /notifications/{id}` |
+| Backend spec | `Prompt Backend/services/notification-service/UPGRADE_FOR_UI.md` |
+| Chat realtime | WebSocket STOMP (chat-service) — separate from FCM; FCM when app backgrounded |
+| Flutter | `firebase_messaging` receive + `flutter_local_notifications` tray + `NotificationRouter` deep link |
 
 ## Flutter integration checklist
 
 - [ ] `api_endpoints.dart` matches this contract
 - [ ] Dio interceptor: attach Bearer, refresh on 401 once, then logout
-- [ ] Repositories per domain (auth, post, profile, cv, finance, chat, chatbot, notification)
+- [ ] Repositories per domain (auth, post, profile, cv, finance, chat, chatbot, notification, search)
 - [ ] `USE_MOCK_AUTH` / mock repos for UI-only dev; swap to real repos when gateway is up
 - [ ] Multipart upload via `UploadService` for files
 - [ ] Pagination: pass `page`, `limit`; read `meta.total_pages` in controllers
@@ -184,6 +225,8 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 | Gap | Resolution |
 |-----|------------|
 | No app code yet | Run prompts in order in `Prompt Frontend/02-ai-implementation-guide.md` |
-| WebSocket URL | Document in chat-service README; Flutter uses `socket_io_client` or `web_socket_channel` to `ws://host:8080/ws` |
+| WebSocket URL | `wss://{API_HOST}/ws` — STOMP via `web_socket_channel`; see `Screen prompt/chat/05.chat_api_realtime.md` |
+| Isar chat cache | `Screen prompt/chat/04.chat_isar_offline.md` |
+| FCM chat deep link | `Screen prompt/chat/05.chat_api_realtime.md` |
 | FCM | Requires Firebase project + `google-services.json` / `GoogleService-Info.plist` |
 | AI provider | Python `ai-service`: set `AI_PROVIDER=openai|gemini` and `AI_API_KEY` in env (not Java) |

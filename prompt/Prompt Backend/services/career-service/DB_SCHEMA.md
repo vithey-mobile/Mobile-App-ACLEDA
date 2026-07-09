@@ -2,7 +2,10 @@
 
 Database: `career_db`
 
-Use Flyway migration: `src/main/resources/db/migration/V1__init_career_schema.sql`
+Flyway migrations:
+
+- `V1__init_career_schema.sql`
+- `V2__application_timeline_and_idempotency.sql`
 
 ## Tables
 
@@ -18,8 +21,15 @@ Use Flyway migration: `src/main/resources/db/migration/V1__init_career_schema.sq
 | `status` | varchar(32) | `PENDING`, `REVIEWED`, `ACCEPTED`, `REJECTED` |
 | `applied_at` | timestamptz | not null |
 | `updated_at` | timestamptz | not null |
+| `review_started_at` | timestamptz | nullable, set when status → `REVIEWED` |
+| `decided_at` | timestamptz | nullable, set when status → `ACCEPTED` / `REJECTED` |
+| `reviewer_note` | text | nullable, poster message to applicant |
+| `idempotency_key` | varchar(128) | nullable, unique per applicant when set |
 
-Unique: `(job_post_id, applicant_id)`.
+Unique constraints:
+
+- `(job_post_id, applicant_id)`
+- `(applicant_id, idempotency_key)` where `idempotency_key IS NOT NULL`
 
 ### `user_cvs`
 
@@ -35,4 +45,4 @@ Unique: `(job_post_id, applicant_id)`.
 - `job_applications.applicant_id`
 - `job_applications.job_post_id`
 - `job_applications.status`
-
+- `job_applications (applicant_id, idempotency_key)` partial unique

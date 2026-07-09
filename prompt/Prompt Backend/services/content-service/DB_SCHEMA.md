@@ -46,6 +46,7 @@ Unique: `(follower_id, following_id)`.
 ## Indexes
 
 - `posts.author_id, posts.created_at`
+- `V2__post_search_indexes.sql` — GIN trigram on `content`, btree on `job_title`
 - `comments.post_id, comments.created_at`
 - `reactions.post_id`
 - `follows.follower_id`, `follows.following_id`

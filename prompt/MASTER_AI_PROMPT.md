@@ -53,6 +53,7 @@ See `_shared/REPO_PATHS.md`. Summary:
 | Phase | What | Entry |
 | --- | --- | --- |
 | 0 DevOps | Docker + CI | `Prompt Devops/v1/00-foundation-prompt.md` or `services/<name>/DEVOPS_PROMPT.md` |
+| 0b Observability | Monitoring stack | `Prompt Devops/v1/08-monitoring-observability-prompt.md` |
 | 1 Backend | One service per session | `Prompt Backend/services/<name>/KICKOFF_PROMPT.md` |
 | 2 Frontend | One screen per session | `Prompt Frontend/Screen prompt/README.md` |
 | 3 Integration | Wire Flutter to API | `Prompt Frontend/api-intergration/00-api-intergration-prompt.md` |
@@ -69,7 +70,23 @@ See `_shared/REPO_PATHS.md`. Summary:
 TASK: Prompt Devops/v1/00-foundation-prompt.md
 ```
 
+## Frontend UI System (Run this first for UI work)
+
+When the `TASK:` targets any **Frontend** prompt, the UI must follow these rules:
+
+- **GetX + GetMaterialApp** for routing/DI/state
+- **Clean Architecture** folder structure (features split into domain/data/presentation)
+- **Material 3 theme** enabled
+- **Use Shadcn Flutter components** (`shadcn_flutter ^0.0.52`) for UI. Requires Dart ≥3.3 / Flutter ≥3.22. Do not use default Material widgets unless necessary.
+
+Source of truth for frontend UI rules:
+- `Prompt Frontend/KICKOFF_PROMPT.md`
+- `Prompt Frontend/COMMON_CONTEXT.md`
+
+If you are migrating UI: keep existing controllers/repositories/services, and refactor only the presentation/widgets layer to use Shadcn Flutter-style components and the shared component system.
+
 Examples:
+- `TASK: Prompt Devops/v1/08-monitoring-observability-prompt.md`
 - `TASK: Prompt Devops/services/auth-service/DEVOPS_PROMPT.md`
 - `TASK: Prompt Backend/services/auth-service/SERVICE_PROMPT.md`
 - `TASK: Prompt Frontend/Screen prompt/auth/03-auth-prompt.md`

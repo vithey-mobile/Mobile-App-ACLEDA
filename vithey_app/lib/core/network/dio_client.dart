@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/app_config.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 
 class DioClient {
@@ -23,11 +23,12 @@ class DioClient {
   }
 
   Dio _createDio() {
+    final config = AppConfig.instance;
     final client = Dio(
       BaseOptions(
-        baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1',
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 30),
+        baseUrl: config.apiBaseUrl,
+        connectTimeout: config.connectTimeout,
+        receiveTimeout: config.receiveTimeout,
         headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
       ),
     );

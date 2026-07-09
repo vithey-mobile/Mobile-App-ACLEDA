@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
+import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/finance/finance_controller.dart';
 import 'package:aub_connect_app/modules/finance/widgets/finance_app_bar.dart';
@@ -15,7 +16,8 @@ class FinanceScreen extends GetView<FinanceController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const FinanceAppBar(),
-      body: Obx(() {
+      body: AppScreenBody(
+        child: Obx(() {
         if (controller.isLoading.value) return const LoadingWidget();
         if (controller.hasError.value) {
           return AppErrorWidget(
@@ -44,6 +46,7 @@ class FinanceScreen extends GetView<FinanceController> {
           ),
         );
       }),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => controller.onTabSelected(2),
         backgroundColor: Theme.of(context).colorScheme.primary,

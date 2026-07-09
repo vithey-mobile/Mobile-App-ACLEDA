@@ -14,6 +14,9 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
       SELECT profile
       FROM Profile profile
       WHERE LOWER(profile.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
+         OR LOWER(profile.university) LIKE LOWER(CONCAT('%', :search, '%'))
+         OR LOWER(profile.major) LIKE LOWER(CONCAT('%', :search, '%'))
+      ORDER BY profile.fullName ASC
       """)
   Page<Profile> searchByFullName(@Param("search") String search, Pageable pageable);
 }

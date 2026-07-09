@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 /// Reusable text field with validation and password toggle.
 class CustomTextField extends StatefulWidget {
@@ -32,37 +33,49 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  late bool _obscure;
+  String? _errorText;
 
-  @override
-  void initState() {
-    super.initState();
-    _obscure = widget.obscureText;
+  void _validate() {
+    if (widget.validator == null) return;
+    setState(() => _errorText = widget.validator!(widget.controller.text));
+  }
+
+  List<shad.InputFeature> _buildFeatures() {
+    return [
+      if (widget.prefixIcon != null)
+        shad.InputFeature.leading(Icon(widget.prefixIcon, size: 18)),
+      if (widget.obscureText) shad.InputFeature.passwordToggle(),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      obscureText: _obscure,
-      keyboardType: widget.keyboardType,
-      maxLines: widget.maxLines,
-      validator: widget.validator,
-      onChanged: widget.onChanged,
-      textInputAction: widget.textInputAction,
-      decoration: InputDecoration(
-        labelText: widget.label,
-        hintText: widget.hint,
-        prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, size: 20, color: Colors.grey)
-            : null,
-        suffixIcon: widget.obscureText
-            ? IconButton(
-                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                onPressed: () => setState(() => _obscure = !_obscure),
-              )
-            : null,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.label != null) ...[
+          shad.Text(widget.label!),
+          const SizedBox(height: 6),
+        ],
+        shad.TextField(
+          controller: widget.controller,
+          hintText: widget.hint,
+          obscureText: widget.obscureText,
+          maxLines: widget.maxLines,
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          features: _buildFeatures(),
+          onChanged: (value) {
+            widget.onChanged?.call(value);
+            if (_errorText != null) _validate();
+          },
+          onSubmitted: (_) => _validate(),
+        ),
+        if (_errorText != null && _errorText!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(_errorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+        ],
+      ],
     );
   }
 }

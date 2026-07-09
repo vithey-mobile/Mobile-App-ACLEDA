@@ -1,15 +1,16 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/models/settings_models.dart';
 import 'package:aub_connect_app/data/services/settings_service.dart';
 
 class SettingsRepository {
-  SettingsRepository(this._settingsService, this._localStorage);
+  SettingsRepository(this._settingsService, this._localStorage, this._flags);
 
   final SettingsService _settingsService;
   final LocalStorageService _localStorage;
+  final FeatureFlags _flags;
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockApi;
 
   Future<UserSettingsModel> loadSettings() async {
     final theme = await _localStorage.readThemeMode();

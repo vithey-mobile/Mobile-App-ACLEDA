@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_theme.dart';
 import 'package:aub_connect_app/core/utils/connectivity_wrapper.dart';
 import 'package:aub_connect_app/routes/app_pages.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class VitheyApp extends StatelessWidget {
   const VitheyApp({super.key, required this.themeMode});
@@ -19,7 +20,29 @@ class VitheyApp extends StatelessWidget {
       themeMode: themeMode,
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
-      builder: (context, child) => ConnectivityWrapper(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) {
+        final brightness = Theme.of(context).brightness;
+
+        // shadcn_flutter has its own theme system. We inject it here so all
+        // shadcn_flutter components work anywhere in the app while we migrate
+        // screen-by-screen.
+        final shadColorScheme = (brightness == Brightness.dark
+                ? shad.ColorSchemes.darkSlate
+                : shad.ColorSchemes.lightSlate)
+            .copyWith(
+              primary: () => Theme.of(context).colorScheme.primary,
+              primaryForeground: () => Colors.white,
+              ring: () => Theme.of(context).colorScheme.primary,
+            );
+
+        return shad.Theme(
+          data: shad.ThemeData(
+            colorScheme: shadColorScheme,
+            radius: 0.6,
+          ),
+          child: ConnectivityWrapper(child: child ?? const SizedBox.shrink()),
+        );
+      },
     );
   }
 }

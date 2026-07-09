@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatListController extends GetxController {
   ChatListController(this._chatRepository);
@@ -25,9 +27,13 @@ class ChatListController extends GetxController {
   final currentTab = 3.obs;
   final searchQuery = ''.obs;
 
+  StreamSubscription<List<ConversationModel>>? _conversationSub;
+
   @override
   void onInit() {
     super.onInit();
+    _conversationSub = _chatRepository.watchConversations().listen(conversations.assignAll);
+    _chatRepository.connectRealtime();
     loadChatList();
   }
 
@@ -74,17 +80,10 @@ class ChatListController extends GetxController {
   }
 
   Future<void> openAddChat() async {
-    final contacts = recentContacts;
-    if (contacts.isEmpty) {
-      Get.snackbar(AppStrings.appName, 'No contacts available');
-      return;
-    }
-    final selected = await Get.dialog<ChatParticipant>(
-      _AddChatDialog(contacts: contacts),
+    await Get.toNamed(
+      AppRoutes.search,
+      arguments: const SearchArgs(mode: SearchMode.pickUserForChat),
     );
-    if (selected == null) return;
-    final conversationId = await _chatRepository.findOrCreateConversation(selected.id);
-    openConversation(conversationId);
   }
 
   void openContactChat(ChatParticipant contact) async {
@@ -101,12 +100,14 @@ class ChatListController extends GetxController {
 
   Future<void> declineRequest(MessageRequestModel request) async {
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Decline request?'),
-        content: const Text('This person will not be able to message you unless they send a new request.'),
+      shad.AlertDialog(
+        title: const shad.Text('Decline request?'),
+        content: const shad.Text(
+          'This person will not be able to message you unless they send a new request.',
+        ),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Get.back(result: true), child: const Text('Decline')),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Decline')),
         ],
       ),
     );
@@ -133,39 +134,15 @@ class ChatListController extends GetxController {
       case 4:
         Get.offNamed(
           AppRoutes.profile,
-          arguments: const ProfileArgs(userId: ProfileRepository.currentUserId),
+          arguments: ProfileArgs(userId: ProfileRepository.currentUserId),
         );
         break;
     }
   }
-}
-
-class _AddChatDialog extends StatelessWidget {
-  const _AddChatDialog({required this.contacts});
-
-  final List<ChatParticipant> contacts;
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Start a chat'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: contacts.length,
-          itemBuilder: (_, index) {
-            final contact = contacts[index];
-            return ListTile(
-              title: Text(contact.fullName),
-              onTap: () => Get.back(result: contact),
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-      ],
-    );
+  void onClose() {
+    _conversationSub?.cancel();
+    super.onClose();
   }
 }

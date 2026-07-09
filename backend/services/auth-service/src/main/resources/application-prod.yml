@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: configserver:${CONFIG_SERVER_URL}
   jpa:
     show-sql: false
 

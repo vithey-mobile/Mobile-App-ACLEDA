@@ -14,4 +14,12 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
   Page<JobApplication> findByApplicantIdOrderByAppliedAtDesc(UUID applicantId, Pageable pageable);
 
   Page<JobApplication> findByJobPostIdOrderByAppliedAtDesc(UUID jobPostId, Pageable pageable);
+
+  Optional<JobApplication> findByApplicantIdAndIdempotencyKey(UUID applicantId, String idempotencyKey);
+
+  Page<JobApplication> findByJobPostIdAndApplicantIdOrderByAppliedAtDesc(
+      UUID jobPostId,
+      UUID applicantId,
+      Pageable pageable
+  );
 }

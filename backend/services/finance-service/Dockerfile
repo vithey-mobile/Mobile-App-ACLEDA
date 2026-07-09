@@ -4,6 +4,8 @@ FROM maven:3.9.11-eclipse-temurin-21-alpine AS build
 WORKDIR /workspace
 
 COPY pom.xml .
+COPY shared/vithey-test-support/pom.xml shared/vithey-test-support/pom.xml
+COPY shared/vithey-test-support/src shared/vithey-test-support/src
 COPY infrastructure/eureka-server/pom.xml infrastructure/eureka-server/pom.xml
 COPY infrastructure/config-server/pom.xml infrastructure/config-server/pom.xml
 COPY services/api-gateway/pom.xml services/api-gateway/pom.xml
@@ -18,7 +20,7 @@ COPY services/notification-service/pom.xml services/notification-service/pom.xml
 COPY services/ai-service/pom.xml services/ai-service/pom.xml
 COPY services/finance-service/src services/finance-service/src
 
-RUN mvn -B -q -pl services/finance-service -am -DskipTests package && \
+RUN mvn -B -q -pl services/finance-service -am -Dmaven.test.skip=true package && \
     cp services/finance-service/target/*.jar app.jar
 
 FROM eclipse-temurin:21-jre-alpine AS runtime

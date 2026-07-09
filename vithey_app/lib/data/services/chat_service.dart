@@ -48,16 +48,31 @@ class ChatService {
     required String conversationId,
     required String text,
     String? clientId,
+    String? replyToMessageId,
   }) async {
     final response = await _api.post<ChatMessage>(
       ApiEndpoints.conversationMessages(conversationId),
-      data: {'text': text, if (clientId != null) 'client_id': clientId},
+      data: {
+        'text': text,
+        if (clientId != null) 'client_message_id': clientId,
+        if (replyToMessageId != null) 'reply_to_message_id': replyToMessageId,
+      },
       fromJson: (json) => _parseMessage(json as Map<String, dynamic>, conversationId, isOwn: true),
     );
     if (!response.isSuccess || response.data == null) {
       throw ChatServiceException(response.error?.message ?? 'Failed to send message');
     }
     return response.data!;
+  }
+
+  Future<void> markMessageRead(String messageId) async {
+    final response = await _api.patch<void>(
+      ApiEndpoints.messageRead(messageId),
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw ChatServiceException(response.error?.message ?? 'Failed to mark read');
+    }
   }
 
   ConversationModel _parseConversation(Map<String, dynamic> json) {
@@ -82,6 +97,9 @@ class ChatService {
       text: json['text'] as String? ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       isOwn: isOwn || (json['is_own'] as bool? ?? false),
+      replyToMessageId: json['reply_to_message_id']?.toString(),
+      replyToPreview: (json['reply_to'] as Map<String, dynamic>?)?['text'] as String?,
+      isDeleted: json['deleted_at'] != null,
     );
   }
 }

@@ -19,3 +19,14 @@ Use this folder as the single source of truth for student verification and Finan
 | Invoice Detail | Breakdown, totals, private PDF download |
 
 Avoid duplicating invoice logic in Finance Home or form/status logic in Finance screens. All flows use authoritative server status and stable IDs.
+
+## Acceptance checklist (release gate)
+
+- [ ] Verification form matches `verify student finance.png`
+- [ ] Status screen covers pending, verified, rejected per `pending verify.png` / `verify success.png` / `verify unsuccess.png`
+- [ ] Finance home matches `finance home.png` — summary, receipts, See All
+- [ ] Invoice preview matches `preview invoice.png` — breakdown, PDF download
+- [ ] Unverified users gated to verification (no broken Finance screen)
+- [ ] Dark mode readable on status cards and invoice sheet
+- [ ] `USE_MOCK_API=false` works against gateway when backend ready
+- [ ] `flutter analyze` zero errors on touched files

@@ -37,3 +37,15 @@ Avoid duplicating detailed behavior between files. Component prompts own their i
 | `JOB` | Job Poster | `JobPosterCard` |
 
 All routing and mutations use stable IDs, never media/caption heuristics.
+
+## Acceptance checklist (release gate)
+
+- [ ] Home feed matches `screen image/home/home screen.png` — mixed cards, pagination, bottom nav
+- [ ] Poster card matches `poster .png`; video card matches job poster references
+- [ ] Job card Apply opens Apply CV wizard (not Post Detail)
+- [ ] Comments sheet matches `comment.png` — composer, pagination
+- [ ] Share sheet matches public reshare vs private save behavior
+- [ ] Create post supports type selection, media upload, schedule (see `create poster/` images)
+- [ ] Post detail shows full post + type-specific actions for all post types
+- [ ] Dark mode readable on feed cards and sheets
+- [ ] `flutter analyze` zero errors on touched files

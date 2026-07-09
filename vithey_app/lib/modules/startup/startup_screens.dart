@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
+import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 import 'package:aub_connect_app/modules/startup/startup_controller.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -12,7 +13,8 @@ class StartupSkillsScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 1;
     return Scaffold(
-      body: SafeArea(
+      body: AppScreenBody(
+        child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -57,6 +59,7 @@ class StartupSkillsScreen extends GetView<StartupController> {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -69,7 +72,8 @@ class StartupInterestsScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 2;
     return Scaffold(
-      body: SafeArea(
+      body: AppScreenBody(
+        child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -127,6 +131,7 @@ class StartupInterestsScreen extends GetView<StartupController> {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -139,7 +144,8 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
   Widget build(BuildContext context) {
     controller.currentStep.value = 3;
     return Scaffold(
-      body: SafeArea(
+      body: AppScreenBody(
+        child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -183,6 +189,7 @@ class StartupDiscoveryScreen extends GetView<StartupController> {
               nextLabel: 'Finish',
             ),
           ],
+        ),
         ),
       ),
     );

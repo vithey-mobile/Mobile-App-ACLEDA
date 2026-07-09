@@ -10,7 +10,8 @@ Does not own profile fields, media bytes, CV applications, or notifications.
 
 | Flow | Logic |
 | --- | --- |
-| Feed | Return posts from followed users plus self, ordered by newest, paginated. |
+| Feed | Return posts from followed users plus self, ordered by newest, paginated. **Only when `search` query param is absent.** |
+| Search posts | When `search` present (≥ 2 chars): ILIKE on `content`, `job_title`, `job_description`; optional `type` filter; exclude `deleted_at`; not limited to follow graph. |
 | Create post | Validate post type; validate `media_file_id` for VIDEO/POSTER through file-service; save post; publish `post.created`. |
 | Job post | Store job metadata on post so career-service can verify job ownership/application target. |
 | Comment | Save comment, parse provided mention IDs, publish `comment.added` and `mention.created`. |
@@ -27,7 +28,8 @@ Does not own profile fields, media bytes, CV applications, or notifications.
 
 ## Frontend alignment
 
-- Home feed uses `GET /posts`.
+- Home feed uses `GET /posts` (no `search`).
+- Global search uses `GET /posts?search=&type=` — see `_shared/SEARCH.md`.
 - Post cards use reaction and comment counts from `PostResponse`.
 - Create poster/video uses file upload first, then `POST /posts`.
 - Create job stores `job_meta` for application flow.

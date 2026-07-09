@@ -42,7 +42,7 @@ class AppColors {
   static const authInputFill = Color(0xFFF5F5F5);
   static const authBorder = Color(0xFFE0E0E0);
 
-  static const lightBackground = Color(0xFFF5F7FA);
+  static const lightBackground = Color(0xFFFFFFFF);
   static const lightSurface = Color(0xFFFFFFFF);
   static const lightText = Color(0xFF1A1A2E);
 

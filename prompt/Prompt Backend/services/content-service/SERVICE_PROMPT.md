@@ -29,7 +29,7 @@ services/content-service/
     │   ├── CommentController.java
     │   ├── ReactionController.java
     │   └── FollowController.java
-    ├── service/PostService.java, CommentService.java, ReactionService.java, FollowService.java, FeedService.java
+    ├── service/PostService.java, CommentService.java, ReactionService.java, FollowService.java, FeedService.java, PostSearchService.java
     ├── repository/PostRepository.java, CommentRepository.java, ReactionRepository.java, FollowRepository.java, MentionRepository.java
     ├── entity/Post.java, Comment.java, Reaction.java, Follow.java, JobPostMeta.java (embedded or separate)
     ├── dto/request/CreatePostRequest.java, CreateCommentRequest.java
@@ -59,7 +59,7 @@ services/content-service/
 
 | Method | Path | Description | HTTP |
 |--------|------|-------------|------|
-| GET | `/api/v1/posts` | Feed: followed users + own, paginated | 200 |
+| GET | `/api/v1/posts` | Feed (no `search`) OR global search (`?search=&type=`) | 200 |
 | POST | `/api/v1/posts` | Create VIDEO/POSTER/JOB post | 201 |
 | GET | `/api/v1/posts/{postId}` | Post detail | 200 |
 | DELETE | `/api/v1/posts/{postId}` | Delete own post | 204 |
@@ -133,7 +133,8 @@ services/content-service/
 
 | Rule | Implementation |
 |------|----------------|
-| Feed | Posts where `author_id IN (following ∪ self)` ORDER BY `created_at DESC` |
+| Feed | Posts where `author_id IN (following ∪ self)` ORDER BY `created_at DESC` — **only when `search` param absent** |
+| Search posts | When `search` present: ILIKE on `content`, `job_title`, `job_description`; optional `type`; exclude `deleted_at` — see `_shared/SEARCH.md` |
 | Like toggle | Insert reaction or delete if exists → publish `reaction.added` |
 | Comment | Save + parse mentions → publish `comment.added`, `mention.created` |
 | Follow | Reject self-follow → publish `follow.created` |

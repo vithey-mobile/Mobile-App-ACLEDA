@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AccountSettingsController extends GetxController {
@@ -87,21 +89,22 @@ class AccountSettingsController extends GetxController {
               children: [
                 const Text('Edit Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Full Name')),
+                CustomTextField(controller: nameController, label: 'Full Name'),
                 const SizedBox(height: 12),
-                TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio'), maxLines: 2),
+                CustomTextField(controller: bioController, label: 'Bio', maxLines: 2),
                 const SizedBox(height: 12),
-                TextField(controller: universityController, decoration: const InputDecoration(labelText: 'University')),
+                CustomTextField(controller: universityController, label: 'University'),
                 const SizedBox(height: 12),
-                TextField(controller: majorController, decoration: const InputDecoration(labelText: 'Major')),
+                CustomTextField(controller: majorController, label: 'Major'),
                 const SizedBox(height: 12),
-                TextField(
+                CustomTextField(
                   controller: yearController,
-                  decoration: const InputDecoration(labelText: 'Graduation Year'),
+                  label: 'Graduation Year',
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 20),
-                FilledButton(
+                CustomButton(
+                  label: 'Save',
                   onPressed: () {
                     profile.value = p.copyWith(
                       fullName: nameController.text.trim(),
@@ -113,7 +116,6 @@ class AccountSettingsController extends GetxController {
                     Get.back();
                     Get.snackbar('Vithey', 'Profile updated');
                   },
-                  child: const Text('Save'),
                 ),
               ],
             ),

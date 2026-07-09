@@ -1,5 +1,6 @@
 package com.vithey.chat.controller;
 
+import com.vithey.chat.dto.request.BatchReadRequest;
 import com.vithey.chat.dto.request.SendMessageRequest;
 import com.vithey.chat.dto.response.MessageResponse;
 import com.vithey.chat.security.CurrentUserProvider;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +48,17 @@ public class MessageController {
     UUID userId = currentUserProvider.requireCurrentUser().userId();
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(ApiResponseWrapper.success(messageService.sendMessage(conversationId, userId, request)));
+  }
+
+  @PostMapping("/api/v1/conversations/{conversationId}/messages/read")
+  ResponseEntity<ApiResponseWrapper<List<MessageResponse>>> markReadBatch(
+      @PathVariable UUID conversationId,
+      @Valid @RequestBody BatchReadRequest request
+  ) {
+    UUID userId = currentUserProvider.requireCurrentUser().userId();
+    return ResponseEntity.ok(
+        ApiResponseWrapper.success(messageService.markReadBatch(conversationId, userId, request))
+    );
   }
 
   @PatchMapping("/api/v1/messages/{messageId}/read")

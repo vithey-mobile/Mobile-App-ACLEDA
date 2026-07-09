@@ -53,6 +53,18 @@ class ProfileService {
     }
     return response.data!;
   }
+
+  Future<UserProfileModel> updateMyProfile(Map<String, dynamic> fields) async {
+    final response = await _api.patch<UserProfileModel>(
+      ApiEndpoints.usersMe,
+      data: fields,
+      fromJson: (json) => UserProfileModel.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw ProfileServiceException(response.error?.message ?? 'Failed to update profile');
+    }
+    return response.data!;
+  }
 }
 
 class ProfileServiceException implements Exception {

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/widgets/loading_widget.dart';
-import 'package:aub_connect_app/core/widgets/user_avatar.dart';
-import 'package:aub_connect_app/data/models/chat_message_model.dart';
-import 'package:aub_connect_app/modules/chat/chat_detail_controller.dart';
-import 'package:intl/intl.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/loading_widget.dart';
+import 'package:aub_connect_app/modules/chat/chat_detail_controller.dart';
+import 'package:aub_connect_app/modules/chat/widgets/chat_composer.dart';
+import 'package:aub_connect_app/modules/chat/widgets/chat_detail_header.dart';
+import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
+import 'package:aub_connect_app/modules/chat/widgets/jump_to_latest_chip.dart';
+import 'package:aub_connect_app/modules/chat/widgets/message_bubble.dart';
+import 'package:aub_connect_app/modules/chat/widgets/reply_preview_bar.dart';
+import 'package:aub_connect_app/modules/chat/widgets/typing_indicator_banner.dart';
 
 class ChatDetailScreen extends GetView<ChatDetailController> {
   const ChatDetailScreen({super.key});
@@ -14,223 +18,122 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.5,
-        title: Obx(() {
-          final p = controller.participant.value;
-          if (p == null) return const Text('Chat');
-          return InkWell(
-            onTap: controller.openParticipantProfile,
-            child: Row(
-              children: [
-                UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 18),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p.fullName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      if (p.isOnline)
-                        const Text('Active now', style: TextStyle(fontSize: 12, color: AppColors.success)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-        actions: [
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: controller.blockConversation),
-        ],
+      backgroundColor: context.appColors.inputFill,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Obx(
+          () => ChatDetailHeader(
+            participant: controller.participant.value,
+            isTyping: controller.isTyping.value,
+            onBack: Get.back,
+            onProfileTap: controller.openParticipantProfile,
+            onSearch: controller.openThreadSearch,
+            onMenu: controller.handleHeaderMenu,
+          ),
+        ),
       ),
       body: Column(
         children: [
+          Obx(() {
+            if (!controller.hasThreadSearch) return const SizedBox.shrink();
+            return Material(
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${AppStrings.chatThreadSearchHint}: ${controller.threadSearchQuery.value}',
+                        style: TextStyle(fontSize: 13, color: context.appColors.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: controller.clearThreadSearch,
+                      child: const Text(AppStrings.clearSearch),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
           Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) return const LoadingWidget();
-              return ListView.builder(
-                controller: controller.scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                itemCount: controller.messages.length,
-                itemBuilder: (_, index) {
-                  final message = controller.messages[index];
-                  final showAvatar = !message.isOwn &&
-                      (index == 0 || controller.messages[index - 1].senderId != message.senderId);
-                  return _MessageBubble(
-                    message: message,
-                    showAvatar: showAvatar,
-                    participantName: controller.participant.value?.fullName ?? '',
-                    onRetry: () => controller.retryMessage(message),
+            child: Stack(
+              children: [
+                Obx(() {
+                  if (controller.isLoading.value && controller.messages.isEmpty) {
+                    return const LoadingWidget();
+                  }
+                  final visible = controller.visibleMessages;
+                  if (!controller.isLoading.value && visible.isEmpty) {
+                    return Center(
+                      child: Text(
+                        controller.hasThreadSearch
+                            ? AppStrings.chatThreadSearchEmpty
+                            : AppStrings.chatSayHello,
+                        style: TextStyle(color: context.appColors.muted),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: controller.scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    itemCount: visible.length,
+                    itemBuilder: (_, index) {
+                      final message = visible[index];
+                      return Column(
+                        children: [
+                          if (controller.shouldShowDateSeparatorInThread(index))
+                            DateSeparator(date: message.createdAt),
+                          MessageBubble(
+                            message: message,
+                            showAvatar: controller.shouldShowAvatarInThread(index),
+                            participantName: controller.participant.value?.fullName ?? '',
+                            participantAvatarUrl: controller.participant.value?.avatarUrl,
+                            onRetry: () => controller.retryMessage(message),
+                            onLongPress: () => controller.showMessageActions(message),
+                            showSeenLabel: controller.shouldShowSeenLabelInThread(index),
+                          ),
+                        ],
+                      );
+                    },
                   );
-                },
-              );
-            }),
+                }),
+                Obx(() {
+                  if (!controller.showJumpToLatest.value) return const SizedBox.shrink();
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 8,
+                    child: JumpToLatestChip(onTap: controller.forceScrollToBottom),
+                  );
+                }),
+              ],
+            ),
           ),
-          _Composer(
+          Obx(() {
+            if (controller.isTyping.value) {
+              return TypingIndicatorBanner(
+                participantName: controller.participant.value?.fullName ?? 'Someone',
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+          Obx(() {
+            final reply = controller.replyToMessage.value;
+            if (reply == null) return const SizedBox.shrink();
+            return ReplyPreviewBar(
+              preview: reply.text,
+              onCancel: controller.cancelReply,
+            );
+          }),
+          ChatComposer(
             controller: controller.messageController,
             isSending: controller.isSending,
             onSend: controller.sendMessage,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
-    required this.message,
-    required this.showAvatar,
-    required this.participantName,
-    required this.onRetry,
-  });
-
-  final ChatMessage message;
-  final bool showAvatar;
-  final String participantName;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final isOwn = message.isOwn;
-    final bubbleColor = isOwn ? AppColors.primary : context.appColors.cardSurface;
-    final textColor = isOwn ? Colors.white : context.appColors.heading;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!isOwn && showAvatar)
-            UserAvatar(name: participantName, radius: 14)
-          else if (!isOwn)
-            const SizedBox(width: 28),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: bubbleColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isOwn ? 16 : 4),
-                      bottomRight: Radius.circular(isOwn ? 4 : 16),
-                    ),
-                    border: isOwn ? null : Border.all(color: context.appColors.border),
-                  ),
-                  child: Text(message.text, style: TextStyle(color: textColor)),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      DateFormat('h:mm a').format(message.createdAt),
-                      style: TextStyle(fontSize: 11, color: context.appColors.muted),
-                    ),
-                    if (isOwn) ...[
-                      const SizedBox(width: 4),
-                      _StatusIcon(status: message.status),
-                    ],
-                    if (message.isFailed) ...[
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: onRetry,
-                        child: const Text('Retry', style: TextStyle(color: AppColors.error, fontSize: 11)),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusIcon extends StatelessWidget {
-  const _StatusIcon({required this.status});
-
-  final MessageDeliveryStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (status) {
-      case MessageDeliveryStatus.read:
-        return const Icon(Icons.done_all, size: 14, color: AppColors.primaryLight);
-      case MessageDeliveryStatus.delivered:
-      case MessageDeliveryStatus.sent:
-        return const Icon(Icons.done_all, size: 14, color: Colors.white70);
-      case MessageDeliveryStatus.sending:
-        return const SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white70),
-        );
-      case MessageDeliveryStatus.failed:
-        return const Icon(Icons.error_outline, size: 14, color: AppColors.error);
-    }
-  }
-}
-
-class _Composer extends StatelessWidget {
-  const _Composer({
-    required this.controller,
-    required this.isSending,
-    required this.onSend,
-  });
-
-  final TextEditingController controller;
-  final RxBool isSending;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                minLines: 1,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'Write a message…',
-                  filled: true,
-                  fillColor: context.appColors.inputFill,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                ),
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onSend(),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Obx(() => CircleAvatar(
-                  radius: 22,
-                  backgroundColor: AppColors.primary,
-                  child: IconButton(
-                    icon: isSending.value
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.send, color: Colors.white, size: 20),
-                    onPressed: isSending.value ? null : onSend,
-                  ),
-                )),
-          ],
-        ),
       ),
     );
   }

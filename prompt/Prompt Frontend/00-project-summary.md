@@ -57,13 +57,28 @@ Prompt Devops/                 ← Docker, GitHub Actions, GHCR
 
 | Layer | Docs | Code |
 |-------|------|------|
-| Product screens | Complete in `Screen prompt/` | Not started |
-| Flutter prompts | `Screen prompt/` feature flows | Not started → `vithey_app/` |
-| Backend prompts | `Prompt Backend/services/` | Not started → `backend/` |
+| Product screens | Complete in `Screen prompt/` | In progress in `vithey_app/` |
+| Flutter prompts | `Screen prompt/` feature flows | `vithey_app/` — 42 routes, 16 modules |
+| Backend prompts | `Prompt Backend/services/` | In progress in `backend/` |
 | API contract | `api-intergration/integration-contract.md` | Aligned across prompts |
-| DevOps | `Prompt Devops/v1/` | Not started |
+| DevOps | `Prompt Devops/v1/` | In progress |
 
-**Verdict:** Documentation is integration-ready. Build following [02-ai-implementation-guide.md](02-ai-implementation-guide.md).
+### Flutter module status (`vithey_app/`)
+
+| Module | Routes | UI status |
+|--------|--------|-----------|
+| Auth + startup | 9 | Complete (Google OAuth demo) |
+| Home / media | 3 | Partial (create post media stubbed) |
+| Profile | 5 | Partial (edit save, CV preview) |
+| Job apply | 3 | Complete |
+| Finance + verify | 3 | Complete |
+| Chat | 3 | Complete (in-chat search stubbed) |
+| Chatbot | 1 | Partial (new design in progress) |
+| Search | 2 | Complete |
+| Notifications | 1 | Partial (some deep links) |
+| Settings | 7 | Complete (2FA placeholder) |
+
+**Verdict:** Documentation is integration-ready. Continue build following [02-ai-implementation-guide.md](02-ai-implementation-guide.md) and module acceptance checklists in each `Screen prompt/<module>/README.md`.
 
 ## Team workflow
 

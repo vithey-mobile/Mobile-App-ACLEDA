@@ -7,9 +7,10 @@ import java.util.UUID;
 public record ConversationResponse(
     UUID conversationId,
     ConversationStatus status,
-    ParticipantSummaryResponse otherUser,
-    String lastMessageText,
-    OffsetDateTime lastMessageAt,
+    ParticipantSummaryResponse participant,
+    LastMessageSummary lastMessage,
+    long unreadCount,
+    boolean isOnline,
     OffsetDateTime updatedAt
 ) {
 }

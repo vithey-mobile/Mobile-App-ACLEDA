@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -7,21 +8,25 @@ import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
+import 'package:aub_connect_app/data/repositories/chat_repository.dart';
+import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
-
-enum ProfileTab { about, posters, videos, jobs }
+import 'package:aub_connect_app/data/models/chat_args.dart';
 
 class ProfileController extends GetxController with GetSingleTickerProviderStateMixin {
-  ProfileController(this._profileRepository);
+  ProfileController(this._profileRepository, this._jobApplicationRepository);
 
   final ProfileRepository _profileRepository;
+  final JobApplicationRepository _jobApplicationRepository;
 
   late TabController tabController;
   final profile = Rxn<UserProfileModel>();
   final isLoading = true.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
-  final selectedTab = ProfileTab.about.obs;
+  final appliedJobs = <AppliedJobSummary>[].obs;
+  final appliedJobsLoading = false.obs;
+  bool _appliedJobsLoaded = false;
 
   final tabPosts = <PostType, RxList<FeedPost>>{
     PostType.poster: <FeedPost>[].obs,
@@ -41,33 +46,36 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
 
   bool get isOwnProfile => _userId == ProfileRepository.currentUserId;
 
+  int get tabCount => isOwnProfile ? 5 : 4;
+
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(length: 4, vsync: this);
-    tabController.addListener(() {
-      if (!tabController.indexIsChanging) {
-        selectedTab.value = ProfileTab.values[tabController.index];
-        _ensureTabLoaded(_typeForTab(tabController.index));
-      }
-    });
-
     final args = Get.arguments;
     _userId = args is ProfileArgs ? args.userId : ProfileRepository.currentUserId;
+    tabController = TabController(length: tabCount, vsync: this);
+    tabController.addListener(_onTabChanged);
     loadProfile();
   }
 
-  PostType _typeForTab(int index) {
-    switch (index) {
-      case 1:
-        return PostType.poster;
-      case 2:
-        return PostType.video;
-      case 3:
-        return PostType.job;
-      default:
-        return PostType.poster;
+  void _onTabChanged() {
+    if (tabController.indexIsChanging) return;
+    final index = tabController.index;
+    if (isOwnProfile && index == 4) {
+      _ensureAppliedJobsLoaded();
+      return;
     }
+    final type = _typeForTab(index);
+    if (type != null) _ensureTabLoaded(type);
+  }
+
+  PostType? _typeForTab(int index) {
+    return switch (index) {
+      1 => PostType.video,
+      2 => PostType.poster,
+      3 => PostType.job,
+      _ => null,
+    };
   }
 
   Future<void> loadProfile() async {
@@ -78,7 +86,7 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
       var loaded = await _profileRepository.getProfile(_userId!);
       loaded = loaded.copyWith(isFollowing: _profileRepository.isFollowing(loaded.id));
       profile.value = loaded;
-      _ensureTabLoaded(PostType.poster);
+      _ensureTabLoaded(PostType.video);
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
@@ -93,7 +101,19 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     if (_userId == null || tabLoaded[type] == true || tabLoading[type]!.value) return;
     tabLoading[type]!.value = true;
     try {
-      final result = await _profileRepository.getUserPosts(userId: _userId!, type: type, page: 1);
+      var result = await _profileRepository.getUserPosts(userId: _userId!, type: type, page: 1);
+      if (type == PostType.job && !isOwnProfile) {
+        try {
+          final appliedIds = await _jobApplicationRepository.getAppliedJobPostIds();
+          result = result
+              .map(
+                (post) => appliedIds.contains(post.id)
+                    ? post.copyWith(applicationState: JobApplicationState.applied)
+                    : post,
+              )
+              .toList();
+        } catch (_) {}
+      }
       tabPosts[type]!.assignAll(result);
       tabLoaded[type] = true;
     } catch (e) {
@@ -103,15 +123,25 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     }
   }
 
-  String _labelForType(PostType type) {
-    switch (type) {
-      case PostType.poster:
-        return 'posters';
-      case PostType.video:
-        return 'videos';
-      case PostType.job:
-        return 'jobs';
+  Future<void> _ensureAppliedJobsLoaded() async {
+    if (!isOwnProfile || _appliedJobsLoaded || appliedJobsLoading.value) return;
+    appliedJobsLoading.value = true;
+    try {
+      appliedJobs.assignAll(await _profileRepository.getMyAppliedJobs());
+      _appliedJobsLoaded = true;
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not load applied jobs');
+    } finally {
+      appliedJobsLoading.value = false;
     }
+  }
+
+  String _labelForType(PostType type) {
+    return switch (type) {
+      PostType.poster => 'posters',
+      PostType.video => 'videos',
+      PostType.job => 'jobs',
+    };
   }
 
   Future<void> toggleFollow() async {
@@ -121,7 +151,7 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     final following = !current.isFollowing;
     profile.value = current.copyWith(
       isFollowing: following,
-      followerCount: (current.followerCount + (following ? 1 : -1)).clamp(0, 999999),
+      followerCount: (current.followerCount + (following ? 1 : -1)).clamp(0, 999999999),
     );
 
     try {
@@ -132,9 +162,27 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     }
   }
 
-  void startMessage() {
-    Get.snackbar(AppStrings.appName, 'Chat messaging coming in Step 8');
+  Future<void> startMessage() async {
+    final current = profile.value;
+    if (current == null || isOwnProfile) return;
+    try {
+      final chatRepo = Get.find<ChatRepository>();
+      final conversationId = await chatRepo.findOrCreateConversation(current.id);
+      Get.toNamed(AppRoutes.chatDetail, arguments: ChatDetailArgs(conversationId: conversationId));
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not open chat');
+    }
   }
+
+  void shareProfile() {
+    final current = profile.value;
+    if (current == null) return;
+    Share.share('Check out ${current.fullName} on Vithey App');
+  }
+
+  void openEditProfile() => Get.toNamed(AppRoutes.editProfile);
+
+  void openVerifyStudent() => Get.toNamed(AppRoutes.studentVerification);
 
   void openPreviewOwnCv() => Get.toNamed(AppRoutes.previewOwnCv);
 
@@ -145,7 +193,7 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
       AppRoutes.jobApplicants,
       arguments: JobApplicantsArgs(
         jobPostId: jobPost.id,
-        jobTitle: jobPost.jobMeta.title,
+        jobTitle: jobPost.jobMeta.title ?? 'Job',
       ),
     );
   }
@@ -161,12 +209,17 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
         if (index >= 0) {
           jobs[index] = jobs[index].copyWith(applicationState: JobApplicationState.applied);
         }
+        _appliedJobsLoaded = false;
+        if (tabController.index == 4) {
+          _ensureAppliedJobsLoaded();
+        }
       }
     });
   }
 
   @override
   void onClose() {
+    tabController.removeListener(_onTabChanged);
     tabController.dispose();
     super.onClose();
   }

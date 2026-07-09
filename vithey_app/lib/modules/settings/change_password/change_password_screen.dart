@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/modules/settings/change_password/change_password_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -66,15 +68,10 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
             const SizedBox(height: 24),
             Obx(() => SizedBox(
                   width: double.infinity,
-                  child: FilledButton(
+                  child: CustomButton(
+                    label: 'Update Password',
+                    isLoading: controller.isLoading.value,
                     onPressed: controller.canSubmit ? controller.updatePassword : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Update Password'),
                   ),
                 )),
           ],
@@ -99,20 +96,12 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return CustomTextField(
       controller: controller,
+      label: label,
+      hint: label,
+      prefixIcon: Icons.lock_outline,
       obscureText: obscure,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(Icons.lock_outline, color: context.appColors.muted),
-        suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-          onPressed: onToggle,
-        ),
-        filled: true,
-        fillColor: context.appColors.inputFill,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      ),
     );
   }
 }

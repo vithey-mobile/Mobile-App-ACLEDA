@@ -33,6 +33,7 @@ Each `services/<name>/` folder:
 | --- | --- |
 | Docker run | `Prompt Devops/DOCKER.md` |
 | Paths | `_shared/REPO_PATHS.md` |
+| **Global search API** | `_shared/SEARCH.md` |
 | Architecture diagram | `backend plan.png` |
 
 ## Output

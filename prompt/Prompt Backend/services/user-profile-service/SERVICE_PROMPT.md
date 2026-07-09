@@ -90,7 +90,7 @@ services/user-profile-service/
 |------|-------|
 | User registered event | Create Profile row with `full_name` from event |
 | Update avatar | Validate file exists via FileServiceClient → store `avatar_file_id` + URL |
-| Search | ILIKE on `full_name`, paginated, exclude blocked users (future) |
+| Search | ILIKE on `full_name`, `university`, `major`; paginated; exclude hidden profiles; see `_shared/SEARCH.md` |
 | Public profile | Hide email/phone; show bio, links, university |
 
 ## Events consumed

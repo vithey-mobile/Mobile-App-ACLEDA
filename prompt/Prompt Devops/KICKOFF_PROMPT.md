@@ -14,8 +14,9 @@ You are building **DevOps infrastructure** for Vithey App. Work **one prompt at 
 | In scope | Out of scope |
 | --- | --- |
 | Per-folder Docker Compose | VPS, Nginx, SSL |
-| Dockerfiles + GHCR CI | Prometheus, Grafana, ELK |
-| `.env.example`, health checks | Kubernetes (later) |
+| Dockerfiles + GHCR CI | Kubernetes (later) |
+| Monitoring stack (`monitoring/`) | OpenTelemetry (for now) |
+| `.env.example`, health checks | |
 | `backend/scripts/start-all.ps1` | Business logic changes |
 
 ## Components
@@ -40,7 +41,8 @@ Infrastructure uses official images locally: PostgreSQL, Redis, RabbitMQ, MinIO.
 3. `v1/03` → `v1/05` (CI, GHCR, prod template)
 4. `v1/06-per-service-docker-compose-prompt.md`
 5. `v1/07-per-service-github-actions-ci-prompt.md`
-6. `services/<name>/DEVOPS_PROMPT.md`
+6. `v1/08-monitoring-observability-prompt.md`
+7. `services/<name>/DEVOPS_PROMPT.md`
 
 Skip `v1/01` (deprecated all-in-one compose).
 

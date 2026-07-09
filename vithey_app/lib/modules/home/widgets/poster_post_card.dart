@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class PosterPostCard extends StatelessWidget {
   const PosterPostCard({
@@ -47,13 +46,9 @@ class _FollowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
+    return shad.Button.ghost(
       onPressed: onFollow,
-      style: TextButton.styleFrom(
-        foregroundColor: post.isFollowingAuthor ? context.appColors.muted : AppColors.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-      ),
-      child: Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
+      child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
     );
   }
 }

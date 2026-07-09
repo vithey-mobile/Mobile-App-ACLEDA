@@ -1,13 +1,13 @@
-# Upload CV Prompt Index
+# Upload CV — Redirect
 
-This folder is the single source of truth for applying to a job with a CV.
+> **This folder is superseded.** Standalone CV upload is covered by the job apply wizard.
 
-- [`01.upload_cv.md`](01.upload_cv.md) — job context and description, applicant cover note, saved/update/application-only CV selection, private document upload, submission, and Home Applied-state synchronization.
+Use instead:
 
-## Core modes
+| Flow | Prompt |
+|------|--------|
+| Apply job with CV | [`../job_apply/README.md`](../job_apply/README.md) |
+| Preview own saved CV | [`../profile/preview_own_cv.md`](../profile/preview_own_cv.md) |
+| Reference image | `Prompt Frontend/screen image/upload cv/upload_cv.png` |
 
-1. Use the saved default CV.
-2. Update the saved CV, with explicit consent.
-3. Upload a document for this application only.
-
-The flow always uses a canonical `jobPostId`, keeps CV documents private, and never silently discards the applicant's written description.
+Do not add new prompts here. Update `job_apply/` or `profile/` when CV upload behavior changes.

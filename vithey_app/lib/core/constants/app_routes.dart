@@ -6,6 +6,7 @@ class AppRoutes {
   static const auth = '/auth';
   static const login = '/login';
   static const register = '/register';
+  static const forgotPassword = '/auth/forgot-password';
   static const googleAccountChooser = '/auth/google';
   static const googleAuthConfirmation = '/auth/google/confirm';
   static const startupSkills = '/startup/skills';
@@ -15,10 +16,14 @@ class AppRoutes {
   static const createPost = '/create-post';
   static const postDetail = '/posts/detail';
   static const applyCv = '/apply-cv';
+  static const applySuccess = '/apply-cv/success';
+  static const applicationStatus = '/apply-cv/status';
   static const profile = '/profile';
   static const jobApplicants = '/profile/jobs/applicants';
   static const applicantCvPreview = '/profile/applicants/cv';
   static const previewOwnCv = '/profile/cv';
+  static const applicantDetail = '/profile/applicants/detail';
+  static const editProfile = '/profile/edit';
   static const studentVerification = '/student-verification';
   static const verificationStatus = '/verification-status';
   static const finance = '/finance';
@@ -27,9 +32,12 @@ class AppRoutes {
   static const chatProfile = '/chat/profile';
   static const chatbot = '/chatbot';
   static const notifications = '/notifications';
+  static const search = '/search';
+  static const searchSeeAll = '/search/see-all';
   static const settings = '/settings';
   static const settingsAccount = '/settings/account';
   static const settingsPrivacy = '/settings/privacy';
+  static const settingsPrivacyPractices = '/settings/privacy/practices';
   static const settingsSecurity = '/settings/security';
   static const settingsChangePassword = '/settings/security/change-password';
   static const settingsHelpCenter = '/settings/help-center';

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_controller.dart';
-import 'package:intl/intl.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatbotHistoryDrawer extends StatelessWidget {
   const ChatbotHistoryDrawer({super.key, required this.controller});
@@ -21,9 +22,19 @@ class ChatbotHistoryDrawer extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: controller.newChat,
-                child: const Text('New Chat'),
+              child: shad.Button.primary(
+                onPressed: () {
+                  controller.newChat();
+                  Get.back();
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_comment_outlined, size: 20, color: Colors.white),
+                    SizedBox(width: 8),
+                    shad.Text('New Chat'),
+                  ],
+                ),
               ),
             ),
             const Divider(height: 1),
@@ -32,38 +43,32 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                 if (controller.isLoadingSessions.value) {
                   return const LoadingWidget();
                 }
-                if (controller.sessions.isEmpty) {
+                final sessions = controller.sortedSessions;
+                if (sessions.isEmpty) {
                   return const Center(child: Text('No chat history yet'));
                 }
                 return ListView(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
-                    if (controller.pinnedSessions.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: Text('Pinned', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Text(
+                        'Recent Chats',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: context.appColors.muted,
+                        ),
                       ),
-                      ...controller.pinnedSessions.map((s) => _SessionTile(
-                            session: s,
-                            isSelected: controller.currentSessionId == s.id,
-                            onTap: () => controller.selectSession(s.id),
-                            onRename: () => controller.renameSession(s),
-                            onPin: () => controller.togglePin(s),
-                            onDelete: () => controller.deleteSession(s),
-                          )),
-                    ],
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                      child: Text('Recent Chats', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
-                    ...controller.recentSessions.map((s) => _SessionTile(
-                          session: s,
-                          isSelected: controller.currentSessionId == s.id,
-                          onTap: () => controller.selectSession(s.id),
-                          onRename: () => controller.renameSession(s),
-                          onPin: () => controller.togglePin(s),
-                          onDelete: () => controller.deleteSession(s),
-                        )),
+                    ...sessions.map(
+                      (s) => _SessionTile(
+                        session: s,
+                        isSelected: controller.currentSessionId == s.id,
+                        onTap: () => controller.selectSession(s.id),
+                        onDelete: () => controller.deleteSession(s),
+                      ),
+                    ),
                   ],
                 );
               }),
@@ -80,62 +85,44 @@ class _SessionTile extends StatelessWidget {
     required this.session,
     required this.isSelected,
     required this.onTap,
-    required this.onRename,
-    required this.onPin,
     required this.onDelete,
   });
 
   final AiSession session;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onRename;
-  final VoidCallback onPin;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
-      child: ListTile(
+      color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+      child: InkWell(
         onTap: onTap,
-        title: Text(
-          session.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          session.preview.isNotEmpty ? session.preview : _formatTime(session.updatedAt),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12),
-        ),
-        leading: session.isPinned ? const Icon(Icons.push_pin, size: 16, color: AppColors.primary) : null,
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'rename':
-                onRename();
-              case 'pin':
-                onPin();
-              case 'delete':
-                onDelete();
-            }
-          },
-          itemBuilder: (_) => [
-            const PopupMenuItem(value: 'rename', child: Text('Rename')),
-            PopupMenuItem(
-              value: 'pin',
-              child: Text(session.isPinned ? 'Unpin' : 'Pin'),
-            ),
-            const PopupMenuItem(value: 'delete', child: Text('Delete')),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  child: Text(
+                    session.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete chat',
+                onPressed: onDelete,
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  String _formatTime(DateTime time) {
-    return DateFormat('MMM d, h:mm a').format(time);
   }
 }

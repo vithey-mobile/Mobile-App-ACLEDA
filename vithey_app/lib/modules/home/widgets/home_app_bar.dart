@@ -45,7 +45,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         }),
         IconButton(
           icon: const Icon(Icons.search),
-          onPressed: () {},
+          onPressed: () => Get.toNamed(AppRoutes.search),
           tooltip: 'Search',
         ),
         const IconButton(

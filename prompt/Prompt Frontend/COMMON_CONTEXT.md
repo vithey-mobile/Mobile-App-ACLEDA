@@ -39,7 +39,8 @@ class AppAssets {
 6. **Private Chat** — message requests, accept-before-chat privacy
 7. **AI Chatbot** — CV, job, interview, student support, finance Q&A
 8. **Notifications** — likes, comments, mentions, follows, chat, payments, jobs
-9. **Settings** — account, privacy, theme, language, logout
+9. **Global Search** — Facebook-style search with recent users, grouped results (people, posts, jobs, videos)
+10. **Settings** — account, privacy, theme, language, logout
 
 ## Mandatory Tech Stack
 
@@ -65,9 +66,24 @@ class AppAssets {
 | flutter_dotenv                                   | API base URL                          |
 | logger                                           | Debug logging                         |
 | crypto / encrypt                                 | Optional extra security               |
-| socket_io_client or web_socket_channel           | Real-time chat (when backend ready)   |
-| firebase_messaging + flutter_local_notifications | Push (when backend ready)             |
+| socket_io_client or web_socket_channel           | Real-time chat STOMP (see `Screen prompt/chat/05`) |
+| isar + isar_flutter_libs                         | Offline chat cache (conversations, messages, outbox) |
+| firebase_messaging + flutter_local_notifications | Push notifications (chat, social, jobs, payments, AI) + OS tray display |
 | Auth0 Flutter                                    | OAuth2 login (optional, auth screen)  |
+| shadcn_flutter ^0.0.52                           | Shadcn UI components (requires Dart ≥3.3, Flutter ≥3.22) |
+| flutter_markdown                                   | AI chatbot Markdown rendering (Vithey AI)               |
+| share_plus                                         | Share AI answer action                                  |
+
+## UI component system
+
+- **Primary:** `shadcn_flutter` widgets (`Button`, `TextField`, `AlertDialog`, `Switch`, `Card`, etc.)
+- **Adapters:** `lib/core/widgets/custom_button.dart`, `custom_text_field.dart`, `confirm_dialog.dart` wrap Shadcn for common patterns
+- **Theme:** `GetMaterialApp` + `shad.Theme` injected via `builder` in `lib/app.dart`; color schemes use `ColorSchemes.lightSlate` / `darkSlate`
+- **Do not** use raw Material `ElevatedButton`, `TextButton`, `OutlinedButton`, `AlertDialog`, or `TextFormField` in feature code — use Shadcn or core adapters instead
+
+**Vithey AI (new design):** full spec in `Screen prompt/chatbot/README.md` — suggestion chips above composer, chevron new-chat, simplified history drawer with trash, logo+dots thinking row, `flutter_markdown`, streaming-ready repository.
+
+**Private Chat (Telegram/Messenger-style):** full spec in `Screen prompt/chat/README.md` — `web_socket_channel` STOMP, Isar offline cache, FCM push, read receipts, reply/copy/delete.
 
 ## Architecture Rules
 
@@ -84,6 +100,24 @@ class AppAssets {
 | `core/network/`             | Dio setup, interceptors, tokens    | Feature logic            |
 | `routes/`                   | GetX pages and bindings            | Business rules           |
 
+### 1.1 Modern stack layers (2025–2026)
+
+Bootstrap and cross-cutting concerns live under `lib/core/` — **not** scattered in `main.dart` or feature modules.
+
+| Layer | Path | Responsibility |
+| ----- | ---- | -------------- |
+| **Config** | `core/config/app_config.dart`, `environment.dart`, `feature_flags.dart` | `.env` / `--dart-define` URLs, timeouts, `APP_ENV`, all `USE_MOCK_*` and `ENABLE_*` flags |
+| **DI** | `core/di/app_bindings.dart` | Single `AppBindings.init()` registers services, repositories, session, Isar, FCM, chat hub |
+| **Session** | `core/session/current_user_service.dart` | Authenticated user, `userId`, `postAuthor` — use instead of hardcoded `mock-user` |
+| **Errors** | `core/errors/app_exception.dart`, `error_mapper.dart` | Dio/service exceptions → typed `AppException` + user-facing messages |
+| **Constants** | `core/constants/mock_identities.dart` | Demo IDs used only when mock auth/API is enabled |
+| **Network** | `core/network/dio_client.dart`, `api_service.dart` | Dio + interceptors; reads `AppConfig.instance` |
+
+**Rules:**
+- `main.dart` only calls `AppBindings.init()` then `runApp`.
+- Repositories inject `FeatureFlags` + `CurrentUserService`; never read `dotenv` directly.
+- UI/controllers use `Get.find<FeatureFlags>()` or repository statics (`ProfileRepository.currentUserId`) — not raw env strings.
+
 ### 2. GetX module pattern (every feature)
 
 ```text
@@ -99,8 +133,23 @@ modules/<feature>/
 - If a widget appears on **2 or more screens**, move it to `lib/core/widgets/`.
 - Pages **compose** widgets; they do not inline 200-line `build()` methods.
 - Pass data via constructor parameters; avoid global state except through GetX controllers.
-- Shared components must support **light and dark theme** via `Theme.of(context)`.
+- Shared components must support **light and dark theme** via `Theme.of(context)` (or the app semantic tokens).
 - Naming: `CustomButton`, `PostCard`, `UserAvatar` — clear, prefixed when global.
+
+### 3.1 Shadcn Flutter (UI Design System)
+
+The frontend UI must follow a **single design system** and avoid building random one-off widgets.
+
+**Use these first (already in the codebase):**
+- `lib/core/widgets/` reusable components (buttons, text fields, loaders, empty/error states, dialogs, etc.)
+- `lib/core/theme/app_semantic_colors.dart` semantic colors (`context.appColors.*`) for theme-aware surfaces/text/borders
+
+**Do not:**
+- Hardcode `Colors.white`/`Colors.black`/random `Color(0x...)` in screens
+- Recreate “new button styles” per feature screen
+
+**Optional (only if present in `pubspec.yaml`):**
+- `shadcn_ui` or `shadcn_flutter` widgets. If you use them, keep the same architecture: screens compose widgets; controllers handle state; repositories/services call APIs.
 
 ### 4. Required core reusable widgets (build in foundation)
 
@@ -153,6 +202,7 @@ From Profile:
   - Student Verification → Finance
 
 Global access:
+  - Search (Home app bar → AppRoutes.search)
   - AI Chatbot (FAB or nav item)
   - Settings
 ```
@@ -169,15 +219,16 @@ Global access:
 | 6   | Post Detail          | Full post + comments + apply              |
 | 7   | Apply CV             | Upload CV for job application             |
 | 8   | Preview CV           | View/download user CV                     |
-| 9   | Profile              | Info, videos, posters, CV tabs            |
+| 9   | Profile              | Wavy header, About/Videos/Posters/Jobs/Applied Jobs — see `Screen prompt/profile/README.md` |
 | 10  | Finance              | Payment history + alerts (verified only)  |
 | 11  | Student Verification | Verify AUB student → unlock finance       |
 | 12  | Chat                 | Chat list + message requests              |
 | 13  | Chat Detail          | Send/receive messages                     |
 | 14  | AI Chatbot           | AI Q&A assistant                          |
-| 15  | Notification         | All notification types                    |
-| 16  | Settings             | Account, privacy, theme, language, logout |
-| 17  | Applicant CV Preview | Job poster views applicant CVs            |
+| 15  | Notification         | Facebook-style inbox — see `Screen prompt/notification/README.md` |
+| 16  | Search               | Facebook-style global search — see `Screen prompt/search/README.md` |
+| 17  | Settings             | Account, privacy, theme, language, logout |
+| 18  | Applicant CV Preview | Job poster views applicant CVs            |
 
 ## Repo Layout
 
@@ -224,7 +275,7 @@ vithey_app/
 | Domain        | Examples                                                        |
 | ------------- | --------------------------------------------------------------- |
 | Auth          | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh` |
-| Users         | `GET /users/me`, `GET /users/{id}`, `PATCH /users/me`           |
+| Users         | `GET /users/me`, `GET /users/{id}`, `PATCH /users/me`, `GET /users/search` |
 | Posts         | `GET /posts`, `POST /posts`, `GET /posts/{id}`                  |
 | Comments      | `GET /posts/{id}/comments`, `POST /posts/{id}/comments`         |
 | Reactions     | `POST /posts/{id}/reactions`                                    |

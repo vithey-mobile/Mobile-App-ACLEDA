@@ -1,17 +1,18 @@
 import 'package:get/get.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 import 'package:aub_connect_app/data/services/student_verification_service.dart';
 
 class StudentVerificationRepository {
-  StudentVerificationRepository(this._service, this._localStorage);
+  StudentVerificationRepository(this._service, this._localStorage, this._flags);
 
   final StudentVerificationService _service;
   final LocalStorageService _localStorage;
+  final FeatureFlags _flags;
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockApi;
 
   static const _allowedDomains = ['aub.edu.kh', 'student.aub.edu.kh'];
 
@@ -27,6 +28,7 @@ class StudentVerificationRepository {
     required String studentId,
     required String universityEmail,
     String? documentFileName,
+    String? documentPath,
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 800));

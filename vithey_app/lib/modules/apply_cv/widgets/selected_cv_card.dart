@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class SavedCvOption extends StatelessWidget {
   const SavedCvOption({
@@ -22,14 +23,10 @@ class SavedCvOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: OutlinedButton.icon(
+      child: shad.Button.outline(
         onPressed: enabled ? onSelect : null,
-        icon: Icon(selected ? Icons.check_circle : Icons.description_outlined, color: AppColors.primary),
-        label: Text('Use saved CV: ${savedCv.fileName}'),
-        style: OutlinedButton.styleFrom(
-          alignment: Alignment.centerLeft,
-          backgroundColor: selected ? context.appColors.inputFill : null,
-        ),
+        leading: Icon(selected ? Icons.check_circle : Icons.description_outlined, color: AppColors.primary),
+        child: shad.Text('Use saved CV: ${savedCv.fileName}'),
       ),
     );
   }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/modules/settings/security/security_settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
   const SecuritySettingsScreen({super.key});
@@ -32,14 +34,18 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                 Obx(() => _SecuritySwitchTile(
                       icon: Icons.vpn_key_outlined,
                       label: 'Two-Factor Authentication',
+                      subtitle: controller.twoFactorAvailable ? null : AppStrings.featureComingSoon,
                       value: controller.twoFactorEnabled.value,
+                      enabled: controller.twoFactorAvailable,
                       onChanged: controller.toggleTwoFactor,
                     )),
                 const Divider(height: 1),
                 Obx(() => _SecuritySwitchTile(
                       icon: Icons.fingerprint,
                       label: 'Biometric Login',
+                      subtitle: controller.biometricAvailable ? null : AppStrings.featureComingSoon,
                       value: controller.biometricEnabled.value,
+                      enabled: controller.biometricAvailable,
                       onChanged: controller.toggleBiometric,
                     )),
               ],
@@ -116,16 +122,15 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: controller.signOutAllDevices,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text('Sign Out Everywhere'),
+                    child: shad.Button.destructive(
+                      onPressed: controller.signOutAllDevicesAvailable ? controller.signOutAllDevices : null,
+                      child: const shad.Text('Sign Out Everywhere'),
                     ),
                   ),
+                  if (!controller.signOutAllDevicesAvailable) ...[
+                    const SizedBox(height: 8),
+                    Text(AppStrings.featureComingSoon, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+                  ],
                 ],
               ),
             ),
@@ -160,11 +165,15 @@ class _SecuritySwitchTile extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.subtitle,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String label;
+  final String? subtitle;
   final bool value;
+  final bool enabled;
   final ValueChanged<bool> onChanged;
 
   @override
@@ -172,11 +181,27 @@ class _SecuritySwitchTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: context.appColors.muted, size: 22),
           const SizedBox(width: 14),
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-          Switch.adaptive(value: value, onChanged: onChanged, activeColor: AppColors.primary),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle!, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+                ],
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: value,
+            onChanged: enabled ? onChanged : null,
+            activeColor: AppColors.primary,
+          ),
         ],
       ),
     );

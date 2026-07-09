@@ -5,8 +5,10 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_header.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_tabs.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_wavy_header.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_bottom_navigation.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key});
@@ -14,44 +16,59 @@ class ProfileScreen extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Vithey'),
-        actions: [
-          IconButton(
-            onPressed: () => Get.toNamed(AppRoutes.notifications),
-            icon: const Icon(Icons.notifications_outlined),
-          ),
-          IconButton(
-            onPressed: () => Get.toNamed(AppRoutes.settings),
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-          ),
-        ],
-      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const LoadingWidget(message: 'Loading profile...');
         }
         if (controller.hasError.value) {
-          return AppErrorWidget(message: controller.errorMessage.value, onRetry: controller.refreshProfile);
+          return AppErrorWidget(
+            message: controller.errorMessage.value,
+            onRetry: controller.refreshProfile,
+          );
         }
         final profile = controller.profile.value;
-        if (profile == null) return const AppErrorWidget(message: 'Profile unavailable');
+        if (profile == null) {
+          return const AppErrorWidget(message: 'Profile unavailable');
+        }
+
+        final tabs = <Tab>[
+          const Tab(text: 'About'),
+          const Tab(text: 'Videos'),
+          const Tab(text: 'Posters'),
+          const Tab(text: 'Jobs'),
+          if (controller.isOwnProfile) const Tab(text: 'Applied Jobs'),
+        ];
+
+        final tabViews = <Widget>[
+          const ProfileAboutTab(),
+          const ProfileVideosTab(),
+          const ProfilePostersTab(),
+          const ProfileJobsTab(),
+          if (controller.isOwnProfile) const ProfileAppliedJobsTab(),
+        ];
 
         return NestedScrollView(
           headerSliverBuilder: (_, __) => [
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  ProfileHeader(profile: profile),
+                  ProfileWavyHeader(
+                    profile: profile,
+                    showMenu: controller.isOwnProfile,
+                    onMenuTap: () => Get.toNamed(AppRoutes.settings),
+                    showCvPreview: controller.isOwnProfile,
+                    onCvPreviewTap: controller.openPreviewOwnCv,
+                  ),
                   ProfileStats(profile: profile),
                   ProfileActionRow(
                     isOwnProfile: controller.isOwnProfile,
                     isFollowing: profile.isFollowing,
+                    isStudentVerified: profile.isStudentVerified,
                     onFollow: controller.toggleFollow,
                     onMessage: controller.startMessage,
-                    onEditProfile: () => Get.snackbar('Vithey', 'Edit Profile coming soon'),
-                    onPreviewCv: controller.openPreviewOwnCv,
+                    onEditProfile: controller.openEditProfile,
+                    onVerifyStudent: controller.openVerifyStudent,
+                    onShare: controller.shareProfile,
                   ),
                 ],
               ),
@@ -61,25 +78,20 @@ class ProfileScreen extends GetView<ProfileController> {
               delegate: _TabBarDelegate(
                 TabBar(
                   controller: controller.tabController,
+                  isScrollable: true,
                   labelColor: Theme.of(context).colorScheme.primary,
-                  tabs: const [
-                    Tab(text: 'About'),
-                    Tab(text: 'Posters'),
-                    Tab(text: 'Videos'),
-                    Tab(text: 'Jobs'),
-                  ],
+                  unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  indicatorColor: Theme.of(context).colorScheme.primary,
+                  indicatorWeight: 3,
+                  tabAlignment: TabAlignment.start,
+                  tabs: tabs,
                 ),
               ),
             ),
           ],
           body: TabBarView(
             controller: controller.tabController,
-            children: const [
-              ProfileAboutTab(),
-              ProfilePostersTab(),
-              ProfileVideosTab(),
-              ProfileJobsTab(),
-            ],
+            children: tabViews,
           ),
         );
       }),
@@ -88,8 +100,13 @@ class ProfileScreen extends GetView<ProfileController> {
         onTap: (index) {
           if (index == 0) {
             Get.offAllNamed(AppRoutes.home);
-          } else if (index == 2) Get.toNamed(AppRoutes.createPost);
-          else if (index != 4) Get.snackbar('Vithey', 'Coming soon');
+          } else if (index == 1) {
+            FinanceNavigation.openFinanceEntry();
+          } else if (index == 2) {
+            Get.toNamed(AppRoutes.createPost);
+          } else if (index == 3) {
+            Get.offNamed(AppRoutes.chat);
+          }
         },
       ),
     );
@@ -109,7 +126,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Material(color: Theme.of(context).scaffoldBackgroundColor, child: tabBar);
+    return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      elevation: overlapsContent ? 1 : 0,
+      child: tabBar,
+    );
   }
 
   @override

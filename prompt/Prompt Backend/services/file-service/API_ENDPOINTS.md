@@ -18,7 +18,7 @@ Fields:
 | Field | Type | Required |
 | --- | --- | --- |
 | `file` | binary | yes |
-| `type` | enum | yes: `AVATAR`, `CV`, `POSTER`, `VIDEO` |
+| `type` | enum | yes: `AVATAR`, `CV`, `POSTER`, `VIDEO`, `CHAT_ATTACHMENT` |
 
 ## Upload response
 
@@ -41,4 +41,5 @@ Fields:
 - Account avatar update
 - Create poster/video/job media
 - CV upload and preview/download
+- **Chat** image/file attachments (`CHAT_ATTACHMENT` → MinIO bucket `chat-attachments/`)
 

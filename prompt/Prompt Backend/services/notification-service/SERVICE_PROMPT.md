@@ -1,7 +1,8 @@
 # Notification Service — Complete API Design
 
 > Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`.  
-> **Scope:** Backend REST API only — in-app notifications + FCM push.
+> **Scope:** Backend REST API only — in-app notifications + FCM push.  
+> **UI upgrade:** `UPGRADE_FOR_UI.md` (authoritative for V2 contract).
 
 ## Identity
 
@@ -42,7 +43,9 @@ services/notification-service/
 
 ## Database
 
-**Notification:** `id`, `user_id`, `type` LIKE|COMMENT|MENTION|FOLLOW|CHAT|CHAT_REQUEST|PAYMENT|JOB, `title`, `body`, `reference_id`, `reference_type`, `is_read`, `created_at`
+**Notification:** `id`, `user_id`, `type`, `event`, `title`, `body`, `actor_id`, `actor_name`, `actor_avatar_url`, `destination` (jsonb), `reference_id`, `reference_type`, `dedupe_key`, `is_read`, `read_at`, `created_at`
+
+Types: `LIKE`, `COMMENT`, `MENTION`, `POST_SHARE`, `FOLLOW`, `CHAT`, `CHAT_REQUEST`, `JOB`, `PAYMENT`, `AI`, `SYSTEM`, `STUDENT_VERIFICATION`
 
 **DeviceToken:** `id`, `user_id`, `fcm_token`, `platform` ANDROID|IOS, `created_at` — unique(fcm_token)
 
@@ -50,24 +53,28 @@ services/notification-service/
 
 | Method | Path | Request | HTTP |
 |--------|------|---------|------|
-| GET | `/api/v1/notifications` | `?page&limit` | 200 |
+| GET | `/api/v1/notifications` | `?page&limit&is_read` | 200 |
 | GET | `/api/v1/notifications/unread-count` | — | 200 |
 | PATCH | `/api/v1/notifications/{id}/read` | — | 200 |
 | PATCH | `/api/v1/notifications/read-all` | — | 200 |
+| DELETE | `/api/v1/notifications/{id}` | — | 204 |
 | POST | `/api/v1/notifications/devices` | `{ "fcm_token", "platform" }` | 201 |
 | DELETE | `/api/v1/notifications/devices/{token}` | — | 204 |
 
 **Notification list item:**
 ```json
 {
-  "notification_id": "uuid",
+  "id": "uuid",
   "type": "LIKE",
+  "event": "reaction.added",
   "title": "New like",
   "body": "Jane liked your post",
-  "reference_id": "post-uuid",
-  "reference_type": "POST",
   "is_read": false,
-  "created_at": "2026-01-01T00:00:00Z"
+  "created_at": "2026-01-01T00:00:00Z",
+  "read_at": null,
+  "actor": { "id": "uuid", "full_name": "Jane", "avatar_url": "https://..." },
+  "destination": { "reference_type": "POST", "reference_id": "post-uuid", "post_id": "post-uuid" },
+  "dedupe_key": "reaction.added:reaction-uuid"
 }
 ```
 
@@ -82,19 +89,23 @@ services/notification-service/
 |-------|--------|------|
 | `comment.added` | Post author | COMMENT |
 | `reaction.added` | Post author | LIKE |
-| `follow.created` | Followed user | FOLLOW |
 | `mention.created` | Mentioned user | MENTION |
+| `post.shared` | Original author | POST_SHARE |
+| `follow.created` | Followed user | FOLLOW |
 | `chat.request.received` | Recipient | CHAT_REQUEST |
-| `chat.message.sent` | Recipient (if offline) | CHAT |
+| `chat.message.sent` | Recipient | CHAT |
 | `payment.due` / `payment.overdue` | Student | PAYMENT |
 | `job.application.submitted` | Job poster | JOB |
 | `job.application.status_changed` | Applicant | JOB |
+| `ai.response.ready` | Requesting user | AI |
+| `system.announcement` | Target users | SYSTEM |
+| `student.verification.updated` | Student | STUDENT_VERIFICATION |
 
 ## FCM push logic
 
-On notification insert → load user's device tokens → `FcmPushService.send()` with payload:
+On notification insert → load user's device tokens → `FcmPushService.send()` with v2 data map (see `UPGRADE_FOR_UI.md`):
 ```json
-{ "notification_id", "type", "reference_id", "title", "body" }
+{ "notification_id", "type", "event", "title", "body", "actor_id", "actor_name", "reference_type", "reference_id", "conversation_id", "post_id", "dedupe_key" }
 ```
 Credentials: `vithey.firebase.credentials-path` from config.
 
@@ -102,9 +113,11 @@ Credentials: `vithey.firebase.credentials-path` from config.
 
 | Rule | Logic |
 |------|-------|
-| Idempotency | Optional dedupe key per event+user |
+| Idempotency | Required `dedupe_key` per event; unique `(user_id, dedupe_key)` |
 | Read | Only owner can mark read |
+| Delete | Only owner can delete; does not delete domain entities |
 | Device register | Upsert token for user |
+| List filter | `is_read` query param server-side |
 
 ## Output
 

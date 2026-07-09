@@ -25,12 +25,21 @@ class FileValidationServiceTest {
   void rejectsInvalidMimeType() {
     assertThatThrownBy(() -> fileValidationService.validateUpload(
         StoredFileType.CV,
-        "image/png",
+        "text/plain",
         1024
     ))
         .isInstanceOf(ApiException.class)
         .extracting(exception -> ((ApiException) exception).getErrorCode())
         .isEqualTo(ErrorCode.INVALID_FILE_TYPE);
+  }
+
+  @Test
+  void acceptsCvImageUpload() {
+    assertThatCode(() -> fileValidationService.validateUpload(
+        StoredFileType.CV,
+        "image/png",
+        1024
+    )).doesNotThrowAnyException();
   }
 
   @Test

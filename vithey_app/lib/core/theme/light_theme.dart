@@ -16,7 +16,8 @@ ThemeData buildLightTheme() {
       onSurfaceVariant: AppColors.authMuted,
       error: AppColors.error,
     ),
-    scaffoldBackgroundColor: AppColors.lightBackground,
+    scaffoldBackgroundColor: AppColors.lightSurface,
+    canvasColor: AppColors.lightSurface,
     cardColor: AppColors.lightSurface,
     dividerColor: AppColors.authBorder,
     appBarTheme: const AppBarTheme(
@@ -24,8 +25,14 @@ ThemeData buildLightTheme() {
       foregroundColor: AppColors.lightText,
       elevation: 0,
       centerTitle: true,
+      surfaceTintColor: Colors.transparent,
     ),
-    cardTheme: CardTheme(
+    bottomAppBarTheme: const BottomAppBarThemeData(
+      color: AppColors.lightSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+    ),
+    cardTheme: CardThemeData(
       color: AppColors.lightSurface,
       elevation: 0,
       shape: RoundedRectangleBorder(

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
@@ -68,7 +67,9 @@ class VerificationStatusController extends GetxController {
   void openVerificationForm() => Get.toNamed(AppRoutes.studentVerification);
 
   void contactSupport() {
-    Get.snackbar(AppStrings.appName, 'Support chat coming soon. Reference: ${verification.value?.id ?? 'N/A'}');
+    final ref = verification.value?.id ?? 'N/A';
+    final prompt = 'I need help with my student verification. Reference: $ref';
+    Get.toNamed(AppRoutes.chatbot, arguments: prompt);
   }
 
   Future<void> continueToFinance() async {

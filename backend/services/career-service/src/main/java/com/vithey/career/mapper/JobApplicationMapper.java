@@ -13,6 +13,8 @@ public interface JobApplicationMapper {
   @Mapping(target = "applicationId", source = "id")
   @Mapping(target = "applicant", ignore = true)
   @Mapping(target = "cvFileName", ignore = true)
+  @Mapping(target = "jobTitle", ignore = true)
+  @Mapping(target = "organization", ignore = true)
   JobApplicationResponse toBaseResponse(JobApplication application);
 
   UserCvResponse toResponse(UserCv userCv);

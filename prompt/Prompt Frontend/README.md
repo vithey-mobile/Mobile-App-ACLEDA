@@ -9,6 +9,15 @@ All Flutter AI prompts and the **frontend↔backend API contract** live here.
 3. Read `api-intergration/integration-contract.md`
 4. Run `Screen prompt/00-foundation-prompt.md`, then follow `Screen prompt/README.md`
 
+## UI / Component System
+
+This project uses a **Shadcn Flutter–style design system**: screens must be composed using shared components + theme tokens.
+
+- Shared components: `vithey_app/lib/core/widgets/`
+- Theme + semantic tokens: `vithey_app/lib/core/theme/` (especially `app_semantic_colors.dart`)
+
+If `shadcn_ui` or `shadcn_flutter` is installed in `vithey_app/pubspec.yaml`, those widgets may be used too, but do not break the GetX module architecture.
+
 ## Folder map
 
 | File / folder | Purpose |

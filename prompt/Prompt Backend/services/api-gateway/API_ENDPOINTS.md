@@ -41,9 +41,18 @@ These bypass JWT validation:
 | 0 | `/api/v1/job-applications/**` | `lb://career-service` |
 | 0 | `/api/v1/fees/**`, `/api/v1/payments/**` | `lb://finance-service` |
 | 0 | `/api/v1/conversations/**`, `/api/v1/messages/**`, `/api/v1/message-requests/**` | `lb://chat-service` |
+| 0 | `/ws/**` | `lb:ws://chat-service` (WebSocket STOMP) |
 | 0 | `/api/v1/notifications/**` | `lb://notification-service` |
 | 0 | `/api/v1/ai/**` | `lb://ai-service` |
 | 1 | `/api/v1/users/**` | `lb://user-profile-service` |
+
+## WebSocket (proxied)
+
+| Client URL | Target service | Notes |
+| --- | --- | --- |
+| `ws://localhost:8080/ws` | `lb:ws://chat-service` | STOMP; JWT on handshake |
+
+Chat-service STOMP broker path: `/ws/chat`. Gateway strips nothing — full STOMP session proxied.
 
 ## Headers forwarded
 

@@ -1,57 +1,107 @@
-# Applicants for One Job Prompt
+# Applicants for One Job — Application List
 
-Build the owner-only applicant list shown in `Prompt Frontend/screen image/profile/list_job_poster.png`.
+Build the owner-only **Application list** from `Application list screen.png`.
 
 ## Route
 
-`Routes.JOB_APPLICANTS` with typed `JobApplicantsArgs(jobPostId)`.
-
-## Authorization
-
-- Only the job author or approved hiring collaborator/admin may list applicants.
-- Career-service verifies job ownership through content-service.
-- Unauthorized users receive safe forbidden/not-found behavior and no cached applicant data.
+| Field | Value |
+|-------|-------|
+| Route | `AppRoutes.jobApplicants` |
+| Args | `JobApplicantsArgs(jobPostId, jobTitle)` |
+| Auth | Job owner or approved hiring collaborator |
 
 ## Layout
 
-- App bar: Back, dynamic job title, optional filter/sort icon.
-- Paginated applicant cards:
-  - Avatar.
-  - Full name.
-  - Current headline/major when contractually available.
-  - Location when permitted.
-  - Applied date.
-  - Status pill: Pending, Reviewed, Accepted, Rejected.
-  - Teal **View CV**.
-- Card tap opens application detail; View CV opens `preview_cv.md`.
+```
+┌─────────────────────────────────────┐
+│ ←  Application list                 │
+├─────────────────────────────────────┤
+│ ┌─────────────────────────────────┐ │
+│ │ Heng Liza              [1st]    │ │  Rank badge top-right
+│ │ Web Developer                   │ │
+│ │ 📍 Pur Senchey, Phnom Penh      │ │
+│ │ ✉️ hengliza81@gmail.com         │ │
+│ │              Yesterday 3:28 PM  │ │
+│ │ ─────────────────────────────── │ │
+│ │ [Accept] [Reject] [Details]   │ │
+│ └─────────────────────────────────┘ │
+└─────────────────────────────────────┘
+```
+
+## Applicant card (`applicant_list_card.dart`)
+
+| Element | Spec |
+|---------|------|
+| Name | Bold 16sp |
+| Position applied | Muted subtitle — job title |
+| Rank badge | Teal circle top-right — `1st`, `2nd`, `3rd` by apply order |
+| Location | Pin icon + text |
+| Email | Mail icon + text (owner-only hiring data) |
+| Timestamp | Right-aligned above divider — `Yesterday 3:28 PM` |
+| Divider | Light grey 1px |
+| Actions | Three equal-width buttons in a row |
+
+## Action buttons
+
+| Button | Style | Action |
+|--------|-------|--------|
+| **Accept** | Teal fill, white text | `PATCH` application status → ACCEPTED |
+| **Reject** | Coral/red `#E76363`, white text | Confirm → REJECTED |
+| **Details** | Light grey fill, dark text | `applicant_detail.md` / CV preview |
+
+Card tap (outside buttons) → Details — do not double-fire with button taps.
 
 ## API
 
-`GET /api/v1/job-applications?job_post_id={jobPostId}` with pagination and optional status filter.
+`GET /api/v1/job-applications?job_post_id={id}&page=&limit=`
 
-Response must include application ID, applicant summary, CV metadata, status, and applied time to avoid N+1 profile calls.
+Response per item:
 
-## State
+```json
+{
+  "id": "app-uuid",
+  "rank": 1,
+  "applicant": {
+    "id": "uuid",
+    "full_name": "Heng Liza",
+    "headline": "Web Developer",
+    "location": "Pur Senchey, Phnom Penh",
+    "email": "hengliza81@gmail.com"
+  },
+  "status": "PENDING",
+  "applied_at": "2026-07-08T15:28:00Z"
+}
+```
 
-- Initial skeleton, empty **No applicants yet**, refresh, pagination/footer retry, filter state.
-- De-duplicate by `applicationId`.
-- Status changes from detail reconcile into this list.
-- Preserve job context and scroll when returning from CV/detail.
+## Authorization
 
-## Privacy
+- 403/404 for non-owners — no cached applicant data shown
+- Never expose CV URL in list — fetch via secure detail endpoint
 
-- Applicant identity/contact/CV are hiring-purpose data.
-- Never expose public CV URLs or data to non-owners.
-- Avoid logging applicant details.
+## States
 
-## Testing
+| State | UI |
+|-------|-----|
+| Loading | 3 skeleton cards |
+| Empty | **No applicants yet** |
+| Pagination | Footer spinner |
+| After Accept/Reject | Update card status pill; optional remove from pending filter |
 
-- Matches applicant-list reference.
-- Exact job/application IDs are used.
-- Owner authorization and pagination/filtering work.
-- View CV never triggers row detail simultaneously.
-- Empty/error/long-name/large-text states do not overflow.
+## Success flow
 
-## Output
+After owner submits feedback → `Feed back submitted.png` — see `application_feedback_success.md`.
 
-Deliver a secure owner-only applicant list for one selected job post.
+## Acceptance criteria
+
+- [ ] Matches `Application list screen.png`
+- [ ] Rank badge, contact rows, timestamp layout
+- [ ] Accept / Reject / Details buttons styled correctly
+- [ ] Owner-only authorization
+- [ ] Details opens `Job List Detail.png` screen
+- [ ] No CV URL in list API response
+
+## Dependencies
+
+- `profile_job.md` — View List entry
+- `applicant_detail.md`
+- `preview_cv.md`

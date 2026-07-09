@@ -15,11 +15,13 @@ import com.vithey.career.util.ApiResponseWrapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class JobApplicationService {
@@ -44,7 +46,15 @@ public class JobApplicationService {
   }
 
   @Transactional
-  public JobApplicationResponse apply(UUID applicantId, ApplyJobRequest request) {
+  public JobApplicationResponse apply(UUID applicantId, ApplyJobRequest request, String idempotencyKey) {
+    if (StringUtils.hasText(idempotencyKey)) {
+      Optional<JobApplication> existingByKey = jobApplicationRepository
+          .findByApplicantIdAndIdempotencyKey(applicantId, idempotencyKey.trim());
+      if (existingByKey.isPresent()) {
+        return responseBuilder.build(existingByKey.get());
+      }
+    }
+
     upstreamValidationService.requireJobPost(request.jobPostId());
     upstreamValidationService.requireCvFile(request.cvFileId());
 
@@ -62,6 +72,9 @@ public class JobApplicationService {
     application.setStatus(ApplicationStatus.PENDING);
     application.setAppliedAt(now);
     application.setUpdatedAt(now);
+    if (StringUtils.hasText(idempotencyKey)) {
+      application.setIdempotencyKey(idempotencyKey.trim());
+    }
 
     JobApplication saved = jobApplicationRepository.save(application);
     eventPublisher.publishSubmitted(new JobApplicationSubmittedEvent(
@@ -86,9 +99,7 @@ public class JobApplicationService {
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
 
-    Page<JobApplication> applications = jobPostId == null
-        ? jobApplicationRepository.findByApplicantIdOrderByAppliedAtDesc(currentUserId, pageable)
-        : listApplicantsForPoster(currentUserId, jobPostId, pageable);
+    Page<JobApplication> applications = resolveApplicationsPage(currentUserId, jobPostId, pageable);
 
     List<JobApplicationResponse> content = applications.getContent().stream()
         .map(responseBuilder::build)
@@ -117,8 +128,22 @@ public class JobApplicationService {
     upstreamValidationService.requireJobPoster(application.getJobPostId(), currentUserId);
 
     ApplicationStatus previousStatus = application.getStatus();
-    application.setStatus(request.status());
-    application.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+    ApplicationStatus nextStatus = request.status();
+
+    if (nextStatus == ApplicationStatus.REVIEWED && application.getReviewStartedAt() == null) {
+      application.setReviewStartedAt(now);
+    }
+    if ((nextStatus == ApplicationStatus.ACCEPTED || nextStatus == ApplicationStatus.REJECTED)
+        && application.getDecidedAt() == null) {
+      application.setDecidedAt(now);
+    }
+    if (StringUtils.hasText(request.reviewerNote())) {
+      application.setReviewerNote(request.reviewerNote().trim());
+    }
+
+    application.setStatus(nextStatus);
+    application.setUpdatedAt(now);
     JobApplication saved = jobApplicationRepository.save(application);
 
     eventPublisher.publishStatusChanged(new JobApplicationStatusChangedEvent(
@@ -133,9 +158,22 @@ public class JobApplicationService {
     return responseBuilder.build(saved);
   }
 
-  private Page<JobApplication> listApplicantsForPoster(UUID currentUserId, UUID jobPostId, PageRequest pageable) {
-    upstreamValidationService.requireJobPoster(jobPostId, currentUserId);
-    return jobApplicationRepository.findByJobPostIdOrderByAppliedAtDesc(jobPostId, pageable);
+  private Page<JobApplication> resolveApplicationsPage(
+      UUID currentUserId,
+      UUID jobPostId,
+      PageRequest pageable
+  ) {
+    if (jobPostId == null) {
+      return jobApplicationRepository.findByApplicantIdOrderByAppliedAtDesc(currentUserId, pageable);
+    }
+    if (upstreamValidationService.isJobPoster(jobPostId, currentUserId)) {
+      return jobApplicationRepository.findByJobPostIdOrderByAppliedAtDesc(jobPostId, pageable);
+    }
+    return jobApplicationRepository.findByJobPostIdAndApplicantIdOrderByAppliedAtDesc(
+        jobPostId,
+        currentUserId,
+        pageable
+    );
   }
 
   private JobApplication requireApplication(UUID applicationId) {

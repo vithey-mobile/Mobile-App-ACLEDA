@@ -41,7 +41,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
 
 springdoc:
   swagger-ui:
@@ -54,4 +54,4 @@ vithey:
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     access-key: ${MINIO_ACCESS_KEY:minioadmin}
     secret-key: ${MINIO_SECRET_KEY:minioadmin}
-    buckets: ${MINIO_BUCKETS:avatars,cvs,posters,videos}
+    buckets: ${MINIO_BUCKETS:avatars,cvs,posters,videos,chat-attachments}

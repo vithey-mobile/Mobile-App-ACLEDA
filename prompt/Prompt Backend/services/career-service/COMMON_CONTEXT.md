@@ -35,8 +35,13 @@ Use UUID primary keys and `created_at` / `updated_at` on every entity (root DB r
 | `cvFileId`    | UUID      | reference into File Service                         |
 | `status`      | enum      | `PENDING` \| `REVIEWED` \| `ACCEPTED` \| `REJECTED` |
 | `appliedAt`   | timestamp |                                                     |
+| `reviewStartedAt` | timestamp | set when status → `REVIEWED`                  |
+| `decidedAt`   | timestamp | set when status → `ACCEPTED` / `REJECTED`           |
+| `reviewerNote`| text      | optional poster message                             |
+| `idempotencyKey` | string | optional retry key per applicant                 |
 
 > Unique constraint on (`postId`, `applicantId`) — one application per user per post.
+> Unique (`applicantId`, `idempotencyKey`) when key is set.
 
 ### `ApplicantCv`
 

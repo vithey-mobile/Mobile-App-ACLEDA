@@ -29,6 +29,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 eureka:
   client:
@@ -42,7 +46,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
 
 springdoc:
   swagger-ui:
@@ -53,3 +57,7 @@ vithey:
     secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
   events:
     exchange: ${VITHEY_EVENTS_EXCHANGE:vithey.events}
+  chat:
+    presence-ttl-seconds: ${CHAT_PRESENCE_TTL_SECONDS:90}
+    typing-ttl-seconds: ${CHAT_TYPING_TTL_SECONDS:5}
+    recent-messages-limit: ${CHAT_RECENT_MESSAGES_LIMIT:50}

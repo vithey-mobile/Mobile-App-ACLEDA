@@ -8,6 +8,7 @@ public record SessionResponse(
     UUID id,
     AiTopic topic,
     String title,
+    String preview,
     Instant createdAt,
     Instant updatedAt
 ) {

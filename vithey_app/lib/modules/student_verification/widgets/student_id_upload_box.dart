@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class StudentIdUploadBox extends StatelessWidget {
   const StudentIdUploadBox({
@@ -59,7 +60,7 @@ class StudentIdUploadBox extends StatelessWidget {
                 const Icon(Icons.description_outlined, color: AppColors.primary),
                 const SizedBox(width: 12),
                 Expanded(child: Text(fileName!, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                TextButton(onPressed: onPick, child: const Text('Replace')),
+                shad.Button.ghost(onPressed: onPick, child: const shad.Text('Replace')),
                 IconButton(onPressed: onRemove, icon: const Icon(Icons.close)),
               ],
             ),

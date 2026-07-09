@@ -58,6 +58,11 @@ class AiMessage {
   final String? clientId;
 
   bool get isThinking => status == AiMessageStatus.thinking;
+  bool get isStreaming => status == AiMessageStatus.streaming;
+  bool get isTerminal =>
+      status == AiMessageStatus.complete ||
+      status == AiMessageStatus.failed ||
+      status == AiMessageStatus.stopped;
 
   AiMessage copyWith({
     String? id,
@@ -81,9 +86,11 @@ class AiChatResponse {
     required this.sessionId,
     required this.reply,
     this.messageId,
+    this.requestId,
   });
 
   final String sessionId;
   final String reply;
   final String? messageId;
+  final String? requestId;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_bottom_navigation.dart';
 
 class SettingsScaffold extends StatelessWidget {
@@ -25,7 +26,7 @@ class SettingsScaffold extends StatelessWidget {
           child: Divider(height: 1),
         ),
       ),
-      body: body,
+      body: AppScreenBody(child: body),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: HomeBottomNavigation(
         currentIndex: 4,

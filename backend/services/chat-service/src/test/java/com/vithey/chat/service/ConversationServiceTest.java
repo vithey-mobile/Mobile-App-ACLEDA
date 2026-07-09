@@ -43,6 +43,9 @@ class ConversationServiceTest {
   @Mock
   private ChatEventPublisher chatEventPublisher;
 
+  @Mock
+  private PresenceService presenceService;
+
   @InjectMocks
   private ConversationService conversationService;
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/modules/finance/widgets/payment_receipt_tile.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class PaymentReceiptsSection extends StatelessWidget {
   const PaymentReceiptsSection({
@@ -25,9 +25,9 @@ class PaymentReceiptsSection extends StatelessWidget {
           children: [
             const Text('Payment Receipts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
-            TextButton(
+            shad.Button.ghost(
               onPressed: onToggleShowAll,
-              child: Text(showAll ? 'See Less' : 'See All', style: const TextStyle(color: AppColors.primary)),
+              child: shad.Text(showAll ? 'See Less' : 'See All'),
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
@@ -24,14 +24,19 @@ class AuthController extends GetxController {
 
   final isLoading = false.obs;
   final isGoogleLoading = false.obs;
+  final isForgotPasswordLoading = false.obs;
+  final forgotPasswordSuccess = false.obs;
   final errorMessage = ''.obs;
+  final forgotPasswordError = ''.obs;
   final authIntent = AuthIntent.signIn.obs;
+
+  final forgotPasswordFormKey = GlobalKey<FormState>();
+  final forgotPasswordEmailController = TextEditingController();
 
   GoogleAccountSummary? selectedGoogleAccount;
 
   /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
-  bool get isGoogleAuthEnabled =>
-      dotenv.env['ENABLE_GOOGLE_AUTH']?.toLowerCase() == 'true';
+  bool get isGoogleAuthEnabled => Get.find<FeatureFlags>().enableGoogleAuth;
 
   void clearError() {
     if (errorMessage.isNotEmpty) errorMessage.value = '';
@@ -83,7 +88,11 @@ class AuthController extends GetxController {
         AppStrings.appName,
         AppStrings.googleAuthComingSoon,
         snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
+        messageText: Text(
+          '${AppStrings.googleAuthComingSoon}\n${AppStrings.googleAuthEnvHint}',
+          style: const TextStyle(color: Colors.white),
+        ),
       );
       return;
     }
@@ -122,12 +131,37 @@ class AuthController extends GetxController {
     Get.until((route) => route.settings.name == AppRoutes.login || route.settings.name == AppRoutes.register);
   }
 
+  Future<void> requestPasswordReset() async {
+    if (!(forgotPasswordFormKey.currentState?.validate() ?? false)) return;
+    isForgotPasswordLoading.value = true;
+    forgotPasswordError.value = '';
+    try {
+      await _authRepository.requestPasswordReset(
+        email: forgotPasswordEmailController.text.trim(),
+      );
+      forgotPasswordSuccess.value = true;
+    } on AuthServiceException catch (e) {
+      forgotPasswordError.value = e.message;
+    } catch (_) {
+      forgotPasswordError.value = AppStrings.errorGeneric;
+    } finally {
+      isForgotPasswordLoading.value = false;
+    }
+  }
+
+  void resetForgotPasswordState() {
+    forgotPasswordSuccess.value = false;
+    forgotPasswordError.value = '';
+    forgotPasswordEmailController.clear();
+  }
+
   @override
   void onClose() {
     emailController.dispose();
     passwordController.dispose();
     fullNameController.dispose();
     phoneController.dispose();
+    forgotPasswordEmailController.dispose();
     super.onClose();
   }
 }

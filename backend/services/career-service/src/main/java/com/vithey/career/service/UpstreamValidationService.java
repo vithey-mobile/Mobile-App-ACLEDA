@@ -43,10 +43,14 @@ public class UpstreamValidationService {
   }
 
   public void requireJobPoster(UUID jobPostId, UUID userId) {
-    PostSummaryResponse post = requireJobPost(jobPostId);
-    if (post.author() == null || !userId.equals(post.author().userId())) {
+    if (!isJobPoster(jobPostId, userId)) {
       throw new ApiException(ErrorCode.FORBIDDEN);
     }
+  }
+
+  public boolean isJobPoster(UUID jobPostId, UUID userId) {
+    PostSummaryResponse post = requireJobPost(jobPostId);
+    return post.author() != null && userId.equals(post.author().userId());
   }
 
   public FileMetadataResponse requireCvFile(UUID cvFileId) {

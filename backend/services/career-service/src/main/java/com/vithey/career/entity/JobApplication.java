@@ -41,4 +41,16 @@ public class JobApplication {
 
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
+
+  @Column(name = "review_started_at")
+  private OffsetDateTime reviewStartedAt;
+
+  @Column(name = "decided_at")
+  private OffsetDateTime decidedAt;
+
+  @Column(name = "reviewer_note", columnDefinition = "TEXT")
+  private String reviewerNote;
+
+  @Column(name = "idempotency_key", length = 128)
+  private String idempotencyKey;
 }

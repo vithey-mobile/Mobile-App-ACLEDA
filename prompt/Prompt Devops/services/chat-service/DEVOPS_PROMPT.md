@@ -27,7 +27,9 @@ backend/services/chat-service/.env.example
 
 **Shared infra:** `redis`, `rabbitmq`, `eureka-server`, `config-server`
 
-Expose WebSocket `/ws/chat` on port `8087`.
+Expose REST on port `8087`. WebSocket STOMP at `/ws/chat` (clients use gateway `ws://localhost:8080/ws`).
+
+**Redis is required** for presence, typing, and message hot cache — not optional.
 
 ## Verification
 

@@ -1,6 +1,7 @@
 package com.vithey.gateway.config;
 
 import java.net.InetSocketAddress;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
@@ -10,11 +11,17 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 @Configuration
+@EnableConfigurationProperties(VitheyGatewayProperties.class)
 public class RedisRateLimiterConfig {
 
   @Bean
-  RedisRateLimiter redisRateLimiter() {
-    return new RedisRateLimiter(100, 100, 1);
+  RedisRateLimiter redisRateLimiter(VitheyGatewayProperties properties) {
+    VitheyGatewayProperties.RateLimit rateLimit = properties.getRateLimit();
+    return new RedisRateLimiter(
+        rateLimit.getReplenishRate(),
+        rateLimit.getBurstCapacity(),
+        rateLimit.getRequestedTokens()
+    );
   }
 
   @Bean

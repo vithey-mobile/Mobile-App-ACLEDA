@@ -5,6 +5,7 @@ class ChatParticipant {
     this.avatarUrl,
     this.bio,
     this.location,
+    this.phone,
     this.isOnline = false,
   });
 
@@ -13,6 +14,7 @@ class ChatParticipant {
   final String? avatarUrl;
   final String? bio;
   final String? location;
+  final String? phone;
   final bool isOnline;
 
   factory ChatParticipant.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class ChatParticipant {
       avatarUrl: json['avatar_url'] as String?,
       bio: json['bio'] as String?,
       location: json['location'] as String?,
+      phone: json['phone'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
     );
   }

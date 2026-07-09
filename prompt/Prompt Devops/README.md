@@ -28,10 +28,12 @@ Docker Compose, Dockerfiles, and GitHub Actions (CI → GHCR) prompts.
 | `03`–`05` | CI, GHCR, production template |
 | `06-per-service-docker-compose-prompt.md` | **Current** per-service compose |
 | `07-per-service-github-actions-ci-prompt.md` | Per-service CI |
+| `08-monitoring-observability-prompt.md` | Prometheus, Grafana, Loki, Promtail |
 
 ## Output
 
-Generates under `backend/` — see `_shared/REPO_PATHS.md`.
+Generates under `backend/` — see `_shared/REPO_PATHS.md`.  
+Monitoring stack output: `monitoring/` (repo root).
 
 Documentation stays in `prompt/Prompt Devops/` (not in `backend/`).
 

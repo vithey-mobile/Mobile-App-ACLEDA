@@ -111,7 +111,7 @@ class FinanceController extends GetxController {
       case 4:
         Get.offNamed(
           AppRoutes.profile,
-          arguments: const ProfileArgs(userId: ProfileRepository.currentUserId),
+          arguments: ProfileArgs(userId: ProfileRepository.currentUserId),
         );
         break;
     }

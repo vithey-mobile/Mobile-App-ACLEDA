@@ -10,11 +10,12 @@ In this folder, read in order:
 
 1. `../../COMMON_CONTEXT.md`
 2. `COMMON_CONTEXT.md`
-3. `API_ENDPOINTS.md`
-4. `FOLDER_STRUCTURE.md`
-5. `SERVICE_LOGIC.md`
-6. `DB_SCHEMA.md`
-7. `SERVICE_PROMPT.md`
+3. **`UPGRADE_FOR_UI.md`** — UI contract (start here if upgrading)
+4. `API_ENDPOINTS.md`
+5. `FOLDER_STRUCTURE.md`
+6. `SERVICE_LOGIC.md`
+7. `DB_SCHEMA.md`
+8. `SERVICE_PROMPT.md`
 
 **Precedence:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md`.
 
@@ -29,4 +30,4 @@ Port, DB, package: see service `COMMON_CONTEXT.md`. Registry: `_shared/SERVICE_R
 
 ## Definition of done
 
-Runnable Spring Boot on port 8088 implementing every endpoint in `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`.
+Runnable Spring Boot on port 8088 implementing every endpoint in `UPGRADE_FOR_UI.md` + `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`. Verify against frontend `Screen prompt/notification/README.md` acceptance checklist.

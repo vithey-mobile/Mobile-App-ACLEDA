@@ -1,9 +1,9 @@
 package com.vithey.chat.service;
 
 import com.vithey.chat.dto.request.MessageRequestDto;
-import com.vithey.chat.dto.request.SendMessageRequest;
 import com.vithey.chat.dto.response.ConversationResponse;
-import com.vithey.chat.dto.response.MessageResponse;
+import com.vithey.chat.dto.response.LastMessageSummary;
+import com.vithey.chat.dto.response.PresenceResponse;
 import com.vithey.chat.entity.Block;
 import com.vithey.chat.entity.BlockId;
 import com.vithey.chat.entity.Conversation;
@@ -12,6 +12,7 @@ import com.vithey.chat.entity.ConversationParticipantId;
 import com.vithey.chat.entity.ConversationStatus;
 import com.vithey.chat.entity.Message;
 import com.vithey.chat.entity.MessageStatus;
+import com.vithey.chat.entity.MessageType;
 import com.vithey.chat.entity.ParticipantRole;
 import com.vithey.chat.event.payload.ChatRequestReceivedEvent;
 import com.vithey.chat.event.publisher.ChatEventPublisher;
@@ -43,6 +44,7 @@ public class ConversationService {
   private final ConversationAccessService accessService;
   private final ParticipantProfileService participantProfileService;
   private final ChatEventPublisher chatEventPublisher;
+  private final PresenceService presenceService;
 
   public ConversationService(
       ConversationRepository conversationRepository,
@@ -51,7 +53,8 @@ public class ConversationService {
       BlockRepository blockRepository,
       ConversationAccessService accessService,
       ParticipantProfileService participantProfileService,
-      ChatEventPublisher chatEventPublisher
+      ChatEventPublisher chatEventPublisher,
+      PresenceService presenceService
   ) {
     this.conversationRepository = conversationRepository;
     this.participantRepository = participantRepository;
@@ -60,6 +63,7 @@ public class ConversationService {
     this.accessService = accessService;
     this.participantProfileService = participantProfileService;
     this.chatEventPublisher = chatEventPublisher;
+    this.presenceService = presenceService;
   }
 
   @Transactional(readOnly = true)
@@ -84,6 +88,18 @@ public class ConversationService {
     return conversationRepository.findPendingRequestsForRecipient(userId).stream()
         .map(conversation -> toResponse(conversation, userId))
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public PresenceResponse partnerPresence(UUID conversationId, UUID userId) {
+    accessService.requireParticipantConversation(conversationId, userId);
+    UUID partnerId = accessService.findOtherParticipantId(conversationId, userId);
+    PresenceService.PresenceSnapshot snapshot = presenceService.snapshot(partnerId);
+    return new PresenceResponse(
+        partnerId,
+        snapshot.status(),
+        OffsetDateTime.now(ZoneOffset.UTC)
+    );
   }
 
   @Transactional
@@ -118,6 +134,7 @@ public class ConversationService {
     message.setConversationId(conversation.getId());
     message.setSenderId(requesterId);
     message.setText(request.initialMessage());
+    message.setMessageType(MessageType.TEXT);
     message.setStatus(MessageStatus.SENT);
     message.setCreatedAt(now);
     messageRepository.save(message);
@@ -194,15 +211,40 @@ public class ConversationService {
 
   private ConversationResponse toResponse(Conversation conversation, UUID viewerId) {
     UUID otherUserId = accessService.findOtherParticipantId(conversation.getId(), viewerId);
-    Message lastMessage = messageRepository.findFirstByConversationIdOrderByCreatedAtDesc(conversation.getId())
+    Message lastMessage = messageRepository
+        .findFirstByConversationIdAndDeletedAtIsNullOrderByCreatedAtDesc(conversation.getId())
         .orElse(null);
+
+    LastMessageSummary lastMessageSummary = lastMessage == null ? null : new LastMessageSummary(
+        previewText(lastMessage),
+        lastMessage.getCreatedAt(),
+        lastMessage.getSenderId()
+    );
+
+    long unreadCount = messageRepository.countByConversationIdAndSenderIdNotAndStatusNotAndDeletedAtIsNull(
+        conversation.getId(),
+        viewerId,
+        MessageStatus.READ
+    );
+
     return new ConversationResponse(
         conversation.getId(),
         conversation.getStatus(),
         participantProfileService.resolve(otherUserId),
-        lastMessage == null ? null : lastMessage.getText(),
-        lastMessage == null ? null : lastMessage.getCreatedAt(),
+        lastMessageSummary,
+        unreadCount,
+        presenceService.isOnline(otherUserId),
         conversation.getUpdatedAt()
     );
+  }
+
+  private String previewText(Message message) {
+    if (message.getMessageType() == MessageType.IMAGE) {
+      return "[Image]";
+    }
+    if (message.getMessageType() == MessageType.FILE) {
+      return "[File]";
+    }
+    return message.getText();
   }
 }

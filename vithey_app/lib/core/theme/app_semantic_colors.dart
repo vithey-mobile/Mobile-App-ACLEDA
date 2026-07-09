@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 @immutable
 class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   const AppSemanticColors({
+    required this.bodyBackground,
     required this.cardSurface,
     required this.heading,
     required this.muted,
@@ -14,6 +15,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     required this.dangerSurface,
   });
 
+  final Color bodyBackground;
   final Color cardSurface;
   final Color heading;
   final Color muted;
@@ -23,6 +25,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color dangerSurface;
 
   static const light = AppSemanticColors(
+    bodyBackground: AppColors.lightBackground,
     cardSurface: AppColors.lightSurface,
     heading: AppColors.authHeading,
     muted: AppColors.authMuted,
@@ -33,6 +36,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   );
 
   static const dark = AppSemanticColors(
+    bodyBackground: AppColors.darkBackground,
     cardSurface: AppColors.darkSurface,
     heading: AppColors.darkText,
     muted: Color(0xFF9E9EB0),
@@ -49,6 +53,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
 
   @override
   AppSemanticColors copyWith({
+    Color? bodyBackground,
     Color? cardSurface,
     Color? heading,
     Color? muted,
@@ -58,6 +63,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     Color? dangerSurface,
   }) {
     return AppSemanticColors(
+      bodyBackground: bodyBackground ?? this.bodyBackground,
       cardSurface: cardSurface ?? this.cardSurface,
       heading: heading ?? this.heading,
       muted: muted ?? this.muted,
@@ -72,6 +78,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   AppSemanticColors lerp(ThemeExtension<AppSemanticColors>? other, double t) {
     if (other is! AppSemanticColors) return this;
     return AppSemanticColors(
+      bodyBackground: Color.lerp(bodyBackground, other.bodyBackground, t)!,
       cardSurface: Color.lerp(cardSurface, other.cardSurface, t)!,
       heading: Color.lerp(heading, other.heading, t)!,
       muted: Color.lerp(muted, other.muted, t)!,

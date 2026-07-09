@@ -7,10 +7,12 @@ class HomeBottomNavigation extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.usePillHighlight = false,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final bool usePillHighlight;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class HomeBottomNavigation extends StatelessWidget {
               label: 'Chat',
               selected: currentIndex == 3,
               onTap: () => onTap(3),
+              usePill: usePillHighlight,
             ),
             _NavItem(
               icon: Icons.person_outline,
@@ -65,6 +68,7 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.usePill = false,
   });
 
   final IconData icon;
@@ -72,21 +76,34 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool usePill;
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? AppColors.primary : context.appColors.muted;
+    final child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(selected ? activeIcon : icon, color: color, size: 22),
+        Text(label, style: TextStyle(fontSize: 11, color: color)),
+      ],
+    );
+
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(selected ? activeIcon : icon, color: color, size: 22),
-            Text(label, style: TextStyle(fontSize: 11, color: color)),
-          ],
-        ),
+        child: selected && usePill
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: child,
+              )
+            : child,
       ),
     );
   }

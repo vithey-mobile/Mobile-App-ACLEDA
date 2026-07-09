@@ -13,7 +13,7 @@ backend/services/api-gateway/
     │   ├── java/com/vithey/gateway/
     │   │   ├── ApiGatewayApplication.java
     │   │   ├── config/
-    │   │   │   ├── GatewayRouteConfig.java
+    │   │   │   ├── VitheyGatewayProperties.java
     │   │   │   ├── CorsConfig.java
     │   │   │   ├── RedisRateLimiterConfig.java
     │   │   │   └── OpenApiConfig.java

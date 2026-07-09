@@ -1,4 +1,6 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/core/constants/mock_identities.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
@@ -12,17 +14,19 @@ class FeedPageResult {
 }
 
 class PostRepository {
-  PostRepository(this._postService);
+  PostRepository(this._postService, this._currentUser, this._flags);
 
   final PostService _postService;
+  final CurrentUserService _currentUser;
+  final FeatureFlags _flags;
 
-  bool get useMockApi => dotenv.env['USE_MOCK_API']?.toLowerCase() != 'false';
+  bool get useMockApi => _flags.useMockApi;
 
   final _mockComments = <String, List<CommentModel>>{};
   final _followedAuthors = <String>{};
   final _reactedPosts = <String>{};
 
-  static const _mockUserId = 'mock-user';
+  String get _mockUserId => _currentUser.userId;
 
   Future<FeedPageResult> fetchUserPosts({
     required String userId,
@@ -42,7 +46,7 @@ class PostRepository {
           return FeedPost(
             id: p.id,
             type: p.type,
-            author: const PostAuthor(id: _mockUserId, fullName: 'Vithey User'),
+            author: PostAuthor(id: _mockUserId, fullName: MockIdentities.mockUserFullName),
             content: p.content,
             mediaUrl: p.mediaUrl,
             thumbnailUrl: p.thumbnailUrl,
@@ -164,13 +168,14 @@ class PostRepository {
     required String content,
     String? mediaFileId,
     JobMeta? jobMeta,
+    DateTime? scheduledAt,
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 800));
       final post = FeedPost(
         id: 'post-${DateTime.now().millisecondsSinceEpoch}',
         type: type,
-        author: const PostAuthor(id: _mockUserId, fullName: 'Vithey User'),
+        author: PostAuthor(id: _mockUserId, fullName: MockIdentities.mockUserFullName),
         content: content,
         mediaUrl: type == PostType.video
             ? 'https://picsum.photos/seed/video/600/340'
@@ -188,6 +193,7 @@ class PostRepository {
       type: type.name.toUpperCase(),
       content: content,
       mediaFileId: mediaFileId,
+      scheduledAt: scheduledAt,
       jobMeta: jobMeta != null
           ? {
               if (jobMeta.title != null) 'title': jobMeta.title,

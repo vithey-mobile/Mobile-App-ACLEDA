@@ -44,6 +44,6 @@ Read in `Prompt Backend/services/<name>/`:
 
 ## DevOps scaffolding (full platform)
 
-`Prompt Devops/v1/00-foundation-prompt.md` → `01` → `02` → `03` → `04` → `05` → `06` → `07`
+`Prompt Devops/v1/00-foundation-prompt.md` → `01` → `02` → `03` → `04` → `05` → `06` → `07` → `08`
 
-Note: `v1/01` is legacy all-in-one compose. **Current model:** per-service compose per `v1/06` and `DOCKER.md`.
+Note: `v1/01` is legacy all-in-one compose. **Current model:** per-service compose per `v1/06` and `DOCKER.md`. **Monitoring:** `v1/08` → output in `monitoring/`.

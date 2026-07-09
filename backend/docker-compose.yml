@@ -1,0 +1,9 @@
+# Infrastructure only (Postgres, Redis, RabbitMQ, MinIO, Eureka, Config Server).
+# Start this before any microservice:
+#   docker compose up -d
+#
+# To build/run one microservice, go to its folder, e.g.:
+#   cd services/auth-service && docker compose up -d --build
+
+include:
+  - path: infrastructure/docker-compose.yml

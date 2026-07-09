@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class PostDetailHeader extends StatelessWidget {
   const PostDetailHeader({
@@ -32,9 +33,9 @@ class PostDetailHeader extends StatelessWidget {
             ),
           ),
           if (!post.isOwnPost)
-            TextButton(
+            shad.Button.ghost(
               onPressed: onFollow,
-              child: Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
+              child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
             ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class OAuthButton extends StatelessWidget {
   const OAuthButton({
@@ -18,24 +19,17 @@ class OAuthButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 44,
-      child: OutlinedButton(
+      child: shad.Button.outline(
         onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: context.appColors.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
         child: isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+            ? const shad.CircularProgressIndicator()
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('G', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const shad.Text('G'),
                   const SizedBox(width: 8),
-                  Text(label, style: TextStyle(color: context.appColors.heading, fontWeight: FontWeight.w600)),
+                  shad.Text(label),
                 ],
               ),
       ),
@@ -50,15 +44,10 @@ class SocialDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: context.appColors.border)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(label, style: TextStyle(color: context.appColors.muted, fontSize: 12)),
-        ),
-        Expanded(child: Divider(color: context.appColors.border)),
-      ],
+    return shad.Divider(
+      color: context.appColors.border,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: shad.Text(label),
     );
   }
 }

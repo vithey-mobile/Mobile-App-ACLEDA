@@ -29,7 +29,7 @@ services/api-gateway/
 └── src/main/java/com/vithey/gateway/
     ├── ApiGatewayApplication.java          # @EnableDiscoveryClient
     ├── config/
-    │   ├── GatewayRouteConfig.java         # ordered routes (Java DSL or yaml)
+    │   ├── VitheyGatewayProperties.java    # rate-limit + gateway settings
     │   ├── CorsConfig.java
     │   ├── RedisRateLimiterConfig.java
     │   └── OpenApiConfig.java              # optional gateway swagger
@@ -74,6 +74,7 @@ services/api-gateway/
 | 0 | `/api/v1/fees/**`, `/payments/**` | `lb://finance-service` |
 | 0 | `/api/v1/students/verify` | `lb://auth-service` |
 | 0 | `/api/v1/conversations/**`, `/messages/**`, `/message-requests/**` | `lb://chat-service` |
+| 0 | `/ws/**` | `lb:ws://chat-service` (WebSocket upgrade → chat STOMP `/ws/chat`) |
 | 0 | `/api/v1/notifications/**` | `lb://notification-service` |
 | 0 | `/api/v1/ai/**` | `lb://ai-service` |
 | 1 | `/api/v1/users/**` | `lb://user-profile-service` |
@@ -106,12 +107,29 @@ The gateway exposes **no business APIs** — only proxies `/api/v1/**` to servic
 |----------|-------------|
 | `GET /actuator/health` | Gateway + discovery health |
 
+## WebSocket routing
+
+Chat STOMP is proxied at the gateway — clients connect to `ws://localhost:8080/ws`, not directly to `8087`.
+
+```yaml
+# config-repo/api-gateway.yml (and local application.yml fallback)
+- id: chat-websocket
+  uri: lb:ws://chat-service
+  predicates:
+    - Path=/ws/**
+```
+
+- Forward `Authorization` header on WebSocket upgrade.
+- Do not apply REST rate limiter to STOMP heartbeat frames (gateway passes through).
+- CORS: allow WebSocket upgrade from mobile/web origins.
+
 ## Testing
 
 - WebTestClient: public `/auth/login` proxied without token
 - Protected route without token → 401
 - Valid JWT → 200 from downstream (mock or wiremock)
 - Rate limit → 429 after threshold
+- WebSocket upgrade on `/ws` proxies to chat-service (integration test)
 
 ## Output
 

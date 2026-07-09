@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
@@ -19,6 +20,7 @@ class StudentVerificationController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   final selectedDocumentName = RxnString();
+  String? _selectedDocumentPath;
   final isSubmitting = false.obs;
   final errorMessage = ''.obs;
 
@@ -36,10 +38,20 @@ class StudentVerificationController extends GetxController {
   }
 
   Future<void> pickDocument() async {
-    selectedDocumentName.value = 'student_id_card.pdf';
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.single;
+    _selectedDocumentPath = file.path;
+    selectedDocumentName.value = file.name;
   }
 
-  void removeDocument() => selectedDocumentName.value = null;
+  void removeDocument() {
+    _selectedDocumentPath = null;
+    selectedDocumentName.value = null;
+  }
 
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
@@ -62,6 +74,7 @@ class StudentVerificationController extends GetxController {
         studentId: studentIdController.text.trim(),
         universityEmail: emailController.text.trim(),
         documentFileName: selectedDocumentName.value,
+        documentPath: _selectedDocumentPath,
       );
       if (result.status == VerificationStatus.verified) {
         Get.offNamed(AppRoutes.finance);

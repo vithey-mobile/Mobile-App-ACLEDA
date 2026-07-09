@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/assistant_message.dart';
+import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_app_bar.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_composer.dart';
-import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_empty_state.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_history_drawer.dart';
+import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_suggestion_list.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/user_message_bubble.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/jump_to_latest_button.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_controller.dart';
@@ -20,92 +21,85 @@ class ChatbotScreen extends GetView<ChatbotController> {
     return Scaffold(
       key: controller.scaffoldKey,
       drawer: ChatbotHistoryDrawer(controller: controller),
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: controller.openDrawer,
-        ),
-        title: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Text(
-            'Vithey AI',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_comment_outlined),
-            tooltip: 'New Chat',
-            onPressed: controller.newChat,
-          ),
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1),
-        ),
+      appBar: buildChatbotAppBar(
+        onMenu: controller.openDrawer,
+        onNewChat: controller.newChat,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                Obx(() {
-                  if (controller.isLoadingMessages.value) {
-                    return const LoadingWidget();
-                  }
-                  if (!controller.hasMessages) {
-                    return ChatbotEmptyState(
-                      prompts: ChatbotController.starterPrompts,
-                      onPromptTap: controller.fillStarterPrompt,
+      body: AppScreenBody(
+        child: Column(
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  Obx(() {
+                    if (controller.isLoadingMessages.value) {
+                      return const LoadingWidget();
+                    }
+                    if (!controller.hasMessages) {
+                      return const SizedBox.expand();
+                    }
+                    return ListView.builder(
+                      controller: controller.scrollController,
+                      padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+                      itemCount: controller.messages.length,
+                      itemBuilder: (_, index) {
+                        final message = controller.messages[index];
+                        if (message.role == AiMessageRole.user) {
+                          return UserMessageBubble(
+                            content: message.content,
+                            createdAt: message.createdAt,
+                          );
+                        }
+                        return AssistantMessage(
+                          message: message,
+                          onCopy: () => controller.copyMessage(message.content),
+                          onShare: () => controller.shareMessage(message.content),
+                          onRegenerate: message.isTerminal && controller.currentSessionId != null
+                              ? () => controller.regenerateMessage(message)
+                              : null,
+                          onCodeCopied: controller.copyCodeBlock,
+                        );
+                      },
                     );
-                  }
-                  return ListView.builder(
-                    controller: controller.scrollController,
-                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-                    itemCount: controller.messages.length,
-                    itemBuilder: (_, index) {
-                      final message = controller.messages[index];
-                      if (message.role == AiMessageRole.user) {
-                        return UserMessageBubble(content: message.content);
-                      }
-                      return AssistantMessage(
-                        message: message,
-                        onCopy: () => controller.copyMessage(message.content),
-                      );
-                    },
-                  );
-                }),
-                Obx(() {
-                  if (!controller.showJumpToLatest.value) return const SizedBox.shrink();
-                  return Positioned(
-                    right: 16,
-                    bottom: 12,
-                    child: JumpToLatestButton(onTap: controller.scrollToBottom),
-                  );
-                }),
-              ],
+                  }),
+                  Obx(() {
+                    if (!controller.showJumpToLatest.value) return const SizedBox.shrink();
+                    return Positioned(
+                      right: 16,
+                      bottom: 12,
+                      child: JumpToLatestButton(onTap: controller.forceScrollToBottom),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
-          Obx(() => ChatbotComposer(
-                controller: controller.inputController,
-                isGenerating: controller.isGenerating.value,
-                onSend: controller.sendMessage,
-                onStop: controller.stopGenerating,
-              )),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Vithey AI may make mistakes. Verify important information.',
-              style: TextStyle(fontSize: 11, color: context.scheme.onSurfaceVariant),
-            ),
-          ),
-        ],
+            Obx(() {
+              final showSuggestions = !controller.hasMessages && !controller.isLoadingMessages.value;
+              if (!showSuggestions) return const SizedBox.shrink();
+              return ChatbotSuggestionList(
+                items: ChatbotSuggestionList.defaultItems,
+                onPromptTap: controller.fillStarterPrompt,
+              );
+            }),
+            Obx(() => ChatbotComposer(
+                  controller: controller.inputController,
+                  isGenerating: controller.isGenerating.value,
+                  onSend: controller.sendMessage,
+                  onStop: controller.stopGenerating,
+                  onAttachment: controller.showAttachmentComingSoon,
+                )),
+            Obx(() {
+              if (!controller.hasMessages) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Vithey AI may make mistakes. Verify important information.',
+                  style: TextStyle(fontSize: 11, color: context.scheme.onSurfaceVariant),
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

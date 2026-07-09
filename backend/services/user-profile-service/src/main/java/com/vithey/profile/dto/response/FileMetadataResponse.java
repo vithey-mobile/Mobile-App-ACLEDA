@@ -5,6 +5,7 @@ import java.util.UUID;
 public record FileMetadataResponse(
     UUID fileId,
     String url,
-    String type
+    String type,
+    UUID ownerUserId
 ) {
 }

@@ -9,6 +9,7 @@ Canonical output paths for generated code. Use **`backend/`** everywhere (not `v
 | Shared infra | `backend/infrastructure/` | Eureka, Config, Postgres, Redis, RabbitMQ, MinIO |
 | Microservice | `backend/services/<name>/` | One Spring Boot app per folder |
 | Docker scripts | `backend/scripts/` | `start-all.ps1`, `verify-docker.ps1` |
+| Monitoring | `monitoring/` | Prometheus, Grafana, Loki, Promtail |
 | CI workflows | `.github/workflows/` | Per-service and monorepo CI |
 
 ## Docker compose layout (current)

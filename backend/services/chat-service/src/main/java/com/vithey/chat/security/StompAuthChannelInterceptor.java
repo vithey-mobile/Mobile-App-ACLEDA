@@ -27,8 +27,9 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         List<SimpleGrantedAuthority> authorities = currentUser.roles().stream()
             .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
             .toList();
+        StompUser stompUser = new StompUser(currentUser);
         UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(currentUser, null, authorities);
+            new UsernamePasswordAuthenticationToken(stompUser, null, authorities);
         accessor.setUser(authentication);
       }
     }

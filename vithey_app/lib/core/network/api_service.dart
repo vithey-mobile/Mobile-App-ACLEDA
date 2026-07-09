@@ -45,16 +45,23 @@ class ApiService {
     String path, {
     required T Function(dynamic json) fromJson,
   }) async {
-    return _request(() => _dio.delete<Map<String, dynamic>>(path), fromJson);
+    return _request(() => _dio.delete<dynamic>(path), fromJson);
   }
 
   Future<ApiResponse<T>> _request<T>(
-    Future<Response<Map<String, dynamic>>> Function() call,
+    Future<Response<dynamic>> Function() call,
     T Function(dynamic json) fromJson,
   ) async {
     try {
       final response = await call();
-      return ApiResponse.fromJson(response.data ?? {}, fromJson);
+      final raw = response.data;
+      if (raw == null || (raw is String && raw.isEmpty)) {
+        return ApiResponse.fromJson({}, fromJson);
+      }
+      if (raw is Map<String, dynamic>) {
+        return ApiResponse.fromJson(raw, fromJson);
+      }
+      return ApiResponse.fromJson({}, fromJson);
     } on DioException catch (error) {
       final body = error.response?.data;
       if (body is Map<String, dynamic>) {

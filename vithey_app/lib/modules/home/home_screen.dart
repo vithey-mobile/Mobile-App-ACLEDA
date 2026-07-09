@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/create_post_composer.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_app_bar.dart';
@@ -13,14 +14,16 @@ class HomeScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const HomeAppBar(),
-      body: Column(
-        children: [
-          CreatePostComposer(
-            onTapComposer: () => controller.openCreatePost(),
-            onTapGallery: () => controller.openCreatePost(),
-          ),
-          const Expanded(child: MixedPostFeed()),
-        ],
+      body: AppScreenBody(
+        child: Column(
+          children: [
+            CreatePostComposer(
+              onTapComposer: () => controller.openCreatePost(),
+              onTapGallery: () => controller.openCreatePost(),
+            ),
+            const Expanded(child: MixedPostFeed()),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => controller.openCreatePost(),

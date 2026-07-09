@@ -6,7 +6,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
-import 'package:aub_connect_app/modules/home/home_controller.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CommentSheet extends StatefulWidget {
@@ -54,7 +54,7 @@ class _CommentSheetState extends State<CommentSheet> {
     final temp = CommentModel(
       id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
       postId: widget.post.id,
-      author: HomeController.currentUser,
+      author: Get.find<CurrentUserService>().postAuthor,
       text: text,
       createdAt: DateTime.now(),
       isPending: true,
@@ -67,7 +67,7 @@ class _CommentSheetState extends State<CommentSheet> {
       final saved = await _repo.createComment(
         postId: widget.post.id,
         text: text,
-        currentUser: HomeController.currentUser,
+        currentUser: Get.find<CurrentUserService>().postAuthor,
       );
       final index = _comments.indexWhere((c) => c.id == temp.id);
       if (index >= 0) _comments[index] = saved;

@@ -86,6 +86,7 @@ public class AiChatService {
             session.getId(),
             session.getTopic(),
             session.getTitle(),
+            previewForSession(session.getId()),
             session.getCreatedAt(),
             session.getUpdatedAt()
         ))
@@ -161,5 +162,21 @@ public class AiChatService {
       return title.substring(0, 77).strip() + "...";
     }
     return title.isBlank() ? "New chat" : title;
+  }
+
+  private String previewForSession(UUID sessionId) {
+    return messageRepository
+        .findFirstBySessionIdAndRoleOrderByCreatedAtDesc(sessionId, AiMessageRole.ASSISTANT)
+        .map(AiChatMessage::getContent)
+        .map(this::truncatePreview)
+        .orElse("");
+  }
+
+  private String truncatePreview(String content) {
+    String normalized = content.strip().replace('\n', ' ');
+    if (normalized.length() <= 80) {
+      return normalized;
+    }
+    return normalized.substring(0, 77).strip() + "...";
   }
 }

@@ -11,7 +11,24 @@ import org.mapstruct.Mapping;
 public interface ChatMapper {
 
   @Mapping(target = "messageId", source = "id")
+  @Mapping(target = "fileUrl", ignore = true)
   MessageResponse toMessageResponse(Message message);
+
+  default MessageResponse toMessageResponse(Message message, String fileUrl) {
+    MessageResponse base = toMessageResponse(message);
+    return new MessageResponse(
+        base.messageId(),
+        base.conversationId(),
+        base.senderId(),
+        base.text(),
+        base.messageType(),
+        base.fileId(),
+        fileUrl,
+        base.replyToMessageId(),
+        base.status(),
+        base.createdAt()
+    );
+  }
 
   @Mapping(target = "reportId", source = "id")
   ReportResponse toReportResponse(UserReport report);

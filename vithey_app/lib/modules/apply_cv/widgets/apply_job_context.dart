@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ApplyJobContext extends StatelessWidget {
   const ApplyJobContext({
@@ -11,12 +12,14 @@ class ApplyJobContext extends StatelessWidget {
     required this.eligibility,
     required this.isLoading,
     required this.onRetry,
+    this.compact = false,
   });
 
   final FeedPost? job;
   final JobEligibilityResult? eligibility;
   final bool isLoading;
   final VoidCallback onRetry;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +45,7 @@ class ApplyJobContext extends StatelessWidget {
           children: [
             const Text('Could not load job details', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            shad.Button.ghost(onPressed: onRetry, child: const shad.Text('Retry')),
           ],
         ),
       );
@@ -52,17 +55,17 @@ class ApplyJobContext extends StatelessWidget {
     final status = eligibility?.message;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: EdgeInsets.fromLTRB(compact ? 20 : 16, compact ? 0 : 8, compact ? 20 : 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Applying for $title',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.appColors.heading),
+            style: TextStyle(fontSize: compact ? 14 : 16, fontWeight: FontWeight.w600, color: context.appColors.heading),
           ),
           const SizedBox(height: 4),
-          Text(job!.author.fullName, style: TextStyle(color: context.appColors.muted)),
-          if (job!.jobMeta.description != null && job!.jobMeta.description!.isNotEmpty) ...[
+          Text(job!.author.fullName, style: TextStyle(fontSize: compact ? 13 : 14, color: context.appColors.muted)),
+          if (!compact && job!.jobMeta.description != null && job!.jobMeta.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(job!.jobMeta.description!, style: const TextStyle(height: 1.4)),
           ],

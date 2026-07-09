@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
-import 'package:aub_connect_app/core/widgets/custom_button.dart';
-import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
+import 'package:aub_connect_app/data/models/chat_shared_content_model.dart';
+import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/chat/widgets/chat_shared_content.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatProfileController extends GetxController {
   ChatProfileController(this._chatRepository);
@@ -17,7 +20,9 @@ class ChatProfileController extends GetxController {
   final ChatRepository _chatRepository;
 
   final participant = Rxn<ChatParticipant>();
+  final sharedContent = Rxn<ChatSharedContent>();
   final isLoading = true.obs;
+  final isSharedLoading = false.obs;
   final selectedTab = 0.obs;
 
   String? _conversationId;
@@ -30,6 +35,17 @@ class ChatProfileController extends GetxController {
     _conversationId = args.conversationId;
     _participantId = args.participantId;
     _loadProfile();
+    _loadSharedContent();
+  }
+
+  Future<void> _loadSharedContent() async {
+    if (_conversationId == null) return;
+    isSharedLoading.value = true;
+    try {
+      sharedContent.value = await _chatRepository.fetchSharedContent(_conversationId!);
+    } finally {
+      isSharedLoading.value = false;
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -44,16 +60,22 @@ class ChatProfileController extends GetxController {
     }
   }
 
+  void openFullProfile() {
+    final id = _participantId;
+    if (id == null) return;
+    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: id));
+  }
+
   void openMessage() => Get.back();
 
   Future<void> blockUser() async {
     if (_conversationId == null) return;
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Block this user?'),
+      shad.AlertDialog(
+        title: const shad.Text('Block this user?'),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Get.back(result: true), child: const Text('Block')),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Block')),
         ],
       ),
     );
@@ -67,16 +89,16 @@ class ChatProfileController extends GetxController {
     if (_participantId == null) return;
     final reasonController = TextEditingController();
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Report user'),
-        content: TextField(
+      shad.AlertDialog(
+        title: const shad.Text('Report user'),
+        content: shad.TextField(
           controller: reasonController,
-          decoration: const InputDecoration(hintText: 'Reason for report'),
+          hintText: 'Reason for report',
           maxLines: 3,
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Get.back(result: true), child: const Text('Report')),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Report')),
         ],
       ),
     );
@@ -93,9 +115,10 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.appColors.bodyBackground,
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
+        elevation: 0,
+        backgroundColor: context.appColors.bodyBackground,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -121,75 +144,111 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
         }
 
         return ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
           children: [
             Center(
-              child: Stack(
-                children: [
-                  UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 48),
-                  if (p.isOnline)
-                    Positioned(
-                      right: 4,
-                      bottom: 4,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: AppColors.success,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 48),
+                    if (p.isOnline)
+                      Positioned(
+                        right: 2,
+                        bottom: 2,
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 12),
             Center(
-              child: Text(p.fullName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              child: Text(
+                p.fullName,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: context.appColors.heading,
+                ),
+              ),
             ),
             Center(
               child: Text(
-                p.isOnline ? 'Active now' : 'Offline',
-                style: TextStyle(color: context.appColors.muted),
+                p.isOnline ? AppStrings.chatOnline : 'Offline',
+                style: TextStyle(
+                  color: p.isOnline ? AppColors.primary : context.appColors.muted,
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            CustomButton(label: 'Message', icon: Icons.chat_bubble_outline, onPressed: controller.openMessage),
-            const SizedBox(height: 20),
-            if (p.bio != null || p.location != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: context.appColors.inputFill,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (p.bio != null) Text(p.bio!),
-                    if (p.location != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_outlined, size: 16, color: context.appColors.muted),
-                          const SizedBox(width: 4),
-                          Text(p.location!, style: TextStyle(color: context.appColors.muted)),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            const SizedBox(height: 24),
-            const EmptyStateWidget(
-              title: 'No shared media yet',
-              subtitle: 'Images, videos, and files will appear here when supported',
+            ChatQuickActionsRow(
+              onProfile: controller.openFullProfile,
             ),
+            const SizedBox(height: 16),
+            ChatContactInfoCard(phone: p.phone, bio: p.bio),
+            const SizedBox(height: 20),
+            ChatSharedTabs(
+              selectedIndex: controller.selectedTab.value,
+              onTabSelected: (i) => controller.selectedTab.value = i,
+            ),
+            const SizedBox(height: 16),
+            Obx(() {
+              if (controller.isSharedLoading.value) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return _buildTabContent(controller.selectedTab.value, controller.sharedContent.value);
+            }),
           ],
         );
       }),
     );
+  }
+
+  Widget _buildTabContent(int tab, ChatSharedContent? content) {
+    final shared = content ?? const ChatSharedContent();
+    switch (tab) {
+      case 0:
+        return SharedMediaGrid(imageUrls: shared.imageUrls);
+      case 1:
+        return SharedVideoGrid(videoUrls: shared.videoUrls);
+      case 2:
+        return SharedFilesList(
+          files: shared.files
+              .map((file) => (name: file.name, size: file.sizeLabel, date: file.sharedAt))
+              .toList(),
+        );
+      case 3:
+        return SharedLinksList(
+          links: shared.links
+              .map(
+                (link) => (
+                  month: link.monthLabel,
+                  title: link.title ?? link.url,
+                  description: link.description ?? '',
+                  url: link.url,
+                ),
+              )
+              .toList(),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }

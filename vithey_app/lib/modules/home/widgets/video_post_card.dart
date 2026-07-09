@@ -4,6 +4,7 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class VideoPostCard extends StatelessWidget {
   const VideoPostCard({
@@ -98,9 +99,9 @@ class VideoPostCard extends StatelessWidget {
       post: post,
       headerTrailing: post.isOwnPost
           ? null
-          : TextButton(
+          : shad.Button.ghost(
               onPressed: onFollow,
-              child: Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
+              child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
             ),
       body: body,
       onLike: onLike,

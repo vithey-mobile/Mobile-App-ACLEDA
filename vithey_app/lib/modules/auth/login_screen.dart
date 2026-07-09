@@ -9,6 +9,7 @@ import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_wave_header.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class LoginScreen extends GetView<AuthController> {
@@ -58,6 +59,13 @@ class LoginScreen extends GetView<AuthController> {
                         onChanged: (_) => controller.clearError(),
                         textInputAction: TextInputAction.done,
                       ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: shad.Button.ghost(
+                          onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
+                          child: const shad.Text(AppStrings.forgotPassword),
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Obx(() {
                         if (controller.errorMessage.isEmpty) return const SizedBox.shrink();
@@ -87,14 +95,22 @@ class LoginScreen extends GetView<AuthController> {
                             isLoading: controller.isGoogleLoading.value,
                             onPressed: () => controller.beginGoogleAuth(intent: AuthIntent.signIn),
                           )),
+                      if (!controller.isGoogleAuthEnabled) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          AppStrings.googleAuthEnvHint,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(AppStrings.noAccount, style: TextStyle(color: context.appColors.muted)),
-                          TextButton(
+                          shad.Button.ghost(
                             onPressed: () => Get.toNamed(AppRoutes.register),
-                            child: const Text(AppStrings.signUp, style: TextStyle(color: AppColors.primary)),
+                            child: const shad.Text(AppStrings.signUp),
                           ),
                         ],
                       ),
@@ -212,9 +228,9 @@ class RegisterScreen extends GetView<AuthController> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(AppStrings.hasAccount, style: TextStyle(color: context.appColors.muted)),
-                          TextButton(
+                          shad.Button.ghost(
                             onPressed: () => Get.back(),
-                            child: const Text(AppStrings.signIn, style: TextStyle(color: AppColors.primary)),
+                            child: const shad.Text(AppStrings.signIn),
                           ),
                         ],
                       ),

@@ -7,11 +7,13 @@ class NotificationActionSheet extends StatelessWidget {
   const NotificationActionSheet({
     super.key,
     required this.notification,
+    required this.previewText,
     required this.onMarkRead,
     required this.onDelete,
   });
 
   final AppNotification notification;
+  final String previewText;
   final VoidCallback? onMarkRead;
   final VoidCallback onDelete;
 
@@ -33,28 +35,33 @@ class NotificationActionSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              notification.displayText,
+              previewText,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            const Divider(height: 24),
             if (onMarkRead != null)
               ListTile(
-                leading: const Icon(Icons.check_circle_outline),
+                leading: const Icon(Icons.check_circle_outline, color: AppColors.primary),
                 title: const Text('Mark as read'),
                 onTap: onMarkRead,
+                minVerticalPadding: 12,
               )
             else
               ListTile(
                 leading: Icon(Icons.check_circle, color: context.appColors.muted),
                 title: const Text('Already read'),
                 enabled: false,
+                minVerticalPadding: 12,
               ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: AppColors.error),
               title: const Text('Delete notification', style: TextStyle(color: AppColors.error)),
               onTap: onDelete,
+              minVerticalPadding: 12,
             ),
           ],
         ),

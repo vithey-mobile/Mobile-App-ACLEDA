@@ -16,7 +16,22 @@ Does not own credentials, JWT, files, follows, CV, posts, or chat messages.
 | Update profile | Validate social links and academic fields, update current user's profile. |
 | Update avatar | Validate file exists through `file-service`, then store `avatar_file_id` and `avatar_url`. |
 | Settings | Upsert language, theme, notification preferences, privacy preferences. |
-| Search users | Case-insensitive search by `full_name`, paginated for chat and mentions. |
+| Search users | Case-insensitive search on `full_name`, `university`, `major`; paginated; used by global search, chat add-user, mentions, notification app bar search. |
+
+### GET `/users/search` flow
+
+1. Validate JWT → `X-User-Id`
+2. Validate `search` trim length ≥ 2
+3. Query `profiles` with ILIKE (see `_shared/SEARCH.md`)
+4. Filter out `privacy_prefs.profile_visible = false`
+5. Map to `UserSearchResultResponse` — no email/phone
+6. Return paginated envelope with `meta.total_pages`
+
+| Step | Detail |
+| --- | --- |
+| Sort | Prefix match on `full_name` first, then `full_name ASC` |
+| Rate limit | 60/min per user at gateway (recommended) |
+| Block list | Exclude blocked users when chat block API ships |
 
 ## Events consumed
 

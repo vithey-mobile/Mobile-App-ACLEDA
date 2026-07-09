@@ -12,6 +12,7 @@ class FaqCategory {
 
 class HelpCenterController extends GetxController {
   final query = ''.obs;
+  final searchController = TextEditingController();
 
   static const categories = <FaqCategory>[
     FaqCategory(id: 'account', title: 'Account & Login', topics: ['Reset password', 'Update email', 'Logout']),
@@ -62,5 +63,11 @@ class HelpCenterController extends GetxController {
     } else {
       Get.snackbar('Vithey', 'Email support: support@vithey.app');
     }
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 }

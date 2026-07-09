@@ -1,0 +1,15 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  config:
+    import: ""
+
+eureka:
+  client:
+    enabled: false
+
+vithey:
+  ai:
+    general:
+      base-url: http://localhost:18005

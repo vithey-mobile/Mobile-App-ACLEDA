@@ -12,6 +12,7 @@ public record FileMetadataResponse(
     String mimeType,
     long sizeBytes,
     String url,
+    UUID ownerUserId,
     OffsetDateTime createdAt
 ) {
 }

@@ -24,16 +24,11 @@ class SecuritySettingsController extends GetxController {
   void openChangePassword() => Get.toNamed(AppRoutes.settingsChangePassword);
 
   void toggleTwoFactor(bool value) {
-    twoFactorEnabled.value = false;
-    Get.snackbar('Vithey', 'Two-factor authentication is coming soon');
+    // Feature not available yet — switch stays off.
   }
 
   Future<void> toggleBiometric(bool value) async {
-    if (value) {
-      Get.snackbar('Vithey', 'Biometric login will be available in a future update');
-      biometricEnabled.value = false;
-      return;
-    }
+    if (value) return;
     biometricEnabled.value = false;
     await _localStorage.saveBiometricEnabled(false);
   }
@@ -48,4 +43,8 @@ class SecuritySettingsController extends GetxController {
     if (confirmed != true) return;
     Get.snackbar('Vithey', 'Sign out all devices is not available yet');
   }
+
+  bool get twoFactorAvailable => false;
+  bool get biometricAvailable => false;
+  bool get signOutAllDevicesAvailable => false;
 }

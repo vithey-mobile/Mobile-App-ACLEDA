@@ -18,8 +18,8 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 |---------|----------|-------------------|
 | API Gateway | — | Routing, JWT, rate limit, CORS |
 | Auth Service | `auth_db` | Register, login, refresh, RBAC, student verification |
-| User/Profile Service | `user_db` | Profile, avatar, bio, social links, settings |
-| Content Service | `content_db` | Posts, comments, reactions, mentions, follows |
+| User/Profile Service | `user_db` | Profile, avatar, bio, social links, settings, **user search** |
+| Content Service | `content_db` | Posts, comments, reactions, mentions, follows, **post search** |
 | Career Service | `career_db` | Job posts, CV refs, applications, applicant review |
 | Finance Service | `finance_db` | Payments, fees, alerts (verified students) |
 | Chat Service | `chat_db` | Conversations, messages, requests, block/report |
@@ -72,10 +72,20 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 ## Gateway / Cloud
 | Component | Module | Technology |
 |-----------|--------|------------|
-| API Gateway | `services/api-gateway` | Spring Cloud Gateway + Redis rate limit |
+| API Gateway | `services/api-gateway` | Spring Cloud Gateway + Redis rate limit (YAML routes in `config-repo/api-gateway.yml`) |
 | Service Discovery | `eureka-server` | Netflix Eureka Server |
-| Config | `config-server` + `config-repo/` | Spring Cloud Config (native) |
-| Inter-service HTTP | all domain services | OpenFeign + Eureka + LoadBalancer |
+| Config | `config-server` + `config-repo/` | Spring Cloud Config (native); **required** in `prod` profile |
+| Inter-service HTTP | all domain services | OpenFeign + Eureka + LoadBalancer + **Resilience4j** circuit breaker |
+| Metrics | all domain services | Micrometer + Prometheus (`/actuator/prometheus`) |
+| Events | RabbitMQ | See `_shared/EVENTS.md` |
+| Secrets | env / Docker secrets | See `_shared/ENV_VARS.md` — no prod JWT defaults |
+
+### Profiles
+
+| Profile | Config import | JWT secret |
+|---------|---------------|------------|
+| `dev` (default) | `optional:configserver:...` | local default allowed |
+| `prod` | `configserver:...` (required) | `VITHEY_JWT_SECRET` required |
 
 ## RBAC Roles
 | Role | Description |

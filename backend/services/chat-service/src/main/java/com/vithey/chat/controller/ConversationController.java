@@ -74,4 +74,12 @@ public class ConversationController {
     UUID userId = currentUserProvider.requireCurrentUser().userId();
     return ResponseEntity.ok(ApiResponseWrapper.success(conversationService.blockConversation(conversationId, userId)));
   }
+
+  @GetMapping("/{conversationId}/presence")
+  ResponseEntity<ApiResponseWrapper<com.vithey.chat.dto.response.PresenceResponse>> presence(
+      @PathVariable UUID conversationId
+  ) {
+    UUID userId = currentUserProvider.requireCurrentUser().userId();
+    return ResponseEntity.ok(ApiResponseWrapper.success(conversationService.partnerPresence(conversationId, userId)));
+  }
 }

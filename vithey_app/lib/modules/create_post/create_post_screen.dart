@@ -4,63 +4,12 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
+import 'package:aub_connect_app/data/services/upload_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-
-class CreatePostController extends GetxController {
-  CreatePostController(this._postRepository);
-
-  final PostRepository _postRepository;
-
-  final contentController = TextEditingController();
-  final selectedType = Rxn<PostType>();
-  final isPosting = false.obs;
-  final errorMessage = ''.obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    final arg = Get.arguments;
-    if (arg is PostType) selectedType.value = arg;
-  }
-
-  void selectType(PostType type) => selectedType.value = type;
-
-  Future<void> publish() async {
-    final type = selectedType.value;
-    final content = contentController.text.trim();
-    if (type == null) {
-      errorMessage.value = 'Select a post type';
-      return;
-    }
-    if (content.isEmpty) {
-      errorMessage.value = 'Write something to post';
-      return;
-    }
-
-    isPosting.value = true;
-    errorMessage.value = '';
-    try {
-      final post = await _postRepository.createPost(
-        type: type,
-        content: content,
-        jobMeta: type == PostType.job
-            ? const JobMeta(title: 'New Job Opening', description: 'Apply now on Vithey')
-            : null,
-      );
-      Get.back(result: post);
-    } catch (e) {
-      errorMessage.value = e.toString();
-    } finally {
-      isPosting.value = false;
-    }
-  }
-
-  @override
-  void onClose() {
-    contentController.dispose();
-    super.onClose();
-  }
-}
+import 'package:aub_connect_app/modules/create_post/create_post_controller.dart';
+import 'package:aub_connect_app/modules/create_post/widgets/create_post_media_zone.dart';
+import 'package:aub_connect_app/modules/create_post/widgets/create_post_schedule_sheet.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class CreatePostScreen extends GetView<CreatePostController> {
   const CreatePostScreen({super.key});
@@ -71,11 +20,11 @@ class CreatePostScreen extends GetView<CreatePostController> {
       appBar: AppBar(
         title: const Text('Create Post'),
         actions: [
-          Obx(() => TextButton(
+          Obx(() => shad.Button.ghost(
                 onPressed: controller.isPosting.value ? null : controller.publish,
                 child: controller.isPosting.value
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Post'),
+                    : const shad.Text('Post'),
               )),
         ],
       ),
@@ -118,23 +67,32 @@ class CreatePostScreen extends GetView<CreatePostController> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              height: 160,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: context.appColors.inputFill,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: context.appColors.border),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_photo_alternate_outlined, size: 40, color: context.appColors.muted),
-                  const SizedBox(height: 8),
-                  const Text('Media picker coming with file-service integration'),
-                ],
-              ),
-            ),
+            Obx(() => CreatePostMediaZone(
+                  mediaPath: controller.mediaPath.value,
+                  isVideo: controller.selectedType.value == PostType.video,
+                  isUploading: controller.isUploadingMedia.value,
+                  onPick: controller.showMediaSourceSheet,
+                  onClear: controller.clearMedia,
+                )),
+            const SizedBox(height: 12),
+            Obx(() {
+              final scheduled = controller.scheduledAt.value;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.schedule_outlined),
+                title: Text(scheduled == null ? 'Schedule post' : 'Scheduled'),
+                subtitle: scheduled == null
+                    ? const Text('Post now or pick a future time')
+                    : Text(CreatePostScheduleSheet.format(scheduled)),
+                trailing: scheduled == null
+                    ? const Icon(Icons.chevron_right)
+                    : IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: controller.clearSchedule,
+                      ),
+                onTap: () => controller.pickSchedule(context),
+              );
+            }),
             const SizedBox(height: 12),
             Obx(() {
               if (controller.errorMessage.isEmpty) return const SizedBox.shrink();
@@ -187,6 +145,8 @@ class _TypeTile extends StatelessWidget {
 class CreatePostBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<CreatePostController>(() => CreatePostController(Get.find<PostRepository>()));
+    Get.lazyPut<CreatePostController>(
+      () => CreatePostController(Get.find<PostRepository>(), Get.find<UploadService>()),
+    );
   }
 }

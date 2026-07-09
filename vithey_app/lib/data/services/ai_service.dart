@@ -25,6 +25,7 @@ class AiService {
           sessionId: data['session_id']?.toString() ?? sessionId ?? '',
           reply: data['reply'] as String? ?? '',
           messageId: data['message_id']?.toString(),
+          requestId: data['request_id']?.toString(),
         );
       },
     );
@@ -52,7 +53,7 @@ class AiService {
   Future<List<AiMessage>> fetchMessages({
     required String sessionId,
     required int page,
-    int limit = 30,
+    int limit = 100,
   }) async {
     final response = await _api.get<List<AiMessage>>(
       ApiEndpoints.aiSessionMessages(sessionId),
@@ -93,10 +94,15 @@ class AiService {
     return AiMessage(
       id: json['message_id']?.toString() ?? json['id']?.toString() ?? '',
       sessionId: sessionId,
-      role: json['role'] == 'user' ? AiMessageRole.user : AiMessageRole.assistant,
+      role: _parseRole(json['role']),
       content: json['content'] as String? ?? json['text'] as String? ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
     );
+  }
+
+  AiMessageRole _parseRole(dynamic raw) {
+    final value = raw?.toString().toLowerCase() ?? '';
+    return value == 'user' ? AiMessageRole.user : AiMessageRole.assistant;
   }
 
   AiTopic? _parseTopic(String? raw) {

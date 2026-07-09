@@ -6,6 +6,8 @@ public record UserSearchResultResponse(
     UUID userId,
     String fullName,
     String avatarUrl,
-    String university
+    String university,
+    String major,
+    String headline
 ) {
 }

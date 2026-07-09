@@ -1,8 +1,17 @@
 package com.vithey.chat.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import com.vithey.chat.entity.MessageType;
+import java.util.UUID;
 
 public record SendMessageRequest(
-    @NotBlank String text
+    String text,
+    String clientMessageId,
+    UUID replyToMessageId,
+    MessageType messageType,
+    UUID fileId
 ) {
+
+  public MessageType resolvedMessageType() {
+    return messageType == null ? MessageType.TEXT : messageType;
+  }
 }

@@ -15,6 +15,9 @@ class ChatMessage {
     this.isOwn = false,
     this.clientId,
     this.isFailed = false,
+    this.replyToMessageId,
+    this.replyToPreview,
+    this.isDeleted = false,
   });
 
   final String id;
@@ -26,23 +29,31 @@ class ChatMessage {
   final bool isOwn;
   final String? clientId;
   final bool isFailed;
+  final String? replyToMessageId;
+  final String? replyToPreview;
+  final bool isDeleted;
 
   ChatMessage copyWith({
     String? id,
+    String? text,
     MessageDeliveryStatus? status,
     bool? isFailed,
     DateTime? createdAt,
+    bool? isDeleted,
   }) {
     return ChatMessage(
       id: id ?? this.id,
       conversationId: conversationId,
       senderId: senderId,
-      text: text,
+      text: text ?? this.text,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
       isOwn: isOwn,
       clientId: clientId,
       isFailed: isFailed ?? this.isFailed,
+      replyToMessageId: replyToMessageId,
+      replyToPreview: replyToPreview,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 }
@@ -57,6 +68,7 @@ class ConversationModel {
     this.status = ConversationStatus.active,
     this.lastMessageIsOwn = false,
     this.lastMessageStatus = MessageDeliveryStatus.sent,
+    this.isTyping = false,
   });
 
   final String id;
@@ -67,6 +79,7 @@ class ConversationModel {
   final ConversationStatus status;
   final bool lastMessageIsOwn;
   final MessageDeliveryStatus lastMessageStatus;
+  final bool isTyping;
 
   ConversationModel copyWith({
     String? lastMessagePreview,
@@ -74,6 +87,7 @@ class ConversationModel {
     int? unreadCount,
     MessageDeliveryStatus? lastMessageStatus,
     bool? lastMessageIsOwn,
+    bool? isTyping,
   }) {
     return ConversationModel(
       id: id,
@@ -84,6 +98,7 @@ class ConversationModel {
       status: status,
       lastMessageIsOwn: lastMessageIsOwn ?? this.lastMessageIsOwn,
       lastMessageStatus: lastMessageStatus ?? this.lastMessageStatus,
+      isTyping: isTyping ?? this.isTyping,
     );
   }
 }

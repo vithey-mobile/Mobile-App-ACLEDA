@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class GoogleAccountChooserScreen extends GetView<AuthController> {
   const GoogleAccountChooserScreen({super.key});
@@ -109,20 +111,15 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      Obx(() => SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: controller.isGoogleLoading.value ? null : controller.completeGoogleAuth,
-                              child: controller.isGoogleLoading.value
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                    )
-                                  : const Text('Continue'),
-                            ),
+                      Obx(() => CustomButton(
+                            label: 'Continue',
+                            onPressed: controller.isGoogleLoading.value ? null : controller.completeGoogleAuth,
+                            isLoading: controller.isGoogleLoading.value,
                           )),
-                      TextButton(onPressed: controller.cancelGoogleAuth, child: const Text(AppStrings.cancel)),
+                      shad.Button.ghost(
+                        onPressed: controller.cancelGoogleAuth,
+                        child: const shad.Text(AppStrings.cancel),
+                      ),
                     ],
                   ),
                 ),

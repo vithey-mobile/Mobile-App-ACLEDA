@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class OnboardingWaveClipper extends CustomClipper<Path> {
   @override
@@ -37,9 +38,9 @@ class OnboardingTopSection extends StatelessWidget {
             Positioned(
               top: 8,
               right: 8,
-              child: TextButton(
+              child: shad.Button.ghost(
                 onPressed: onSkip,
-                child: const Text('Skip', style: TextStyle(color: Colors.white)),
+                child: const shad.Text('Skip'),
               ),
             ),
             Center(

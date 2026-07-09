@@ -19,6 +19,7 @@
   <description>Vithey App Spring Boot microservices backend</description>
 
   <modules>
+    <module>shared/vithey-test-support</module>
     <module>infrastructure/eureka-server</module>
     <module>infrastructure/config-server</module>
     <module>services/api-gateway</module>
@@ -39,6 +40,7 @@
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <jjwt.version>0.12.6</jjwt.version>
     <testcontainers.version>1.20.4</testcontainers.version>
+    <resilience4j.version>2.2.0</resilience4j.version>
   </properties>
 
   <dependencyManagement>

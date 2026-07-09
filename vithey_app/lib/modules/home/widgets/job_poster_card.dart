@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class JobPosterCard extends StatelessWidget {
   const JobPosterCard({
@@ -67,9 +68,9 @@ class _JobActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (post.isOwnPost) {
-      return TextButton(
+      return shad.Button.ghost(
         onPressed: onViewApplicants,
-        child: Text('Applicants (${post.applicantCount})'),
+        child: shad.Text('Applicants (${post.applicantCount})'),
       );
     }
 
@@ -91,9 +92,9 @@ class _JobActionButton extends StatelessWidget {
             child: Text('Closed', style: TextStyle(color: context.appColors.muted)),
           );
         }
-        return TextButton(
+        return shad.Button.ghost(
           onPressed: onApply,
-          child: const Text('Apply'),
+          child: const shad.Text('Apply'),
         );
     }
   }

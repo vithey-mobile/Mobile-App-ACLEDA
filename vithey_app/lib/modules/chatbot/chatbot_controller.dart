@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
+import 'package:aub_connect_app/modules/chatbot/utils/ai_api_error.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatbotController extends GetxController {
   ChatbotController(this._aiRepository);
@@ -40,11 +44,21 @@ class ChatbotController extends GetxController {
   List<AiSession> get pinnedSessions => sessions.where((s) => s.isPinned).toList();
   List<AiSession> get recentSessions => sessions.where((s) => !s.isPinned).toList();
 
+  List<AiSession> get sortedSessions {
+    final list = List<AiSession>.from(sessions);
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return list;
+  }
+
   @override
   void onInit() {
     super.onInit();
     loadSessions();
     scrollController.addListener(_onScroll);
+    final initialPrompt = Get.arguments;
+    if (initialPrompt is String && initialPrompt.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => fillStarterPrompt(initialPrompt.trim()));
+    }
   }
 
   void _onScroll() {
@@ -54,18 +68,29 @@ class ChatbotController extends GetxController {
     showJumpToLatest.value = max - offset > 120;
   }
 
+  bool get _isNearBottom {
+    if (!scrollController.hasClients) return true;
+    final max = scrollController.position.maxScrollExtent;
+    final offset = scrollController.offset;
+    return max - offset < 120;
+  }
+
   Future<void> loadSessions() async {
     isLoadingSessions.value = true;
     try {
       sessions.assignAll(await _aiRepository.fetchSessions());
     } catch (e) {
-      Get.snackbar(AppStrings.appName, 'Could not load chat history');
+      Get.snackbar(AppStrings.appName, aiApiErrorMessage(e));
     } finally {
       isLoadingSessions.value = false;
     }
   }
 
   void openDrawer() => scaffoldKey.currentState?.openDrawer();
+
+  void showAttachmentComingSoon() {
+    Get.snackbar(AppStrings.appName, AppStrings.chatbotAttachComingSoon);
+  }
 
   void newChat() {
     _saveDraft();
@@ -93,8 +118,8 @@ class ChatbotController extends GetxController {
       if (token != _requestToken) return;
       messages.assignAll(loaded);
       WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
-    } catch (_) {
-      Get.snackbar(AppStrings.appName, 'Could not load messages');
+    } catch (e) {
+      Get.snackbar(AppStrings.appName, aiApiErrorMessage(e));
     } finally {
       if (token == _requestToken) isLoadingMessages.value = false;
     }
@@ -168,7 +193,7 @@ class ChatbotController extends GetxController {
           id: 'err-$clientId',
           sessionId: _currentSessionId ?? 'draft',
           role: AiMessageRole.assistant,
-          content: 'Sorry, I could not respond right now. Please try again.',
+          content: aiApiErrorMessage(e),
           status: AiMessageStatus.failed,
           createdAt: DateTime.now(),
         ),
@@ -195,25 +220,69 @@ class ChatbotController extends GetxController {
     }
   }
 
+  Future<void> regenerateMessage(AiMessage assistantMessage) async {
+    if (_currentSessionId == null || isGenerating.value) return;
+    final index = messages.indexWhere((m) => m.id == assistantMessage.id);
+    if (index < 0) return;
+
+    _sendLocked = true;
+    isGenerating.value = true;
+    final token = ++_requestToken;
+
+    messages[index] = assistantMessage.copyWith(
+      content: '',
+      status: AiMessageStatus.thinking,
+    );
+    scrollToBottom();
+
+    try {
+      final response = await _aiRepository.regenerateMessage(
+        sessionId: _currentSessionId!,
+        assistantMessageId: assistantMessage.id,
+      );
+      if (token != _requestToken) return;
+
+      messages[index] = AiMessage(
+        id: response.messageId ?? assistantMessage.id,
+        sessionId: response.sessionId,
+        role: AiMessageRole.assistant,
+        content: response.reply,
+        status: AiMessageStatus.complete,
+        createdAt: DateTime.now(),
+      );
+      await loadSessions();
+      scrollToBottom();
+    } catch (_) {
+      if (token != _requestToken) return;
+      messages[index] = assistantMessage;
+      Get.snackbar(AppStrings.appName, 'Could not regenerate response');
+    } finally {
+      if (token == _requestToken) {
+        isGenerating.value = false;
+        _sendLocked = false;
+      }
+    }
+  }
+
   Future<void> renameSession(AiSession session) async {
     final controller = TextEditingController(text: session.title);
     final saved = await Get.dialog<String>(
-      AlertDialog(
-        title: const Text('Rename chat'),
-        content: TextField(
+      shad.AlertDialog(
+        title: const shad.Text('Rename chat'),
+        content: shad.TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Chat title'),
+          hintText: 'Chat title',
           maxLength: 80,
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          ElevatedButton(
+          shad.Button.ghost(onPressed: () => Get.back(), child: const shad.Text('Cancel')),
+          shad.Button.primary(
             onPressed: () {
               final title = controller.text.trim();
               if (title.isEmpty) return;
               Get.back(result: title);
             },
-            child: const Text('Save'),
+            child: const shad.Text('Save'),
           ),
         ],
       ),
@@ -230,17 +299,16 @@ class ChatbotController extends GetxController {
 
   Future<void> deleteSession(AiSession session) async {
     final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Delete chat?'),
-        content: Text(
+      shad.AlertDialog(
+        title: const shad.Text('Delete chat?'),
+        content: shad.Text(
           'This will permanently delete "${session.title}" and its messages. This action can\'t be undone.',
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(result: false), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
+          shad.Button.destructive(
             onPressed: () => Get.back(result: true),
-            child: const Text('Delete'),
+            child: const shad.Text('Delete'),
           ),
         ],
       ),
@@ -252,6 +320,20 @@ class ChatbotController extends GetxController {
   }
 
   void scrollToBottom() {
+    if (!_isNearBottom && messages.length > 2) return;
+    if (!scrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!scrollController.hasClients) return;
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+      showJumpToLatest.value = false;
+    });
+  }
+
+  void forceScrollToBottom() {
     if (!scrollController.hasClients) return;
     scrollController.animateTo(
       scrollController.position.maxScrollExtent,
@@ -271,8 +353,18 @@ class ChatbotController extends GetxController {
     }
   }
 
-  void copyMessage(String content) {
+  Future<void> copyMessage(String content) async {
+    await Clipboard.setData(ClipboardData(text: content));
     Get.snackbar(AppStrings.appName, 'Copied to clipboard');
+  }
+
+  Future<void> copyCodeBlock(String code) async {
+    await Clipboard.setData(ClipboardData(text: code));
+    Get.snackbar(AppStrings.appName, 'Code copied');
+  }
+
+  Future<void> shareMessage(String content) async {
+    await Share.share(content, subject: 'Vithey AI response');
   }
 
   @override

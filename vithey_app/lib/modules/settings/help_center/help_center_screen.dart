@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/modules/settings/help_center/help_center_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 
 class HelpCenterScreen extends GetView<HelpCenterController> {
   const HelpCenterScreen({super.key});
@@ -15,15 +16,13 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          TextField(
-            onChanged: (v) => controller.query.value = v,
-            decoration: InputDecoration(
-              hintText: 'Search help topics',
-              prefixIcon: Icon(Icons.search, color: context.appColors.muted),
-              filled: true,
-              fillColor: context.appColors.inputFill,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            ),
+          CustomTextField(
+            controller: controller.searchController,
+            hint: 'Search help topics',
+            prefixIcon: Icons.search,
+            onChanged: (v) {
+              controller.query.value = v;
+            },
           ),
           const SizedBox(height: 16),
           Container(

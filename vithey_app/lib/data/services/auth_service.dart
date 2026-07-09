@@ -86,6 +86,17 @@ class AuthService {
       throw AuthServiceException(response.error?.message ?? 'Password change failed');
     }
   }
+
+  Future<void> requestPasswordReset({required String email}) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.authForgotPassword,
+      data: {'email': email},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw AuthServiceException(response.error?.message ?? 'Could not send reset link');
+    }
+  }
 }
 
 class AuthServiceException implements Exception {

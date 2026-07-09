@@ -26,12 +26,28 @@ public class Message {
   @Column(name = "sender_id", nullable = false)
   private UUID senderId;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT")
   private String text;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "message_type", nullable = false, length = 16)
+  private MessageType messageType = MessageType.TEXT;
+
+  @Column(name = "file_id")
+  private UUID fileId;
+
+  @Column(name = "reply_to_message_id")
+  private UUID replyToMessageId;
+
+  @Column(name = "client_message_id", length = 64)
+  private String clientMessageId;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 32)
   private MessageStatus status;
+
+  @Column(name = "deleted_at")
+  private OffsetDateTime deletedAt;
 
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;

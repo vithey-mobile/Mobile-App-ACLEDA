@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class StartupController extends GetxController {
   StartupController(this._localStorage);
@@ -78,7 +79,10 @@ class StartupHeader extends StatelessWidget {
         children: [
           const Text(AppStrings.vitheyStartup, style: TextStyle(fontWeight: FontWeight.bold)),
           const Spacer(),
-          TextButton(onPressed: onSkip, child: const Text(AppStrings.skip, style: TextStyle(color: AppColors.primary))),
+          shad.Button.ghost(
+            onPressed: onSkip,
+            child: const shad.Text(AppStrings.skip),
+          ),
         ],
       ),
     );
@@ -131,14 +135,16 @@ class StartupBottomNav extends StatelessWidget {
       child: Row(
         children: [
           if (showBack)
-            TextButton(onPressed: onBack, child: const Text(AppStrings.back))
+            shad.Button.ghost(
+              onPressed: onBack,
+              child: const shad.Text(AppStrings.back),
+            )
           else
             const SizedBox(width: 72),
           const Spacer(),
-          ElevatedButton(
+          shad.Button.primary(
             onPressed: onNext,
-            style: ElevatedButton.styleFrom(minimumSize: const Size(96, 48)),
-            child: Text(nextLabel),
+            child: shad.Text(nextLabel),
           ),
         ],
       ),

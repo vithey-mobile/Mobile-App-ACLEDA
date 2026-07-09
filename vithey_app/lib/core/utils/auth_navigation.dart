@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
+import 'package:aub_connect_app/data/push/fcm_service.dart';
+import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 
 class AuthNavigation {
   AuthNavigation._();
@@ -8,10 +10,22 @@ class AuthNavigation {
   static Future<void> goAfterAuth({bool isNewUser = false}) async {
     final localStorage = Get.find<LocalStorageService>();
     final startupDone = await localStorage.isStartupCompleted();
+    await _bootstrapNotifications();
     if (!startupDone || isNewUser) {
       Get.offAllNamed(AppRoutes.startupSkills);
     } else {
       Get.offAllNamed(AppRoutes.home);
+    }
+  }
+
+  static Future<void> bootstrapNotificationsIfNeeded() => _bootstrapNotifications();
+
+  static Future<void> _bootstrapNotifications() async {
+    if (!Get.isRegistered<NotificationRepository>()) return;
+    final repository = Get.find<NotificationRepository>();
+    await repository.onUserAuthenticated();
+    if (Get.isRegistered<FcmService>()) {
+      await Get.find<FcmService>().registerToken();
     }
   }
 }

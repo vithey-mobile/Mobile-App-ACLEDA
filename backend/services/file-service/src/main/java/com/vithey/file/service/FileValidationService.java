@@ -11,15 +11,26 @@ import org.springframework.util.StringUtils;
 @Component
 public class FileValidationService {
 
-  private static final Map<StoredFileType, Set<String>> ALLOWED_MIME_TYPES = Map.of(
-      StoredFileType.AVATAR, Set.of("image/jpeg", "image/png", "image/webp"),
-      StoredFileType.CV, Set.of(
+  private static final Map<StoredFileType, Set<String>> ALLOWED_MIME_TYPES = Map.ofEntries(
+      Map.entry(StoredFileType.AVATAR, Set.of("image/jpeg", "image/png", "image/webp")),
+      Map.entry(StoredFileType.CV, Set.of(
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "image/jpeg",
+          "image/png"
+      )),
+      Map.entry(StoredFileType.POSTER, Set.of("image/jpeg", "image/png", "image/webp")),
+      Map.entry(StoredFileType.VIDEO, Set.of("video/mp4", "video/quicktime")),
+      Map.entry(StoredFileType.CHAT_ATTACHMENT, Set.of(
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
           "application/pdf",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      ),
-      StoredFileType.POSTER, Set.of("image/jpeg", "image/png", "image/webp"),
-      StoredFileType.VIDEO, Set.of("video/mp4", "video/quicktime")
+      ))
   );
 
   public void validateUpload(StoredFileType fileType, String mimeType, long sizeBytes) {

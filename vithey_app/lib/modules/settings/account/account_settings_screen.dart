@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/settings/account/account_settings_controller.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -57,10 +58,10 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
             ),
             const SizedBox(height: 12),
             Center(
-              child: TextButton.icon(
+              child: shad.Button.ghost(
                 onPressed: controller.openEditInfo,
-                icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Edit Info'),
+                leading: const Icon(Icons.edit, size: 18),
+                child: const shad.Text('Edit Info'),
               ),
             ),
             const SizedBox(height: 16),

@@ -5,7 +5,10 @@ import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/theme/app_theme.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/data/local/search_recent_store.dart';
+import 'package:aub_connect_app/data/push/fcm_service.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
+import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/settings_repository.dart';
 
 class SettingsController extends GetxController {
@@ -98,8 +101,17 @@ class SettingsController extends GetxController {
     if (confirmed != true) return;
 
     try {
+      if (Get.isRegistered<FcmService>()) {
+        await Get.find<FcmService>().unregisterToken();
+      }
+      if (Get.isRegistered<NotificationRepository>()) {
+        Get.find<NotificationRepository>().clearSession();
+      }
       await _authRepository.logout();
       await _localStorage.clearSessionPreferences();
+      if (Get.isRegistered<SearchRecentStore>()) {
+        await Get.find<SearchRecentStore>().clearAll();
+      }
     } catch (_) {}
     Get.offAllNamed(AppRoutes.auth);
   }

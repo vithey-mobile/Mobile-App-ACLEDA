@@ -37,7 +37,10 @@ Use Flyway migration: `src/main/resources/db/migration/V1__init_profile_schema.s
 
 ## Indexes
 
-- `profiles.full_name` for search
-- Optional trigram index for full-text user search
+- `profiles.full_name` — btree for sort
+- `V2__search_indexes.sql` — `CREATE INDEX idx_profiles_full_name_trgm ON profiles USING gin (full_name gin_trgm_ops);` (requires `pg_trgm`)
+- Optional: btree on `university`, `major` for ILIKE fallback
 - `user_settings.fcm_token` if device token remains here; notification-service also owns device registration
+
+**Search spec:** `Prompt Backend/_shared/SEARCH.md`
 

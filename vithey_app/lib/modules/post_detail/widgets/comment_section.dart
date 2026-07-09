@@ -8,6 +8,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/post_detail/post_detail_controller.dart';
 import 'package:aub_connect_app/modules/post_detail/widgets/mention_user_box.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class CommentSection extends StatelessWidget {
   const CommentSection({super.key});
@@ -70,9 +71,9 @@ class CommentSection extends StatelessWidget {
                               style: TextStyle(color: context.appColors.muted, fontSize: 11),
                             ),
                             if (comment.isFailed)
-                              TextButton(
+                              shad.Button.ghost(
                                 onPressed: controller.submitComment,
-                                child: const Text('Retry'),
+                                child: const shad.Text('Retry'),
                               ),
                           ],
                         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class SettingsSwitchTile extends StatelessWidget {
   const SettingsSwitchTile({
@@ -35,11 +36,7 @@ class SettingsSwitchTile extends StatelessWidget {
                 ),
               ),
             ),
-            Switch.adaptive(
-              value: value,
-              onChanged: onChanged,
-              activeColor: context.scheme.primary,
-            ),
+            shad.Switch(value: value, onChanged: (v) => onChanged(v)),
           ],
         ),
       ),

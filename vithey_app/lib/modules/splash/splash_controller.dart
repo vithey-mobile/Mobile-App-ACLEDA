@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
+import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 
 class SplashController extends GetxController {
   SplashController(
@@ -68,6 +69,9 @@ class SplashController extends GetxController {
         const Duration(milliseconds: 500),
         onTimeout: () => false,
       );
+      if (startupDone) {
+        unawaited(AuthNavigation.bootstrapNotificationsIfNeeded());
+      }
       return startupDone ? AppRoutes.home : AppRoutes.startupSkills;
     }
 
