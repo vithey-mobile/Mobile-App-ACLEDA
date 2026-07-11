@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
+import 'package:aub_connect_app/data/fixtures/verification_fixtures.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 import 'package:aub_connect_app/data/services/student_verification_service.dart';
 
@@ -87,6 +88,9 @@ class StudentVerificationRepository {
 
   Future<StudentVerificationModel> _readMockVerification() async {
     final statusRaw = await _localStorage.readVerificationStatus();
+    if (statusRaw == null || statusRaw.isEmpty) {
+      return VerificationFixtures.demoVerified();
+    }
     final draft = await _localStorage.readVerificationDraft();
     final status = _parseStatus(statusRaw);
     return StudentVerificationModel(

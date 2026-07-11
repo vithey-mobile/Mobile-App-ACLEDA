@@ -1,10 +1,9 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
-import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/data/models/auth_result_model.dart';
 import 'package:aub_connect_app/data/models/auth_token_model.dart';
-import 'package:aub_connect_app/data/models/user_model.dart';
+import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
 
 class AuthRepository {
@@ -127,12 +126,7 @@ class AuthRepository {
     required String fullName,
   }) async {
     final result = AuthResultModel(
-      user: UserModel(
-        id: MockIdentities.mockUserId,
-        email: email,
-        fullName: fullName,
-        role: 'USER',
-      ),
+      user: UserFixtures.currentUser(email: email, fullName: fullName),
       tokens: const AuthTokenModel(
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',

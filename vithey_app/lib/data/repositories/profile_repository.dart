@@ -2,6 +2,9 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
+import 'package:aub_connect_app/data/fixtures/application_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/cv_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
@@ -63,12 +66,7 @@ class ProfileRepository {
   Future<CvMetadataModel?> getOwnCv() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      return const CvMetadataModel(
-        fileId: 'cv-1',
-        fileName: 'Vithey_User_CV.pdf',
-        mimeType: 'application/pdf',
-        downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      );
+      return CvFixtures.savedCv();
     }
     return _cvRepository.getSavedCv();
   }
@@ -84,7 +82,7 @@ class ProfileRepository {
   Future<List<AppliedJobSummary>> getMyAppliedJobs() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      return [];
+      return ApplicationFixtures.myAppliedJobs();
     }
     return _jobApplicationRepository.getMyAppliedJobs();
   }
@@ -137,7 +135,7 @@ class ProfileRepository {
   Future<String?> getApplicantCvPreviewUrl(String applicationId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      return _mockCvPreviewUrl;
+      return CvFixtures.previewUrl;
     }
     try {
       final application = await _jobApplicationRepository.getApplicationDetail(applicationId);
@@ -213,52 +211,11 @@ class ProfileRepository {
     );
   }
 
-  List<ApplicantExperienceEntry> _mockExperienceFor(String userId) {
-    if (userId == 'author-1') {
-      return const [
-        ApplicantExperienceEntry(
-          title: 'Principal Strategist',
-          organization: 'Global Tech Solutions',
-          period: '2021 - Present',
-          description:
-              'Led cross-functional product initiatives and mentored junior developers on campus hiring programs.',
-        ),
-        ApplicantExperienceEntry(
-          title: 'Senior Product Designer',
-          organization: 'FinStream Group',
-          period: '2018 - 2021',
-          description: 'Designed mobile banking experiences and collaborated with engineering on Flutter prototypes.',
-        ),
-      ];
-    }
-    return const [
-      ApplicantExperienceEntry(
-        title: 'Marketing Intern',
-        organization: 'Aeon Mall',
-        period: '2024 - Present',
-        description: 'Supported campaign analytics and social content for youth-focused retail events.',
-      ),
-    ];
-  }
+  List<ApplicantExperienceEntry> _mockExperienceFor(String userId) =>
+      ApplicationFixtures.experienceFor(userId);
 
-  List<ApplicantEducationEntry> _mockEducationFor(String userId) {
-    if (userId == 'author-1') {
-      return const [
-        ApplicantEducationEntry(
-          degree: 'B.S. Web Development',
-          school: 'American University of Phnom Penh',
-          period: '2018 - 2022',
-        ),
-      ];
-    }
-    return const [
-      ApplicantEducationEntry(
-        degree: 'B.A. Marketing',
-        school: 'American University of Phnom Penh',
-        period: '2022 - 2026',
-      ),
-    ];
-  }
+  List<ApplicantEducationEntry> _mockEducationFor(String userId) =>
+      ApplicationFixtures.educationFor(userId);
 
   List<ApplicantExperienceEntry> _experienceFromProfile(UserProfileModel? profile) {
     if (profile?.workplace == null) return const [];
@@ -285,8 +242,13 @@ class ProfileRepository {
     ];
   }
 
-  static const _mockCvPreviewUrl =
-      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+  static final _mockProfiles = Map<String, UserProfileModel>.from(UserFixtures.buildProfiles());
+
+  static final _defaultApplicants = List<JobApplicationModel>.from(ApplicationFixtures.defaultApplicants());
+
+  static final _mockApplicants = Map<String, List<JobApplicationModel>>.from(
+    ApplicationFixtures.buildApplicantsByJob(),
+  );
 
   Future<void> updateApplicationStatus(String applicationId, ApplicationStatus status) async {
     if (useMockApi) {
@@ -311,110 +273,4 @@ class ProfileRepository {
   UserProfileModel _withFollowState(UserProfileModel profile) {
     return profile.copyWith(isFollowing: _postRepository.isFollowing(profile.id));
   }
-
-  static final _mockProfiles = <String, UserProfileModel>{
-    MockIdentities.mockUserId: UserProfileModel(
-      id: MockIdentities.mockUserId,
-      fullName: 'Khorn Molika',
-      bio: 'Main character of my life is no one else but me.',
-      university: 'ACLEDA University of Business',
-      major: 'Computer Science',
-      graduationYear: 2026,
-      telegramLink: 'https://t.me/khornmolika',
-      facebookLink: 'https://facebook.com/khornmolika',
-      followerCount: 40000,
-      followingCount: 3800,
-      likeCount: 128000,
-      postCount: 31,
-      location: 'Kambol, Phnom Penh',
-      dateOfBirth: DateTime(2004, 8, 1),
-      workplace: 'Fintech Center',
-      education: const [
-        'Champuvorn High School',
-        'ACLEDA University of Business',
-        'Institute of Science and Technology Advanced',
-      ],
-      portfolioUrl: 'https://www.khornmolika.com',
-      phone: '098 765 432',
-      email: 'khornmolika@gmail.com',
-      skills: const [
-        ProfileSkill(name: 'Flutter', proficiency: 75),
-        ProfileSkill(name: 'HTML', proficiency: 50),
-        ProfileSkill(name: 'Springboot', proficiency: 60),
-        ProfileSkill(name: 'React', proficiency: 80),
-      ],
-    ),
-    'author-1': UserProfileModel(
-      id: 'author-1',
-      fullName: 'Heng Liza',
-      bio: 'Main character of my life is no one else but me.',
-      university: 'American University of Phnom Penh',
-      major: 'Web Development',
-      graduationYear: 2025,
-      followerCount: 8000,
-      followingCount: 1000,
-      likeCount: 10000,
-      postCount: 24,
-      location: 'Pur Senchey, Phnom Penh',
-      dateOfBirth: DateTime(2005, 9, 1),
-      workplace: 'Global Tech Solutions',
-      skills: const [
-        ProfileSkill(name: 'Flutter', proficiency: 75),
-        ProfileSkill(name: 'HTML', proficiency: 50),
-        ProfileSkill(name: 'Springboot', proficiency: 60),
-        ProfileSkill(name: 'React', proficiency: 80),
-      ],
-    ),
-    'author-2': const UserProfileModel(
-      id: 'author-2',
-      fullName: 'Molika Khorn',
-      bio: 'Content creator sharing student life and career tips.',
-      university: 'American University of Phnom Penh',
-      major: 'Media Communications',
-      graduationYear: 2026,
-      followerCount: 512,
-      followingCount: 180,
-      postCount: 31,
-    ),
-    'author-3': const UserProfileModel(
-      id: 'author-3',
-      fullName: 'AUB Career Center',
-      bio: 'Official career opportunities and hiring announcements for AUB students.',
-      university: 'American University of Phnom Penh',
-      major: 'Career Services',
-      followerCount: 890,
-      followingCount: 12,
-      postCount: 18,
-    ),
-  };
-
-  static final _defaultApplicants = <JobApplicationModel>[
-    JobApplicationModel(
-      id: 'app-1',
-      jobPostId: 'post-3',
-      applicantName: 'Heng Liza',
-      applicantUserId: 'author-1',
-      headline: 'Web Developer',
-      location: 'Pur Senchey, Phnom Penh',
-      email: 'hengliza81@gmail.com',
-      appliedAt: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
-      cvFileName: 'Heng_Liza_CV.pdf',
-      rank: 1,
-    ),
-    JobApplicationModel(
-      id: 'app-2',
-      jobPostId: 'post-3',
-      applicantName: 'Chan Dara',
-      applicantUserId: 'author-2',
-      headline: 'Marketing Major',
-      location: 'Phnom Penh',
-      email: 'chandara@example.com',
-      appliedAt: DateTime.now().subtract(const Duration(days: 2)),
-      cvFileName: 'Chan_Dara_CV.pdf',
-      status: ApplicationStatus.reviewed,
-      rank: 2,
-    ),
-  ];
-
-  static final _mockApplicants = <String, List<JobApplicationModel>>{};
 }

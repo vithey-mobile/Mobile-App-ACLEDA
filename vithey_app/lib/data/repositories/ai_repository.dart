@@ -1,5 +1,7 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/data/fixtures/ai_fixtures.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
+
 import 'package:aub_connect_app/data/services/ai_service.dart';
 
 class AiRepository {
@@ -53,7 +55,7 @@ class AiRepository {
         createdAt: DateTime.now(),
       );
       _mockMessages.putIfAbsent(sid, () => []).add(userMsg);
-      final reply = _mockReply(message, topic);
+      final reply = AiFixtures.mockReply(message, topic);
       final assistantMsg = AiMessage(
         id: 'a-${DateTime.now().millisecondsSinceEpoch}',
         sessionId: sid,
@@ -122,7 +124,7 @@ class AiRepository {
         }
       }
       if (userMessage == null) throw AiServiceException('No user message to regenerate from');
-      final reply = _mockRegenerateReply(userMessage.content);
+      final reply = AiFixtures.mockRegenerateReply(userMessage.content);
       final assistantMsg = AiMessage(
         id: 'a-${DateTime.now().millisecondsSinceEpoch}',
         sessionId: sessionId,
@@ -164,66 +166,6 @@ class AiRepository {
     }
   }
 
-  String _mockReply(String message, AiTopic? topic) {
-    final lower = message.toLowerCase();
-    if (lower.contains('cv') || lower.contains('resume') || topic == AiTopic.cv) {
-      return 'Here are CV tips for AUB students:\n\n'
-          '1. Keep it to one page with clear sections.\n'
-          '2. Highlight projects and campus leadership.\n'
-          '3. Tailor keywords to each job posting.\n\n'
-          'Would you like help reviewing a specific section?';
-    }
-    if (lower.contains('interview') || topic == AiTopic.interview) {
-      return 'For interview practice, try the STAR method:\n\n'
-          '- **Situation** — set the context\n'
-          '- **Task** — explain your responsibility\n'
-          '- **Action** — describe what you did\n'
-          '- **Result** — share the outcome\n\n'
-          'Example opener:\n\n'
-          '```text\n'
-          'Hi, I am Kimheang — a final-year CS student passionate about mobile apps.\n'
-          '```\n\n'
-          'Tell me the role and I can suggest sample questions.';
-    }
-    if (lower.contains('job') || lower.contains('apply') || topic == AiTopic.job) {
-      return 'When applying for campus jobs on Vithey:\n\n'
-          '• Read the full job description before submitting.\n'
-          '• Upload a PDF CV under 10 MB.\n'
-          '• Add a short note explaining your fit.\n\n'
-          'I can help you draft an application message.';
-    }
-    if (lower.contains('finance') || lower.contains('fee') || topic == AiTopic.finance) {
-      return 'I can explain how Vithey Finance works, but I cannot access your actual balance or payment records.\n\n'
-          'For real account details, open the Finance tab after student verification.';
-    }
-    return 'I\'m Vithey AI, your campus assistant. I can help with CVs, job applications, interview prep, student life, and general Finance guidance.\n\n'
-        'What would you like to explore?';
-  }
-
-  String _mockRegenerateReply(String userMessage) {
-    final lower = userMessage.toLowerCase();
-    if (lower.contains('cv') || lower.contains('resume')) {
-      return 'Here is an alternate CV outline:\n\n'
-          '```text\n'
-          'Contact | Summary | Education | Experience | Skills\n'
-          '```\n\n'
-          '- Lead with **measurable outcomes** (%, revenue, users).\n'
-          '- Use action verbs: *designed*, *led*, *improved*.\n'
-          '- Keep formatting consistent across sections.';
-    }
-    if (lower.contains('interview')) {
-      return 'Alternate interview prep:\n\n'
-          '1. Research the company mission and recent news.\n'
-          '2. Prepare 3 STAR stories.\n'
-          '3. Practice a 60-second self-introduction.\n\n'
-          'Want role-specific question drills?';
-    }
-    return 'Here is another perspective:\n\n'
-        '- Break the problem into smaller steps.\n'
-        '- Validate assumptions with a quick checklist.\n'
-        '- Ask me to go deeper on any step.';
-  }
-
   AiTopic? _inferTopic(String message) {
     final lower = message.toLowerCase();
     if (RegExp(r'\b(cv|resume)\b').hasMatch(lower)) return AiTopic.cv;
@@ -236,55 +178,12 @@ class AiRepository {
 
   void _ensureMockSeed() {
     if (_mockSessions.isNotEmpty) return;
-    _mockSessions.addAll([
-      AiSession(
-        id: 'ai-session-1',
-        title: 'CV review tips',
-        topic: AiTopic.cv,
-        isPinned: true,
-        preview: 'Here are CV tips for AUB students…',
-        updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+    _mockSessions.addAll(AiFixtures.buildSessions());
+    _mockMessages.addAll(
+      AiFixtures.buildMessages().map(
+        (key, value) => MapEntry(key, List<AiMessage>.from(value)),
       ),
-      AiSession(
-        id: 'ai-session-2',
-        title: 'Interview STAR method',
-        topic: AiTopic.interview,
-        preview: 'For interview practice, try the STAR method…',
-        updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ]);
-    _mockMessages['ai-session-1'] = [
-      AiMessage(
-        id: 'm1',
-        sessionId: 'ai-session-1',
-        role: AiMessageRole.user,
-        content: 'How can I improve my CV?',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2, minutes: 5)),
-      ),
-      AiMessage(
-        id: 'm2',
-        sessionId: 'ai-session-1',
-        role: AiMessageRole.assistant,
-        content: _mockReply('cv', AiTopic.cv),
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-    ];
-    _mockMessages['ai-session-2'] = [
-      AiMessage(
-        id: 'm3',
-        sessionId: 'ai-session-2',
-        role: AiMessageRole.user,
-        content: 'Help me prepare for interviews',
-        createdAt: DateTime.now().subtract(const Duration(days: 1, minutes: 10)),
-      ),
-      AiMessage(
-        id: 'm4',
-        sessionId: 'ai-session-2',
-        role: AiMessageRole.assistant,
-        content: _mockReply('interview', AiTopic.interview),
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
-    _sessionCounter = 2;
+    );
+    _sessionCounter = 3;
   }
 }

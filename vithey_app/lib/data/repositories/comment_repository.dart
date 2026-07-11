@@ -1,3 +1,4 @@
+import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -7,12 +8,7 @@ class CommentRepository {
 
   final PostRepository _postRepository;
 
-  static const mentionUsers = [
-    PostAuthor(id: 'author-1', fullName: 'Heng Liza'),
-    PostAuthor(id: 'author-2', fullName: 'Molika Khorn'),
-    PostAuthor(id: 'author-3', fullName: 'AUB Career Center'),
-    PostAuthor(id: 'author-4', fullName: 'Vithey Admin'),
-  ];
+  static final mentionUsers = UserFixtures.mentionUsers();
 
   Future<List<CommentModel>> fetchComments({
     required String postId,

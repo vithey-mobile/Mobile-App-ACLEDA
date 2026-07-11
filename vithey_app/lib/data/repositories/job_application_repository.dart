@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/data/fixtures/application_fixtures.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -38,10 +39,19 @@ class JobApplicationRepository {
 
   static final _mockAppliedJobs = <String>{};
   static final _mockApplicationDetails = <String, ApplicationDetailModel>{};
+  static var _mockSeeded = false;
 
   bool get useMockApi => _flags.useMockApi;
 
+  void _ensureMockSeed() {
+    if (_mockSeeded) return;
+    _mockSeeded = true;
+    _mockAppliedJobs.addAll(ApplicationFixtures.seedAppliedJobPostIds());
+    _mockApplicationDetails.addAll(ApplicationFixtures.buildApplicationDetails());
+  }
+
   Future<JobEligibilityResult> loadJobEligibility(String jobPostId) async {
+    if (useMockApi) _ensureMockSeed();
     final job = await _postRepository.fetchPost(jobPostId);
     if (job == null) {
       return const JobEligibilityResult(
@@ -89,7 +99,10 @@ class JobApplicationRepository {
   }
 
   Future<String?> findApplicationIdForJob(String jobPostId) async {
-    if (useMockApi) return _mockApplicationIdForJob(jobPostId);
+    if (useMockApi) {
+      _ensureMockSeed();
+      return _mockApplicationIdForJob(jobPostId);
+    }
     try {
       final applications = await _applicationService.listApplications(jobPostId: jobPostId, limit: 1);
       if (applications.isEmpty) return null;
@@ -154,6 +167,7 @@ class JobApplicationRepository {
   Future<ApplicationDetailModel> getApplicationDetail(String applicationId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      _ensureMockSeed();
       final cached = _mockApplicationDetails[applicationId];
       if (cached != null) return cached;
       return ApplicationDetailModel(
@@ -172,7 +186,12 @@ class JobApplicationRepository {
   }
 
   Future<List<JobApplicationModel>> getApplicantsForJob(String jobPostId) async {
-    if (useMockApi) return [];
+    if (useMockApi) {
+      _ensureMockSeed();
+      return List<JobApplicationModel>.from(
+        ApplicationFixtures.buildApplicantsByJob()[jobPostId] ?? ApplicationFixtures.defaultApplicants(),
+      );
+    }
     final applications = await _applicationService.listApplications(jobPostId: jobPostId);
     return applications.asMap().entries.map((entry) {
       final index = entry.key;
@@ -194,7 +213,10 @@ class JobApplicationRepository {
   }
 
   Future<List<AppliedJobSummary>> getMyAppliedJobs() async {
-    if (useMockApi) return [];
+    if (useMockApi) {
+      _ensureMockSeed();
+      return ApplicationFixtures.myAppliedJobs();
+    }
     final applications = await _applicationService.listApplications();
     final summaries = <AppliedJobSummary>[];
     for (final app in applications) {
@@ -225,13 +247,19 @@ class JobApplicationRepository {
   }
 
   Future<Set<String>> getAppliedJobPostIds() async {
-    if (useMockApi) return Set<String>.from(_mockAppliedJobs);
+    if (useMockApi) {
+      _ensureMockSeed();
+      return Set<String>.from(_mockAppliedJobs);
+    }
     final applications = await _applicationService.listApplications();
     return applications.map((app) => app.jobPostId).toSet();
   }
 
   Future<bool> hasUserApplied(String jobPostId) async {
-    if (useMockApi) return _mockAppliedJobs.contains(jobPostId);
+    if (useMockApi) {
+      _ensureMockSeed();
+      return _mockAppliedJobs.contains(jobPostId);
+    }
     return _applicationService.hasApplied(jobPostId);
   }
 
@@ -269,6 +297,7 @@ class JobApplicationRepository {
 
   /// Demo helper — cycles mock status for testing UI variants.
   void setMockApplicationStatus(String applicationId, ApplicationStatus status) {
+    _ensureMockSeed();
     final existing = _mockApplicationDetails[applicationId];
     if (existing == null) return;
     final now = DateTime.now();

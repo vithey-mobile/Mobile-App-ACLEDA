@@ -17,23 +17,40 @@ flutter pub get
 flutter run
 ```
 
-### Android emulator API URL
+### UI-only development (no backend)
 
-Edit `.env`:
+The default `.env.example` is set up for mock data so the Flutter UI can run without the backend. Login/register accepts any email and password, and the repositories serve mock feed, profile, finance, chat, notifications, search, and AI data.
+
+```env
+APP_ENV=dev
+API_BASE_URL=http://10.0.2.2:8080/api/v1
+USE_MOCK_AUTH=true
+USE_MOCK_API=true
+USE_MOCK_CHAT=true
+USE_MOCK_NOTIFICATIONS=true
+USE_MOCK_SEARCH=true
+USE_MOCK_AI=true
+```
+
+### Real API testing
+
+Keep the API integration code unchanged and switch `.env` flags when testing against the gateway:
+
+```env
+USE_MOCK_AUTH=false
+USE_MOCK_API=false
+USE_MOCK_CHAT=false
+USE_MOCK_NOTIFICATIONS=false
+USE_MOCK_SEARCH=false
+USE_MOCK_AI=false
+```
+
+For Android emulator API calls, use `10.0.2.2` instead of `localhost`:
 
 ```env
 API_BASE_URL=http://10.0.2.2:8080/api/v1
+WS_BASE_URL=ws://10.0.2.2:8080/ws
 ```
-
-### Mock auth (UI dev without backend)
-
-```env
-USE_MOCK_AUTH=true
-```
-
-Set `USE_MOCK_AUTH=false` when testing real login against the gateway.
-
-Set `USE_MOCK_API=false` when testing the real posts feed against the gateway.
 
 ### Physical device on same Wi‑Fi
 

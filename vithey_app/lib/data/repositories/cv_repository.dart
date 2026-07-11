@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/data/fixtures/cv_fixtures.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/services/upload_service.dart';
@@ -25,20 +26,12 @@ class CvRepository {
 
   bool get useMockApi => _flags.useMockApi;
 
-  CvMetadataModel? _mockSavedCv = const CvMetadataModel(
-    fileId: 'cv-1',
-    fileName: 'Vithey_User_CV.pdf',
-    mimeType: 'application/pdf',
-    downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-  );
-
-  static const _mockCvPreviewUrl =
-      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+  CvMetadataModel? _mockSavedCv = CvFixtures.savedCv();
 
   Future<String?> getApplicantCvDownloadUrl(String applicationId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      return _mockCvPreviewUrl;
+      return CvFixtures.previewUrl;
     }
     final response = await _api.get<Map<String, dynamic>>(
       ApiEndpoints.jobApplicationCvPreview(applicationId),

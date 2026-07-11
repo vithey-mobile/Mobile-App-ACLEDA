@@ -1,6 +1,8 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
+import 'package:aub_connect_app/data/fixtures/comment_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/post_fixtures.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
@@ -25,8 +27,17 @@ class PostRepository {
   final _mockComments = <String, List<CommentModel>>{};
   final _followedAuthors = <String>{};
   final _reactedPosts = <String>{};
+  var _mockSeeded = false;
 
   String get _mockUserId => _currentUser.userId;
+
+  void _ensureMockSeed() {
+    if (_mockSeeded) return;
+    _mockSeeded = true;
+    for (final entry in CommentFixtures.buildComments().entries) {
+      _mockComments[entry.key] = List<CommentModel>.from(entry.value);
+    }
+  }
 
   Future<FeedPageResult> fetchUserPosts({
     required String userId,
@@ -36,10 +47,12 @@ class PostRepository {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      final all = <FeedPost>[];
-      for (var p = 0; p < 2; p++) {
-        all.addAll(_buildMockFeed(page: p));
-      }
+      _ensureMockSeed();
+      final all = PostFixtures.allPosts(
+        currentUserId: _mockUserId,
+        reactedPosts: _reactedPosts,
+        followedAuthors: _followedAuthors,
+      );
       List<FeedPost> typed;
       if (userId == _mockUserId) {
         typed = all.where((p) => p.type == type).map((p) {
@@ -81,8 +94,14 @@ class PostRepository {
   Future<FeedPageResult> fetchFeed({required int page, int limit = 10}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
+      _ensureMockSeed();
       if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
-      final posts = _buildMockFeed(page: page);
+      final posts = PostFixtures.feedPage(
+        page: page,
+        currentUserId: _mockUserId,
+        reactedPosts: _reactedPosts,
+        followedAuthors: _followedAuthors,
+      );
       return FeedPageResult(posts: posts, hasMore: page < 2);
     }
 
@@ -125,12 +144,13 @@ class PostRepository {
   Future<FeedPost?> fetchPost(String postId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      for (var page = 0; page < 2; page++) {
-        for (final item in _buildMockFeed(page: page)) {
-          if (item.id == postId) return item;
-        }
-      }
-      return null;
+      _ensureMockSeed();
+      return PostFixtures.findPost(
+        postId,
+        currentUserId: _mockUserId,
+        reactedPosts: _reactedPosts,
+        followedAuthors: _followedAuthors,
+      );
     }
     return _postService.fetchPost(postId, currentUserId: _mockUserId);
   }
@@ -138,6 +158,7 @@ class PostRepository {
   Future<List<CommentModel>> fetchComments(String postId, {int page = 1}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      _ensureMockSeed();
       return List<CommentModel>.from(_mockComments[postId] ?? []);
     }
     return _postService.fetchComments(postId: postId, page: page, limit: 20);
@@ -210,73 +231,5 @@ class PostRepository {
 
   Future<void> savePrivately(String postId) async {
     await Future<void>.delayed(const Duration(milliseconds: 400));
-  }
-
-  List<FeedPost> _buildMockFeed({required int page}) {
-    final base = page * 3;
-    return [
-      _mockPoster(id: 'post-${base + 1}', authorName: 'Heng Liza', seed: base + 1),
-      _mockVideo(id: 'post-${base + 2}', authorName: 'Molika Khorn', seed: base + 2),
-      _mockJob(id: 'post-${base + 3}', authorName: 'AUB Career Center', seed: base + 3),
-    ];
-  }
-
-  FeedPost _mockPoster({required String id, required String authorName, required int seed}) {
-    return FeedPost(
-      id: id,
-      type: PostType.poster,
-      author: PostAuthor(id: 'author-$seed', fullName: authorName),
-      content: 'Campus event this Friday! Join us for workshops and networking.',
-      mediaUrl: 'https://picsum.photos/seed/poster$seed/600/420',
-      createdAt: DateTime.now().subtract(Duration(hours: seed)),
-      reactionCount: 12 + seed,
-      commentCount: 3 + seed,
-      shareCount: seed,
-      userReacted: _reactedPosts.contains(id),
-      isFollowingAuthor: _followedAuthors.contains('author-$seed'),
-      currentUserId: _mockUserId,
-    );
-  }
-
-  FeedPost _mockVideo({required String id, required String authorName, required int seed}) {
-    return FeedPost(
-      id: id,
-      type: PostType.video,
-      author: PostAuthor(id: 'author-$seed', fullName: authorName),
-      content: 'Highlights from last week\'s student showcase.',
-      mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      thumbnailUrl: 'https://picsum.photos/seed/vthumb$seed/600/340',
-      durationSeconds: 95 + seed,
-      createdAt: DateTime.now().subtract(Duration(hours: seed * 2)),
-      reactionCount: 45 + seed,
-      commentCount: 8,
-      shareCount: 2,
-      userReacted: _reactedPosts.contains(id),
-      isFollowingAuthor: _followedAuthors.contains('author-$seed'),
-      currentUserId: _mockUserId,
-    );
-  }
-
-  FeedPost _mockJob({required String id, required String authorName, required int seed}) {
-    return FeedPost(
-      id: id,
-      type: PostType.job,
-      author: PostAuthor(id: 'author-$seed', fullName: authorName),
-      content: 'Job announcement! We are hiring interns for the summer program.',
-      mediaUrl: 'https://picsum.photos/seed/job$seed/600/400',
-      jobMeta: const JobMeta(
-        title: 'Marketing Intern',
-        description: 'Support campus campaigns and social media.',
-        deadline: null,
-      ),
-      applicantCount: 5 + seed,
-      createdAt: DateTime.now().subtract(Duration(days: seed)),
-      reactionCount: 20,
-      commentCount: 4,
-      shareCount: 1,
-      userReacted: _reactedPosts.contains(id),
-      isFollowingAuthor: _followedAuthors.contains('author-$seed'),
-      currentUserId: _mockUserId,
-    );
   }
 }

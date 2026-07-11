@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/data/local/isar/chat_isar_mapper.dart';
 import 'package:aub_connect_app/data/local/isar/isar_service.dart';
+import 'package:aub_connect_app/data/fixtures/chat_fixtures.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/chat_shared_content_model.dart';
@@ -130,18 +131,7 @@ class ChatRepository {
   Future<List<MessageRequestModel>> fetchMessageRequests() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      return [
-        MessageRequestModel(
-          id: 'req-1',
-          requester: const ChatParticipant(
-            id: 'author-4',
-            fullName: 'Sreynich Chan',
-            bio: 'Business student',
-          ),
-          initialMessage: 'Hi! I saw your post about the campus event.',
-          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-        ),
-      ];
+      return ChatFixtures.buildMessageRequests();
     }
     return [];
   }
@@ -149,12 +139,7 @@ class ChatRepository {
   Future<List<ChatParticipant>> fetchRecentContacts() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      return const [
-        ChatParticipant(id: 'author-1', fullName: 'Heng Liza', isOnline: true),
-        ChatParticipant(id: 'author-5', fullName: 'Meas Lily', isOnline: true),
-        ChatParticipant(id: 'author-7', fullName: 'Moeng Kimheang', isOnline: true),
-        ChatParticipant(id: 'author-6', fullName: 'Ponloeng Bora'),
-      ];
+      return ChatFixtures.recentContacts();
     }
     return [];
   }
@@ -439,104 +424,12 @@ class ChatRepository {
   Future<void> _ensureMockSeed() async {
     if (_mockConversations.isNotEmpty) return;
 
-    _mockConversations.addAll([
-      ConversationModel(
-        id: 'conv-meas',
-        participant: const ChatParticipant(id: 'author-5', fullName: 'Meas Lily', isOnline: true),
-        lastMessagePreview: '',
-        updatedAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        unreadCount: 3,
-        isTyping: true,
-      ),
-      ConversationModel(
-        id: 'conv-bora',
-        participant: const ChatParticipant(id: 'author-6', fullName: 'Ponloeng Bora'),
-        lastMessagePreview: "Hey! what's sub",
-        updatedAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        unreadCount: 0,
-        lastMessageIsOwn: true,
-        lastMessageStatus: MessageDeliveryStatus.read,
-      ),
-      ConversationModel(
-        id: 'conv-heng',
-        participant: const ChatParticipant(id: 'author-1', fullName: 'Heng Liza', isOnline: true),
-        lastMessagePreview: "I'm looking for a job",
-        updatedAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        unreadCount: 0,
-        lastMessageIsOwn: false,
-      ),
-      ConversationModel(
-        id: 'conv-moeng',
-        participant: const ChatParticipant(id: 'author-7', fullName: 'Moeng Kimheang'),
-        lastMessagePreview: 'I checked it already nothing to modify on my side.',
-        updatedAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        unreadCount: 0,
-        lastMessageIsOwn: true,
-        lastMessageStatus: MessageDeliveryStatus.read,
-      ),
-    ]);
+    _mockConversations.addAll(ChatFixtures.buildConversations());
+    final seededMessages = ChatFixtures.buildMessages(currentUserId: currentUserId);
+    for (final entry in seededMessages.entries) {
+      _mockMessages[entry.key] = List<ChatMessage>.from(entry.value);
+    }
 
-    _mockMessages['conv-heng'] = [
-      ChatMessage(
-        id: 'm1',
-        conversationId: 'conv-heng',
-        senderId: 'author-1',
-        text: "I'm looking for a job position at your company.",
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      ChatMessage(
-        id: 'm2',
-        conversationId: 'conv-heng',
-        senderId: currentUserId,
-        text: 'Sure! Send me your CV when you are ready.',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 35)),
-        isOwn: true,
-        status: MessageDeliveryStatus.read,
-      ),
-      ChatMessage(
-        id: 'm3',
-        conversationId: 'conv-heng',
-        senderId: 'author-1',
-        text: "I'm looking for a job",
-        createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-      ),
-    ];
-
-    _mockMessages['conv-bora'] = [
-      ChatMessage(
-        id: 'm4',
-        conversationId: 'conv-bora',
-        senderId: currentUserId,
-        text: "Hey! what's sub",
-        createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        isOwn: true,
-        status: MessageDeliveryStatus.read,
-      ),
-    ];
-
-    _mockMessages['conv-moeng'] = [
-      ChatMessage(
-        id: 'm5',
-        conversationId: 'conv-moeng',
-        senderId: currentUserId,
-        text: 'I checked it already nothing to modify on my side.',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        isOwn: true,
-        status: MessageDeliveryStatus.read,
-      ),
-    ];
-
-    _mockMessages['conv-meas'] = [
-      ChatMessage(
-        id: 'm6',
-        conversationId: 'conv-meas',
-        senderId: 'author-5',
-        text: 'Are you free this afternoon?',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 10)),
-      ),
-    ];
-
-    // Seed Isar from mock
     await _isar.upsertConversations(
       _mockConversations.map(ChatIsarMapper.toLocalConversation).toList(),
     );
@@ -566,49 +459,7 @@ class ChatRepository {
         content.links.isNotEmpty;
   }
 
-  ChatSharedContent _mockSharedContent() {
-    return ChatSharedContent(
-      imageUrls: List.generate(6, (i) => 'https://picsum.photos/seed/chat-media-$i/300/300'),
-      videoUrls: List.generate(6, (i) => 'https://picsum.photos/seed/chat-video-$i/300/300'),
-      files: [
-        ChatSharedFile(
-          name: 'Heng_Liza_CV.pdf',
-          sizeLabel: '120 KB',
-          sharedAt: _mockFileDate,
-        ),
-        ChatSharedFile(
-          name: 'Kim_John_CV.pdf',
-          sizeLabel: '98 KB',
-          sharedAt: _mockFileDate,
-        ),
-        ChatSharedFile(
-          name: 'Patel_Sita_CV.pdf',
-          sizeLabel: '110 KB',
-          sharedAt: _mockFileDate,
-        ),
-      ],
-      links: [
-        ChatSharedLink(
-          url: 'https://t.me/acledarecruitment',
-          sharedAt: _mockLinkDateJan,
-          title: 'ACLEDA Recruitment',
-          description:
-              "Please join ACLEDA recruitment's official Telegram channel to get more Job Announcement updates.",
-        ),
-        ChatSharedLink(
-          url: 'https://t.me/acledarecruitment',
-          sharedAt: _mockLinkDateFeb,
-          title: 'ACLEDA Recruitment',
-          description:
-              "Please join ACLEDA recruitment's official Telegram channel to get more Job Announcement updates.",
-        ),
-      ],
-    );
-  }
-
-  static final _mockFileDate = DateTime(2025, 10, 26, 11, 14);
-  static final _mockLinkDateJan = DateTime(2026, 1, 12);
-  static final _mockLinkDateFeb = DateTime(2026, 2, 3);
+  ChatSharedContent _mockSharedContent() => ChatFixtures.sharedContent();
 
   ChatSharedContent _parseSharedContentFromMessages(List<ChatMessage> messages) {
     final imageUrls = <String>{};
