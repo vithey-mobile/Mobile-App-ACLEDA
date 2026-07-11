@@ -10,10 +10,76 @@ AUB student mobile app — social feed, jobs, finance, chat, AI chatbot, notific
 
 ## Setup
 
+### Clone and run (another machine)
+
+```powershell
+git clone <your-repo-url>
+cd vithey_app
+copy .env.example .env
+flutter pub get
+flutter emulators --launch Medium_Phone_API_36.1   # or plug in a phone
+flutter run
+```
+
+**Still required on every machine (not in GitHub):**
+- Flutter SDK (`flutter doctor` should be mostly green)
+- JDK 17+ available on `PATH` / `JAVA_HOME` (do **not** hardcode a PC path in `gradle.properties`)
+- Android SDK + an emulator **or** a physical Android phone with USB debugging
+- On Windows: Developer Mode enabled (for Flutter plugin symlinks)
+
+`.env` is gitignored. Always copy from `.env.example` after clone. Mock flags in `.env.example` mean UI works without a backend.
+
+### Option A: VS Code (recommended — no Android Studio)
+
+1. Install [VS Code](https://code.visualstudio.com/)
+2. Install extensions (VS Code will prompt when you open this folder):
+   - **Flutter** (`Dart-Code.flutter`)
+   - **Dart** (`Dart-Code.dart-code`)
+3. One-time SDK setup (Android Studio **not** required):
+
 ```powershell
 cd "D:\project\Acleda Mobile App\vithey_app"
 copy .env.example .env
 flutter pub get
+flutter doctor
+```
+
+If `flutter doctor` shows **cmdline-tools component is missing**, install command-line tools only:
+
+1. Download [Android command-line tools](https://developer.android.com/studio#command-line-tools-only)
+2. Extract and place at `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latest\`
+3. Set environment variable `ANDROID_HOME` = `%LOCALAPPDATA%\Android\Sdk`
+4. Add to `Path`: `%ANDROID_HOME%\platform-tools` and `%ANDROID_HOME%\cmdline-tools\latest\bin`
+5. Run `.\scripts\setup-android-sdk.ps1` to accept licenses and install packages
+
+### Run from VS Code
+
+1. **Enable Windows Developer Mode** (required for Flutter plugins/symlinks):
+   - Open `ms-settings:developers` → turn on **Developer Mode**
+2. Start the Android emulator:
+
+```powershell
+flutter emulators --launch Medium_Phone_API_36.1
+```
+
+2. In VS Code: **Run and Debug** (F5) → choose **Vithey (Android emulator)**
+
+Or from terminal:
+
+```powershell
+cd "D:\project\Acleda Mobile App\vithey_app"
+flutter run
+```
+
+> **Note:** This is a mobile app (Isar, secure storage, camera, etc.). Chrome/web is **not** supported. Use Android emulator or a physical Android device.
+
+### Option B: Terminal only
+
+```powershell
+cd "D:\project\Acleda Mobile App\vithey_app"
+copy .env.example .env
+flutter pub get
+flutter emulators --launch Medium_Phone_API_36.1
 flutter run
 ```
 

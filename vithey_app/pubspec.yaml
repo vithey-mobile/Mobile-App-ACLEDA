@@ -22,7 +22,7 @@ dependencies:
   shimmer: ^3.0.0
   connectivity_plus: ^5.0.2
   logger: ^2.0.2
-  file_picker: ^6.1.1
+  file_picker: ^8.1.0
   image_picker: ^1.0.7
   video_player: ^2.8.2
   open_filex: ^4.4.0
