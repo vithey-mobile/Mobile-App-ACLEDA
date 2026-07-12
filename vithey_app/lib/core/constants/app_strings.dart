@@ -20,6 +20,8 @@ class AppStrings {
   static const password = 'Password';
   static const fullName = 'Full Name';
   static const phoneNumber = 'Phone Number';
+  static const confirmPassword = 'Confirm Password';
+  static const dateOfBirth = 'Date of Birth';
   static const signIn = 'Sign In';
   static const signUp = 'Sign Up';
   static const signInWith = 'Sign in with';

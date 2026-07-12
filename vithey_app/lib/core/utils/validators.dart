@@ -49,4 +49,21 @@ class Validators {
     }
     return null;
   }
+
+  static String? confirmPassword(String? value, String password) {
+    if (value == null || value.isEmpty) {
+      return 'Confirm password is required';
+    }
+    if (value != password) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  static String? dateOfBirth(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Date of birth is required';
+    }
+    return null;
+  }
 }

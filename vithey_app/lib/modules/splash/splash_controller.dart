@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
@@ -10,10 +11,12 @@ class SplashController extends GetxController {
   SplashController(
     this._secureStorage,
     this._localStorage,
+    this._featureFlags,
   );
 
   final SecureStorageService _secureStorage;
   final LocalStorageService _localStorage;
+  final FeatureFlags _featureFlags;
 
   static const _splashDuration = Duration(seconds: 2);
 
@@ -50,6 +53,11 @@ class SplashController extends GetxController {
   }
 
   Future<String> _resolveNextRouteLocal() async {
+    // Dev-only override: always preview Splash → Onboarding → Auth.
+    if (_featureFlags.forceShowOnboarding) {
+      return AppRoutes.onboarding;
+    }
+
     final token = await _secureStorage.readAccessToken().timeout(
       const Duration(milliseconds: 500),
       onTimeout: () => null,

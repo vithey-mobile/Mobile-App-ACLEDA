@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 
 /// Reusable text field with validation and password toggle.
+///
+/// **Focus:** label, border, icons, and hint turn primary.
+/// Fill and typed text stay on their normal colors.
+///
+/// **Error:** shown only after [FieldErrors.activate] + form validate.
+/// Cleared when another area is tapped or when any field is focused.
 class CustomTextField extends StatefulWidget {
   const CustomTextField({
     super.key,
@@ -15,6 +23,8 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.onChanged,
     this.textInputAction,
+    this.readOnly = false,
+    this.onTap,
   });
 
   final TextEditingController controller;
@@ -27,54 +37,181 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final ValueChanged<String>? onChanged;
   final TextInputAction? textInputAction;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  late final FocusNode _focusNode;
+  late bool _obscure;
   String? _errorText;
 
-  void _validate() {
-    if (widget.validator == null) return;
-    setState(() => _errorText = widget.validator!(widget.controller.text));
+  static const _radius = BorderRadius.all(Radius.circular(12));
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.obscureText;
+    _focusNode = FocusNode()..addListener(_onFocusChange);
   }
 
-  List<shad.InputFeature> _buildFeatures() {
-    return [
-      if (widget.prefixIcon != null)
-        shad.InputFeature.leading(Icon(widget.prefixIcon, size: 18)),
-      if (widget.obscureText) shad.InputFeature.passwordToggle(),
-    ];
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) {
+      // Focusing any field clears every error on this form.
+      FieldErrors.clear(context);
+    }
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _setErrorText(String? error) {
+    if (_errorText == error) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _errorText = error);
+    });
+  }
+
+  Color _chromeColor({
+    required bool focused,
+    required bool hasError,
+    required Color muted,
+    required Color focusColor,
+  }) {
+    if (hasError) return AppColors.error;
+    if (focused) return focusColor;
+    return muted;
+  }
+
+  Color _labelColor({
+    required bool focused,
+    required bool hasError,
+    required Color heading,
+    required Color focusColor,
+  }) {
+    if (hasError) return AppColors.error;
+    if (focused) return focusColor;
+    return heading;
   }
 
   @override
   Widget build(BuildContext context) {
+    final focused = _focusNode.hasFocus;
+    final hasError = _errorText != null && _errorText!.isNotEmpty;
+    final muted = context.appColors.muted;
+    final heading = context.appColors.heading;
+    final fill = context.appColors.inputFill;
+    final idleBorder = context.appColors.border;
+    final focusColor = context.scheme.primary;
+    final chrome = _chromeColor(
+      focused: focused,
+      hasError: hasError,
+      muted: muted,
+      focusColor: focusColor,
+    );
+    final labelColor = _labelColor(
+      focused: focused,
+      hasError: hasError,
+      heading: heading,
+      focusColor: focusColor,
+    );
+
+    OutlineInputBorder border(Color color, {double width = 1}) {
+      return OutlineInputBorder(
+        borderRadius: _radius,
+        borderSide: BorderSide(color: color, width: width),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          shad.Text(widget.label!),
+          Text(
+            widget.label!,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: labelColor,
+            ),
+          ),
           const SizedBox(height: 6),
         ],
-        shad.TextField(
+        TextFormField(
           controller: widget.controller,
-          hintText: widget.hint,
-          obscureText: widget.obscureText,
+          focusNode: _focusNode,
+          obscureText: widget.obscureText && _obscure,
           maxLines: widget.maxLines,
           keyboardType: widget.keyboardType,
           textInputAction: widget.textInputAction,
-          features: _buildFeatures(),
+          autovalidateMode: AutovalidateMode.disabled,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
+          style: TextStyle(
+            fontSize: 15,
+            color: heading, // typed text stays normal
+          ),
+          cursorColor: focusColor,
+          validator: (value) {
+            final allow = FieldErrors.show(context);
+            final error =
+                allow ? widget.validator?.call(value) : null;
+            _setErrorText(error);
+            return error;
+          },
           onChanged: (value) {
             widget.onChanged?.call(value);
-            if (_errorText != null) _validate();
           },
-          onSubmitted: (_) => _validate(),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: fill,
+            hintText: widget.hint,
+            hintStyle: TextStyle(
+              color: chrome,
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: widget.prefixIcon == null
+                ? null
+                : Icon(widget.prefixIcon, size: 20, color: chrome),
+            suffixIcon: widget.obscureText
+                ? IconButton(
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                      color: chrome,
+                    ),
+                  )
+                : null,
+            errorStyle: const TextStyle(
+              color: AppColors.error,
+              fontSize: 12,
+            ),
+            border: border(
+              hasError ? AppColors.error : idleBorder,
+            ),
+            enabledBorder: border(
+              hasError ? AppColors.error : idleBorder,
+            ),
+            focusedBorder: border(
+              hasError ? AppColors.error : focusColor,
+              width: 1.5,
+            ),
+            errorBorder: border(AppColors.error),
+            focusedErrorBorder: border(AppColors.error, width: 1.5),
+          ),
         ),
-        if (_errorText != null && _errorText!.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text(_errorText!, style: const TextStyle(color: Colors.red, fontSize: 12)),
-        ],
       ],
     );
   }

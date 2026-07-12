@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
@@ -66,6 +67,7 @@ class SplashBinding extends Bindings {
       SplashController(
         Get.find<SecureStorageService>(),
         Get.find<LocalStorageService>(),
+        Get.find<FeatureFlags>(),
       ),
     );
   }

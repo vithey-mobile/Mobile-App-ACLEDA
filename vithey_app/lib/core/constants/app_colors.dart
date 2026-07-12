@@ -5,7 +5,8 @@ class AppColors {
 
   static const primary = Color(0xFF08B9B3);
   static const primaryLight = Color(0xFF2FC5C1);
-  static const secondary = Color(0xFF00A896);
+  static const secondary = Color(0xFF03B03C);
+  static const secondaryLight = Color(0xFF25CA2E);
   static const accent = Color(0xFFFFB703);
 
   static const success = Color(0xFF2E7D32);
@@ -36,11 +37,21 @@ class AppColors {
   static const onboardingPlaceholder = Color(0xFFE0F2F1);
 
   static const authHeaderTeal = Color(0xFF2FC5C1);
+  /// Legacy baked light-teal (light mode). Prefer [waveRearOn].
   static const authWaveRear = Color(0xFF6AD6D2);
   static const authHeading = Color(0xFF303236);
   static const authMuted = Color(0xFF78909C);
   static const authInputFill = Color(0xFFF5F5F5);
   static const authBorder = Color(0xFFE0E0E0);
+
+  /// Light-teal wave = header teal at 50% opacity over [background].
+  /// Follows light/dark sheet or page base automatically.
+  static Color waveRearOn(Color background) {
+    return Color.alphaBlend(
+      authHeaderTeal.withValues(alpha: 0.50),
+      background,
+    );
+  }
 
   static const lightBackground = Color(0xFFFFFFFF);
   static const lightSurface = Color(0xFFFFFFFF);

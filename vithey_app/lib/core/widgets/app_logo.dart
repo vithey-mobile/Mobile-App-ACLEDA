@@ -17,8 +17,8 @@ class AppLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = Image.asset(
       AppAssets.logoApp,
-      width: onWhiteCircle ? size * 0.64 : size,
-      height: onWhiteCircle ? size * 0.64 : size,
+      width: onWhiteCircle ? size * 0.86 : size,
+      height: onWhiteCircle ? size * 0.86 : size,
       fit: BoxFit.contain,
     );
 

@@ -26,18 +26,21 @@ class OnboardingController extends GetxController {
 
   final slides = const [
     OnboardingSlide(
-      title: 'Student Community & Social Feed',
-      description: 'Connect with peers, share updates, and stay informed about campus life.',
+      title: 'Connect with Your Campus Community',
+      description:
+          'Discover posts, connect with friends, and stay updated.',
       imageAsset: 'assets/images/onboarding/onboarding_1.png',
     ),
     OnboardingSlide(
       title: 'Jobs & Career Growth',
-      description: 'Discover job posts, apply with your CV, and connect with opportunities on campus.',
+      description:
+          'Discover job posts, apply with your CV, and connect with opportunities on campus.',
       imageAsset: 'assets/images/onboarding/onboarding_2.png',
     ),
     OnboardingSlide(
       title: 'Finance, Chat & AI Support',
-      description: 'Track tuition payments, chat privately, and get AI help for study and career.',
+      description:
+          'Track tuition payments, chat privately, and get AI help for study and career.',
       imageAsset: 'assets/images/onboarding/onboarding_3.png',
     ),
   ];
@@ -46,7 +49,8 @@ class OnboardingController extends GetxController {
 
   void next() {
     if (currentPage.value < totalPages - 1) {
-      pageController.nextPage(duration: 300.milliseconds, curve: Curves.easeInOut);
+      pageController.nextPage(
+          duration: 300.milliseconds, curve: Curves.easeInOut);
     } else {
       finish();
     }

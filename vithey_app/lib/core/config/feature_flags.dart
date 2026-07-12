@@ -45,5 +45,10 @@ class FeatureFlags {
   /// Demo-only controls (mock status cycle, etc.) — hidden in production builds.
   bool get showMockDevTools => !isProduction && useMockApi;
 
+  /// Dev-only: Splash always opens Onboarding, ignoring token / completed flag.
+  /// Set `FORCE_SHOW_ONBOARDING=false` in `.env` when done testing.
+  bool get forceShowOnboarding =>
+      !isProduction && _isTrue(dotenv.env['FORCE_SHOW_ONBOARDING']);
+
   AppEnvironment get environment => _config.environment;
 }
