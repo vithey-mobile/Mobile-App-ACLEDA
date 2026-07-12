@@ -7,6 +7,7 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_switch_tile.dart';
+import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsHomeScreen extends GetView<SettingsController> {
@@ -30,13 +31,13 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Account',
                   onTap: () => Get.toNamed(AppRoutes.settingsAccount),
                 ),
-                const Divider(height: 1),
+                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.lock_outline,
                   label: 'Privacy',
                   onTap: () => Get.toNamed(AppRoutes.settingsPrivacy),
                 ),
-                const Divider(height: 1),
+                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.language,
                   label: 'Language',
@@ -53,13 +54,13 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Notifications',
                   onTap: () => Get.toNamed(AppRoutes.notifications),
                 ),
-                const Divider(height: 1),
+                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.security,
                   label: 'Security',
                   onTap: () => Get.toNamed(AppRoutes.settingsSecurity),
                 ),
-                const Divider(height: 1),
+                const SettingsTileDivider(),
                 SettingsSwitchTile(
                   icon: Icons.dark_mode_outlined,
                   label: 'Dark Mode',
@@ -76,7 +77,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Help Center',
                   onTap: () => Get.toNamed(AppRoutes.settingsHelpCenter),
                 ),
-                const Divider(height: 1),
+                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.info_outline,
                   label: 'About',
@@ -106,7 +107,11 @@ class _CardGroup extends StatelessWidget {
           color: context.appColors.cardSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: context.appColors.subtleShadow,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Column(children: children)),

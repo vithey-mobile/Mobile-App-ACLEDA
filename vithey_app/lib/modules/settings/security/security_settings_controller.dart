@@ -39,6 +39,7 @@ class SecuritySettingsController extends GetxController {
       title: 'Sign Out Everywhere',
       message: 'This will sign you out from all devices except this one. You will need to sign in again on other devices.',
       confirmLabel: 'Sign Out Everywhere',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
     Get.snackbar('Vithey', 'Sign out all devices is not available yet');

@@ -94,9 +94,10 @@ class SettingsController extends GetxController {
   Future<void> logout() async {
     final confirmed = await showConfirmDialog(
       context: Get.context!,
-      title: 'Log out',
+      title: 'Logout',
       message: 'Are you sure you want to log out of Vithey?',
-      confirmLabel: 'Log out',
+      confirmLabel: 'Logout',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
 

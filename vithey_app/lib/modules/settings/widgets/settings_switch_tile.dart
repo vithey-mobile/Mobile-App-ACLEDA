@@ -21,10 +21,10 @@ class SettingsSwitchTile extends StatelessWidget {
     return Material(
       color: context.appColors.cardSurface,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, color: context.appColors.muted, size: 22),
+            Icon(icon, color: context.scheme.primary, size: 22),
             const SizedBox(width: 14),
             Expanded(
               child: Text(

@@ -36,7 +36,7 @@ Backend prompts: `Prompt Backend/services/user-profile-service/`
 | Own profile — Jobs | `Own Profile (CV).png` |
 | Own profile — Applied Jobs | `Own Profile (Applied Job).png` |
 | Visitor profile — About | `View Profile (About).png` |
-| Edit personal info | `Profile (Edit info).png` |
+| Edit personal info | `Profile (Update Information).png` |
 | Application list (owner) | `Application list screen.png` |
 | Applicant detail / CV | `Job List Detail.png` |
 | Feedback submitted | `Feed back submitted.png` |
@@ -82,7 +82,7 @@ Job application flow: [`../job_apply/README.md`](../job_apply/README.md).
 | Videos | `type=VIDEO` thumbnail list |
 | Jobs | `type=JOB` cards; owner **View List** / visitor **Apply** |
 | Applied Jobs | Current user's submitted applications |
-| Edit info | Owner edit form — v1 fields per `06.profile_api_backend.md` |
+| Update Information | Owner edit form — v1 fields per `06.profile_api_backend.md` |
 | Applicants | Owner-only list per job post |
 | Applicant detail | Experience/education timeline + decisions |
 
@@ -121,7 +121,7 @@ lib/modules/profile/
 - [ ] Videos: play overlay thumbnail cards
 - [ ] Jobs owner: "5 Application" badge + View List
 - [ ] Applied Jobs empty state matches reference
-- [ ] Edit personal info matches `Profile (Edit info).png`
+- [ ] Edit personal info matches `Profile (Update Information).png`
 - [ ] Application list matches `Application list screen.png`
 - [ ] `flutter analyze` zero errors
 

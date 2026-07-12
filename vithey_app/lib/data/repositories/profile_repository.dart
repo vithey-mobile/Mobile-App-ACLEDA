@@ -88,6 +88,7 @@ class ProfileRepository {
   }
 
   Future<UserProfileModel> updateProfile({
+    String? fullName,
     String? bio,
     String? location,
     String? workplace,
@@ -97,6 +98,12 @@ class ProfileRepository {
     String? university,
     String? major,
     int? graduationYear,
+    String? telegramLink,
+    String? facebookLink,
+    String? avatarUrl,
+    List<String>? education,
+    List<ProfileSkill>? skills,
+    DateTime? dateOfBirth,
   }) async {
     final fields = <String, dynamic>{
       if (bio != null) 'bio': bio,
@@ -108,14 +115,22 @@ class ProfileRepository {
       if (university != null) 'university': university,
       if (major != null) 'major': major,
       if (graduationYear != null) 'graduation_year': graduationYear,
+      if (fullName != null) 'full_name': fullName,
+      if (telegramLink != null) 'telegram_link': telegramLink,
+      if (facebookLink != null) 'facebook_link': facebookLink,
     };
-    if (fields.isEmpty) {
+    if (fields.isEmpty &&
+        education == null &&
+        skills == null &&
+        dateOfBirth == null &&
+        avatarUrl == null) {
       return getProfile(currentUserId);
     }
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       final current = _mockProfiles[currentUserId]!;
       final updated = current.copyWith(
+        fullName: fullName ?? current.fullName,
         bio: bio ?? current.bio,
         location: location ?? current.location,
         workplace: workplace ?? current.workplace,
@@ -125,6 +140,12 @@ class ProfileRepository {
         university: university ?? current.university,
         major: major ?? current.major,
         graduationYear: graduationYear ?? current.graduationYear,
+        telegramLink: telegramLink ?? current.telegramLink,
+        facebookLink: facebookLink ?? current.facebookLink,
+        avatarUrl: avatarUrl ?? current.avatarUrl,
+        education: education ?? current.education,
+        skills: skills ?? current.skills,
+        dateOfBirth: dateOfBirth ?? current.dateOfBirth,
       );
       _mockProfiles[currentUserId] = updated;
       return updated;

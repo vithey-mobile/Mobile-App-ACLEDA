@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
-import 'package:aub_connect_app/core/widgets/custom_button.dart';
-import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class AccountSettingsController extends GetxController {
   AccountSettingsController(this._profileRepository);
@@ -17,9 +16,6 @@ class AccountSettingsController extends GetxController {
   final hasError = false.obs;
   final errorMessage = ''.obs;
   final isUploadingAvatar = false.obs;
-
-  final email = 'vithey.user@aub.edu.kh'.obs;
-  final phone = '+855 12 345 678'.obs;
 
   @override
   void onInit() {
@@ -40,15 +36,16 @@ class AccountSettingsController extends GetxController {
     }
   }
 
-  String get academicInfo {
-    final p = profile.value;
-    if (p == null) return '—';
-    final parts = <String>[
-      if (p.major != null) p.major!,
-      if (p.graduationYear != null) 'Class of ${p.graduationYear}',
-      if (p.university != null) p.university!,
-    ];
-    return parts.isEmpty ? 'Not set' : parts.join(' · ');
+  String formatDateOfBirth(DateTime? date) {
+    if (date == null) return '';
+    return DateFormat('MMMM dd, yyyy').format(date);
+  }
+
+  Future<void> openLink(String? url) async {
+    if (url == null || url.trim().isEmpty) return;
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Future<void> changeAvatar() async {
@@ -68,63 +65,10 @@ class AccountSettingsController extends GetxController {
     }
   }
 
-  void openEditInfo() {
-    final p = profile.value;
-    if (p == null) return;
-
-    final nameController = TextEditingController(text: p.fullName);
-    final bioController = TextEditingController(text: p.bio ?? '');
-    final universityController = TextEditingController(text: p.university ?? '');
-    final majorController = TextEditingController(text: p.major ?? '');
-    final yearController = TextEditingController(text: p.graduationYear?.toString() ?? '');
-
-    Get.bottomSheet(
-      SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Edit Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                CustomTextField(controller: nameController, label: 'Full Name'),
-                const SizedBox(height: 12),
-                CustomTextField(controller: bioController, label: 'Bio', maxLines: 2),
-                const SizedBox(height: 12),
-                CustomTextField(controller: universityController, label: 'University'),
-                const SizedBox(height: 12),
-                CustomTextField(controller: majorController, label: 'Major'),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: yearController,
-                  label: 'Graduation Year',
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 20),
-                CustomButton(
-                  label: 'Save',
-                  onPressed: () {
-                    profile.value = p.copyWith(
-                      fullName: nameController.text.trim(),
-                      bio: bioController.text.trim(),
-                      university: universityController.text.trim(),
-                      major: majorController.text.trim(),
-                      graduationYear: int.tryParse(yearController.text.trim()),
-                    );
-                    Get.back();
-                    Get.snackbar('Vithey', 'Profile updated');
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: Get.context!.scheme.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    );
+  Future<void> openEditInfo() async {
+    final updated = await Get.toNamed(AppRoutes.settingsEditAccount);
+    if (updated == true) {
+      await loadAccount();
+    }
   }
 }

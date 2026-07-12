@@ -36,6 +36,8 @@ import 'package:aub_connect_app/modules/settings/about/about_binding.dart';
 import 'package:aub_connect_app/modules/settings/about/about_screen.dart';
 import 'package:aub_connect_app/modules/settings/account/account_settings_binding.dart';
 import 'package:aub_connect_app/modules/settings/account/account_settings_screen.dart';
+import 'package:aub_connect_app/modules/settings/account/edit_account_settings_binding.dart';
+import 'package:aub_connect_app/modules/settings/account/edit_account_settings_screen.dart';
 import 'package:aub_connect_app/modules/settings/change_password/change_password_binding.dart';
 import 'package:aub_connect_app/modules/settings/change_password/change_password_screen.dart';
 import 'package:aub_connect_app/modules/settings/help_center/help_center_binding.dart';
@@ -249,6 +251,11 @@ class AppPages {
       name: AppRoutes.settingsAccount,
       page: () => const AccountSettingsScreen(),
       binding: AccountSettingsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.settingsEditAccount,
+      page: () => const EditAccountSettingsScreen(),
+      binding: EditAccountSettingsBinding(),
     ),
     GetPage(
       name: AppRoutes.settingsPrivacy,

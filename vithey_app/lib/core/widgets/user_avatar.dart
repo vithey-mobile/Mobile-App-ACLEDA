@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -18,11 +20,13 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final initials = _initials(name);
     if (imageUrl != null && imageUrl!.isNotEmpty) {
+      final ImageProvider<Object> provider = imageUrl!.startsWith('http')
+          ? CachedNetworkImageProvider(imageUrl!)
+          : FileImage(File(imageUrl!)) as ImageProvider<Object>;
       return CircleAvatar(
         radius: radius,
-        backgroundImage: CachedNetworkImageProvider(imageUrl!),
+        backgroundImage: provider,
         onBackgroundImageError: (_, __) {},
-        child: imageUrl == null ? Text(initials) : null,
       );
     }
     return CircleAvatar(
