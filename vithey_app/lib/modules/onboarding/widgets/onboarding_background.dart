@@ -18,10 +18,6 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// - close bend: light teal holds 60%→75%, teal at 80% (teal dipped a bit lower)
 /// - light teal: lowest at 95%, then flat through 100% (no rise)
 /// - 100%: teal risen up; light teal stable from 95%
-///
-/// Backups:
-/// - [onboarding_background.backup.dart.bak] — early 4-point wave
-/// - [onboarding_background.before_stagger.dart.bak] — before 60%/80% stagger
 class OnboardingBackground extends StatelessWidget {
   const OnboardingBackground({super.key});
 
