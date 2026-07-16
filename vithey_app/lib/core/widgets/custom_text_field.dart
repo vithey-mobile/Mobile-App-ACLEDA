@@ -59,6 +59,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ],
         shad.TextField(
           controller: widget.controller,
+          // `hintText` is autofill-only in shadcn_flutter; `placeholder` is
+          // what actually renders in the empty field.
+          placeholder: widget.hint != null ? shad.Text(widget.hint!) : null,
           hintText: widget.hint,
           obscureText: widget.obscureText,
           maxLines: widget.maxLines,

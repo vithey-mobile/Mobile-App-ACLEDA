@@ -42,6 +42,8 @@ import 'package:aub_connect_app/modules/settings/change_password/change_password
 import 'package:aub_connect_app/modules/settings/change_password/change_password_screen.dart';
 import 'package:aub_connect_app/modules/settings/help_center/help_center_binding.dart';
 import 'package:aub_connect_app/modules/settings/help_center/help_center_screen.dart';
+import 'package:aub_connect_app/modules/settings/notification_preferences/notification_preferences_binding.dart';
+import 'package:aub_connect_app/modules/settings/notification_preferences/notification_preferences_screen.dart';
 import 'package:aub_connect_app/modules/settings/privacy/privacy_settings_binding.dart';
 import 'package:aub_connect_app/modules/settings/privacy/privacy_settings_screen.dart';
 import 'package:aub_connect_app/modules/settings/privacy/privacy_practices_screen.dart';
@@ -265,6 +267,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.settingsPrivacyPractices,
       page: () => const PrivacyPracticesScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.settingsNotifications,
+      page: () => const NotificationPreferencesScreen(),
+      binding: NotificationPreferencesBinding(),
     ),
     GetPage(
       name: AppRoutes.settingsSecurity,

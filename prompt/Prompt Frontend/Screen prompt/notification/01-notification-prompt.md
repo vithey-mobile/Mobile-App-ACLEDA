@@ -15,6 +15,7 @@
 | 3 | [`03.notification_fcm_local.md`](03.notification_fcm_local.md) | Firebase Messaging + flutter_local_notifications |
 | 4 | [`04.notification_isar_offline.md`](04.notification_isar_offline.md) | Isar offline cache |
 | 5 | [`05.notification_api_backend.md`](05.notification_api_backend.md) | REST API, RabbitMQ events, Firebase Admin |
+| 6 | [`06.notification_page_redesign.md`](06.notification_page_redesign.md) | Card-style visual redesign of the inbox |
 
 ## Quick summary
 

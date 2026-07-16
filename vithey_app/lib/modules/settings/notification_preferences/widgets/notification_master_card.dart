@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_preference_card.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+
+class NotificationMasterCard extends StatelessWidget {
+  const NotificationMasterCard({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = context.scheme.primary;
+
+    return NotificationPreferenceCard(
+      children: [
+        Semantics(
+          toggled: value,
+          label: 'Allow Notifications. Receive alerts from Vithey',
+          child: Material(
+            color: context.appColors.cardSurface,
+            child: InkWell(
+              onTap: () => onChanged(!value),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: primary.withValues(alpha: 0.10),
+                      ),
+                      child: Icon(
+                        Icons.notifications_none_outlined,
+                        color: primary,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Allow Notifications',
+                            style: TextStyle(
+                              color: context.appColors.heading,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Receive alerts from Vithey',
+                            style: TextStyle(
+                              color: context.appColors.muted,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    shad.Switch(value: value, onChanged: onChanged),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

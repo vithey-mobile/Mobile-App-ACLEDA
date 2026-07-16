@@ -15,7 +15,7 @@ enum NotificationType {
   system,
 }
 
-enum NotificationFilter { all, unread }
+enum NotificationFilter { all, read, unread }
 
 class NotificationActor {
   const NotificationActor({

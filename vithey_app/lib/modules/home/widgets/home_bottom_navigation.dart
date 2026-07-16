@@ -89,12 +89,16 @@ class _NavItem extends StatelessWidget {
       ],
     );
 
+    final showPill = selected && usePill;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: selected && usePill
+        // The pill adds its own vertical padding; skip the outer vertical
+        // padding then so the item still fits the 56px bar without overflow.
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: showPill ? 0 : 6),
+        child: showPill
             ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(

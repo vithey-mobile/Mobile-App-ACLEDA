@@ -13,6 +13,11 @@ class LocalStorageService {
   static const _privacyDataSharingKey = 'privacy_data_sharing';
   static const _privacyActivityTrackingKey = 'privacy_activity_tracking';
   static const _biometricEnabledKey = 'biometric_enabled';
+  static const _notificationsEnabledKey = 'notifications_enabled';
+  static const _notificationsChatKey = 'notifications_chat_messages';
+  static const _notificationsRemindersKey = 'notifications_reminders';
+  static const _notificationsAnnouncementsKey = 'notifications_announcements';
+  static const _notificationsAppUpdatesKey = 'notifications_app_updates';
 
   Future<String?> readThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -113,9 +118,15 @@ class LocalStorageService {
     bool? activityTracking,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    if (profileVisible != null) await prefs.setBool(_privacyProfileVisibleKey, profileVisible);
-    if (dataSharing != null) await prefs.setBool(_privacyDataSharingKey, dataSharing);
-    if (activityTracking != null) await prefs.setBool(_privacyActivityTrackingKey, activityTracking);
+    if (profileVisible != null) {
+      await prefs.setBool(_privacyProfileVisibleKey, profileVisible);
+    }
+    if (dataSharing != null) {
+      await prefs.setBool(_privacyDataSharingKey, dataSharing);
+    }
+    if (activityTracking != null) {
+      await prefs.setBool(_privacyActivityTrackingKey, activityTracking);
+    }
   }
 
   Future<bool> readBiometricEnabled() async {
@@ -126,6 +137,34 @@ class LocalStorageService {
   Future<void> saveBiometricEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_biometricEnabledKey, value);
+  }
+
+  Future<Map<String, bool>> readNotificationPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'enabled': prefs.getBool(_notificationsEnabledKey) ?? true,
+      'chat_messages': prefs.getBool(_notificationsChatKey) ?? true,
+      'reminders': prefs.getBool(_notificationsRemindersKey) ?? true,
+      'announcements': prefs.getBool(_notificationsAnnouncementsKey) ?? false,
+      'app_updates': prefs.getBool(_notificationsAppUpdatesKey) ?? true,
+    };
+  }
+
+  Future<void> saveNotificationPreferences({
+    required bool enabled,
+    required bool chatMessages,
+    required bool reminders,
+    required bool announcements,
+    required bool appUpdates,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await Future.wait([
+      prefs.setBool(_notificationsEnabledKey, enabled),
+      prefs.setBool(_notificationsChatKey, chatMessages),
+      prefs.setBool(_notificationsRemindersKey, reminders),
+      prefs.setBool(_notificationsAnnouncementsKey, announcements),
+      prefs.setBool(_notificationsAppUpdatesKey, appUpdates),
+    ]);
   }
 
   Future<void> clearSessionPreferences() async {

@@ -20,6 +20,7 @@ Deliver a production-quality notification experience comparable to **Facebook / 
 | Screen | Asset |
 |--------|-------|
 | Notification center | `Prompt Frontend/screen image/notification/notification.png` |
+| Notification page redesign | `Prompt Frontend/screen image/notification/notification_page.png` |
 
 ## Technology stack (mandatory)
 
@@ -102,6 +103,7 @@ Also supported (existing Vithey): `postMention`, `chatRequest`, `studentVerifica
 | 3 | [`03.notification_fcm_local.md`](03.notification_fcm_local.md) | FCM + flutter_local_notifications setup & handlers |
 | 4 | [`04.notification_isar_offline.md`](04.notification_isar_offline.md) | Isar schema, cache, dedupe, offline badge |
 | 5 | [`05.notification_api_backend.md`](05.notification_api_backend.md) | REST contract, events, Firebase Admin payload |
+| 6 | [`06.notification_page_redesign.md`](06.notification_page_redesign.md) | Card-style visual redesign — segmented pill, day groups, accent-bar cards |
 
 ## Feature matrix
 

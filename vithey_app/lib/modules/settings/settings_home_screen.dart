@@ -52,7 +52,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                 SettingsMenuTile(
                   icon: Icons.notifications_outlined,
                   label: 'Notifications',
-                  onTap: () => Get.toNamed(AppRoutes.notifications),
+                  onTap: () => Get.toNamed(AppRoutes.settingsNotifications),
                 ),
                 const SettingsTileDivider(),
                 SettingsMenuTile(
@@ -114,7 +114,9 @@ class _CardGroup extends StatelessWidget {
             ),
           ],
         ),
-        child: ClipRRect(borderRadius: BorderRadius.circular(12), child: Column(children: children)),
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Column(children: children)),
       ),
     );
   }

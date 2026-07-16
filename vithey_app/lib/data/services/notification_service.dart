@@ -11,14 +11,14 @@ class NotificationService {
   Future<NotificationPageResult> fetchNotifications({
     int page = 1,
     int limit = 20,
-    bool unreadOnly = false,
+    bool? isRead,
   }) async {
     final response = await _api.get<List<AppNotification>>(
       ApiEndpoints.notifications,
       queryParameters: {
         'page': page,
         'limit': limit,
-        if (unreadOnly) 'is_read': false,
+        if (isRead != null) 'is_read': isRead,
       },
       fromJson: (json) {
         final list = json is List
@@ -57,19 +57,22 @@ class NotificationService {
     return null;
   }
 
-  AppNotification parseNotification(Map<String, dynamic> json) => fromJson(json);
+  AppNotification parseNotification(Map<String, dynamic> json) =>
+      fromJson(json);
 
   static AppNotification fromJson(Map<String, dynamic> json) {
     return NotificationService._parseNotificationStatic(json);
   }
 
-  AppNotification _parseNotification(Map<String, dynamic> json) => fromJson(json);
+  AppNotification _parseNotification(Map<String, dynamic> json) =>
+      fromJson(json);
 
   static AppNotification _parseNotificationStatic(Map<String, dynamic> json) {
     final actorJson = json['actor'] as Map<String, dynamic>?;
     final destJson = json['destination'] as Map<String, dynamic>? ?? {};
     final event = json['event']?.toString();
-    final referenceId = destJson['reference_id']?.toString() ?? json['reference_id']?.toString();
+    final referenceId = destJson['reference_id']?.toString() ??
+        json['reference_id']?.toString();
 
     return AppNotification(
       id: json['id']?.toString() ?? json['notification_id']?.toString() ?? '',
@@ -84,10 +87,12 @@ class NotificationService {
               fullName: actorJson['full_name'] as String? ??
                   actorJson['fullName'] as String? ??
                   '',
-              avatarUrl: actorJson['avatar_url'] as String? ?? actorJson['avatarUrl'] as String?,
+              avatarUrl: actorJson['avatar_url'] as String? ??
+                  actorJson['avatarUrl'] as String?,
             ),
       destination: NotificationDestination(
-        referenceType: destJson['reference_type'] as String? ?? json['reference_type'] as String?,
+        referenceType: destJson['reference_type'] as String? ??
+            json['reference_type'] as String?,
         referenceId: referenceId,
         postId: destJson['post_id']?.toString() ?? referenceId,
         commentId: destJson['comment_id']?.toString(),
@@ -101,7 +106,8 @@ class NotificationService {
       ),
       isRead: json['is_read'] as bool? ?? false,
       dedupeKey: json['dedupe_key'] as String?,
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 
@@ -114,9 +120,12 @@ class NotificationService {
       'FOLLOW' => NotificationType.newFollower,
       'CHAT_REQUEST' => NotificationType.chatRequest,
       'CHAT' || 'CHAT_MESSAGE' => NotificationType.chatMessage,
-      'JOB' || 'JOB_APPLICATION' || 'JOB_STATUS' => event == 'job.application.status_changed'
-          ? NotificationType.jobApplicationStatus
-          : NotificationType.jobApplicationReceived,
+      'JOB' ||
+      'JOB_APPLICATION' ||
+      'JOB_STATUS' =>
+        event == 'job.application.status_changed'
+            ? NotificationType.jobApplicationStatus
+            : NotificationType.jobApplicationReceived,
       'PAYMENT' || 'PAYMENT_ALERT' => event == 'payment.overdue'
           ? NotificationType.paymentOverdue
           : NotificationType.paymentDue,
@@ -148,7 +157,8 @@ class NotificationService {
       fromJson: (_) {},
     );
     if (!response.isSuccess) {
-      throw NotificationServiceException(response.error?.message ?? 'Failed to mark read');
+      throw NotificationServiceException(
+          response.error?.message ?? 'Failed to mark read');
     }
   }
 
@@ -164,7 +174,8 @@ class NotificationService {
       },
     );
     if (!response.isSuccess) {
-      throw NotificationServiceException(response.error?.message ?? 'Failed to mark all read');
+      throw NotificationServiceException(
+          response.error?.message ?? 'Failed to mark all read');
     }
     return response.data ?? 0;
   }
@@ -175,7 +186,8 @@ class NotificationService {
       fromJson: (_) {},
     );
     if (!response.isSuccess) {
-      throw NotificationServiceException(response.error?.message ?? 'Failed to delete');
+      throw NotificationServiceException(
+          response.error?.message ?? 'Failed to delete');
     }
   }
 
@@ -192,7 +204,8 @@ class NotificationService {
       fromJson: (_) {},
     );
     if (!response.isSuccess) {
-      throw NotificationServiceException(response.error?.message ?? 'Failed to register device');
+      throw NotificationServiceException(
+          response.error?.message ?? 'Failed to register device');
     }
   }
 
@@ -202,7 +215,8 @@ class NotificationService {
       fromJson: (_) {},
     );
     if (!response.isSuccess) {
-      throw NotificationServiceException(response.error?.message ?? 'Failed to unregister device');
+      throw NotificationServiceException(
+          response.error?.message ?? 'Failed to unregister device');
     }
   }
 }

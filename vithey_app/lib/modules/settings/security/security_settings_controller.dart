@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
-import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 
 class SecuritySettingsController extends GetxController {
   SecuritySettingsController(this._localStorage);
@@ -24,28 +23,23 @@ class SecuritySettingsController extends GetxController {
   void openChangePassword() => Get.toNamed(AppRoutes.settingsChangePassword);
 
   void toggleTwoFactor(bool value) {
-    // Feature not available yet — switch stays off.
+    // Backend 2FA is not available yet — keep the switch off.
+    twoFactorEnabled.value = false;
+    if (value) {
+      Get.snackbar('Vithey', 'Two-factor authentication is coming soon');
+    }
   }
 
   Future<void> toggleBiometric(bool value) async {
-    if (value) return;
-    biometricEnabled.value = false;
-    await _localStorage.saveBiometricEnabled(false);
-  }
-
-  Future<void> signOutAllDevices() async {
-    final confirmed = await showConfirmDialog(
-      context: Get.context!,
-      title: 'Sign Out Everywhere',
-      message: 'This will sign you out from all devices except this one. You will need to sign in again on other devices.',
-      confirmLabel: 'Sign Out Everywhere',
-      variant: ConfirmDialogVariant.destructive,
-    );
-    if (confirmed != true) return;
-    Get.snackbar('Vithey', 'Sign out all devices is not available yet');
+    if (value && !biometricAvailable) {
+      biometricEnabled.value = false;
+      Get.snackbar('Vithey', 'Biometric login is coming soon');
+      return;
+    }
+    biometricEnabled.value = value;
+    await _localStorage.saveBiometricEnabled(value);
   }
 
   bool get twoFactorAvailable => false;
   bool get biometricAvailable => false;
-  bool get signOutAllDevicesAvailable => false;
 }
