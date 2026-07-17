@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CreatePostScheduleSheet {
-  static Future<DateTime?> pick(BuildContext context, {DateTime? initial}) async {
+  static Future<DateTime?> pick(BuildContext context,
+      {DateTime? initial}) async {
     final now = DateTime.now();
     final date = await showDatePicker(
       context: context,
@@ -15,7 +16,8 @@ class CreatePostScheduleSheet {
 
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(initial ?? now.add(const Duration(hours: 1))),
+      initialTime:
+          TimeOfDay.fromDateTime(initial ?? now.add(const Duration(hours: 1))),
       helpText: 'Schedule time',
     );
     if (time == null) return null;
@@ -23,5 +25,6 @@ class CreatePostScheduleSheet {
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
-  static String format(DateTime value) => DateFormat('MMM d, yyyy · h:mm a').format(value);
+  static String format(DateTime value) =>
+      DateFormat('MMM d, yyyy · h:mm a').format(value);
 }

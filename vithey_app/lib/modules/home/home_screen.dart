@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/create_post_composer.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_app_bar.dart';
@@ -13,28 +14,29 @@ class HomeScreen extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? context.appColors.bodyBackground
+          : context.scheme.surfaceContainerLow,
       appBar: const HomeAppBar(),
-      body: AppScreenBody(
-        child: Column(
-          children: [
-            CreatePostComposer(
+      body: Column(
+        children: [
+          ColoredBox(
+            color: context.appColors.cardSurface,
+            child: CreatePostComposer(
               onTapComposer: () => controller.openCreatePost(),
-              onTapGallery: () => controller.openCreatePost(),
+              onTapGallery: () =>
+                  controller.openCreatePost(type: PostType.poster),
             ),
-            const Expanded(child: MixedPostFeed()),
-          ],
-        ),
+          ),
+          const Expanded(child: MixedPostFeed()),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => controller.openCreatePost(),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Obx(
         () => HomeBottomNavigation(
           currentIndex: controller.currentTab.value,
           onTap: controller.onTabSelected,
+          floating: true,
         ),
       ),
     );

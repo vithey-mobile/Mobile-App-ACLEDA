@@ -22,7 +22,7 @@ class SearchController extends GetxController {
   final focusNode = FocusNode();
 
   final query = ''.obs;
-  final recentUsers = <SearchRecentUser>[].obs;
+  final recentItems = <SearchRecentItem>[].obs;
   final isLoadingRecents = true.obs;
   final isSearching = false.obs;
   final searchError = RxnString();
@@ -39,8 +39,14 @@ class SearchController extends GetxController {
 
   bool get showResults => query.value.trim().length >= 2;
   bool get showRecent => !showResults;
+  List<SearchRecentItem> get visibleRecentItems => pickUserForChat
+      ? recentItems.where((item) => item.isUser).toList()
+      : recentItems.toList();
   bool get hasResults =>
-      people.isNotEmpty || posts.isNotEmpty || jobs.isNotEmpty || videos.isNotEmpty;
+      people.isNotEmpty ||
+      posts.isNotEmpty ||
+      jobs.isNotEmpty ||
+      videos.isNotEmpty;
 
   @override
   void onInit() {
@@ -70,7 +76,7 @@ class SearchController extends GetxController {
     isLoadingRecents.value = true;
     try {
       await _repository.ensureDefaultRecents();
-      recentUsers.assignAll(await _repository.loadRecents());
+      recentItems.assignAll(await _repository.loadRecents());
     } finally {
       isLoadingRecents.value = false;
     }
@@ -90,12 +96,14 @@ class SearchController extends GetxController {
       return;
     }
 
-    _debounce = Timer(const Duration(milliseconds: 350), () => _runSearch(value.trim()));
+    _debounce = Timer(
+        const Duration(milliseconds: 350), () => _runSearch(value.trim()));
   }
 
   void _scheduleSearch(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 100), () => _runSearch(value.trim()));
+    _debounce = Timer(
+        const Duration(milliseconds: 100), () => _runSearch(value.trim()));
   }
 
   Future<void> _runSearch(String q) async {
@@ -125,31 +133,63 @@ class SearchController extends GetxController {
     focusNode.requestFocus();
   }
 
+  Future<void> submitSearch() async {
+    final text = searchController.text.trim();
+    if (text.isEmpty) return;
+    await _repository.addRecentQuery(text);
+    await _loadRecents();
+    _debounce?.cancel();
+    query.value = text;
+    if (text.length >= 2) {
+      await _runSearch(text);
+    }
+    focusNode.unfocus();
+  }
+
   Future<void> confirmClearRecents() async {
     final confirmed = await showConfirmDialog(
       context: Get.context!,
       title: 'Clear recent searches?',
-      message: "This won't affect your account history.",
+      message: 'Pinned items will be kept.',
       confirmLabel: 'Clear',
     );
     if (confirmed != true) return;
     await _repository.clearAllRecents();
-    recentUsers.clear();
+    await _loadRecents();
   }
 
-  Future<void> openRecentUser(SearchRecentUser user) async {
-    if (pickUserForChat) {
-      await _startChatWithUser(user.userId, user.fullName);
+  Future<void> openRecentItem(SearchRecentItem item) async {
+    if (!item.isUser) {
+      searchController.text = item.title;
+      searchController.selection =
+          TextSelection.collapsed(offset: item.title.length);
+      await _repository.addRecentQuery(item.title);
+      await _loadRecents();
+      _debounce?.cancel();
+      query.value = item.title;
+      if (item.title.length >= 2) await _runSearch(item.title);
       return;
     }
-    await _repository.addRecentUser(user.toSearchResult());
+
+    final userId = item.userId;
+    if (userId == null || userId.isEmpty) return;
+    if (pickUserForChat) {
+      await _startChatWithUser(userId, item.title);
+      return;
+    }
+    await _repository.addRecentUser(item.toSearchResult());
     await _loadRecents();
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: user.userId));
+    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: userId));
   }
 
-  Future<void> removeRecentUser(SearchRecentUser user) async {
-    await _repository.removeRecentUser(user.userId);
-    recentUsers.removeWhere((u) => u.userId == user.userId);
+  Future<void> toggleRecentPin(SearchRecentItem item) async {
+    await _repository.setRecentPinned(item.id, !item.isPinned);
+    await _loadRecents();
+  }
+
+  Future<void> removeRecent(SearchRecentItem item) async {
+    await _repository.removeRecent(item.id);
+    recentItems.removeWhere((value) => value.id == item.id);
   }
 
   Future<void> openPerson(UserSearchResult user) async {
@@ -183,17 +223,20 @@ class SearchController extends GetxController {
     final conversationId = await chatRepo.findOrCreateConversation(userId);
     if (pickUserForChat) {
       Get.until((route) => route.settings.name == AppRoutes.chat);
-      Get.toNamed(AppRoutes.chatDetail, arguments: ChatDetailArgs(conversationId: conversationId));
+      Get.toNamed(AppRoutes.chatDetail,
+          arguments: ChatDetailArgs(conversationId: conversationId));
       return;
     }
-    Get.toNamed(AppRoutes.chatDetail, arguments: ChatDetailArgs(conversationId: conversationId));
+    Get.toNamed(AppRoutes.chatDetail,
+        arguments: ChatDetailArgs(conversationId: conversationId));
   }
 
   void openSeeAll(SearchSeeAllCategory category) {
     if (pickUserForChat && category != SearchSeeAllCategory.people) return;
     Get.toNamed(
       AppRoutes.searchSeeAll,
-      arguments: SearchSeeAllArgs(category: category, query: query.value.trim()),
+      arguments:
+          SearchSeeAllArgs(category: category, query: query.value.trim()),
     );
   }
 

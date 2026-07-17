@@ -20,23 +20,26 @@ class FeedActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: Row(
         children: [
           _ActionButton(
-            icon: post.userReacted ? Icons.thumb_up : Icons.thumb_up_outlined,
-            label: post.reactionCount > 0 ? '${post.reactionCount}' : 'Like',
-            color: post.userReacted ? AppColors.primary : context.appColors.muted,
+            icon: post.userReacted
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            label: '${post.reactionCount}',
+            color:
+                post.userReacted ? AppColors.primary : context.appColors.muted,
             onTap: onLike,
           ),
           _ActionButton(
             icon: Icons.chat_bubble_outline,
-            label: post.commentCount > 0 ? '${post.commentCount}' : 'Comment',
+            label: '${post.commentCount}',
             onTap: onComment,
           ),
           _ActionButton(
-            icon: Icons.share_outlined,
-            label: post.shareCount > 0 ? '${post.shareCount}' : 'Share',
+            icon: Icons.link_rounded,
+            label: '${post.shareCount}',
             onTap: onShare,
           ),
         ],
@@ -60,18 +63,26 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 40),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, size: 18, color: color ?? context.appColors.muted),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(color: color ?? context.appColors.heading, fontSize: 13)),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color ?? context.appColors.muted,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
         ),

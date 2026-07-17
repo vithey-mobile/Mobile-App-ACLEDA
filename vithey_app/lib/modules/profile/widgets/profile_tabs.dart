@@ -30,10 +30,12 @@ class ProfileAboutTab extends StatelessWidget {
         children: [
           ProfileSkillsRow(skills: profile.skills),
           if (profile.skills.isNotEmpty) const SizedBox(height: 20),
-          ProfilePersonalDetails(profile: profile, isOwnProfile: controller.isOwnProfile),
+          ProfilePersonalDetails(
+              profile: profile, isOwnProfile: controller.isOwnProfile),
           if (profile.telegramLink != null || profile.facebookLink != null) ...[
             const SizedBox(height: 20),
-            const Text('Links', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Links',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
             if (profile.telegramLink != null)
               _LinkRow(label: 'Telegram', url: profile.telegramLink!),
@@ -50,21 +52,24 @@ class ProfilePostersTab extends StatelessWidget {
   const ProfilePostersTab({super.key});
 
   @override
-  Widget build(BuildContext context) => const _ProfilePostsTab(type: PostType.poster);
+  Widget build(BuildContext context) =>
+      const _ProfilePostsTab(type: PostType.poster);
 }
 
 class ProfileVideosTab extends StatelessWidget {
   const ProfileVideosTab({super.key});
 
   @override
-  Widget build(BuildContext context) => const _ProfilePostsTab(type: PostType.video);
+  Widget build(BuildContext context) =>
+      const _ProfilePostsTab(type: PostType.video);
 }
 
 class ProfileJobsTab extends StatelessWidget {
   const ProfileJobsTab({super.key});
 
   @override
-  Widget build(BuildContext context) => const _ProfilePostsTab(type: PostType.job);
+  Widget build(BuildContext context) =>
+      const _ProfilePostsTab(type: PostType.job);
 }
 
 class ProfileAppliedJobsTab extends StatelessWidget {
@@ -74,7 +79,8 @@ class ProfileAppliedJobsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ProfileController>();
     return Obx(() {
-      if (controller.appliedJobsLoading.value && controller.appliedJobs.isEmpty) {
+      if (controller.appliedJobsLoading.value &&
+          controller.appliedJobs.isEmpty) {
         return const LoadingWidget();
       }
       if (controller.appliedJobs.isEmpty) {
@@ -87,15 +93,18 @@ class ProfileAppliedJobsTab extends StatelessWidget {
       return ListView.builder(
         padding: const EdgeInsets.only(bottom: 100, top: 8),
         itemCount: controller.appliedJobs.length,
-        itemBuilder: (_, index) {
+        itemBuilder: (context, index) {
           final job = controller.appliedJobs[index];
           return ListTile(
-            title: Text(job.jobTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('${job.company} · ${RelativeTime.format(job.appliedAt)}'),
+            title: Text(job.jobTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle:
+                Text('${job.company} · ${RelativeTime.format(job.appliedAt)}'),
             trailing: _StatusPill(status: job.status),
             onTap: () => Get.toNamed(
               AppRoutes.applicationStatus,
-              arguments: ApplicationStatusArgs(applicationId: job.id, jobPostId: job.jobPostId),
+              arguments: ApplicationStatusArgs(
+                  applicationId: job.id, jobPostId: job.jobPostId),
             ),
           );
         },
@@ -123,7 +132,9 @@ class _StatusPill extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -137,14 +148,17 @@ class _ProfilePostsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ProfileController>();
     return Obx(() {
-      if (controller.tabLoading[type]!.value && controller.tabPosts[type]!.isEmpty) {
+      if (controller.tabLoading[type]!.value &&
+          controller.tabPosts[type]!.isEmpty) {
         return const LoadingWidget();
       }
       final posts = controller.tabPosts[type]!;
       if (posts.isEmpty) {
         return EmptyStateWidget(
           title: 'Nothing here yet',
-          subtitle: controller.isOwnProfile ? 'Create your first ${_label(type)}' : 'No ${_label(type)} yet',
+          subtitle: controller.isOwnProfile
+              ? 'Create your first ${_label(type)}'
+              : 'No ${_label(type)} yet',
         );
       }
 
@@ -185,6 +199,8 @@ class _ProfilePostsTab extends StatelessWidget {
             onShare: () {},
             onFollow: () {},
             onOpen: () => controller.openPost(post.id),
+            onEdit: () => controller.editPost(post),
+            onDelete: () => controller.deletePost(context, post),
           );
         },
       );
@@ -214,7 +230,8 @@ class _LinkRow extends StatelessWidget {
       title: Text(label),
       subtitle: Text(url, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: const Icon(Icons.open_in_new, size: 18),
-      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      onTap: () =>
+          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
     );
   }
 }

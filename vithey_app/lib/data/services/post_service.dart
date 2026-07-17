@@ -19,12 +19,14 @@ class PostService {
       fromJson: (json) {
         final list = json as List<dynamic>? ?? [];
         return list
-            .map((item) => FeedPost.fromJson(item as Map<String, dynamic>, currentUserId: currentUserId))
+            .map((item) => FeedPost.fromJson(item as Map<String, dynamic>,
+                currentUserId: currentUserId))
             .toList();
       },
     );
     if (!response.isSuccess || response.data == null) {
-      throw PostServiceException(response.error?.message ?? 'Failed to load feed');
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to load feed');
     }
     return response.data!;
   }
@@ -46,12 +48,14 @@ class PostService {
       fromJson: (json) {
         final list = json as List<dynamic>? ?? [];
         return list
-            .map((item) => FeedPost.fromJson(item as Map<String, dynamic>, currentUserId: currentUserId))
+            .map((item) => FeedPost.fromJson(item as Map<String, dynamic>,
+                currentUserId: currentUserId))
             .toList();
       },
     );
     if (!response.isSuccess || response.data == null) {
-      throw PostServiceException(response.error?.message ?? 'Failed to load user posts');
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to load user posts');
     }
     return response.data!;
   }
@@ -59,7 +63,8 @@ class PostService {
   Future<FeedPost> fetchPost(String postId, {String? currentUserId}) async {
     final response = await _api.get<FeedPost>(
       '${ApiEndpoints.posts}/$postId',
-      fromJson: (json) => FeedPost.fromJson(json as Map<String, dynamic>, currentUserId: currentUserId),
+      fromJson: (json) => FeedPost.fromJson(json as Map<String, dynamic>,
+          currentUserId: currentUserId),
     );
     if (!response.isSuccess || response.data == null) {
       throw PostServiceException(response.error?.message ?? 'Post not found');
@@ -109,11 +114,14 @@ class PostService {
       queryParameters: {'page': page, 'limit': limit},
       fromJson: (json) {
         final list = json as List<dynamic>? ?? [];
-        return list.map((item) => CommentModel.fromJson(item as Map<String, dynamic>)).toList();
+        return list
+            .map((item) => CommentModel.fromJson(item as Map<String, dynamic>))
+            .toList();
       },
     );
     if (!response.isSuccess || response.data == null) {
-      throw PostServiceException(response.error?.message ?? 'Failed to load comments');
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to load comments');
     }
     return response.data!;
   }
@@ -121,16 +129,53 @@ class PostService {
   Future<CommentModel> createComment({
     required String postId,
     required String text,
+    String? parentCommentId,
   }) async {
     final response = await _api.post<CommentModel>(
       ApiEndpoints.postComments(postId),
+      data: {
+        'text': text,
+        if (parentCommentId != null && parentCommentId.isNotEmpty)
+          'parent_comment_id': parentCommentId,
+      },
+      fromJson: (json) => CommentModel.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to post comment');
+    }
+    return response.data!;
+  }
+
+  Future<CommentModel> updateComment({
+    required String postId,
+    required String commentId,
+    required String text,
+  }) async {
+    final response = await _api.patch<CommentModel>(
+      ApiEndpoints.postCommentById(postId, commentId),
       data: {'text': text},
       fromJson: (json) => CommentModel.fromJson(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
-      throw PostServiceException(response.error?.message ?? 'Failed to post comment');
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to update comment');
     }
     return response.data!;
+  }
+
+  Future<void> deleteComment({
+    required String postId,
+    required String commentId,
+  }) async {
+    final response = await _api.delete<void>(
+      ApiEndpoints.postCommentById(postId, commentId),
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to delete comment');
+    }
   }
 
   Future<FeedPost> createPost({
@@ -148,14 +193,58 @@ class PostService {
         'content': content,
         if (mediaFileId != null) 'media_file_id': mediaFileId,
         if (jobMeta != null) 'job_meta': jobMeta,
-        if (scheduledAt != null) 'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+        if (scheduledAt != null)
+          'scheduled_at': scheduledAt.toUtc().toIso8601String(),
       },
-      fromJson: (json) => FeedPost.fromJson(json as Map<String, dynamic>, currentUserId: currentUserId),
+      fromJson: (json) => FeedPost.fromJson(json as Map<String, dynamic>,
+          currentUserId: currentUserId),
     );
     if (!response.isSuccess || response.data == null) {
-      throw PostServiceException(response.error?.message ?? 'Failed to create post');
+      throw PostServiceException(
+          response.error?.message ?? 'Failed to create post');
     }
     return response.data!;
+  }
+
+  Future<FeedPost> updatePost({
+    required String postId,
+    required String content,
+    String? mediaFileId,
+    bool removeMedia = false,
+    Map<String, dynamic>? jobMeta,
+    String? currentUserId,
+  }) async {
+    final response = await _api.patch<FeedPost>(
+      ApiEndpoints.postById(postId),
+      data: {
+        'content': content,
+        if (mediaFileId != null) 'media_file_id': mediaFileId,
+        if (removeMedia) 'remove_media': true,
+        if (jobMeta != null) 'job_meta': jobMeta,
+      },
+      fromJson: (json) => FeedPost.fromJson(
+        json as Map<String, dynamic>,
+        currentUserId: currentUserId,
+      ),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw PostServiceException(
+        response.error?.message ?? 'Failed to update post',
+      );
+    }
+    return response.data!;
+  }
+
+  Future<void> deletePost(String postId) async {
+    final response = await _api.delete<void>(
+      ApiEndpoints.postById(postId),
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw PostServiceException(
+        response.error?.message ?? 'Failed to delete post',
+      );
+    }
   }
 }
 

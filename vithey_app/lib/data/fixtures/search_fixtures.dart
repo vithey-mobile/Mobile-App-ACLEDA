@@ -6,22 +6,45 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 
 abstract final class SearchFixtures {
-  static List<SearchRecentUser> defaultRecents() {
+  static List<SearchRecentItem> defaultRecents() {
     return [
-      SearchRecentUser(
+      SearchRecentItem(
+        id: 'user:${MockIds.author1}',
+        type: SearchRecentType.user,
         userId: MockIds.author1,
-        fullName: UserFixtures.displayName(MockIds.author1),
-        visitedAt: MockClock.minutesAgo(5),
+        title: UserFixtures.displayName(MockIds.author1),
+        followerCount: 8000,
+        accessedAt: MockClock.minutesAgo(5),
+        isPinned: true,
+        pinnedAt: MockClock.minutesAgo(6),
       ),
-      SearchRecentUser(
+      SearchRecentItem(
+        id: 'user:${MockIds.currentUser}',
+        type: SearchRecentType.user,
         userId: MockIds.currentUser,
-        fullName: MockIdentities.mockUserFullName,
-        visitedAt: MockClock.hoursAgo(1),
+        title: MockIdentities.mockUserFullName,
+        followerCount: 40000,
+        accessedAt: MockClock.hoursAgo(1),
       ),
-      SearchRecentUser(
+      SearchRecentItem(
+        id: 'query:what is devops?',
+        type: SearchRecentType.query,
+        title: 'What is DevOps?',
+        accessedAt: MockClock.hoursAgo(2),
+      ),
+      SearchRecentItem(
+        id: 'user:${MockIds.author7}',
+        type: SearchRecentType.user,
         userId: MockIds.author7,
-        fullName: UserFixtures.displayName(MockIds.author7),
-        visitedAt: MockClock.hoursAgo(3),
+        title: UserFixtures.displayName(MockIds.author7),
+        followerCount: 4000,
+        accessedAt: MockClock.hoursAgo(3),
+      ),
+      SearchRecentItem(
+        id: 'query:job',
+        type: SearchRecentType.query,
+        title: 'Job',
+        accessedAt: MockClock.hoursAgo(4),
       ),
     ];
   }

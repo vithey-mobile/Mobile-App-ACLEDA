@@ -18,9 +18,18 @@ class CurrentUserService extends GetxService {
 
   String get userId => user.value?.id ?? MockIdentities.mockUserId;
 
-  String get displayName => user.value?.fullName ?? MockIdentities.mockUserFullName;
+  String get displayName =>
+      user.value?.fullName?.trim().isNotEmpty == true
+          ? user.value!.fullName!.trim()
+          : MockIdentities.mockUserFullName;
 
-  PostAuthor get postAuthor => PostAuthor(id: userId, fullName: displayName);
+  String? get avatarUrl => user.value?.avatarUrl;
+
+  PostAuthor get postAuthor => PostAuthor(
+        id: userId,
+        fullName: displayName,
+        avatarUrl: avatarUrl,
+      );
 
   bool get isAuthenticated => user.value != null;
 

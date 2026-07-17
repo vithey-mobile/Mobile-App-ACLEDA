@@ -1,5 +1,4 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
-import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/data/fixtures/comment_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/post_fixtures.dart';
@@ -25,6 +24,9 @@ class PostRepository {
   bool get useMockApi => _flags.useMockApi;
 
   final _mockComments = <String, List<CommentModel>>{};
+  final _mockCreatedPosts = <String, FeedPost>{};
+  final _mockPostOverrides = <String, FeedPost>{};
+  final _mockDeletedPostIds = <String>{};
   final _followedAuthors = <String>{};
   final _reactedPosts = <String>{};
   var _mockSeeded = false;
@@ -48,18 +50,21 @@ class PostRepository {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       _ensureMockSeed();
-      final all = PostFixtures.allPosts(
-        currentUserId: _mockUserId,
-        reactedPosts: _reactedPosts,
-        followedAuthors: _followedAuthors,
-      );
+      final all = _applyMockPostState([
+        ..._mockCreatedPosts.values,
+        ...PostFixtures.allPosts(
+          currentUserId: _mockUserId,
+          reactedPosts: _reactedPosts,
+          followedAuthors: _followedAuthors,
+        ),
+      ]);
       List<FeedPost> typed;
       if (userId == _mockUserId) {
         typed = all.where((p) => p.type == type).map((p) {
           return FeedPost(
             id: p.id,
             type: p.type,
-            author: PostAuthor(id: _mockUserId, fullName: MockIdentities.mockUserFullName),
+            author: _currentUser.postAuthor,
             content: p.content,
             mediaUrl: p.mediaUrl,
             thumbnailUrl: p.thumbnailUrl,
@@ -74,11 +79,13 @@ class PostRepository {
           );
         }).toList();
       } else {
-        typed = all.where((p) => p.author.id == userId && p.type == type).toList();
+        typed =
+            all.where((p) => p.author.id == userId && p.type == type).toList();
       }
       final start = (page - 1) * limit;
       final slice = typed.skip(start).take(limit).toList();
-      return FeedPageResult(posts: slice, hasMore: start + limit < typed.length);
+      return FeedPageResult(
+          posts: slice, hasMore: start + limit < typed.length);
     }
 
     final posts = await _postService.getUserPosts(
@@ -96,16 +103,21 @@ class PostRepository {
       await Future<void>.delayed(const Duration(milliseconds: 600));
       _ensureMockSeed();
       if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
-      final posts = PostFixtures.feedPage(
+      final fixturePosts = PostFixtures.feedPage(
         page: page,
         currentUserId: _mockUserId,
         reactedPosts: _reactedPosts,
         followedAuthors: _followedAuthors,
       );
+      final posts = _applyMockPostState([
+        if (page == 1) ..._mockCreatedPosts.values,
+        ...fixturePosts,
+      ]);
       return FeedPageResult(posts: posts, hasMore: page < 2);
     }
 
-    final posts = await _postService.fetchFeed(page: page, limit: limit, currentUserId: _mockUserId);
+    final posts = await _postService.fetchFeed(
+        page: page, limit: limit, currentUserId: _mockUserId);
     return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
   }
 
@@ -145,6 +157,9 @@ class PostRepository {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       _ensureMockSeed();
+      if (_mockDeletedPostIds.contains(postId)) return null;
+      final local = _mockCreatedPosts[postId] ?? _mockPostOverrides[postId];
+      if (local != null) return local;
       return PostFixtures.findPost(
         postId,
         currentUserId: _mockUserId,
@@ -155,7 +170,8 @@ class PostRepository {
     return _postService.fetchPost(postId, currentUserId: _mockUserId);
   }
 
-  Future<List<CommentModel>> fetchComments(String postId, {int page = 1}) async {
+  Future<List<CommentModel>> fetchComments(String postId,
+      {int page = 1}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       _ensureMockSeed();
@@ -168,6 +184,7 @@ class PostRepository {
     required String postId,
     required String text,
     required PostAuthor currentUser,
+    String? parentCommentId,
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -177,11 +194,77 @@ class PostRepository {
         author: currentUser,
         text: text,
         createdAt: DateTime.now(),
+        parentCommentId: parentCommentId,
       );
-      _mockComments.putIfAbsent(postId, () => []).insert(0, comment);
+      final list = _mockComments.putIfAbsent(postId, () => []);
+      if (parentCommentId == null || parentCommentId.isEmpty) {
+        list.insert(0, comment);
+      } else {
+        final insertAt = _replyInsertIndex(list, parentCommentId);
+        list.insert(insertAt, comment);
+      }
       return comment;
     }
-    return _postService.createComment(postId: postId, text: text);
+    return _postService.createComment(
+      postId: postId,
+      text: text,
+      parentCommentId: parentCommentId,
+    );
+  }
+
+  int _replyInsertIndex(List<CommentModel> list, String parentCommentId) {
+    final parentIndex = list.indexWhere((c) => c.id == parentCommentId);
+    if (parentIndex < 0) return 0;
+    var insertAt = parentIndex + 1;
+    while (insertAt < list.length &&
+        list[insertAt].parentCommentId == parentCommentId) {
+      insertAt++;
+    }
+    return insertAt;
+  }
+
+  Future<CommentModel> updateComment({
+    required String postId,
+    required String commentId,
+    required String text,
+  }) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+      _ensureMockSeed();
+      final list = _mockComments[postId];
+      if (list == null) {
+        throw PostServiceException('Comment not found');
+      }
+      final index = list.indexWhere((c) => c.id == commentId);
+      if (index < 0) {
+        throw PostServiceException('Comment not found');
+      }
+      final updated = list[index].copyWith(text: text);
+      list[index] = updated;
+      return updated;
+    }
+    return _postService.updateComment(
+      postId: postId,
+      commentId: commentId,
+      text: text,
+    );
+  }
+
+  Future<void> deleteComment({
+    required String postId,
+    required String commentId,
+  }) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      _ensureMockSeed();
+      final list = _mockComments[postId];
+      if (list == null) return;
+      list.removeWhere(
+        (c) => c.id == commentId || c.parentCommentId == commentId,
+      );
+      return;
+    }
+    await _postService.deleteComment(postId: postId, commentId: commentId);
   }
 
   Future<FeedPost> createPost({
@@ -193,20 +276,23 @@ class PostRepository {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 800));
+      final hasMedia = mediaFileId != null && mediaFileId.isNotEmpty;
       final post = FeedPost(
         id: 'post-${DateTime.now().millisecondsSinceEpoch}',
         type: type,
-        author: PostAuthor(id: _mockUserId, fullName: MockIdentities.mockUserFullName),
+        author: _currentUser.postAuthor,
         content: content,
-        mediaUrl: type == PostType.video
-            ? 'https://picsum.photos/seed/video/600/340'
-            : 'https://picsum.photos/seed/poster/600/400',
-        thumbnailUrl: 'https://picsum.photos/seed/thumb/600/340',
-        durationSeconds: type == PostType.video ? 125 : 0,
-        jobMeta: jobMeta ?? const JobMeta(title: 'New Job Opening'),
+        // Text-only posts must not invent a placeholder image.
+        mediaUrl: hasMedia ? mediaFileId : null,
+        thumbnailUrl: hasMedia ? mediaFileId : null,
+        durationSeconds: hasMedia && type == PostType.video ? 125 : 0,
+        jobMeta: type == PostType.job
+            ? (jobMeta ?? const JobMeta(title: 'Job announcement!'))
+            : const JobMeta(),
         createdAt: DateTime.now(),
         currentUserId: _mockUserId,
       );
+      _mockCreatedPosts[post.id] = post;
       return post;
     }
 
@@ -218,11 +304,86 @@ class PostRepository {
       jobMeta: jobMeta != null
           ? {
               if (jobMeta.title != null) 'title': jobMeta.title,
-              if (jobMeta.description != null) 'description': jobMeta.description,
+              if (jobMeta.description != null)
+                'description': jobMeta.description,
             }
           : null,
       currentUserId: _mockUserId,
     );
+  }
+
+  Future<FeedPost> updatePost({
+    required String postId,
+    required String content,
+    String? mediaFileId,
+    bool removeMedia = false,
+    JobMeta? jobMeta,
+  }) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      final current = await fetchPost(postId);
+      if (current == null) throw PostServiceException('Post not found');
+      if (!current.isOwnPost) {
+        throw PostServiceException('You can only edit your own post');
+      }
+      final mediaUrl = removeMedia ? null : (mediaFileId ?? current.mediaUrl);
+      final updated = current.copyWith(
+        content: content,
+        mediaUrl: mediaUrl,
+        thumbnailUrl: mediaUrl,
+        jobMeta: current.type == PostType.job ? jobMeta : const JobMeta(),
+      );
+      if (_mockCreatedPosts.containsKey(postId)) {
+        _mockCreatedPosts[postId] = updated;
+      } else {
+        _mockPostOverrides[postId] = updated;
+      }
+      return updated;
+    }
+
+    return _postService.updatePost(
+      postId: postId,
+      content: content,
+      mediaFileId: mediaFileId,
+      removeMedia: removeMedia,
+      jobMeta: jobMeta != null
+          ? {
+              if (jobMeta.title != null) 'title': jobMeta.title,
+              if (jobMeta.description != null)
+                'description': jobMeta.description,
+              if (jobMeta.requirement != null)
+                'requirement': jobMeta.requirement,
+            }
+          : null,
+      currentUserId: _mockUserId,
+    );
+  }
+
+  Future<void> deletePost(String postId) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      final current = await fetchPost(postId);
+      if (current == null) return;
+      if (!current.isOwnPost) {
+        throw PostServiceException('You can only delete your own post');
+      }
+      _mockDeletedPostIds.add(postId);
+      _mockCreatedPosts.remove(postId);
+      _mockPostOverrides.remove(postId);
+      _mockComments.remove(postId);
+      _reactedPosts.remove(postId);
+      return;
+    }
+    await _postService.deletePost(postId);
+  }
+
+  List<FeedPost> _applyMockPostState(List<FeedPost> posts) {
+    final seen = <String>{};
+    return posts
+        .where((post) =>
+            !_mockDeletedPostIds.contains(post.id) && seen.add(post.id))
+        .map((post) => _mockPostOverrides[post.id] ?? post)
+        .toList();
   }
 
   Future<void> sharePublicly(String postId) async {

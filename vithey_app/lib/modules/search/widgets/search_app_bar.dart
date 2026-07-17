@@ -33,42 +33,47 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
         tooltip: 'Back',
       ),
       titleSpacing: 0,
-      title: ValueListenableBuilder<TextEditingValue>(
-        valueListenable: controller,
-        builder: (context, value, _) {
-          return Semantics(
-            label: 'Search',
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              onChanged: onChanged,
-              onSubmitted: (_) => onSubmitted(),
-              style: TextStyle(color: colors.heading, fontSize: 16),
-              decoration: InputDecoration(
-                hintText: 'Search',
-                hintStyle: TextStyle(color: colors.muted),
-                filled: true,
-                fillColor: colors.inputFill,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(22),
-                  borderSide: BorderSide.none,
+      title: Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller,
+          builder: (context, value, _) {
+            return Semantics(
+              label: 'Search',
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                onChanged: onChanged,
+                onSubmitted: (_) => onSubmitted(),
+                style: TextStyle(color: colors.heading, fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: TextStyle(color: colors.muted),
+                  filled: true,
+                  fillColor: colors.inputFill,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(22),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: colors.muted, size: 22),
+                  suffixIcon: value.text.isNotEmpty
+                      ? IconButton(
+                          icon:
+                              Icon(Icons.close, color: colors.muted, size: 20),
+                          onPressed: onClear,
+                          tooltip: 'Clear search',
+                        )
+                      : null,
+                  isDense: true,
                 ),
-                prefixIcon: Icon(Icons.search, color: colors.muted, size: 22),
-                suffixIcon: value.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close, color: colors.muted, size: 20),
-                        onPressed: onClear,
-                        tooltip: 'Clear search',
-                      )
-                    : null,
-                isDense: true,
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

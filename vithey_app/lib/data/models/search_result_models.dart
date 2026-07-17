@@ -8,6 +8,7 @@ class UserSearchResult {
     this.university,
     this.major,
     this.headline,
+    this.followerCount,
     this.presenceLabel = 'last seen recently',
   });
 
@@ -17,6 +18,7 @@ class UserSearchResult {
   final String? university;
   final String? major;
   final String? headline;
+  final int? followerCount;
   final String presenceLabel;
 
   String get subtitle {
@@ -35,6 +37,7 @@ class UserSearchResult {
       university: json['university'] as String?,
       major: json['major'] as String?,
       headline: json['headline'] as String?,
+      followerCount: (json['follower_count'] as num?)?.toInt(),
     );
   }
 }
@@ -77,44 +80,96 @@ class PostSearchResult {
   }
 }
 
-class SearchRecentUser {
-  const SearchRecentUser({
-    required this.userId,
-    required this.fullName,
+enum SearchRecentType { user, query }
+
+class SearchRecentItem {
+  const SearchRecentItem({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.accessedAt,
+    this.userId,
     this.avatarUrl,
-    required this.visitedAt,
-    this.presenceLabel = 'last seen recently',
+    this.followerCount,
+    this.isPinned = false,
+    this.pinnedAt,
   });
 
-  final String userId;
-  final String fullName;
+  final String id;
+  final SearchRecentType type;
+  final String title;
+  final DateTime accessedAt;
+  final String? userId;
   final String? avatarUrl;
-  final DateTime visitedAt;
-  final String presenceLabel;
+  final int? followerCount;
+  final bool isPinned;
+  final DateTime? pinnedAt;
+
+  bool get isUser => type == SearchRecentType.user;
+
+  SearchRecentItem copyWith({
+    DateTime? accessedAt,
+    bool? isPinned,
+    DateTime? pinnedAt,
+  }) {
+    final nextPinned = isPinned ?? this.isPinned;
+    return SearchRecentItem(
+      id: id,
+      type: type,
+      title: title,
+      accessedAt: accessedAt ?? this.accessedAt,
+      userId: userId,
+      avatarUrl: avatarUrl,
+      followerCount: followerCount,
+      isPinned: nextPinned,
+      pinnedAt: nextPinned ? (pinnedAt ?? this.pinnedAt) : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
+        'id': id,
+        'type': type.name,
+        'title': title,
+        'accessed_at': accessedAt.toIso8601String(),
         'user_id': userId,
-        'full_name': fullName,
         'avatar_url': avatarUrl,
-        'visited_at': visitedAt.toIso8601String(),
-        'presence_label': presenceLabel,
+        'follower_count': followerCount,
+        'is_pinned': isPinned,
+        'pinned_at': pinnedAt?.toIso8601String(),
       };
 
-  factory SearchRecentUser.fromJson(Map<String, dynamic> json) {
-    return SearchRecentUser(
-      userId: json['user_id'] as String? ?? '',
-      fullName: json['full_name'] as String? ?? '',
+  factory SearchRecentItem.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] == 'query'
+        ? SearchRecentType.query
+        : SearchRecentType.user;
+    final userId = json['user_id']?.toString();
+    final title =
+        json['title']?.toString() ?? json['full_name']?.toString() ?? '';
+    return SearchRecentItem(
+      id: json['id']?.toString() ??
+          (type == SearchRecentType.user
+              ? 'user:${userId ?? ''}'
+              : 'query:${title.trim().toLowerCase()}'),
+      type: type,
+      title: title,
+      accessedAt: DateTime.tryParse(
+            json['accessed_at']?.toString() ??
+                json['visited_at']?.toString() ??
+                '',
+          ) ??
+          DateTime.now(),
+      userId: userId,
       avatarUrl: json['avatar_url'] as String?,
-      visitedAt: DateTime.tryParse(json['visited_at'] as String? ?? '') ?? DateTime.now(),
-      presenceLabel: json['presence_label'] as String? ?? 'last seen recently',
+      followerCount: (json['follower_count'] as num?)?.toInt(),
+      isPinned: json['is_pinned'] as bool? ?? false,
+      pinnedAt: DateTime.tryParse(json['pinned_at']?.toString() ?? ''),
     );
   }
 
   UserSearchResult toSearchResult() => UserSearchResult(
-        userId: userId,
-        fullName: fullName,
+        userId: userId ?? '',
+        fullName: title,
         avatarUrl: avatarUrl,
-        presenceLabel: presenceLabel,
       );
 }
 
@@ -131,7 +186,8 @@ class SearchResultsBundle {
   final List<PostSearchResult> jobs;
   final List<PostSearchResult> videos;
 
-  bool get isEmpty => people.isEmpty && posts.isEmpty && jobs.isEmpty && videos.isEmpty;
+  bool get isEmpty =>
+      people.isEmpty && posts.isEmpty && jobs.isEmpty && videos.isEmpty;
 }
 
 class PaginatedResult<T> {

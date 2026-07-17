@@ -5,7 +5,10 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/application_detail_model.dart';
 
 abstract final class ApplicationFixtures {
-  static Set<String> seedAppliedJobPostIds() => {MockIds.post3, MockIds.post4};
+  /// Current user starts with no applied jobs so Tap Apply can exercise
+  /// Upload CV → Review → Submit → Success. Poster-side applicant lists
+  /// still use [defaultApplicants] for other users.
+  static Set<String> seedAppliedJobPostIds() => <String>{};
 
   static Map<String, ApplicationDetailModel> buildApplicationDetails() {
     return {
@@ -31,25 +34,6 @@ abstract final class ApplicationFixtures {
         cvFileName: 'Chan_Dara_CV.pdf',
         applicantUserId: MockIds.author2,
         applicantName: 'Molika Khorn',
-      ),
-      MockIds.appMy1: ApplicationDetailModel(
-        applicationId: MockIds.appMy1,
-        jobPostId: MockIds.post4,
-        jobTitle: 'Marketing Intern',
-        organization: 'Global Tech Solutions',
-        status: ApplicationStatus.pending,
-        appliedAt: MockClock.daysAgo(3),
-        cvFileName: 'Khorn_Molika_CV.pdf',
-      ),
-      MockIds.appMy2: ApplicationDetailModel(
-        applicationId: MockIds.appMy2,
-        jobPostId: MockIds.post3,
-        jobTitle: 'Multiple position · Aeon Mall',
-        organization: 'Aeon Mall',
-        status: ApplicationStatus.reviewed,
-        appliedAt: MockClock.daysAgo(5),
-        reviewStartedAt: MockClock.daysAgo(4),
-        cvFileName: 'Khorn_Molika_CV.pdf',
       ),
     };
   }
@@ -89,24 +73,7 @@ abstract final class ApplicationFixtures {
   }
 
   static List<AppliedJobSummary> myAppliedJobs() {
-    return [
-      AppliedJobSummary(
-        id: MockIds.appMy1,
-        jobPostId: MockIds.post4,
-        jobTitle: 'Marketing Intern',
-        company: 'Global Tech Solutions',
-        status: ApplicationStatus.pending,
-        appliedAt: MockClock.daysAgo(3),
-      ),
-      AppliedJobSummary(
-        id: MockIds.appMy2,
-        jobPostId: MockIds.post3,
-        jobTitle: 'Multiple position · Aeon Mall',
-        company: 'Aeon Mall',
-        status: ApplicationStatus.reviewed,
-        appliedAt: MockClock.daysAgo(5),
-      ),
-    ];
+    return const [];
   }
 
   static List<ApplicantExperienceEntry> experienceFor(String userId) {
@@ -123,7 +90,8 @@ abstract final class ApplicationFixtures {
           title: 'Senior Product Designer',
           organization: 'FinStream Group',
           period: '2018 - 2021',
-          description: 'Designed mobile banking experiences and collaborated with engineering on Flutter prototypes.',
+          description:
+              'Designed mobile banking experiences and collaborated with engineering on Flutter prototypes.',
         ),
       ];
     }
@@ -132,7 +100,8 @@ abstract final class ApplicationFixtures {
         title: 'Marketing Intern',
         organization: 'Aeon Mall',
         period: '2024 - Present',
-        description: 'Supported campaign analytics and social content for youth-focused retail events.',
+        description:
+            'Supported campaign analytics and social content for youth-focused retail events.',
       ),
     ];
   }

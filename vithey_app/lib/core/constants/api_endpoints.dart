@@ -15,6 +15,8 @@ class ApiEndpoints {
   static const posts = '/posts';
   static String postById(String id) => '/posts/$id';
   static String postComments(String id) => '/posts/$id/comments';
+  static String postCommentById(String postId, String commentId) =>
+      '/posts/$postId/comments/$commentId';
   static String postReactions(String id) => '/posts/$id/reactions';
   static String userFollow(String id) => '/users/$id/follow';
   static const filesUpload = '/files/upload';

@@ -30,7 +30,8 @@ class MentionUserBox extends StatelessWidget {
             return ListTile(
               dense: true,
               title: Text(user.fullName, style: const TextStyle(fontSize: 14)),
-              subtitle: Text('@${user.fullName.replaceAll(' ', '')}', style: const TextStyle(fontSize: 12)),
+              subtitle: Text('@${user.fullName.replaceAll(' ', '')}',
+                  style: const TextStyle(fontSize: 12)),
               onTap: () => onSelect(user),
             );
           },

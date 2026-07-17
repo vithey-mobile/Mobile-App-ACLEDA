@@ -31,7 +31,8 @@ class JobEligibilityResult {
 }
 
 class JobApplicationRepository {
-  JobApplicationRepository(this._postRepository, this._applicationService, this._flags);
+  JobApplicationRepository(
+      this._postRepository, this._applicationService, this._flags);
 
   final PostRepository _postRepository;
   final JobApplicationService _applicationService;
@@ -39,15 +40,27 @@ class JobApplicationRepository {
 
   static final _mockAppliedJobs = <String>{};
   static final _mockApplicationDetails = <String, ApplicationDetailModel>{};
-  static var _mockSeeded = false;
+  static const _mockSeedVersion = 2;
+  static int _loadedMockSeedVersion = 0;
 
   bool get useMockApi => _flags.useMockApi;
 
   void _ensureMockSeed() {
-    if (_mockSeeded) return;
-    _mockSeeded = true;
-    _mockAppliedJobs.addAll(ApplicationFixtures.seedAppliedJobPostIds());
-    _mockApplicationDetails.addAll(ApplicationFixtures.buildApplicationDetails());
+    if (_loadedMockSeedVersion == _mockSeedVersion) return;
+    _loadedMockSeedVersion = _mockSeedVersion;
+    _mockAppliedJobs
+      ..clear()
+      ..addAll(ApplicationFixtures.seedAppliedJobPostIds());
+    _mockApplicationDetails
+      ..clear()
+      ..addAll(ApplicationFixtures.buildApplicationDetails());
+  }
+
+  /// Clears in-memory mock apply state (useful after hot reload).
+  static void resetMockApplyState() {
+    _loadedMockSeedVersion = 0;
+    _mockAppliedJobs.clear();
+    _mockApplicationDetails.clear();
   }
 
   Future<JobEligibilityResult> loadJobEligibility(String jobPostId) async {
@@ -82,8 +95,10 @@ class JobApplicationRepository {
     }
 
     final alreadyAppliedLocally =
-        job.applicationState == JobApplicationState.applied || _mockAppliedJobs.contains(jobPostId);
-    final appliedOnServer = !useMockApi && await _applicationService.hasApplied(jobPostId);
+        job.applicationState == JobApplicationState.applied ||
+            _mockAppliedJobs.contains(jobPostId);
+    final appliedOnServer =
+        !useMockApi && await _applicationService.hasApplied(jobPostId);
 
     if (alreadyAppliedLocally || appliedOnServer) {
       final applicationId = await findApplicationIdForJob(jobPostId);
@@ -104,7 +119,8 @@ class JobApplicationRepository {
       return _mockApplicationIdForJob(jobPostId);
     }
     try {
-      final applications = await _applicationService.listApplications(jobPostId: jobPostId, limit: 1);
+      final applications = await _applicationService.listApplications(
+          jobPostId: jobPostId, limit: 1);
       if (applications.isEmpty) return null;
       return applications.first.applicationId;
     } on JobApplicationServiceException {
@@ -152,7 +168,8 @@ class JobApplicationRepository {
       );
     } on JobApplicationServiceException catch (error) {
       if (error.isConflict) {
-        final existing = await _applicationService.listApplications(jobPostId: jobPostId, limit: 1);
+        final existing = await _applicationService.listApplications(
+            jobPostId: jobPostId, limit: 1);
         if (existing.isNotEmpty) {
           return ApplyCvResult(
             jobPostId: jobPostId,
@@ -164,7 +181,8 @@ class JobApplicationRepository {
     }
   }
 
-  Future<ApplicationDetailModel> getApplicationDetail(String applicationId) async {
+  Future<ApplicationDetailModel> getApplicationDetail(
+      String applicationId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       _ensureMockSeed();
@@ -185,14 +203,17 @@ class JobApplicationRepository {
     return _mapToDetail(response, job: job);
   }
 
-  Future<List<JobApplicationModel>> getApplicantsForJob(String jobPostId) async {
+  Future<List<JobApplicationModel>> getApplicantsForJob(
+      String jobPostId) async {
     if (useMockApi) {
       _ensureMockSeed();
       return List<JobApplicationModel>.from(
-        ApplicationFixtures.buildApplicantsByJob()[jobPostId] ?? ApplicationFixtures.defaultApplicants(),
+        ApplicationFixtures.buildApplicantsByJob()[jobPostId] ??
+            ApplicationFixtures.defaultApplicants(),
       );
     }
-    final applications = await _applicationService.listApplications(jobPostId: jobPostId);
+    final applications =
+        await _applicationService.listApplications(jobPostId: jobPostId);
     return applications.asMap().entries.map((entry) {
       final index = entry.key;
       final app = entry.value;
@@ -235,7 +256,8 @@ class JobApplicationRepository {
     return summaries;
   }
 
-  Future<void> updateApplicationStatus(String applicationId, ApplicationStatus status) async {
+  Future<void> updateApplicationStatus(
+      String applicationId, ApplicationStatus status) async {
     if (useMockApi) {
       setMockApplicationStatus(applicationId, status);
       return;
@@ -270,19 +292,22 @@ class JobApplicationRepository {
     return null;
   }
 
-  ApplicationDetailModel _mapToDetail(JobApplicationResponse response, {FeedPost? job}) {
+  ApplicationDetailModel _mapToDetail(JobApplicationResponse response,
+      {FeedPost? job}) {
     final status = response.mappedStatus;
     return ApplicationDetailModel(
       applicationId: response.applicationId,
       jobPostId: response.jobPostId,
-      jobTitle: response.jobTitle ?? job?.jobMeta.title ?? job?.content ?? 'Job',
+      jobTitle:
+          response.jobTitle ?? job?.jobMeta.title ?? job?.content ?? 'Job',
       organization: response.organization ?? job?.author.fullName,
       status: status,
       appliedAt: response.appliedAt ?? DateTime.now(),
       reviewStartedAt: response.reviewStartedAt ??
           (status == ApplicationStatus.reviewed ? response.appliedAt : null),
       decidedAt: response.decidedAt ??
-          (status == ApplicationStatus.accepted || status == ApplicationStatus.rejected
+          (status == ApplicationStatus.accepted ||
+                  status == ApplicationStatus.rejected
               ? response.appliedAt
               : null),
       reviewerNote: response.reviewerNote,
@@ -296,7 +321,8 @@ class JobApplicationRepository {
   }
 
   /// Demo helper — cycles mock status for testing UI variants.
-  void setMockApplicationStatus(String applicationId, ApplicationStatus status) {
+  void setMockApplicationStatus(
+      String applicationId, ApplicationStatus status) {
     _ensureMockSeed();
     final existing = _mockApplicationDetails[applicationId];
     if (existing == null) return;
@@ -311,7 +337,10 @@ class JobApplicationRepository {
       reviewStartedAt: status != ApplicationStatus.pending
           ? existing.reviewStartedAt ?? now.subtract(const Duration(hours: 6))
           : null,
-      decidedAt: status == ApplicationStatus.accepted || status == ApplicationStatus.rejected ? now : null,
+      decidedAt: status == ApplicationStatus.accepted ||
+              status == ApplicationStatus.rejected
+          ? now
+          : null,
       reviewerNote: status == ApplicationStatus.accepted
           ? 'Thank you for your interest. Please check your email to receive interview time and location.'
           : status == ApplicationStatus.rejected

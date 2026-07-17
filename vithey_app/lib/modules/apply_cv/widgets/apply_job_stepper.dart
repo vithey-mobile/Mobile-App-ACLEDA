@@ -13,16 +13,21 @@ class ApplyJobStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-      child: Row(
-        children: [
-          _StepNode(active: currentStep >= 0, completed: currentStep > 0),
-          Expanded(child: _StepLine(active: currentStep >= 1)),
-          _StepNode(active: currentStep >= 1, completed: currentStep > 1),
-          Expanded(child: _StepLine(active: currentStep >= 2)),
-          _StepNode(active: currentStep >= 2, completed: false),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 16),
+        child: SizedBox(
+          width: 152,
+          child: Row(
+            children: [
+              _StepNode(active: currentStep >= 0, completed: currentStep > 0),
+              Expanded(child: _StepLine(active: currentStep >= 1)),
+              _StepNode(active: currentStep >= 1, completed: currentStep > 1),
+              Expanded(child: _StepLine(active: currentStep >= 2)),
+              _StepNode(active: currentStep >= 2, completed: false),
+            ],
+          ),
+        ),
       ),
     );
   }

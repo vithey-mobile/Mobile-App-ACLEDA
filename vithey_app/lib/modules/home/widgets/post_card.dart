@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -10,42 +12,56 @@ class PostCard extends StatelessWidget {
     super.key,
     required this.post,
     required this.headerTrailing,
-    required this.body,
+    this.body,
     required this.onLike,
     required this.onComment,
     required this.onShare,
     required this.onBodyTap,
     this.onAuthorTap,
+    this.caption,
   });
 
   final FeedPost post;
   final Widget? headerTrailing;
-  final Widget body;
+  final Widget? body;
   final VoidCallback onLike;
   final VoidCallback onComment;
   final VoidCallback onShare;
   final VoidCallback onBodyTap;
   final VoidCallback? onAuthorTap;
+  final Widget? caption;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 0.5,
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      elevation: 0,
+      color: context.appColors.cardSurface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: context.appColors.border),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostAuthorHeader(post: post, trailing: headerTrailing, onAuthorTap: onAuthorTap),
-          if (post.content.isNotEmpty)
+          PostAuthorHeader(
+              post: post, trailing: headerTrailing, onAuthorTap: onAuthorTap),
+          if (caption != null)
+            caption!
+          else if (post.content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: Text(post.content),
+              child: Text(
+                post.content,
+                style: TextStyle(
+                  color: context.appColors.heading,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
             ),
-          GestureDetector(onTap: onBodyTap, child: body),
+          if (body != null) GestureDetector(onTap: onBodyTap, child: body),
           FeedActionBar(
             post: post,
             onLike: onLike,
@@ -59,37 +75,66 @@ class PostCard extends StatelessWidget {
 }
 
 class PostMediaImage extends StatelessWidget {
-  const PostMediaImage({super.key, this.url, this.height = 220});
+  const PostMediaImage({super.key, this.url, this.height});
 
   final String? url;
-  final double height;
+  final double? height;
+
+  bool get _isLocalFile {
+    final value = url;
+    if (value == null || value.isEmpty) return false;
+    return !value.startsWith('http://') && !value.startsWith('https://');
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (url == null || url!.isEmpty) {
-      return Container(
-        height: height,
-        color: context.appColors.inputFill,
-        alignment: Alignment.center,
-        child: Icon(Icons.image_not_supported_outlined, color: context.appColors.muted),
+    if (url == null || url!.isEmpty) return const SizedBox.shrink();
+
+    final Widget media;
+    if (_isLocalFile) {
+      media = Image.file(
+        File(url!),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: context.appColors.inputFill,
+          alignment: Alignment.center,
+          child: const Icon(Icons.broken_image_outlined),
+        ),
+      );
+    } else {
+      media = CachedNetworkImage(
+        imageUrl: url!,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => ColoredBox(
+          color: context.appColors.inputFill,
+          child: const Center(
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (_, __, ___) => Container(
+          color: context.appColors.inputFill,
+          alignment: Alignment.center,
+          child: const Icon(Icons.broken_image_outlined),
+        ),
       );
     }
 
-    return CachedNetworkImage(
-      imageUrl: url!,
-      height: height,
-      width: double.infinity,
-      fit: BoxFit.contain,
-      placeholder: (_, __) => Container(
+    if (height != null) {
+      return SizedBox(
         height: height,
+        width: double.infinity,
+        child: media,
+      );
+    }
+    return AspectRatio(
+      aspectRatio: 1.04,
+      child: ColoredBox(
         color: context.appColors.inputFill,
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      errorWidget: (_, __, ___) => Container(
-        height: height,
-        color: context.appColors.inputFill,
-        alignment: Alignment.center,
-        child: const Icon(Icons.broken_image_outlined),
+        child: media,
       ),
     );
   }

@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class VideoPostCard extends StatelessWidget {
   const VideoPostCard({
@@ -15,6 +15,8 @@ class VideoPostCard extends StatelessWidget {
     required this.onShare,
     required this.onFollow,
     required this.onOpen,
+    required this.onEdit,
+    required this.onDelete,
     this.onAuthorTap,
   });
 
@@ -24,6 +26,8 @@ class VideoPostCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onFollow;
   final VoidCallback onOpen;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final VoidCallback? onAuthorTap;
 
   String _formatDuration(int seconds) {
@@ -37,7 +41,10 @@ class VideoPostCard extends StatelessWidget {
     final controller = Get.find<HomeController>();
     final isPlaying = controller.activeVideoId.value == post.id;
 
-    Widget body;
+    final hasMedia = (post.thumbnailUrl?.isNotEmpty == true) ||
+        (post.mediaUrl?.isNotEmpty == true);
+
+    Widget? body;
     if (post.processingState == VideoProcessingState.processing) {
       body = Container(
         height: 220,
@@ -52,7 +59,7 @@ class VideoPostCard extends StatelessWidget {
           ],
         ),
       );
-    } else {
+    } else if (hasMedia) {
       body = Stack(
         alignment: Alignment.center,
         children: [
@@ -72,7 +79,8 @@ class VideoPostCard extends StatelessWidget {
                 color: context.scheme.onSurfaceVariant,
                 shape: BoxShape.circle,
               ),
-              child: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 32),
+              child: Icon(isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white, size: 32),
             ),
           ),
           if (post.durationSeconds > 0)
@@ -98,10 +106,28 @@ class VideoPostCard extends StatelessWidget {
     return PostCard(
       post: post,
       headerTrailing: post.isOwnPost
-          ? null
-          : shad.Button.ghost(
-              onPressed: onFollow,
-              child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
+          ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
+          : Material(
+              color: context.scheme.primary,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: onFollow,
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  height: 26,
+                  width: post.isFollowingAuthor ? 66 : 54,
+                  child: Center(
+                    child: Text(
+                      post.isFollowingAuthor ? 'Following' : 'Follow',
+                      style: TextStyle(
+                        color: context.scheme.onPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
       body: body,
       onLike: onLike,

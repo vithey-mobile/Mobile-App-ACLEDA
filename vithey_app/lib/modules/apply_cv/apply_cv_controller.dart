@@ -60,6 +60,7 @@ class ApplyCvController extends GetxController {
     if (phase.value != ApplyCvPhase.ready) return false;
     if (isSubmitting.value) return false;
     if (eligibility.value?.eligibility != JobEligibility.eligible) return false;
+    if (selectedPosition.value?.trim().isNotEmpty != true) return false;
     if (!_hasValidCv) return false;
     return true;
   }
@@ -70,7 +71,9 @@ class ApplyCvController extends GetxController {
   }
 
   bool get _hasValidCv {
-    if (selectionMode.value == CvSelectionMode.saved && savedCv.value != null) return true;
+    if (selectionMode.value == CvSelectionMode.saved && savedCv.value != null) {
+      return true;
+    }
     if (localCv.value != null && fileError.value.isEmpty) return true;
     return false;
   }
@@ -90,24 +93,15 @@ class ApplyCvController extends GetxController {
     return '';
   }
 
-  String get jobTitle => job.value?.jobMeta.title ?? job.value?.content ?? 'this role';
+  String get jobTitle =>
+      job.value?.jobMeta.title ?? job.value?.content ?? 'this role';
 
   String get organizationName => job.value?.author.fullName ?? '';
 
-  String get positionLabel => selectedPosition.value ?? jobTitle;
+  String get positionLabel => selectedPosition.value ?? '';
 
-  bool get showPositionSelector {
-    final positions = _availablePositions;
-    return positions.length > 1;
-  }
-
-  List<String> get availablePositions => _availablePositions;
-
-  List<String> get _availablePositions {
-    final title = job.value?.jobMeta.title;
-    if (title == null || title.isEmpty) return const [];
-    return [title];
-  }
+  bool get hasDetectedPosition =>
+      selectedPosition.value?.trim().isNotEmpty == true;
 
   bool get isAlreadyApplied =>
       eligibility.value?.eligibility == JobEligibility.alreadyApplied;
@@ -153,14 +147,13 @@ class ApplyCvController extends GetxController {
       job.value = eligibilityResult.job ?? job.value;
       savedCv.value = saved;
 
-      final positions = _availablePositions;
-      if (positions.isNotEmpty) {
-        selectedPosition.value = positions.first;
-      }
+      final detectedPosition = job.value?.jobMeta.title?.trim();
+      selectedPosition.value =
+          detectedPosition?.isNotEmpty == true ? detectedPosition : null;
 
-      if (eligibilityResult.eligibility == JobEligibility.eligible && saved != null) {
-        selectionMode.value = CvSelectionMode.saved;
-      }
+      // Keep a saved CV as an explicit shortcut. A new application starts
+      // with no selection so the applicant confirms which file to submit.
+      selectionMode.value = CvSelectionMode.none;
 
       phase.value = ApplyCvPhase.ready;
     } catch (e) {
@@ -171,8 +164,6 @@ class ApplyCvController extends GetxController {
 
   Future<void> retryLoad() => _loadInitialData();
 
-  void selectPosition(String? value) => selectedPosition.value = value;
-
   Future<void> pickLocalCv({required bool updateDefault}) async {
     fileError.value = '';
     final picked = await _cvRepository.pickLocalCv();
@@ -182,12 +173,16 @@ class ApplyCvController extends GetxController {
     if (validationError != null) {
       fileError.value = validationError;
       localCv.value = picked;
-      selectionMode.value = updateDefault ? CvSelectionMode.localUpdateDefault : CvSelectionMode.localApplicationOnly;
+      selectionMode.value = updateDefault
+          ? CvSelectionMode.localUpdateDefault
+          : CvSelectionMode.localApplicationOnly;
       return;
     }
 
     localCv.value = picked;
-    selectionMode.value = updateDefault ? CvSelectionMode.localUpdateDefault : CvSelectionMode.localApplicationOnly;
+    selectionMode.value = updateDefault
+        ? CvSelectionMode.localUpdateDefault
+        : CvSelectionMode.localApplicationOnly;
     saveAsDefault.value = updateDefault;
   }
 
@@ -246,8 +241,12 @@ class ApplyCvController extends GetxController {
           title: const Text(AppStrings.discardApplicationTitle),
           content: const Text(AppStrings.discardApplicationMessage),
           actions: [
-            TextButton(onPressed: () => Get.back(result: false), child: const Text(AppStrings.cancel)),
-            TextButton(onPressed: () => Get.back(result: true), child: const Text(AppStrings.discard)),
+            TextButton(
+                onPressed: () => Get.back(result: false),
+                child: const Text(AppStrings.cancel)),
+            TextButton(
+                onPressed: () => Get.back(result: true),
+                child: const Text(AppStrings.discard)),
           ],
         ),
       );
@@ -263,7 +262,8 @@ class ApplyCvController extends GetxController {
     submitError.value = '';
 
     try {
-      final refreshed = await _jobApplicationRepository.loadJobEligibility(_jobPostId!);
+      final refreshed =
+          await _jobApplicationRepository.loadJobEligibility(_jobPostId!);
       eligibility.value = refreshed;
       job.value = refreshed.job ?? job.value;
       if (refreshed.eligibility != JobEligibility.eligible) {
@@ -293,7 +293,8 @@ class ApplyCvController extends GetxController {
         cvFileId = _uploadedFileId!;
         cvFileName = local.displayName;
 
-        if (saveAsDefault.value || selectionMode.value == CvSelectionMode.localUpdateDefault) {
+        if (saveAsDefault.value ||
+            selectionMode.value == CvSelectionMode.localUpdateDefault) {
           await _cvRepository.setDefaultCv(cvFileId);
           savedCv.value = CvMetadataModel(
             fileId: cvFileId,

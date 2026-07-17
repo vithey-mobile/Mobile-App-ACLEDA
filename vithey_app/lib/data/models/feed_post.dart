@@ -27,12 +27,16 @@ class JobMeta {
       title: json['title'] as String?,
       description: json['description'] as String?,
       requirement: json['requirement'] as String?,
-      deadline: json['deadline'] != null ? DateTime.tryParse(json['deadline'].toString()) : null,
+      deadline: json['deadline'] != null
+          ? DateTime.tryParse(json['deadline'].toString())
+          : null,
     );
   }
 }
 
 class FeedPost {
+  static const Object _unset = Object();
+
   FeedPost({
     required this.id,
     required this.type,
@@ -78,6 +82,11 @@ class FeedPost {
   bool get isOwnPost => currentUserId != null && currentUserId == author.id;
 
   FeedPost copyWith({
+    String? content,
+    Object? mediaUrl = _unset,
+    Object? thumbnailUrl = _unset,
+    int? durationSeconds,
+    JobMeta? jobMeta,
     int? reactionCount,
     int? commentCount,
     int? shareCount,
@@ -90,12 +99,15 @@ class FeedPost {
       id: id,
       type: type,
       author: author,
-      content: content,
-      mediaUrl: mediaUrl,
-      thumbnailUrl: thumbnailUrl,
-      durationSeconds: durationSeconds,
+      content: content ?? this.content,
+      mediaUrl:
+          identical(mediaUrl, _unset) ? this.mediaUrl : mediaUrl as String?,
+      thumbnailUrl: identical(thumbnailUrl, _unset)
+          ? this.thumbnailUrl
+          : thumbnailUrl as String?,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       processingState: processingState ?? this.processingState,
-      jobMeta: jobMeta,
+      jobMeta: jobMeta ?? this.jobMeta,
       lifecycleState: lifecycleState,
       applicationState: applicationState ?? this.applicationState,
       applicantCount: applicantCount,
@@ -120,7 +132,8 @@ class FeedPost {
     }
   }
 
-  factory FeedPost.fromJson(Map<String, dynamic> json, {String? currentUserId}) {
+  factory FeedPost.fromJson(Map<String, dynamic> json,
+      {String? currentUserId}) {
     final type = _parseType(json['type'] as String?);
     final processing = json['processing_state'] as String?;
     VideoProcessingState videoState = VideoProcessingState.ready;
@@ -160,17 +173,20 @@ class FeedPost {
     return FeedPost(
       id: json['post_id']?.toString() ?? json['id']?.toString() ?? '',
       type: type,
-      author: PostAuthor.fromJson(json['author'] as Map<String, dynamic>? ?? {}),
+      author:
+          PostAuthor.fromJson(json['author'] as Map<String, dynamic>? ?? {}),
       content: json['content'] as String? ?? '',
       mediaUrl: json['media_url'] as String?,
-      thumbnailUrl: json['thumbnail_url'] as String? ?? json['media_url'] as String?,
+      thumbnailUrl:
+          json['thumbnail_url'] as String? ?? json['media_url'] as String?,
       durationSeconds: json['duration_seconds'] as int? ?? 0,
       processingState: videoState,
       jobMeta: JobMeta.fromJson(json['job_meta'] as Map<String, dynamic>?),
       lifecycleState: jobLifecycle,
       applicationState: applicationState,
       applicantCount: json['applicant_count'] as int? ?? 0,
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       reactionCount: (json['reaction_count'] as num?)?.toInt() ?? 0,
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
       shareCount: (json['share_count'] as num?)?.toInt() ?? 0,

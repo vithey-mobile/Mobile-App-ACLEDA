@@ -19,14 +19,18 @@ class PostAuthorHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      padding: const EdgeInsets.fromLTRB(12, 11, 10, 8),
       child: Row(
         children: [
           GestureDetector(
             onTap: onAuthorTap,
-            child: UserAvatar(name: post.author.fullName, imageUrl: post.author.avatarUrl, radius: 20),
+            child: UserAvatar(
+              name: post.author.fullName,
+              imageUrl: post.author.avatarUrl,
+              radius: 18,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 9),
           Expanded(
             child: GestureDetector(
               onTap: onAuthorTap,
@@ -35,11 +39,20 @@ class PostAuthorHeader extends StatelessWidget {
                 children: [
                   Text(
                     post.author.fullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.appColors.heading,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
                   Text(
                     RelativeTime.format(post.createdAt),
-                    style: TextStyle(color: context.appColors.muted, fontSize: 12),
+                    style: TextStyle(
+                      color: context.appColors.muted,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

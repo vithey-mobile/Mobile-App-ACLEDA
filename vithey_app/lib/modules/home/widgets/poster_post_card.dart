@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 class PosterPostCard extends StatelessWidget {
   const PosterPostCard({
@@ -12,6 +13,8 @@ class PosterPostCard extends StatelessWidget {
     required this.onShare,
     required this.onFollow,
     required this.onOpen,
+    required this.onEdit,
+    required this.onDelete,
     this.onAuthorTap,
   });
 
@@ -21,14 +24,20 @@ class PosterPostCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onFollow;
   final VoidCallback onOpen;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final VoidCallback? onAuthorTap;
 
   @override
   Widget build(BuildContext context) {
     return PostCard(
       post: post,
-      headerTrailing: post.isOwnPost ? null : _FollowButton(post: post, onFollow: onFollow),
-      body: PostMediaImage(url: post.mediaUrl),
+      headerTrailing: post.isOwnPost
+          ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
+          : _FollowButton(post: post, onFollow: onFollow),
+      body: (post.mediaUrl == null || post.mediaUrl!.isEmpty)
+          ? null
+          : PostMediaImage(url: post.mediaUrl),
       onLike: onLike,
       onComment: onComment,
       onShare: onShare,
@@ -46,9 +55,27 @@ class _FollowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return shad.Button.ghost(
-      onPressed: onFollow,
-      child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
+    return Material(
+      color: context.scheme.primary,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onFollow,
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          height: 26,
+          width: post.isFollowingAuthor ? 66 : 54,
+          child: Center(
+            child: Text(
+              post.isFollowingAuthor ? 'Following' : 'Follow',
+              style: TextStyle(
+                color: context.scheme.onPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

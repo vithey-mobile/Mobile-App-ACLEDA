@@ -7,6 +7,7 @@ class ApplicationSubmittedHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: 120,
       height: 160,
       child: Stack(
         alignment: Alignment.center,
@@ -29,18 +30,22 @@ class ApplicationSubmittedHero extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: MediaQuery.sizeOf(context).width * 0.38,
-            top: 20,
-            child: Icon(
-              Icons.description_outlined,
-              size: 72,
-              color: AppColors.info.withValues(alpha: 0.15),
+            left: 22,
+            top: 32,
+            child: Transform.rotate(
+              angle: -0.08,
+              child: Icon(
+                Icons.description,
+                size: 76,
+                color: AppColors.info.withValues(alpha: 0.18),
+              ),
             ),
           ),
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Icon(Icons.description, size: 88, color: AppColors.info.withValues(alpha: 0.85)),
+              Icon(Icons.description,
+                  size: 88, color: AppColors.info.withValues(alpha: 0.85)),
               Positioned(
                 right: -4,
                 bottom: -4,

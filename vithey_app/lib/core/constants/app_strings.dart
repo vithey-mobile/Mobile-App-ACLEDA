@@ -25,13 +25,15 @@ class AppStrings {
   static const signInWith = 'Sign in with';
   static const continueWithGoogle = 'Continue with Google';
   static const googleAuthComingSoon = 'Google sign-in is coming soon';
-  static const googleAuthEnvHint = 'Set ENABLE_GOOGLE_AUTH=true in .env when OAuth is ready';
+  static const googleAuthEnvHint =
+      'Set ENABLE_GOOGLE_AUTH=true in .env when OAuth is ready';
   static const forgotPassword = 'Forgot password?';
   static const forgotPasswordTitle = 'Reset password';
   static const forgotPasswordSubtitle =
       'Enter your email and we will send reset instructions if an account exists.';
   static const sendResetLink = 'Send reset link';
-  static const resetLinkSent = 'If an account exists for that email, reset instructions were sent.';
+  static const resetLinkSent =
+      'If an account exists for that email, reset instructions were sent.';
   static const chatbotAttachComingSoon = 'File attachments are coming soon';
   static const featureComingSoon = 'Coming in a future update';
   static const privacyPracticesTitle = 'Privacy practices';
@@ -50,7 +52,8 @@ class AppStrings {
   // Apply CV flow
   static const applyJobTitle = 'Apply Job';
   static const uploadYourCv = 'Upload your CV';
-  static const uploadCvSubtitle = 'Attach your CV here to apply for this position.';
+  static const uploadCvSubtitle =
+      'Attach your CV here to apply for this position.';
   static const position = 'Position';
   static const selectPosition = 'Select a position';
   static const dragDropCv = 'Drag & drop your file here';
@@ -66,26 +69,34 @@ class AppStrings {
   static const submittingApplication = 'Submitting application…';
   static const applicationSubmittedTitle = 'Application Submitted!';
   static const applicationSubmittedBody =
-      'Your application has been submitted successfully. It will be reviewed soon. Please stay tuned for updates.';
+      'Your CV has been submitted successfully for this job. It will be reviewed soon. Please stay tuned for updates.';
   static const viewApplicationStatus = 'View Application Status';
   static const applyStatusTitle = 'Apply Status';
   static const useSavedCv = 'Use my saved CV';
   static const uploadDifferentCv = 'Upload a different file';
   static const applyJobLoadError = 'Could not load job details';
   static const applyJobNotEligible = 'This job is no longer eligible';
-  static const applyJobSubmitError = 'Could not submit application. Please try again.';
-  static const applyStatusUnavailable = 'Application status is not available right now.';
+  static const applyJobSubmitError =
+      'Could not submit application. Please try again.';
+  static const applyStatusUnavailable =
+      'Application status is not available right now.';
   static const discardApplicationTitle = 'Discard application?';
-  static const discardApplicationMessage = 'Your selected CV and notes will be lost.';
+  static const discardApplicationMessage =
+      'Your selected CV and notes will be lost.';
   static const discard = 'Discard';
   static const reviewStepReviewedTitle = 'Your application will be reviewed';
-  static const reviewStepReviewedDesc = "Job poster will check if you're a good fit.";
+  static const reviewStepReviewedDesc =
+      "Job poster will check if you're a good fit.";
   static const reviewStepContactTitle = 'You may be contacted';
-  static const reviewStepContactDesc = 'If your profile matches the requirements.';
+  static const reviewStepContactDesc =
+      'If your profile matches the requirements.';
   static const reviewStepDecisionTitle = "You'll get our decision";
-  static const reviewStepDecisionDesc = "You'll be notified when a decision is made.";
-  static const statusNotifyBanner = "We'll notify you by this app when there's an update.";
-  static const statusReviewBanner = 'Thanks for your patience while the review is processing.';
+  static const reviewStepDecisionDesc =
+      "You'll be notified when a decision is made.";
+  static const statusNotifyBanner =
+      "We'll notify you by this app when there's an update.";
+  static const statusReviewBanner =
+      'Thanks for your patience while the review is processing.';
 
   // Chat
   static const chatAddChat = 'Add Chat';
@@ -106,7 +117,8 @@ class AppStrings {
   static const chatBio = 'Bio';
   static const chatOnline = 'Online';
   static const chatNoSharedMedia = 'No shared media yet';
-  static const chatNoSharedMediaSubtitle = 'Images, videos, and files will appear here when shared';
+  static const chatNoSharedMediaSubtitle =
+      'Images, videos, and files will appear here when shared';
   static const chatNoSharedFiles = 'No shared files yet';
   static const chatNoSharedLinks = 'No shared links yet';
   static const chatProfileAction = 'Profile';

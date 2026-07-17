@@ -23,18 +23,26 @@ class SearchRepository {
 
   static const previewLimit = 3;
 
-  Future<List<SearchRecentUser>> loadRecents() => _recentStore.getRecentUsers();
+  Future<List<SearchRecentItem>> loadRecents() => _recentStore.getRecentItems();
 
   Future<void> ensureDefaultRecents() {
     if (!useMockApi) return Future.value();
     return _recentStore.seedDefaultsIfEmpty(SearchFixtures.defaultRecents());
   }
 
-  Future<void> addRecentUser(UserSearchResult user) => _recentStore.addRecentFromResult(user);
+  Future<void> addRecentUser(UserSearchResult user) =>
+      _recentStore.addRecentFromResult(user);
 
-  Future<void> removeRecentUser(String userId) => _recentStore.removeRecentUser(userId);
+  Future<void> addRecentQuery(String query) =>
+      _recentStore.addRecentQuery(query);
 
-  Future<void> clearAllRecents() => _recentStore.clearAll();
+  Future<void> setRecentPinned(String itemId, bool pinned) =>
+      _recentStore.setPinned(itemId, pinned);
+
+  Future<void> removeRecent(String itemId) => _recentStore.removeRecent(itemId);
+
+  Future<void> clearAllRecents({bool includePinned = false}) =>
+      _recentStore.clearAll(includePinned: includePinned);
 
   Future<SearchResultsBundle> searchAll(String query) async {
     final trimmed = query.trim();
@@ -57,7 +65,8 @@ class SearchRepository {
         _userSearchService.search(query: query, limit: previewLimit);
 
     Future<PaginatedResult<PostSearchResult>> postSearch(PostType type) =>
-        _postSearchService.search(query: query, type: type, limit: previewLimit);
+        _postSearchService.search(
+            query: query, type: type, limit: previewLimit);
 
     PaginatedResult<UserSearchResult> peopleResult;
     try {
@@ -133,14 +142,20 @@ class SearchRepository {
       final slice = all.skip(start).take(limit).toList();
       return PaginatedResult(items: slice, hasMore: start + limit < all.length);
     }
-    return _postSearchService.search(query: query, type: type, page: page, limit: limit);
+    return _postSearchService.search(
+        query: query, type: type, page: page, limit: limit);
   }
 
   SearchResultsBundle _mockSearchAll(String query) {
     final people = _filterMockUsers(query).take(previewLimit).toList();
-    final posters = _filterMockPosts(query, type: PostType.poster).take(previewLimit).toList();
-    final jobs = _filterMockPosts(query, type: PostType.job).take(previewLimit).toList();
-    final videos = _filterMockPosts(query, type: PostType.video).take(previewLimit).toList();
+    final posters = _filterMockPosts(query, type: PostType.poster)
+        .take(previewLimit)
+        .toList();
+    final jobs =
+        _filterMockPosts(query, type: PostType.job).take(previewLimit).toList();
+    final videos = _filterMockPosts(query, type: PostType.video)
+        .take(previewLimit)
+        .toList();
     return SearchResultsBundle(
       people: people,
       posts: posters,
@@ -167,6 +182,6 @@ class SearchRepository {
       return post.title.toLowerCase().contains(q) ||
           post.authorName.toLowerCase().contains(q) ||
           (post.jobCompany?.toLowerCase().contains(q) ?? false);
-    })        .toList();
+    }).toList();
   }
 }

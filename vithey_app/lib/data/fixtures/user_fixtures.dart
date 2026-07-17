@@ -1,4 +1,6 @@
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
@@ -22,10 +24,16 @@ abstract final class UserFixtures {
   }
 
   static PostAuthor authorFor(String userId) {
+    if (userId == MockIds.currentUser && Get.isRegistered<CurrentUserService>()) {
+      return Get.find<CurrentUserService>().postAuthor;
+    }
     return PostAuthor(id: userId, fullName: displayName(userId));
   }
 
   static String displayName(String userId) {
+    if (userId == MockIds.currentUser && Get.isRegistered<CurrentUserService>()) {
+      return Get.find<CurrentUserService>().displayName;
+    }
     return switch (userId) {
       MockIds.currentUser => MockIdentities.mockUserFullName,
       MockIds.author1 => 'Heng Liza',
@@ -35,7 +43,7 @@ abstract final class UserFixtures {
       MockIds.author5 => 'Meas Lily',
       MockIds.author6 => 'Ponloeng Bora',
       MockIds.author7 => 'Moeng Kimheang',
-      _ => 'Vithey User',
+      _ => 'Unknown',
     };
   }
 
