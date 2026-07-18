@@ -1,13 +1,16 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
-import 'package:aub_connect_app/data/models/student_verification_model.dart';
+import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/student_verification/widgets/student_id_upload_box.dart';
+import 'package:aub_connect_app/modules/student_verification/widgets/verification_app_bar.dart';
 import 'package:aub_connect_app/modules/student_verification/widgets/verification_info_card.dart';
 
 class StudentVerificationController extends GetxController {
@@ -17,9 +20,11 @@ class StudentVerificationController extends GetxController {
 
   final studentIdController = TextEditingController();
   final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   final selectedDocumentName = RxnString();
+  final selectedDocumentSizeBytes = RxnInt();
   String? _selectedDocumentPath;
   final isSubmitting = false.obs;
   final errorMessage = ''.obs;
@@ -33,11 +38,21 @@ class StudentVerificationController extends GetxController {
   Future<void> _prefillFromStatus() async {
     final current = await _repository.getMyVerification();
     if (current.studentId != null) studentIdController.text = current.studentId!;
-    if (current.universityEmail != null) emailController.text = current.universityEmail!;
-    if (current.documentFileName != null) selectedDocumentName.value = current.documentFileName;
+    if (current.universityEmail != null) {
+      emailController.text = current.universityEmail!;
+    }
+    if (current.documentFileName != null) {
+      selectedDocumentName.value = current.documentFileName;
+    }
+  }
+
+  void clearFieldErrors() {
+    errorMessage.value = '';
+    FormErrorHost.clearAll();
   }
 
   Future<void> pickDocument() async {
+    clearFieldErrors();
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
@@ -46,41 +61,44 @@ class StudentVerificationController extends GetxController {
     final file = result.files.single;
     _selectedDocumentPath = file.path;
     selectedDocumentName.value = file.name;
+    selectedDocumentSizeBytes.value = file.size;
   }
 
   void removeDocument() {
+    clearFieldErrors();
     _selectedDocumentPath = null;
     selectedDocumentName.value = null;
+    selectedDocumentSizeBytes.value = null;
+    // Drop cached upload so a later resolve cannot reuse the old file.
+    unawaited(_repository.clearStoredDocument());
   }
 
   Future<void> submit() async {
+    FormErrorHost.activateFor(formKey);
     if (!(formKey.currentState?.validate() ?? false)) return;
     if (isSubmitting.value) return;
+
+    final hasId = studentIdController.text.trim().isNotEmpty;
+    final hasEmail = emailController.text.trim().isNotEmpty;
+    final hasDocument = selectedDocumentName.value != null &&
+        selectedDocumentName.value!.trim().isNotEmpty;
+
+    if (!hasId || !hasEmail) {
+      errorMessage.value = 'Please fill in your student information.';
+      return;
+    }
 
     isSubmitting.value = true;
     errorMessage.value = '';
     try {
-      final current = await _repository.getMyVerification();
-      if (current.status == VerificationStatus.pending) {
-        Get.offNamed(AppRoutes.verificationStatus);
-        return;
-      }
-      if (current.status == VerificationStatus.verified) {
-        Get.offNamed(AppRoutes.finance);
-        return;
-      }
-
-      final result = await _repository.submitVerification(
+      // Always re-run verification — never skip because of a previous success.
+      await _repository.submitVerification(
         studentId: studentIdController.text.trim(),
         universityEmail: emailController.text.trim(),
-        documentFileName: selectedDocumentName.value,
-        documentPath: _selectedDocumentPath,
+        documentFileName: hasDocument ? selectedDocumentName.value : null,
+        documentPath: hasDocument ? _selectedDocumentPath : null,
       );
-      if (result.status == VerificationStatus.verified) {
-        Get.offNamed(AppRoutes.finance);
-      } else {
-        Get.offNamed(AppRoutes.verificationStatus);
-      }
+      Get.offNamed(AppRoutes.verificationStatus);
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -88,14 +106,17 @@ class StudentVerificationController extends GetxController {
     }
   }
 
-  String? validateStudentId(String? value) => _repository.validateStudentId(value ?? '');
+  String? validateStudentId(String? value) =>
+      _repository.validateStudentId(value ?? '');
 
-  String? validateEmail(String? value) => _repository.validateUniversityEmail(value ?? '');
+  String? validateEmail(String? value) =>
+      _repository.validateUniversityEmail(value ?? '');
 
   @override
   void onClose() {
     studentIdController.dispose();
     emailController.dispose();
+    passwordController.dispose();
     super.onClose();
   }
 }
@@ -106,50 +127,164 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: const Text('Student Verification', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      body: SafeArea(
-        child: Form(
-          key: controller.formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              CustomTextField(
-                controller: controller.studentIdController,
-                label: 'Student ID',
-                hint: 'Enter your student ID',
-                validator: controller.validateStudentId,
+      appBar: const VerificationAppBar(),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+          controller.clearFieldErrors();
+        },
+        child: SafeArea(
+          child: FormErrorHost(
+            formKey: controller.formKey,
+            child: Form(
+              key: controller.formKey,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                children: [
+                  Text(
+                    'Student Verification',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: context.appColors.heading,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Please fill in your student's information.",
+                    style: TextStyle(
+                      color: context.appColors.muted,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  CustomTextField(
+                    controller: controller.studentIdController,
+                    label: 'Student ID',
+                    hint: 'Enter your Student ID',
+                    prefixIcon: Icons.person_outline,
+                    fillColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    validator: controller.validateStudentId,
+                  ),
+                  const SizedBox(height: 16),
+                  Obx(() {
+                    final hasDocument =
+                        controller.selectedDocumentName.value != null;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomTextField(
+                          controller: controller.emailController,
+                          label: 'Student Email',
+                          hint: 'your.email@university.edu',
+                          prefixIcon: Icons.mail_outline,
+                          keyboardType: TextInputType.emailAddress,
+                          fillColor: Colors.white,
+                          textInputAction: hasDocument
+                              ? TextInputAction.done
+                              : TextInputAction.next,
+                          validator: controller.validateEmail,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Use your official university email address.',
+                          style: TextStyle(
+                            color: context.appColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                  Obx(() {
+                    // Screen 2 (after upload): hide password field.
+                    if (controller.selectedDocumentName.value != null) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: controller.passwordController,
+                          label: 'Password',
+                          hint: 'Enter your password',
+                          prefixIcon: Icons.lock_outline,
+                          obscureText: true,
+                          fillColor: Colors.white,
+                          textInputAction: TextInputAction.done,
+                        ),
+                      ],
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                  Obx(
+                    () => StudentIdUploadBox(
+                      fileName: controller.selectedDocumentName.value,
+                      fileSizeBytes: controller.selectedDocumentSizeBytes.value,
+                      onPick: controller.pickDocument,
+                      onRemove: controller.removeDocument,
+                    ),
+                  ),
+                  Obx(() {
+                    final error = controller.errorMessage.value;
+                    if (error.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        error,
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 24),
+                  Obx(
+                    () => SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: FilledButton.icon(
+                        onPressed: controller.isSubmitting.value
+                            ? null
+                            : controller.submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor:
+                              AppColors.primary.withValues(alpha: 0.6),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: controller.isSubmitting.value
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.verified_user_outlined,
+                                size: 20,
+                              ),
+                        label: const Text(
+                          'Verify Student Status',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const VerificationInfoCard(),
+                ],
               ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                controller: controller.emailController,
-                label: 'Student Email',
-                hint: 'your.email@aub.edu.kh',
-                keyboardType: TextInputType.emailAddress,
-                validator: controller.validateEmail,
-              ),
-              const SizedBox(height: 20),
-              Obx(() => StudentIdUploadBox(
-                    fileName: controller.selectedDocumentName.value,
-                    onPick: controller.pickDocument,
-                    onRemove: controller.removeDocument,
-                  )),
-              const SizedBox(height: 20),
-              const VerificationInfoCard(),
-              if (controller.errorMessage.value.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(controller.errorMessage.value, style: const TextStyle(color: AppColors.error)),
-              ],
-              const SizedBox(height: 24),
-              Obx(() => CustomButton(
-                    label: 'Verify Student Status',
-                    icon: Icons.arrow_forward,
-                    isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submit,
-                  )),
-            ],
+            ),
           ),
         ),
       ),

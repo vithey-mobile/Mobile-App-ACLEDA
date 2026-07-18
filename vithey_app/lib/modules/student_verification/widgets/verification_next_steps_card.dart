@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class VerificationNextStepsCard extends StatelessWidget {
@@ -7,20 +6,34 @@ class VerificationNextStepsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final muted = context.appColors.muted;
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.appColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('What happens next?', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
           Text(
-            'Authorized reviewers are checking your submitted data. You will receive an email or in-app notification after completion, usually within 24–48 hours.',
-            style: TextStyle(color: context.appColors.heading, height: 1.4),
+            'What happens next?',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: context.appColors.heading,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Our verification team is reviewing your documents. This typically takes 24 - 48 hours.',
+            style: TextStyle(color: muted, height: 1.45, fontSize: 13),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "You'll receive an email notification once your verification is complete.",
+            style: TextStyle(color: muted, height: 1.45, fontSize: 13),
           ),
         ],
       ),

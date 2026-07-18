@@ -24,21 +24,26 @@ class PaymentSummary {
       case PaymentStatus.paid:
         return 'Paid';
       case PaymentStatus.unpaid:
-        return 'Not Paid';
+        return 'Pending';
       case PaymentStatus.overdue:
         return 'Overdue';
     }
   }
 
+  /// Newest-first list order uses due date only (status is not a sort key).
+  DateTime get sortDate => dueDate;
+
+  /// Display date under the fee name (mock uses a plain calendar date).
   String get dateLabel {
-    if (status == PaymentStatus.paid && paidAt != null) {
-      return 'Paid ${_formatDate(paidAt!)}';
-    }
-    return 'Due ${_formatDate(dueDate)}';
+    final date = status == PaymentStatus.paid && paidAt != null ? paidAt! : dueDate;
+    return _formatDate(date);
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
@@ -46,24 +51,36 @@ class PaymentSummary {
 class FinanceDashboard {
   const FinanceDashboard({
     required this.totalDue,
+    required this.totalPaycheck,
     required this.nextDueDate,
     required this.daysRemaining,
     required this.summaryStatus,
     required this.payments,
+    this.nextDuePaymentId,
     this.hasMore = false,
   });
 
+  /// Outstanding Balance on the teal card.
   final Money totalDue;
+
+  /// Total Paycheck strip below the card (paid-to-date / period total).
+  final Money totalPaycheck;
+
   final DateTime nextDueDate;
   final int daysRemaining;
   final String summaryStatus;
   final List<PaymentSummary> payments;
+  final String? nextDuePaymentId;
   final bool hasMore;
 
-  String get dueBadgeLabel => daysRemaining > 0 ? 'Due in $daysRemaining Days' : 'Due Today';
+  String get dueBadgeLabel =>
+      daysRemaining > 0 ? 'Due in $daysRemaining Days' : 'Due Today';
 
   String get nextDueDateLabel {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
     return '${months[nextDueDate.month - 1]} ${nextDueDate.day}, ${nextDueDate.year}';
   }
 }

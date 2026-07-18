@@ -15,6 +15,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final notificationRepo = Get.find<NotificationRepository>();
+    final verificationRepo = Get.find<StudentVerificationRepository>();
 
     return AppBar(
       elevation: 0.5,
@@ -48,11 +49,17 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () => Get.toNamed(AppRoutes.search),
           tooltip: 'Search',
         ),
-        const IconButton(
-          icon: Icon(Icons.account_balance_wallet_outlined),
-          onPressed: FinanceNavigation.openFinanceEntry,
-          tooltip: 'Finance',
-        ),
+        // Finance only when verification is currently successful.
+        Obx(() {
+          if (!verificationRepo.isVerified.value) {
+            return const SizedBox.shrink();
+          }
+          return IconButton(
+            icon: const Icon(Icons.monetization_on_outlined),
+            onPressed: () => Get.toNamed(AppRoutes.finance),
+            tooltip: 'Finance',
+          );
+        }),
       ],
     );
   }

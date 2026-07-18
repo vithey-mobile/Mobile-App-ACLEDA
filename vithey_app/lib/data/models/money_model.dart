@@ -9,9 +9,18 @@ class Money {
   String get formatted {
     final symbol = currency == 'KHR' ? '៛' : '\$';
     if (currency == 'KHR') {
-      return '$symbol${amountMinor.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+      return '$symbol${_withCommas(amountMinor.toString())}';
     }
-    return '$symbol${amount.toStringAsFixed(2)}';
+    final whole = amountMinor ~/ 100;
+    final cents = (amountMinor.abs() % 100).toString().padLeft(2, '0');
+    return '$symbol${_withCommas(whole.toString())}.$cents';
+  }
+
+  static String _withCommas(String digits) {
+    return digits.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
   }
 
   factory Money.fromJson(Map<String, dynamic> json) {

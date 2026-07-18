@@ -33,6 +33,15 @@ abstract final class MockIds {
   static const pay4 = 'pay-4';
   static const pay5 = 'pay-5';
   static const pay6 = 'pay-6';
+  static const pay7 = 'pay-7';
+  static const pay8 = 'pay-8';
+  static const pay9 = 'pay-9';
+  static const pay10 = 'pay-10';
+  static const pay11 = 'pay-11';
+  static const pay12 = 'pay-12';
+  static const pay13 = 'pay-13';
+  static const pay14 = 'pay-14';
+  static const pay15 = 'pay-15';
 
   static const aiSession1 = 'ai-session-1';
   static const aiSession2 = 'ai-session-2';

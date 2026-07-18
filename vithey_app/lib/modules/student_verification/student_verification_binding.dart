@@ -6,13 +6,19 @@ import 'package:aub_connect_app/modules/student_verification/verification_status
 class StudentVerificationBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => StudentVerificationController(Get.find<StudentVerificationRepository>()));
+    Get.lazyPut(
+      () => StudentVerificationController(Get.find<StudentVerificationRepository>()),
+      fenix: true,
+    );
   }
 }
 
 class VerificationStatusBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => VerificationStatusController(Get.find<StudentVerificationRepository>()));
+    Get.lazyPut(
+      () => VerificationStatusController(Get.find<StudentVerificationRepository>()),
+      fenix: true,
+    );
   }
 }

@@ -12,25 +12,29 @@ class VerificationTimeline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Verification Timeline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          'Verification Status',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: context.appColors.heading,
+          ),
+        ),
         const SizedBox(height: 12),
         _TimelineStep(
           title: 'Application Submitted',
           subtitle: submittedAt != null ? _formatDate(submittedAt!) : 'Completed',
-          completed: true,
-          active: false,
+          tone: _StepTone.completed,
         ),
         const _TimelineStep(
           title: 'Under Review',
-          subtitle: 'In progress…',
-          completed: false,
-          active: true,
+          subtitle: 'In progressing...',
+          tone: _StepTone.active,
         ),
         const _TimelineStep(
           title: 'Verification Complete',
           subtitle: 'Pending',
-          completed: false,
-          active: false,
+          tone: _StepTone.idle,
           isLast: true,
         ),
       ],
@@ -38,54 +42,96 @@ class VerificationTimeline extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
+
+enum _StepTone { completed, active, idle }
 
 class _TimelineStep extends StatelessWidget {
   const _TimelineStep({
     required this.title,
     required this.subtitle,
-    required this.completed,
-    required this.active,
+    required this.tone,
     this.isLast = false,
   });
 
   final String title;
   final String subtitle;
-  final bool completed;
-  final bool active;
+  final _StepTone tone;
   final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    final color = completed
-        ? AppColors.success
-        : active
-            ? AppColors.warning
-            : context.appColors.muted;
+    final Color iconColor;
+    final IconData icon;
+    switch (tone) {
+      case _StepTone.completed:
+        iconColor = AppColors.success;
+        icon = Icons.check_circle_outline;
+      case _StepTone.active:
+        iconColor = const Color(0xFFFF8A50);
+        icon = Icons.access_time_outlined;
+      case _StepTone.idle:
+        iconColor = context.appColors.muted;
+        icon = Icons.info_outline;
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
-            Icon(
-              completed ? Icons.check_circle : active ? Icons.timelapse : Icons.radio_button_unchecked,
-              color: color,
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: Icon(icon, color: iconColor, size: 24),
             ),
-            if (!isLast) Container(width: 2, height: 28, color: context.appColors.border),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 18,
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                color: context.appColors.border,
+              ),
           ],
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 4, top: 2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(subtitle, style: TextStyle(color: context.appColors.muted)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: context.appColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: context.appColors.muted,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
           ),

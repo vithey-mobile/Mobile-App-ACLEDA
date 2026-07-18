@@ -65,7 +65,7 @@ abstract final class UserFixtures {
         portfolioUrl: 'https://www.khornmolika.com',
         phone: '098 765 432',
         email: MockIdentities.mockUserEmail,
-        isStudentVerified: true,
+        isStudentVerified: false,
         skills: const [
           ProfileSkill(name: 'Flutter', proficiency: 75),
           ProfileSkill(name: 'HTML', proficiency: 50),

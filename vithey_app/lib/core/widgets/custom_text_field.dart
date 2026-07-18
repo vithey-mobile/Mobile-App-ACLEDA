@@ -25,6 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.textInputAction,
     this.readOnly = false,
     this.onTap,
+    this.fillColor,
   });
 
   final TextEditingController controller;
@@ -39,6 +40,8 @@ class CustomTextField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final bool readOnly;
   final VoidCallback? onTap;
+  /// When null, uses [AppSemanticColors.inputFill].
+  final Color? fillColor;
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -108,7 +111,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     final hasError = _errorText != null && _errorText!.isNotEmpty;
     final muted = context.appColors.muted;
     final heading = context.appColors.heading;
-    final fill = context.appColors.inputFill;
+    final fill = widget.fillColor ?? context.appColors.inputFill;
     final idleBorder = context.appColors.border;
     final focusColor = context.scheme.primary;
     final chrome = _chromeColor(
@@ -156,7 +159,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           readOnly: widget.readOnly,
           onTap: widget.onTap,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 14,
             color: heading, // typed text stays normal
           ),
           cursorColor: focusColor,
@@ -173,15 +176,24 @@ class _CustomTextFieldState extends State<CustomTextField> {
           decoration: InputDecoration(
             filled: true,
             fillColor: fill,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
             hintText: widget.hint,
             hintStyle: TextStyle(
               color: chrome,
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
             prefixIcon: widget.prefixIcon == null
                 ? null
                 : Icon(widget.prefixIcon, size: 20, color: chrome),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
             suffixIcon: widget.obscureText
                 ? IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -194,6 +206,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ),
                   )
                 : null,
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
             errorStyle: const TextStyle(
               color: AppColors.error,
               fontSize: 12,

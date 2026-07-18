@@ -52,4 +52,6 @@ flutter:
     - assets/images/splash/
     - assets/images/onboarding/
     - assets/icons/
+    - assets/icons/wallet_icon.png
+    - assets/icons/upload_icon.png
     - .env

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 
 class FinanceAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -11,18 +10,18 @@ class FinanceAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return AppBar(
       elevation: 0,
       title: const Text('Finance', style: TextStyle(fontWeight: FontWeight.bold)),
-      centerTitle: true,
-      leading: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Image.asset(AppAssets.logoApp, fit: BoxFit.contain),
-      ),
+      centerTitle: false,
+      titleSpacing: canPop ? 0 : 16,
+      automaticallyImplyLeading: canPop,
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined),
-          onPressed: () => Get.toNamed(AppRoutes.notifications),
+          icon: const Icon(Icons.search),
+          tooltip: 'Search',
+          onPressed: () => Get.toNamed(AppRoutes.search),
         ),
       ],
       bottom: const PreferredSize(

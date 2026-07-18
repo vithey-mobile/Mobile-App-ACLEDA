@@ -104,6 +104,10 @@ class AppBindings {
       permanent: true,
     );
     Get.put<StudentVerificationService>(StudentVerificationService(Get.find<ApiService>()), permanent: true);
+    // Dev/mock: wipe verification cache each launch so the full flow can be walked.
+    if (featureFlags.useMockApi) {
+      await localStorage.clearVerificationData();
+    }
     Get.put<StudentVerificationRepository>(
       StudentVerificationRepository(
         Get.find<StudentVerificationService>(),

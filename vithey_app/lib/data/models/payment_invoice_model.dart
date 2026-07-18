@@ -34,14 +34,15 @@ class PaymentInvoice {
   final DateTime? paidAt;
   final String? invoiceFileId;
 
-  String get totalLabel => status == PaymentStatus.paid ? 'Total Paid' : 'Total Due';
+  /// Mock / v1 UI uses "Total Due" for both Paid and Pending states.
+  String get totalLabel => 'Total Due';
 
   String get statusLabel {
     switch (status) {
       case PaymentStatus.paid:
         return 'Paid';
       case PaymentStatus.unpaid:
-        return 'Not Paid';
+        return 'Pending';
       case PaymentStatus.overdue:
         return 'Overdue';
     }

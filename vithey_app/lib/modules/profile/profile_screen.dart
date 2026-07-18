@@ -60,15 +60,20 @@ class ProfileScreen extends GetView<ProfileController> {
                     onCvPreviewTap: controller.openPreviewOwnCv,
                   ),
                   ProfileStats(profile: profile),
-                  ProfileActionRow(
-                    isOwnProfile: controller.isOwnProfile,
-                    isFollowing: profile.isFollowing,
-                    isStudentVerified: profile.isStudentVerified,
-                    onFollow: controller.toggleFollow,
-                    onMessage: controller.startMessage,
-                    onEditProfile: controller.openEditProfile,
-                    onVerifyStudent: controller.openVerifyStudent,
-                    onShare: controller.shareProfile,
+                  Obx(
+                    () => ProfileActionRow(
+                      isOwnProfile: controller.isOwnProfile,
+                      isFollowing: profile.isFollowing,
+                      isStudentVerified:
+                          Get.find<StudentVerificationRepository>()
+                              .isVerified
+                              .value,
+                      onFollow: controller.toggleFollow,
+                      onMessage: controller.startMessage,
+                      onEditProfile: controller.openEditProfile,
+                      onVerifyStudent: controller.openVerifyStudent,
+                      onShare: controller.shareProfile,
+                    ),
                   ),
                 ],
               ),

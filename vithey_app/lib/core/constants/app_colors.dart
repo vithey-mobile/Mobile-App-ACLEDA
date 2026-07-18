@@ -11,13 +11,13 @@ class AppColors {
 
   static const success = Color(0xFF2E7D32);
   static const warning = Color(0xFFF9A825);
-  static const error = Color(0xFFD32F2F);
+  static const error = Color(0xFFE42407);
   static const info = Color(0xFF0288D1);
 
   static const paid = Color(0xFF2E7D32);
-  static const unpaid = Color(0xFFD32F2F);
-  static const pending = Color(0xFFF9A825);
-  static const overdue = Color(0xFFC62828);
+  static const unpaid = Color(0xFFE42407);
+  static const pending = Color(0xFFFE863F);
+  static const overdue = Color(0xFFE42407);
 
   static const splashBaseTeal = Color(0xFF1A9B8E);
   static const splashWaveDark = Color(0xFF0D7A70);

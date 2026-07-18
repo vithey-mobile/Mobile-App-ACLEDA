@@ -11,6 +11,7 @@ import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 
 class ProfileController extends GetxController with GetSingleTickerProviderStateMixin {
@@ -182,7 +183,16 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
 
   void openEditProfile() => Get.toNamed(AppRoutes.editProfile);
 
-  void openVerifyStudent() => Get.toNamed(AppRoutes.studentVerification);
+  /// Opens form when not verified; opens status to review after success.
+  void openVerifyStudent() {
+    final verified =
+        Get.find<StudentVerificationRepository>().isVerified.value;
+    if (verified) {
+      Get.toNamed(AppRoutes.verificationStatus);
+    } else {
+      Get.toNamed(AppRoutes.studentVerification);
+    }
+  }
 
   void openPreviewOwnCv() => Get.toNamed(AppRoutes.previewOwnCv);
 

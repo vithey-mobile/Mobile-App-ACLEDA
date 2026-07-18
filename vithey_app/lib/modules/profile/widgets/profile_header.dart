@@ -99,8 +99,10 @@ class ProfileActionRow extends StatelessWidget {
             Expanded(
               flex: 2,
               child: shad.Button.outline(
-                onPressed: isStudentVerified ? null : onVerifyStudent,
-                child: shad.Text(isStudentVerified ? 'Verified' : 'Verify student'),
+                onPressed: onVerifyStudent,
+                child: shad.Text(
+                  isStudentVerified ? 'Review verify' : 'Verify student',
+                ),
               ),
             ),
           ] else ...[
