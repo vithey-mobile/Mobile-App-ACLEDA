@@ -25,32 +25,48 @@ function Invoke-ComposeInFolder {
     param(
         [string]$RelativeFolder,
         [ValidateSet("up", "down")]
-        [string]$Action
+        [string]$Action,
+        [int]$MaxAttempts = 3
     )
 
     $folderPath = Join-Path $backend $RelativeFolder
     $composeFile = Join-Path $folderPath "docker-compose.yml"
     if (-not (Test-Path $composeFile)) {
         Write-Host "Skipping $RelativeFolder (no docker-compose.yml)" -ForegroundColor DarkGray
-        return
+        return $true
     }
 
     Push-Location $folderPath
     try {
         # Compose loads .env.example via env_file; no local .env copy needed
-        if ($Action -eq "up") {
-            if ($SkipBuild) {
-                docker compose up -d
+        $attempts = if ($Action -eq "up") { $MaxAttempts } else { 1 }
+        for ($attempt = 1; $attempt -le $attempts; $attempt++) {
+            $prevEap = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            if ($Action -eq "up") {
+                if ($SkipBuild) {
+                    docker compose up -d
+                } else {
+                    docker compose up -d --build
+                }
             } else {
-                docker compose up -d --build
+                docker compose down
             }
-        } else {
-            docker compose down
+            $composeExit = $LASTEXITCODE
+            $ErrorActionPreference = $prevEap
+
+            if ($composeExit -eq 0) {
+                return $true
+            }
+
+            if ($attempt -lt $attempts) {
+                Write-Host "Retry $attempt/$attempts failed for $RelativeFolder; waiting 15s..." -ForegroundColor Yellow
+                Start-Sleep -Seconds 15
+            }
         }
 
-        if ($LASTEXITCODE -ne 0) {
-            throw "docker compose $Action failed in $RelativeFolder"
-        }
+        Write-Host "docker compose $Action failed in $RelativeFolder after $attempts attempt(s)" -ForegroundColor Red
+        return $false
     } finally {
         Pop-Location
     }
@@ -102,13 +118,19 @@ if ($Down) {
 }
 
 Write-Host "Ensuring optional external networks exist..." -ForegroundColor DarkGray
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 docker network inspect gdce-network 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) {
     docker network create gdce-network | Out-Null
 }
+$ErrorActionPreference = $prevEap
 
 Write-Host "Starting infrastructure..." -ForegroundColor Green
-Invoke-ComposeInFolder -RelativeFolder "infrastructure" -Action up
+$failedFolders = @()
+if (-not (Invoke-ComposeInFolder -RelativeFolder "infrastructure" -Action up)) {
+    $failedFolders += "infrastructure"
+}
 
 Write-Host "Waiting for Eureka and Config Server..." -ForegroundColor Cyan
 $infraReady = (Wait-ForHealth -Url "http://localhost:8761/actuator/health") -and (Wait-ForHealth -Url "http://localhost:8888/actuator/health")
@@ -122,12 +144,15 @@ $domainServices = $composeFolders | Where-Object {
 
 foreach ($folder in $domainServices) {
     Write-Host "Starting $folder..." -ForegroundColor Green
-    Invoke-ComposeInFolder -RelativeFolder $folder -Action up
+    if (-not (Invoke-ComposeInFolder -RelativeFolder $folder -Action up)) {
+        $failedFolders += $folder
+    }
 }
 
 Write-Host "Starting api-gateway..." -ForegroundColor Green
-Invoke-ComposeInFolder -RelativeFolder "services/api-gateway" -Action up
-
+if (-not (Invoke-ComposeInFolder -RelativeFolder "services/api-gateway" -Action up)) {
+    $failedFolders += "services/api-gateway"
+}
 $gatewayPort = "8080"
 $apiGatewayEnv = Join-Path $backend "services/api-gateway/.env.example"
 if (Test-Path $apiGatewayEnv) {
@@ -168,3 +193,12 @@ Write-Host "MinIO:    http://localhost:9001  (minioadmin/minioadmin)"
 Write-Host ""
 Write-Host "Logs:     .\scripts\start-all.ps1 -Logs"
 Write-Host "Stop:     .\scripts\start-all.ps1 -Down"
+
+if ($failedFolders.Count -gt 0) {
+    Write-Host ""
+    Write-Host "Failed folders:" -ForegroundColor Red
+    foreach ($folder in $failedFolders) {
+        Write-Host "  - $folder" -ForegroundColor Red
+    }
+    exit 1
+}

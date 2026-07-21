@@ -17,8 +17,10 @@ CREATE TABLE fees (
     name VARCHAR(180) NOT NULL,
     amount NUMERIC(14, 2) NOT NULL,
     currency VARCHAR(8) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL
+    created_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT chk_fees_amount_positive CHECK (amount > 0)
 );
+CREATE INDEX idx_fees_category_id ON fees (category_id);
 
 CREATE TABLE payments (
     id UUID PRIMARY KEY,
@@ -30,12 +32,14 @@ CREATE TABLE payments (
     due_date DATE,
     paid_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL
+    updated_at TIMESTAMPTZ NOT NULL,
+    CONSTRAINT chk_payments_amount_positive CHECK (amount > 0),
+    CONSTRAINT chk_payments_status CHECK (status IN ('PENDING','PAID','OVERDUE','CANCELLED'))
 );
 
 CREATE INDEX idx_payments_user ON payments (user_id);
-CREATE INDEX idx_payments_status ON payments (status);
-CREATE INDEX idx_payments_due_date ON payments (due_date);
+CREATE INDEX idx_payments_status_due ON payments (status, due_date);
+CREATE INDEX idx_payments_fee_id ON payments (fee_id);
 
 INSERT INTO fee_categories (id, name, description, created_at) VALUES
     ('11111111-1111-1111-1111-111111111101', 'Tuition', 'Semester tuition fees', TIMESTAMPTZ '2026-01-01 00:00:00+00'),
