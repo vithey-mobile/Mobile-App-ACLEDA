@@ -23,7 +23,7 @@ Eureka, Config, OpenFeign, RabbitMQ listener, JPA, Flyway, MapStruct, springdoc.
 services/user-profile-service/
 └── src/main/java/com/vithey/profile/
     ├── UserProfileServiceApplication.java
-    ├── config/SecurityConfig.java, RabbitMqConfig.java, OpenApiConfig.java
+    ├── config/SecurityConfig.java, RabbitMqConfig.java, FeignAuthConfig.java, OpenApiConfig.java
     ├── controller/
     │   ├── UserController.java
     │   └── SettingsController.java
@@ -88,8 +88,8 @@ services/user-profile-service/
 
 | Flow | Logic |
 |------|-------|
-| User registered event | Create Profile row with `full_name` from event |
-| Update avatar | Validate file exists via FileServiceClient → store `avatar_file_id` + URL |
+| User registered event | Consume `user.registered` from RabbitMQ; create Profile + default UserSettings (`full_name` from event) |
+| Update avatar | Forward caller JWT / `X-User-*` headers to `file-service` via Feign; validate file exists → store `avatar_file_id` + URL |
 | Search | ILIKE on `full_name`, paginated, exclude blocked users (future) |
 | Public profile | Hide email/phone; show bio, links, university |
 
@@ -106,6 +106,12 @@ services/user-profile-service/
 | Profile not found | 404 |
 | Invalid file id for avatar | 404 |
 | Validation error | 400 |
+
+## Integration notes
+
+- **RabbitMQ:** Auth publishes `user.registered` with `__TypeId__=com.vithey.auth.event.payload.UserRegisteredEvent`. Register a `Jackson2JsonMessageConverter` bean with `TypePrecedence.INFERRED` so the listener deserializes into the local `UserRegisteredEvent` DTO without matching packages.
+- **OpenFeign:** `FeignAuthConfig` forwards `Authorization`, `X-User-Id`, `X-User-Email`, and `X-User-Roles` from the inbound HTTP request to downstream services (required for avatar lookup via `FileServiceClient`).
+- **Postman:** `postman/User-Module.postman_collection.json` + `postman/Vithey-Local.postman_environment.json` at repo root.
 
 ## Output
 

@@ -15,8 +15,8 @@ backend/services/user-profile-service/
     │   │   ├── config/
     │   │   │   ├── SecurityConfig.java
     │   │   │   ├── RabbitMqConfig.java
-    │   │   │   ├── OpenApiConfig.java
-    │   │   │   └── JacksonConfig.java
+    │   │   │   ├── FeignAuthConfig.java
+    │   │   │   └── OpenApiConfig.java
     │   │   ├── controller/
     │   │   │   ├── UserController.java
     │   │   │   └── SettingsController.java

@@ -11,7 +11,7 @@ Gateway note: generic `/users/**` routes here, except `/users/me/cv` and follow/
 | GET | `/users/me` | Current user's profile | JWT |
 | GET | `/users/{user_id}` | Public profile by id | JWT |
 | PATCH | `/users/me` | Update current profile | JWT |
-| PATCH | `/users/me/avatar` | Set avatar file id/url | JWT |
+| PATCH | `/users/me/avatar` | Set avatar from uploaded file id | JWT |
 | GET | `/users/me/settings` | Current user settings | JWT |
 | PATCH | `/users/me/settings` | Update settings | JWT |
 | GET | `/users/search?search=&page=&limit=` | Search users for chat/mentions | JWT |
@@ -32,6 +32,16 @@ Gateway note: generic `/users/**` routes here, except `/users/me/cv` and follow/
     "graduation_year": 2026
   }
 }
+```
+
+## Avatar prerequisite
+
+Upload via file-service first:
+
+`POST /api/v1/files/upload?type=AVATAR` (multipart field `file`) → use returned `file_id` in:
+
+```json
+{ "avatar_file_id": "uuid" }
 ```
 
 ## Settings request

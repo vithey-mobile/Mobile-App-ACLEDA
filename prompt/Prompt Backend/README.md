@@ -27,6 +27,21 @@ Each `services/<name>/` folder:
 
 **ai-service:** also `INTEGRATION.md`.
 
+## API testing (Postman)
+
+Local collections live in `postman/` at the repo root:
+
+| File | Purpose |
+| --- | --- |
+| `User-Module.postman_collection.json` | user-profile-service endpoints (`/api/v1/users/**`) plus auth login helper |
+| `Vithey-Local.postman_environment.json` | Shared local variables (`base_url`, credentials, tokens) |
+
+**Flow:** import both → select **Vithey Local** → run **Auth → Login** → run user profile/settings/search requests.
+
+Gateway base URL: `http://localhost:8080`. Avatar updates require uploading a file first via `POST /api/v1/files/upload?type=AVATAR`, then passing the returned `file_id` to `PATCH /api/v1/users/me/avatar`.
+
+Personal environment overrides are ignored by `postman/.gitignore`.
+
 ## Related
 
 | Topic | Location |

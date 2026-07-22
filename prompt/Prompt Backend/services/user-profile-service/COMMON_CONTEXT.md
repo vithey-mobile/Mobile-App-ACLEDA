@@ -9,7 +9,7 @@ User profiles, avatars (URL ref), bios, Telegram/Facebook links, and app setting
 | Eureka name | `user-profile-service` |
 | Port | 8082 |
 | Database | `user_db` |
-| Package | `com.vithey.user` |
+| Package | `com.vithey.profile` |
 
 ## Entities
 - `Profile` — userId, fullName, bio, avatarUrl, university, major, graduationYear, telegramLink, facebookLink
@@ -20,7 +20,11 @@ User profiles, avatars (URL ref), bios, Telegram/Facebook links, and app setting
 - **Publishes:** `profile.updated`
 
 ## External Clients
-- `FileServiceClient` — upload avatar, get URL
+- `FileServiceClient` — resolve avatar metadata/URL from `file-service` (Feign forwards caller auth headers)
+
+## Local API testing
+- Postman collection: `postman/User-Module.postman_collection.json`
+- Environment: `postman/Vithey-Local.postman_environment.json`
 
 ## API Prefix
 `/api/v1/users/**`
