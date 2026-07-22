@@ -39,7 +39,7 @@ public class CvSuggestionService {
     interaction.setSection(request.section());
     interaction.setOriginalText(request.originalText());
     interaction.setSuggestedText(suggestedText);
-    interaction.setCvId(request.cvId());
+    interaction.setCvFileId(request.cvFileId());
     interactionRepository.save(interaction);
 
     return ApiResponseWrapper.success(new CvSuggestResponse(

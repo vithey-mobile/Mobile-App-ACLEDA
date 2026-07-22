@@ -7,6 +7,6 @@ import java.util.UUID;
 public record CvSuggestRequest(
     @NotBlank @Size(max = 64) String section,
     @NotBlank @Size(max = 8000) String originalText,
-    UUID cvId
+    UUID cvFileId
 ) {
 }

@@ -37,7 +37,9 @@ backend/services/user-profile-service/
     │   │   ├── event/listener/UserRegisteredEventListener.java
     │   │   ├── security/CurrentUserProvider.java
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_profile_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_profile_schema.sql
+    │       └── V2__Enable_pg_trgm_and_full_name_gin_index.sql
     └── test/java/com/vithey/profile/
 ```
 

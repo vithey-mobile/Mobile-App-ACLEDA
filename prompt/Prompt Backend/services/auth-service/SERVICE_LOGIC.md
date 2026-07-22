@@ -10,7 +10,7 @@ It does not own public profile, avatar files, settings, posts, chat, notificatio
 
 | Flow | Logic |
 | --- | --- |
-| Register | Validate unique email/phone, hash password with BCrypt, save `User`, create tokens, publish `user.registered`. |
+| Register | Validate unique **active** email/phone (`deleted_at IS NULL` partial uniques), hash password with BCrypt, save `User`, create tokens, publish `user.registered`. Soft-deleted accounts may re-register the same email/phone. |
 | Login | Find active user by email or phone, verify BCrypt password, create access token and refresh token. |
 | Refresh | Hash incoming refresh token, verify not expired/revoked, revoke old token, issue a new refresh token and access token. |
 | Logout | Revoke the caller refresh token or all user tokens when requested by security endpoints later. |
