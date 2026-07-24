@@ -6,18 +6,23 @@ import com.vithey.profile.dto.request.UpdateProfileRequest;
 import com.vithey.profile.dto.response.FileMetadataResponse;
 import com.vithey.profile.dto.response.MeProfileResponse;
 import com.vithey.profile.dto.response.ProfileResponse;
+import com.vithey.profile.entity.AppLanguage;
+import com.vithey.profile.entity.AppTheme;
 import com.vithey.profile.entity.Profile;
-import com.vithey.profile.entity.UserSettings;
 import com.vithey.profile.event.payload.UserRegisteredEvent;
 import com.vithey.profile.exception.ApiException;
 import com.vithey.profile.exception.ErrorCode;
 import com.vithey.profile.mapper.ProfileMapper;
+import com.vithey.profile.repository.LanguageThemeProjection;
 import com.vithey.profile.repository.ProfileRepository;
 import com.vithey.profile.repository.UserSettingsRepository;
 import com.vithey.profile.util.ApiResponseWrapper;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 @Service
@@ -28,26 +33,34 @@ public class ProfileService {
   private final ProfileMapper profileMapper;
   private final FileServiceClient fileServiceClient;
   private final SettingsService settingsService;
+  private final TransactionTemplate transactionTemplate;
 
   public ProfileService(
       ProfileRepository profileRepository,
       UserSettingsRepository userSettingsRepository,
       ProfileMapper profileMapper,
       FileServiceClient fileServiceClient,
-      SettingsService settingsService
+      SettingsService settingsService,
+      PlatformTransactionManager transactionManager
   ) {
     this.profileRepository = profileRepository;
     this.userSettingsRepository = userSettingsRepository;
     this.profileMapper = profileMapper;
     this.fileServiceClient = fileServiceClient;
     this.settingsService = settingsService;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
   }
 
   @Transactional(readOnly = true)
   public MeProfileResponse getMyProfile(UUID userId) {
     Profile profile = requireProfile(userId);
-    UserSettings settings = settingsService.requireSettings(userId);
-    return profileMapper.toMeResponse(profile, settings);
+    LanguageThemeProjection languageTheme = userSettingsRepository.findLanguageThemeByUserId(userId)
+        .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "Settings not found"));
+    return profileMapper.toMeResponse(
+        profile,
+        languageTheme.getLanguage() != null ? languageTheme.getLanguage() : AppLanguage.en,
+        languageTheme.getTheme() != null ? languageTheme.getTheme() : AppTheme.system
+    );
   }
 
   @Transactional(readOnly = true)
@@ -62,13 +75,28 @@ public class ProfileService {
     return profileMapper.toResponse(profileRepository.save(profile));
   }
 
-  @Transactional
+  /**
+   * Resolves avatar metadata outside the DB transaction so a slow file-service call
+   * does not hold a Hikari connection.
+   */
   public ProfileResponse updateAvatar(UUID userId, UpdateAvatarRequest request) {
-    Profile profile = requireProfile(userId);
-    FileMetadataResponse file = resolveAvatarFile(request.avatarFileId());
-    profile.setAvatarFileId(file.fileId());
-    profile.setAvatarUrl(file.url());
-    return profileMapper.toResponse(profileRepository.save(profile));
+    UUID avatarFileId = request.avatarFileId();
+    Profile existing = transactionTemplate.execute(status -> requireProfile(userId));
+    if (existing != null && avatarFileId.equals(existing.getAvatarFileId())) {
+      return profileMapper.toResponse(existing);
+    }
+
+    FileMetadataResponse file = resolveAvatarFile(avatarFileId);
+    return transactionTemplate.execute(status -> {
+      Profile profile = requireProfile(userId);
+      if (file.fileId().equals(profile.getAvatarFileId())
+          && Objects.equals(file.url(), profile.getAvatarUrl())) {
+        return profileMapper.toResponse(profile);
+      }
+      profile.setAvatarFileId(file.fileId());
+      profile.setAvatarUrl(file.url());
+      return profileMapper.toResponse(profileRepository.save(profile));
+    });
   }
 
   @Transactional
@@ -98,25 +126,26 @@ public class ProfileService {
   }
 
   private void applyProfileUpdates(Profile profile, UpdateProfileRequest request) {
-    if (request.fullName() != null) {
+    if (request.fullName() != null && !Objects.equals(request.fullName(), profile.getFullName())) {
       profile.setFullName(request.fullName());
     }
-    if (request.bio() != null) {
+    if (request.bio() != null && !Objects.equals(request.bio(), profile.getBio())) {
       profile.setBio(request.bio());
     }
-    if (request.telegramLink() != null) {
+    if (request.telegramLink() != null && !Objects.equals(request.telegramLink(), profile.getTelegramLink())) {
       profile.setTelegramLink(request.telegramLink());
     }
-    if (request.facebookLink() != null) {
+    if (request.facebookLink() != null && !Objects.equals(request.facebookLink(), profile.getFacebookLink())) {
       profile.setFacebookLink(request.facebookLink());
     }
-    if (request.university() != null) {
+    if (request.university() != null && !Objects.equals(request.university(), profile.getUniversity())) {
       profile.setUniversity(request.university());
     }
-    if (request.major() != null) {
+    if (request.major() != null && !Objects.equals(request.major(), profile.getMajor())) {
       profile.setMajor(request.major());
     }
-    if (request.graduationYear() != null) {
+    if (request.graduationYear() != null
+        && !Objects.equals(request.graduationYear(), profile.getGraduationYear())) {
       profile.setGraduationYear(request.graduationYear());
     }
   }

@@ -43,6 +43,8 @@ Flyway migrations:
 - `idx_profiles_full_name_trgm` — GIN on `LOWER(full_name)` using `gin_trgm_ops` (requires `pg_trgm`)
 - Extension: `CREATE EXTENSION IF NOT EXISTS pg_trgm`
 
+Search path uses escaped `LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\'` with `ORDER BY full_name` and column projections (`user_id`, `full_name`, `avatar_url`, `university`) so `bio` TEXT is not loaded for typeahead.
+
 ## V2 notes
 
 - Replaced btree `idx_profiles_full_name` with trigram GIN for fuzzy/full-name search.

@@ -36,7 +36,9 @@ Local collections live in `postman/` at the repo root:
 | `User-Module.postman_collection.json` | user-profile-service endpoints (`/api/v1/users/**`) plus auth login helper |
 | `Vithey-Local.postman_environment.json` | Shared local variables (`base_url`, credentials, tokens) |
 
-**Flow:** import both → select **Vithey Local** → run **Auth → Login** → run user profile/settings/search requests.
+**Flow:** import both → select **Vithey Local** → run **Auth → Login** (saves Bearer token) → run user profile/settings/search requests. Collection prerequest auto-logins when `access_token` is empty.
+
+Swagger (direct service): `http://localhost:8082/swagger-ui.html` — Authorize with the same JWT; sample request bodies match Postman.
 
 Gateway base URL: `http://localhost:8080`. Avatar updates require uploading a file first via `POST /api/v1/files/upload?type=AVATAR`, then passing the returned `file_id` to `PATCH /api/v1/users/me/avatar`.
 

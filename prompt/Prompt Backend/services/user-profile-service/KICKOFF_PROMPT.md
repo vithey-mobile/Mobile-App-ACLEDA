@@ -24,4 +24,8 @@ Port, DB, package: see service `COMMON_CONTEXT.md`. Registry: `_shared/SERVICE_R
 
 ## Definition of done
 
-Runnable Spring Boot on port 8082 implementing every endpoint in `SERVICE_PROMPT.md`, with tests per root `COMMON_CONTEXT.md`.
+Runnable Spring Boot on port 8082 implementing every endpoint in `SERVICE_PROMPT.md`, with:
+
+- OpenAPI annotations (`@Tag` / `@Operation` / `@Schema` examples) verified in Swagger UI
+- Performance rules from `SERVICE_LOGIC.md` (Feign outside TX, projections, dirty-check, timeouts)
+- Tests per root `COMMON_CONTEXT.md`

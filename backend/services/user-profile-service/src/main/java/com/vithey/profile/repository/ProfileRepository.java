@@ -11,9 +11,13 @@ import org.springframework.data.repository.query.Param;
 public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
   @Query("""
-      SELECT profile
+      SELECT profile.userId AS userId,
+             profile.fullName AS fullName,
+             profile.avatarUrl AS avatarUrl,
+             profile.university AS university
       FROM Profile profile
-      WHERE LOWER(profile.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
+      WHERE LOWER(profile.fullName) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\'
+      ORDER BY profile.fullName ASC
       """)
-  Page<Profile> searchByFullName(@Param("search") String search, Pageable pageable);
+  Page<UserSearchProjection> searchByFullName(@Param("search") String search, Pageable pageable);
 }

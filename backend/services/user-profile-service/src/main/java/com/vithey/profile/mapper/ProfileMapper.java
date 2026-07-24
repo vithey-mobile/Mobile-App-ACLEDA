@@ -2,11 +2,9 @@ package com.vithey.profile.mapper;
 
 import com.vithey.profile.dto.response.MeProfileResponse;
 import com.vithey.profile.dto.response.ProfileResponse;
-import com.vithey.profile.dto.response.SettingsResponse;
-import com.vithey.profile.dto.response.UserSearchResultResponse;
+import com.vithey.profile.entity.AppLanguage;
+import com.vithey.profile.entity.AppTheme;
 import com.vithey.profile.entity.Profile;
-import com.vithey.profile.entity.UserSettings;
-import com.vithey.profile.entity.UserSettings;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -24,9 +22,7 @@ public interface ProfileMapper {
   @Mapping(target = "university", source = "profile.university")
   @Mapping(target = "major", source = "profile.major")
   @Mapping(target = "graduationYear", source = "profile.graduationYear")
-  @Mapping(target = "language", source = "settings.language")
-  @Mapping(target = "theme", source = "settings.theme")
-  MeProfileResponse toMeResponse(Profile profile, UserSettings settings);
-
-  UserSearchResultResponse toSearchResult(Profile profile);
+  @Mapping(target = "language", source = "language")
+  @Mapping(target = "theme", source = "theme")
+  MeProfileResponse toMeResponse(Profile profile, AppLanguage language, AppTheme theme);
 }
