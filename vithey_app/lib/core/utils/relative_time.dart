@@ -1,15 +1,31 @@
 class RelativeTime {
   RelativeTime._();
 
+  /// Relative date: `2 hours ago`, `3 days ago`, `1 month ago`, `2 years ago`.
   static String format(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    if (diff.inDays < 7) return '${diff.inDays}d';
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    if (diff.isNegative || diff.inMinutes < 1) return 'Just now';
+    if (diff.inHours < 1) {
+      return _plural(diff.inMinutes, 'minute', 'minutes');
+    }
+    if (diff.inHours < 24) {
+      return _plural(diff.inHours, 'hour', 'hours');
+    }
+    if (diff.inDays < 30) {
+      return _plural(diff.inDays, 'day', 'days');
+    }
+    if (diff.inDays < 365) {
+      final months = (diff.inDays / 30).floor().clamp(1, 11);
+      return _plural(months, 'month', 'months');
+    }
+    final years = (diff.inDays / 365).floor().clamp(1, 999);
+    return _plural(years, 'year', 'years');
+  }
+
+  static String _plural(int value, String singular, String plural) {
+    return '$value ${value == 1 ? singular : plural} ago';
   }
 
   /// Chat list trailing time — e.g. `2m ago`, `Yesterday`.

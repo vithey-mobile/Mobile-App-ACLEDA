@@ -78,7 +78,13 @@ class _JobActionButton extends StatelessWidget {
       case JobApplicationState.applied:
         return Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: Text('Applied', style: TextStyle(color: context.appColors.muted, fontWeight: FontWeight.w600)),
+          child: Text(
+            'Applied',
+            style: TextStyle(
+              color: _appliedGrey(context),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         );
       case JobApplicationState.checking:
         return const Padding(
@@ -94,8 +100,20 @@ class _JobActionButton extends StatelessWidget {
         }
         return shad.Button.ghost(
           onPressed: onApply,
-          child: const shad.Text('Apply'),
+          child: shad.Text(
+            'Apply',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         );
     }
+  }
+
+  /// Dark grey label for Applied (not teal / success green).
+  static Color _appliedGrey(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? const Color(0xFFB0B0B0) : const Color(0xFF616161);
   }
 }

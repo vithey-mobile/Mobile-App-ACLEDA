@@ -51,6 +51,8 @@ flutter:
     - assets/images/brand/app_logo.png
     - assets/images/splash/
     - assets/images/onboarding/
+    - assets/images/jobs/
+    - assets/images/cv/
     - assets/icons/
     - assets/icons/wallet_icon.png
     - assets/icons/upload_icon.png

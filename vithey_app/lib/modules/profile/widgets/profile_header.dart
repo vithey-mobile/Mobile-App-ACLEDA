@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/utils/profile_format.dart';
 import 'package:get/get.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 import 'package:share_plus/share_plus.dart';
 
 class ProfileStats extends StatelessWidget {
@@ -15,13 +14,22 @@ class ProfileStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _StatItem(label: 'Likes', value: formatProfileCount(profile.likeCount)),
-          _StatItem(label: 'Followers', value: formatProfileCount(profile.followerCount)),
-          _StatItem(label: 'Following', value: formatProfileCount(profile.followingCount)),
+          _StatItem(
+            label: 'Likes',
+            value: formatProfileCount(profile.likeCount),
+          ),
+          _StatItem(
+            label: 'Followers',
+            value: formatProfileCount(profile.followerCount),
+          ),
+          _StatItem(
+            label: 'Following',
+            value: formatProfileCount(profile.followingCount),
+          ),
         ],
       ),
     );
@@ -36,14 +44,23 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final heading = context.appColors.heading;
+    final muted = context.appColors.muted;
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            color: heading,
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           label,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+            color: muted,
             fontSize: 12,
           ),
         ),
@@ -74,77 +91,158 @@ class ProfileActionRow extends StatelessWidget {
   final VoidCallback onVerifyStudent;
   final VoidCallback onShare;
 
+  static const _buttonHeight = 40.0;
+  static const _radius = 10.0;
+
   @override
   Widget build(BuildContext context) {
+    final heading = context.appColors.heading;
+    final verifyFill = context.appColors.inputFill;
+    final primary = Theme.of(context).colorScheme.primary;
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       child: Row(
         children: [
           if (isOwnProfile) ...[
             Expanded(
-              flex: 3,
-              child: shad.Button.primary(
-                onPressed: onEditProfile,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.edit_outlined, size: 16, color: Colors.white),
-                    SizedBox(width: 6),
-                    shad.Text('Edit profile info'),
-                  ],
+              child: SizedBox(
+                height: _buttonHeight,
+                child: FilledButton.icon(
+                  onPressed: onEditProfile,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primary,
+                    foregroundColor: onPrimary,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(_radius),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text(
+                    'Edit Profile Info',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              flex: 2,
-              child: shad.Button.outline(
-                onPressed: onVerifyStudent,
-                child: shad.Text(
-                  isStudentVerified ? 'Review verify' : 'Verify student',
+              child: SizedBox(
+                height: _buttonHeight,
+                child: FilledButton.icon(
+                  onPressed: onVerifyStudent,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: verifyFill,
+                    foregroundColor: heading,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(_radius),
+                    ),
+                  ),
+                  icon: Icon(
+                    isStudentVerified
+                        ? Icons.verified_outlined
+                        : Icons.verified_user_outlined,
+                    size: 16,
+                  ),
+                  label: Text(
+                    isStudentVerified ? 'Review Verify' : 'Verify Student',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ),
           ] else ...[
             Expanded(
-              child: isFollowing
-                  ? shad.Button.outline(onPressed: onFollow, child: const shad.Text('Following'))
-                  : shad.Button.primary(onPressed: onFollow, child: const shad.Text('Follow')),
+              child: SizedBox(
+                height: _buttonHeight,
+                child: isFollowing
+                    ? OutlinedButton(
+                        onPressed: onFollow,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: primary,
+                          side: BorderSide(color: primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(_radius),
+                          ),
+                        ),
+                        child: const Text(
+                          'Following',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    : FilledButton(
+                        onPressed: onFollow,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: onPrimary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(_radius),
+                          ),
+                        ),
+                        child: const Text(
+                          'Follow',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: shad.Button.outline(onPressed: onMessage, child: const shad.Text('Message')),
+              child: SizedBox(
+                height: _buttonHeight,
+                child: OutlinedButton(
+                  onPressed: onMessage,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primary,
+                    side: BorderSide(color: primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(_radius),
+                    ),
+                  ),
+                  child: const Text(
+                    'Message',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
-          const SizedBox(width: 8),
-          _ShareButton(onShare: onShare),
-        ],
-      ),
-    );
-  }
-}
-
-class _ShareButton extends StatelessWidget {
-  const _ShareButton({required this.onShare});
-
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onShare,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.primary),
-            borderRadius: BorderRadius.circular(10),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: onShare,
+            tooltip: 'Share',
+            icon: const Icon(Icons.ios_share, size: 22),
+            color: primary,
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           ),
-          child: const Icon(Icons.share, color: AppColors.primary, size: 20),
-        ),
+        ],
       ),
     );
   }

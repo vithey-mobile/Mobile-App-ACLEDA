@@ -50,5 +50,16 @@ class FeatureFlags {
   bool get forceShowOnboarding =>
       !isProduction && _isTrue(dotenv.env['FORCE_SHOW_ONBOARDING']);
 
+  /// Dev-only: after Auth always open Startup, ignoring `startup_completed`.
+  /// Set `FORCE_SHOW_STARTUP=false` when done testing.
+  bool get forceShowStartup =>
+      !isProduction && _isTrue(dotenv.env['FORCE_SHOW_STARTUP']);
+
+  /// Dev-only: walk the full funnel every cold start / hot restart:
+  /// Splash → Onboarding → Auth → Startup → Home.
+  /// Clears session + completed flags, then starts at Onboarding.
+  bool get forceDevFunnel =>
+      !isProduction && _isTrue(dotenv.env['FORCE_DEV_FUNNEL']);
+
   AppEnvironment get environment => _config.environment;
 }

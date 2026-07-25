@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+/// 3-step progress matching Apply CV Screen 1–2.
+/// Step 0: node1 filled + line teal; node2 soft teal; rest gray.
 class ApplyJobStepper extends StatelessWidget {
   const ApplyJobStepper({
     super.key,
@@ -13,56 +14,79 @@ class ApplyJobStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-      child: Row(
-        children: [
-          _StepNode(active: currentStep >= 0, completed: currentStep > 0),
-          Expanded(child: _StepLine(active: currentStep >= 1)),
-          _StepNode(active: currentStep >= 1, completed: currentStep > 1),
-          Expanded(child: _StepLine(active: currentStep >= 2)),
-          _StepNode(active: currentStep >= 2, completed: false),
-        ],
+    final primary = Theme.of(context).colorScheme.primary;
+    final soft = primary.withValues(alpha: 0.35);
+    final idle = context.appColors.border;
+
+    return Semantics(
+      label: 'Step ${currentStep + 1} of 3',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(48, 4, 48, 20),
+        child: Row(
+          children: [
+            _StepNode(
+              fill: primary,
+              border: primary,
+              filled: true,
+            ),
+            Expanded(child: _StepLine(color: primary)),
+            _StepNode(
+              fill: currentStep >= 1 ? primary : Colors.transparent,
+              border: currentStep >= 1 ? primary : soft,
+              filled: currentStep >= 1,
+            ),
+            Expanded(child: _StepLine(color: currentStep >= 1 ? primary : idle)),
+            _StepNode(
+              fill: currentStep >= 2 ? primary : Colors.transparent,
+              border: currentStep >= 2 ? primary : idle,
+              filled: currentStep >= 2,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _StepNode extends StatelessWidget {
-  const _StepNode({required this.active, required this.completed});
+  const _StepNode({
+    required this.fill,
+    required this.border,
+    required this.filled,
+  });
 
-  final bool active;
-  final bool completed;
+  final Color fill;
+  final Color border;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : context.appColors.border;
     return Container(
-      width: 14,
-      height: 14,
+      width: 16,
+      height: 16,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: completed ? AppColors.primary : Colors.transparent,
-        border: Border.all(color: color, width: 2),
+        color: filled ? fill : Colors.transparent,
+        border: Border.all(color: border, width: 2.5),
       ),
-      child: completed
-          ? const Icon(Icons.check, size: 8, color: Colors.white)
-          : null,
     );
   }
 }
 
 class _StepLine extends StatelessWidget {
-  const _StepLine({required this.active});
+  const _StepLine({required this.color});
 
-  final bool active;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      color: active ? AppColors.primary : context.appColors.border,
+      height: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(2),
+      ),
     );
   }
 }

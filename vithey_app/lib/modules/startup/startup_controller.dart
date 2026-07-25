@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
@@ -14,6 +15,21 @@ class StartupController extends GetxController {
   final isContentAnimating = false.obs;
 
   static const int maxInterests = 5;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final flags =
+        Get.isRegistered<FeatureFlags>() ? Get.find<FeatureFlags>() : null;
+    // Dev force modes: start at step 0 with a clean draft every open.
+    if (flags != null && (flags.forceDevFunnel || flags.forceShowStartup)) {
+      draft.skillIds.clear();
+      draft.interestIds.clear();
+      draft.discoverySource = null;
+      currentStep.value = 0;
+      _localStorage.setStartupCompleted(false);
+    }
+  }
 
   void toggleSkill(String id) {
     if (draft.skillIds.contains(id)) {

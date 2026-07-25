@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
@@ -158,8 +157,15 @@ class _ApplicantCard extends StatelessWidget {
                 ),
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: AppColors.primary,
-                  child: Text(_rankLabel, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: Text(
+                    _rankLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -179,25 +185,96 @@ class _ApplicantCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: shad.Button.primary(
-                    onPressed: application.status == ApplicationStatus.accepted ? null : onAccept,
-                    child: const shad.Text('Accept'),
+                  child: _ActionButton(
+                    label: 'Accept',
+                    onPressed: application.status == ApplicationStatus.accepted
+                        ? null
+                        : onAccept,
+                    background: Theme.of(context).colorScheme.primary,
+                    foreground: Colors.white,
+                    disabledBackground: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.45),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: shad.Button.destructive(
-                    onPressed: application.status == ApplicationStatus.rejected ? null : onReject,
-                    child: const shad.Text('Reject'),
+                  child: _ActionButton(
+                    label: 'Reject',
+                    onPressed: application.status == ApplicationStatus.rejected
+                        ? null
+                        : onReject,
+                    background: const Color(0xFFE76363),
+                    foreground: Colors.white,
+                    disabledBackground:
+                        const Color(0xFFE76363).withValues(alpha: 0.4),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: shad.Button.outline(onPressed: onDetails, child: const shad.Text('Details')),
+                  child: _ActionButton(
+                    label: 'Details',
+                    onPressed: onDetails,
+                    background: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF3A3A4E)
+                        : const Color(0xFFE8E8EC),
+                    foreground: context.appColors.heading,
+                  ),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.label,
+    required this.onPressed,
+    required this.background,
+    required this.foreground,
+    this.disabledBackground,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Color background;
+  final Color foreground;
+  final Color? disabledBackground;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: background,
+          foregroundColor: foreground,
+          disabledBackgroundColor: disabledBackground ?? background.withValues(alpha: 0.4),
+          disabledForegroundColor: foreground.withValues(alpha: 0.7),
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          padding: EdgeInsets.zero,
+          alignment: Alignment.center,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: foreground,
+            height: 1.1,
+          ),
         ),
       ),
     );

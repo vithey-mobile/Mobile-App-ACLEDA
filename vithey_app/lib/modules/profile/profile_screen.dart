@@ -56,8 +56,6 @@ class ProfileScreen extends GetView<ProfileController> {
                     profile: profile,
                     showMenu: controller.isOwnProfile,
                     onMenuTap: () => Get.toNamed(AppRoutes.settings),
-                    showCvPreview: controller.isOwnProfile,
-                    onCvPreviewTap: controller.openPreviewOwnCv,
                   ),
                   ProfileStats(profile: profile),
                   Obx(
@@ -85,10 +83,23 @@ class ProfileScreen extends GetView<ProfileController> {
                   controller: controller.tabController,
                   isScrollable: true,
                   labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  unselectedLabelColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   indicatorColor: Theme.of(context).colorScheme.primary,
                   indicatorWeight: 3,
                   tabAlignment: TabAlignment.start,
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
                   tabs: tabs,
                 ),
               ),

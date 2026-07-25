@@ -57,7 +57,7 @@ class AppStrings {
   static const selectPosition = 'Select a position';
   static const dragDropCv = 'Drag & drop your file here';
   static const orTapToBrowse = 'or tap to browse';
-  static const cvPolicyLabel = 'PDF, DOC or DOCX (max. 10 MB)';
+  static const cvPolicyLabel = 'JPG, PNG, or PDF (Max 5MB)';
   static const continueLabel = 'Continue';
   static const privacyNote = 'Your data will be secure and private';
   static const reviewYourCv = 'Review your CV';

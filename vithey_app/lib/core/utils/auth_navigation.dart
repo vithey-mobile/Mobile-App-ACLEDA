@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/push/fcm_service.dart';
@@ -9,9 +10,13 @@ class AuthNavigation {
 
   static Future<void> goAfterAuth({bool isNewUser = false}) async {
     final localStorage = Get.find<LocalStorageService>();
+    final flags =
+        Get.isRegistered<FeatureFlags>() ? Get.find<FeatureFlags>() : null;
+    final forceStartup =
+        flags != null && (flags.forceDevFunnel || flags.forceShowStartup);
     final startupDone = await localStorage.isStartupCompleted();
     await _bootstrapNotifications();
-    if (!startupDone || isNewUser) {
+    if (forceStartup || !startupDone || isNewUser) {
       Get.offAllNamed(AppRoutes.startupSkills);
     } else {
       Get.offAllNamed(AppRoutes.home);

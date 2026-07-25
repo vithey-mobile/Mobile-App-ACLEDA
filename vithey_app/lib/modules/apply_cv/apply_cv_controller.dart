@@ -97,8 +97,7 @@ class ApplyCvController extends GetxController {
   String get positionLabel => selectedPosition.value ?? jobTitle;
 
   bool get showPositionSelector {
-    final positions = _availablePositions;
-    return positions.length > 1;
+    return _availablePositions.isNotEmpty;
   }
 
   List<String> get availablePositions => _availablePositions;
@@ -158,10 +157,7 @@ class ApplyCvController extends GetxController {
         selectedPosition.value = positions.first;
       }
 
-      if (eligibilityResult.eligibility == JobEligibility.eligible && saved != null) {
-        selectionMode.value = CvSelectionMode.saved;
-      }
-
+      // Keep upload zone empty to match Screen 1; saved CV is a shortcut below.
       phase.value = ApplyCvPhase.ready;
     } catch (e) {
       phase.value = ApplyCvPhase.error;

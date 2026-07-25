@@ -42,7 +42,9 @@ class ProfileRepository {
   Future<UserProfileModel> getProfile(String userId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      return _withFollowState(_mockProfiles[userId] ?? _mockProfiles[_currentUser.userId]!);
+      return _withFollowState(
+        _mockProfiles[userId] ?? _mockProfiles[_currentUser.userId]!,
+      );
     }
     if (userId == currentUserId) {
       return _profileService.getMyProfile();
@@ -90,41 +92,125 @@ class ProfileRepository {
   Future<UserProfileModel> updateProfile({
     String? bio,
     String? location,
+    String? gender,
     String? workplace,
     String? portfolioUrl,
+    String? telegramLink,
+    String? facebookLink,
     String? phone,
     String? email,
     String? university,
     String? major,
     int? graduationYear,
+    DateTime? dateOfBirth,
+    bool updateDateOfBirth = false,
+    List<String>? education,
+    List<String>? workplaces,
+    List<String>? personalExtras,
+    List<String>? otherLinks,
+    List<String>? otherContacts,
+    List<ProfileSkill>? skills,
+    List<ProfileWorkEntry>? workEntries,
+    List<ProfileEducationEntry>? educationEntries,
+    List<ProfileLinkEntry>? linkEntries,
+    List<ProfileContactEntry>? contactEntries,
   }) async {
+    String? clearable(String? incoming) {
+      if (incoming == null) return null;
+      final t = incoming.trim();
+      return t.isEmpty ? null : t;
+    }
+
+    final clearedBio = clearable(bio);
+    final clearedLocation = clearable(location);
+    final clearedGender = clearable(gender);
+    final clearedWorkplace = clearable(workplace);
+    final clearedPortfolio = clearable(portfolioUrl);
+    final clearedTelegram = clearable(telegramLink);
+    final clearedFacebook = clearable(facebookLink);
+    final clearedPhone = clearable(phone);
+    final clearedEmail = clearable(email);
+    final clearedUniversity = clearable(university);
+    final clearedMajor = clearable(major);
+
     final fields = <String, dynamic>{
-      if (bio != null) 'bio': bio,
-      if (location != null) 'location': location,
-      if (workplace != null) 'workplace': workplace,
-      if (portfolioUrl != null) 'portfolio_url': portfolioUrl,
-      if (phone != null) 'phone': phone,
-      if (email != null) 'email': email,
-      if (university != null) 'university': university,
-      if (major != null) 'major': major,
+      if (bio != null) 'bio': clearedBio ?? '',
+      if (location != null) 'location': clearedLocation,
+      if (gender != null) 'gender': clearedGender,
+      if (workplace != null) 'workplace': clearedWorkplace,
+      if (portfolioUrl != null) 'portfolio_url': clearedPortfolio,
+      if (telegramLink != null) 'telegram_link': clearedTelegram,
+      if (facebookLink != null) 'facebook_link': clearedFacebook,
+      if (phone != null) 'phone': clearedPhone,
+      if (email != null) 'email': clearedEmail,
+      if (university != null) 'university': clearedUniversity,
+      if (major != null) 'major': clearedMajor,
       if (graduationYear != null) 'graduation_year': graduationYear,
     };
-    if (fields.isEmpty) {
+    final hasListUpdate = education != null ||
+        workplaces != null ||
+        personalExtras != null ||
+        otherLinks != null ||
+        otherContacts != null ||
+        skills != null ||
+        workEntries != null ||
+        educationEntries != null ||
+        linkEntries != null ||
+        contactEntries != null ||
+        updateDateOfBirth;
+    if (fields.isEmpty && !hasListUpdate) {
       return getProfile(currentUserId);
     }
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       final current = _mockProfiles[currentUserId]!;
-      final updated = current.copyWith(
-        bio: bio ?? current.bio,
-        location: location ?? current.location,
-        workplace: workplace ?? current.workplace,
-        portfolioUrl: portfolioUrl ?? current.portfolioUrl,
-        phone: phone ?? current.phone,
-        email: email ?? current.email,
-        university: university ?? current.university,
-        major: major ?? current.major,
+      final works = workEntries ?? current.workItems;
+      final edus = educationEntries ?? current.educationItems;
+      final links = linkEntries ?? current.linkItems;
+      final contacts = contactEntries ?? current.contactItems;
+      final updated = UserProfileModel(
+        id: current.id,
+        fullName: current.fullName,
+        bio: bio != null ? clearedBio : current.bio,
+        avatarUrl: current.avatarUrl,
+        coverUrl: current.coverUrl,
+        university: university != null ? clearedUniversity : current.university,
+        major: major != null ? clearedMajor : current.major,
         graduationYear: graduationYear ?? current.graduationYear,
+        telegramLink:
+            telegramLink != null ? clearedTelegram : current.telegramLink,
+        facebookLink:
+            facebookLink != null ? clearedFacebook : current.facebookLink,
+        followerCount: current.followerCount,
+        followingCount: current.followingCount,
+        postCount: current.postCount,
+        likeCount: current.likeCount,
+        isFollowing: current.isFollowing,
+        skills: skills ?? current.skills,
+        location: location != null ? clearedLocation : current.location,
+        gender: gender != null ? clearedGender : current.gender,
+        dateOfBirth: updateDateOfBirth ? dateOfBirth : current.dateOfBirth,
+        workplace: works.isNotEmpty
+            ? works.first.workplace
+            : (workplace != null ? clearedWorkplace : current.workplace),
+        workplaces: works.map((w) => w.workplace).toList(),
+        workEntries: works,
+        education: edus.map((e) => e.school).toList(),
+        educationEntries: edus,
+        personalExtras: personalExtras ?? current.personalExtras,
+        otherLinks: otherLinks ?? current.otherLinks,
+        linkEntries: links,
+        otherContacts: otherContacts ?? current.otherContacts,
+        contactEntries: contacts,
+        portfolioUrl:
+            portfolioUrl != null ? clearedPortfolio : current.portfolioUrl,
+        phone: phone != null
+            ? clearedPhone
+            : (contacts.isNotEmpty ? contacts.first.phone : current.phone),
+        email: email != null
+            ? clearedEmail
+            : (contacts.isNotEmpty ? contacts.first.email : current.email),
+        isStudentVerified: current.isStudentVerified,
       );
       _mockProfiles[currentUserId] = updated;
       return updated;
@@ -180,21 +266,23 @@ class ProfileRepository {
 
   ApplicantDetailModel _buildMockApplicantDetail(String applicationId) {
     final application = _findMockApplication(applicationId);
-    final userId = application.applicantUserId ?? 'author-1';
+    final details = ApplicationFixtures.buildApplicationDetails()[applicationId];
+    final userId = application.applicantUserId ?? details?.applicantUserId ?? 'author-1';
     final profile = _mockProfiles[userId];
 
     return ApplicantDetailModel(
       applicationId: application.id,
       jobPostId: application.jobPostId,
-      jobTitle: application.headline ?? 'Web Developer',
+      jobTitle: details?.jobTitle ?? application.headline ?? 'Job',
       applicantUserId: userId,
-      applicantName: application.applicantName,
-      headline: application.headline,
-      location: application.location ?? profile?.location,
-      email: application.email ?? profile?.email,
+      applicantName: details?.applicantName ?? application.applicantName,
+      headline: details?.applicantHeadline ?? application.headline,
+      location: details?.applicantLocation ?? application.location ?? profile?.location,
+      email: details?.applicantEmail ?? application.email ?? profile?.email,
       avatarUrl: profile?.avatarUrl,
       status: application.status,
-      cvFileName: application.cvFileName,
+      // Original uploaded file name from the application record.
+      cvFileName: details?.cvFileName ?? application.cvFileName,
       experience: _mockExperienceFor(userId),
       education: _mockEducationFor(userId),
     );

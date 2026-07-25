@@ -17,9 +17,18 @@ class UserProfileModel {
     this.isFollowing = false,
     this.skills = const [],
     this.location,
+    this.gender,
     this.dateOfBirth,
     this.workplace,
+    this.workplaces = const [],
+    this.workEntries = const [],
     this.education = const [],
+    this.educationEntries = const [],
+    this.personalExtras = const [],
+    this.otherLinks = const [],
+    this.linkEntries = const [],
+    this.otherContacts = const [],
+    this.contactEntries = const [],
     this.portfolioUrl,
     this.phone,
     this.email,
@@ -43,13 +52,80 @@ class UserProfileModel {
   final bool isFollowing;
   final List<ProfileSkill> skills;
   final String? location;
+  final String? gender;
   final DateTime? dateOfBirth;
   final String? workplace;
+  final List<String> workplaces;
+  final List<ProfileWorkEntry> workEntries;
   final List<String> education;
+  final List<ProfileEducationEntry> educationEntries;
+  final List<String> personalExtras;
+  final List<String> otherLinks;
+  final List<ProfileLinkEntry> linkEntries;
+  final List<String> otherContacts;
+  final List<ProfileContactEntry> contactEntries;
   final String? portfolioUrl;
   final String? phone;
   final String? email;
   final bool isStudentVerified;
+
+  /// Structured work first; fall back to legacy workplace strings.
+  List<ProfileWorkEntry> get workItems {
+    if (workEntries.isNotEmpty) return workEntries;
+    final places = workplaces.isNotEmpty
+        ? workplaces
+        : (workplace != null && workplace!.trim().isNotEmpty
+            ? [workplace!]
+            : <String>[]);
+    return [
+      for (final place in places)
+        ProfileWorkEntry(position: '', workplace: place),
+    ];
+  }
+
+  List<ProfileEducationEntry> get educationItems {
+    if (educationEntries.isNotEmpty) return educationEntries;
+    return [
+      for (final school in education)
+        if (school.trim().isNotEmpty)
+          ProfileEducationEntry(school: school),
+      if (university != null &&
+          university!.trim().isNotEmpty &&
+          !education.contains(university))
+        ProfileEducationEntry(
+          school: university!,
+          major: major,
+        ),
+    ];
+  }
+
+  List<ProfileLinkEntry> get linkItems {
+    if (linkEntries.isNotEmpty) return linkEntries;
+    return [
+      if (portfolioUrl != null && portfolioUrl!.trim().isNotEmpty)
+        ProfileLinkEntry(platform: 'Website', url: portfolioUrl!),
+      if (telegramLink != null && telegramLink!.trim().isNotEmpty)
+        ProfileLinkEntry(platform: 'Telegram', url: telegramLink!),
+      if (facebookLink != null && facebookLink!.trim().isNotEmpty)
+        ProfileLinkEntry(platform: 'Facebook', url: facebookLink!),
+      for (final link in otherLinks)
+        if (link.trim().isNotEmpty)
+          ProfileLinkEntry(platform: 'Link', url: link),
+    ];
+  }
+
+  List<ProfileContactEntry> get contactItems {
+    if (contactEntries.isNotEmpty) return contactEntries;
+    final hasPhone = phone != null && phone!.trim().isNotEmpty;
+    final hasEmail = email != null && email!.trim().isNotEmpty;
+    if (!hasPhone && !hasEmail && otherContacts.isEmpty) return const [];
+    return [
+      if (hasPhone || hasEmail)
+        ProfileContactEntry(phone: phone, email: email),
+      for (final c in otherContacts)
+        if (c.trim().isNotEmpty) ProfileContactEntry(phone: c),
+    ];
+  }
 
   UserProfileModel copyWith({
     String? fullName,
@@ -59,15 +135,26 @@ class UserProfileModel {
     String? university,
     String? major,
     int? graduationYear,
+    String? telegramLink,
+    String? facebookLink,
     int? followerCount,
     int? followingCount,
     int? likeCount,
     bool? isFollowing,
     List<ProfileSkill>? skills,
     String? location,
+    String? gender,
     DateTime? dateOfBirth,
     String? workplace,
+    List<String>? workplaces,
+    List<ProfileWorkEntry>? workEntries,
     List<String>? education,
+    List<ProfileEducationEntry>? educationEntries,
+    List<String>? personalExtras,
+    List<String>? otherLinks,
+    List<ProfileLinkEntry>? linkEntries,
+    List<String>? otherContacts,
+    List<ProfileContactEntry>? contactEntries,
     String? portfolioUrl,
     String? phone,
     String? email,
@@ -82,8 +169,8 @@ class UserProfileModel {
       university: university ?? this.university,
       major: major ?? this.major,
       graduationYear: graduationYear ?? this.graduationYear,
-      telegramLink: telegramLink,
-      facebookLink: facebookLink,
+      telegramLink: telegramLink ?? this.telegramLink,
+      facebookLink: facebookLink ?? this.facebookLink,
       followerCount: followerCount ?? this.followerCount,
       followingCount: followingCount ?? this.followingCount,
       postCount: postCount,
@@ -91,9 +178,18 @@ class UserProfileModel {
       isFollowing: isFollowing ?? this.isFollowing,
       skills: skills ?? this.skills,
       location: location ?? this.location,
+      gender: gender ?? this.gender,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       workplace: workplace ?? this.workplace,
+      workplaces: workplaces ?? this.workplaces,
+      workEntries: workEntries ?? this.workEntries,
       education: education ?? this.education,
+      educationEntries: educationEntries ?? this.educationEntries,
+      personalExtras: personalExtras ?? this.personalExtras,
+      otherLinks: otherLinks ?? this.otherLinks,
+      linkEntries: linkEntries ?? this.linkEntries,
+      otherContacts: otherContacts ?? this.otherContacts,
+      contactEntries: contactEntries ?? this.contactEntries,
       portfolioUrl: portfolioUrl ?? this.portfolioUrl,
       phone: phone ?? this.phone,
       email: email ?? this.email,
@@ -119,6 +215,7 @@ class UserProfileModel {
       likeCount: json['like_count'] as int? ?? json['stats']?['likes'] as int? ?? 0,
       isFollowing: json['is_following'] as bool? ?? false,
       location: json['location'] as String?,
+      gender: json['gender'] as String?,
     );
   }
 }
@@ -140,6 +237,68 @@ class ProfileSkill {
   }
 }
 
+class ProfileWorkEntry {
+  const ProfileWorkEntry({
+    required this.workplace,
+    this.position = '',
+    this.description,
+  });
+
+  final String position;
+  final String workplace;
+  final String? description;
+
+  String get displayLabel {
+    final p = position.trim();
+    final w = workplace.trim();
+    if (p.isNotEmpty && w.isNotEmpty) return '$p · $w';
+    if (w.isNotEmpty) return w;
+    return p;
+  }
+}
+
+class ProfileEducationEntry {
+  const ProfileEducationEntry({
+    required this.school,
+    this.major,
+    this.certificate,
+    this.description,
+  });
+
+  final String school;
+  final String? major;
+  final String? certificate;
+  final String? description;
+}
+
+class ProfileLinkEntry {
+  const ProfileLinkEntry({
+    required this.platform,
+    required this.url,
+  });
+
+  final String platform;
+  final String url;
+}
+
+class ProfileContactEntry {
+  const ProfileContactEntry({
+    this.phone,
+    this.email,
+  });
+
+  final String? phone;
+  final String? email;
+
+  String get displayLabel {
+    final parts = <String>[
+      if (phone != null && phone!.trim().isNotEmpty) phone!.trim(),
+      if (email != null && email!.trim().isNotEmpty) email!.trim(),
+    ];
+    return parts.join(' · ');
+  }
+}
+
 class AppliedJobSummary {
   const AppliedJobSummary({
     required this.id,
@@ -148,6 +307,9 @@ class AppliedJobSummary {
     required this.company,
     required this.status,
     required this.appliedAt,
+    this.location,
+    this.employmentType,
+    this.mediaUrl,
   });
 
   final String id;
@@ -156,6 +318,9 @@ class AppliedJobSummary {
   final String company;
   final ApplicationStatus status;
   final DateTime appliedAt;
+  final String? location;
+  final String? employmentType;
+  final String? mediaUrl;
 }
 
 class CvMetadataModel {

@@ -192,4 +192,4 @@ Flow: `POST /files/upload` (`type=AVATAR`) â†’ validate via file-service Feign â
 
 ## Frontend mirror
 
-`Prompt Frontend/Screen prompt/profile/06.profile_api_backend.md`
+`Prompt Frontend/Screen prompt/profile/v0/08.profile_api_backend.md`
