@@ -44,6 +44,18 @@ Upload/download/delete use the internal client. Presigned URLs are signed with t
 
 Soft-delete metadata first (owner check), then remove the MinIO object. If object removal fails after soft-delete, the file stays unavailable via API (preferred over active metadata pointing at a missing object).
 
+## Performance notes (local Docker)
+
+Measured after moving MinIO I/O outside DB transactions and adding Hikari timeouts:
+
+| Endpoint | Scenario | Approx. time |
+| --- | --- | --- |
+| `GET /api/v1/files/{id}` | metadata + presign, warm | ~15–21 ms avg (x20) |
+| `POST /api/v1/files/upload` | small PNG AVATAR | ~25–30 ms warm; first call higher |
+| Validation / auth failures | missing part, bad token | ~12–25 ms |
+
+Do not hold a DB connection across `putObject` / `getPresignedObjectUrl` / `removeObject`.
+
 ## Errors
 
 | Case | Code | HTTP |
