@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
@@ -13,6 +14,8 @@ class PosterPostCard extends StatelessWidget {
     required this.onFollow,
     required this.onOpen,
     this.onAuthorTap,
+    this.margin,
+    this.actionsAlignStart = false,
   });
 
   final FeedPost post;
@@ -22,17 +25,28 @@ class PosterPostCard extends StatelessWidget {
   final VoidCallback onFollow;
   final VoidCallback onOpen;
   final VoidCallback? onAuthorTap;
+  final EdgeInsetsGeometry? margin;
+  final bool actionsAlignStart;
 
   @override
   Widget build(BuildContext context) {
     return PostCard(
       post: post,
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      actionsAlignStart: actionsAlignStart,
       headerTrailing: post.isOwnPost ? null : _FollowButton(post: post, onFollow: onFollow),
       body: PostMediaImage(url: post.mediaUrl),
       onLike: onLike,
       onComment: onComment,
       onShare: onShare,
-      onBodyTap: onOpen,
+      onBodyTap: () {
+        final url = post.mediaUrl;
+        if (url == null || url.isEmpty) {
+          onOpen();
+          return;
+        }
+        showMediaFullscreen(context, post);
+      },
       onAuthorTap: onAuthorTap,
     );
   }

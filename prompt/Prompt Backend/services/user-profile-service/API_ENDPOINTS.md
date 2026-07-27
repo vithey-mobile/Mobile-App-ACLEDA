@@ -75,3 +75,25 @@ Same `avatar_file_id` as already stored → no Feign call / no write (idempotent
 ```
 
 All fields optional. Unchanged values are not persisted (avoids dirty JSONB updates).
+
+`language`: `en` \| `km` · `theme`: `light` \| `dark` \| `system`
+
+## Not owned by this service
+
+| Data | Owner |
+| --- | --- |
+| Login password | auth-service |
+| CV default | career-service (`/users/me/cv`) |
+| Posts, jobs tab | content-service |
+| Likes / followers | content-service |
+
+## Events published
+
+| Event | When |
+| --- | --- |
+| `profile.updated` | After `PATCH /users/me` or `PATCH /users/me/avatar` |
+
+## Frontend mirror
+
+`Prompt Frontend/Screen prompt/profile/v0/08.profile_api_backend.md`
+

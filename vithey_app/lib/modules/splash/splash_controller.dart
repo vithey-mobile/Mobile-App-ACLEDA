@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
@@ -10,10 +11,12 @@ class SplashController extends GetxController {
   SplashController(
     this._secureStorage,
     this._localStorage,
+    this._featureFlags,
   );
 
   final SecureStorageService _secureStorage;
   final LocalStorageService _localStorage;
+  final FeatureFlags _featureFlags;
 
   static const _splashDuration = Duration(seconds: 2);
 
@@ -50,6 +53,19 @@ class SplashController extends GetxController {
   }
 
   Future<String> _resolveNextRouteLocal() async {
+    // Dev full funnel: Splash → Onboarding → Auth → Startup → Home
+    if (_featureFlags.forceDevFunnel) {
+      await _secureStorage.clearTokens();
+      await _localStorage.setOnboardingCompleted(false);
+      await _localStorage.setStartupCompleted(false);
+      return AppRoutes.onboarding;
+    }
+
+    // Dev-only: jump to Onboarding only (not full funnel).
+    if (_featureFlags.forceShowOnboarding) {
+      return AppRoutes.onboarding;
+    }
+
     final token = await _secureStorage.readAccessToken().timeout(
       const Duration(milliseconds: 500),
       onTimeout: () => null,
@@ -58,13 +74,18 @@ class SplashController extends GetxController {
       unawaited(_secureStorage.clearTokens());
     }
 
-    final hasToken = token != null && token.isNotEmpty && !token.startsWith('mock');
+    final hasToken =
+        token != null && token.isNotEmpty && !token.startsWith('mock');
     final onboardingDone = await _localStorage.isOnboardingCompleted().timeout(
       const Duration(milliseconds: 500),
       onTimeout: () => false,
     );
 
     if (hasToken) {
+      // Dev-only: logged-in users still land on Startup for UI work.
+      if (_featureFlags.forceShowStartup) {
+        return AppRoutes.startupSkills;
+      }
       final startupDone = await _localStorage.isStartupCompleted().timeout(
         const Duration(milliseconds: 500),
         onTimeout: () => false,

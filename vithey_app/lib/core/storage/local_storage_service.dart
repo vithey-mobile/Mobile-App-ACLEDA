@@ -9,6 +9,7 @@ class LocalStorageService {
   static const _verificationStudentIdKey = 'verification_student_id';
   static const _verificationEmailKey = 'verification_email';
   static const _verificationSubmittedAtKey = 'verification_submitted_at';
+  static const _verificationDocumentKey = 'verification_document_file_name';
   static const _privacyProfileVisibleKey = 'privacy_profile_visible';
   static const _privacyDataSharingKey = 'privacy_data_sharing';
   static const _privacyActivityTrackingKey = 'privacy_activity_tracking';
@@ -68,11 +69,22 @@ class LocalStorageService {
     required String studentId,
     required String universityEmail,
     required String submittedAtIso,
+    String? documentFileName,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_verificationStudentIdKey, studentId);
     await prefs.setString(_verificationEmailKey, universityEmail);
     await prefs.setString(_verificationSubmittedAtKey, submittedAtIso);
+    if (documentFileName != null && documentFileName.isNotEmpty) {
+      await prefs.setString(_verificationDocumentKey, documentFileName);
+    } else {
+      await prefs.remove(_verificationDocumentKey);
+    }
+  }
+
+  Future<void> clearVerificationDocument() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_verificationDocumentKey);
   }
 
   Future<Map<String, String?>> readVerificationDraft() async {
@@ -81,6 +93,7 @@ class LocalStorageService {
       'studentId': prefs.getString(_verificationStudentIdKey),
       'universityEmail': prefs.getString(_verificationEmailKey),
       'submittedAt': prefs.getString(_verificationSubmittedAtKey),
+      'documentFileName': prefs.getString(_verificationDocumentKey),
     };
   }
 
@@ -90,6 +103,7 @@ class LocalStorageService {
     await prefs.remove(_verificationStudentIdKey);
     await prefs.remove(_verificationEmailKey);
     await prefs.remove(_verificationSubmittedAtKey);
+    await prefs.remove(_verificationDocumentKey);
   }
 
   Future<bool> readPrivacyProfileVisible() async {

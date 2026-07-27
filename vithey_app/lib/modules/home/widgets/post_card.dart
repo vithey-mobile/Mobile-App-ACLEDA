@@ -16,6 +16,8 @@ class PostCard extends StatelessWidget {
     required this.onShare,
     required this.onBodyTap,
     this.onAuthorTap,
+    this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    this.actionsAlignStart = false,
   });
 
   final FeedPost post;
@@ -26,11 +28,13 @@ class PostCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onBodyTap;
   final VoidCallback? onAuthorTap;
+  final EdgeInsetsGeometry margin;
+  final bool actionsAlignStart;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: margin,
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -51,6 +55,7 @@ class PostCard extends StatelessWidget {
             onLike: onLike,
             onComment: onComment,
             onShare: onShare,
+            alignStart: actionsAlignStart,
           ),
         ],
       ),

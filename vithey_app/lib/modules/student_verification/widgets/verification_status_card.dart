@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 
+/// Status hero cards from `Verified.png`:
+/// pending = orange, verified = green, notSubmitted = grey.
 class VerificationStatusCard extends StatelessWidget {
   const VerificationStatusCard({super.key, required this.status});
 
@@ -11,31 +13,28 @@ class VerificationStatusCard extends StatelessWidget {
     switch (status) {
       case VerificationStatus.pending:
         return const _GradientCard(
-          colors: [Color(0xFFFF8A50), Color(0xFFE53935)],
-          icon: Icons.hourglass_top,
+          colors: [Color(0xFFFF9F43), Color(0xFFE53935)],
           title: 'Verification Pending',
-          subtitle: 'Your application is under review',
+          subtitle: 'Your application is under review.',
         );
       case VerificationStatus.verified:
         return const _GradientCard(
-          colors: [Color(0xFF43A047), Color(0xFF2E7D32)],
-          icon: Icons.verified_user_outlined,
-          title: 'Verified Student',
-          subtitle: 'Your student status has been confirmed',
+          colors: [Color(0xFF8BC34A), Color(0xFF43A047)],
+          title: 'Verified Success',
+          subtitle: 'Your application has been confirmed.',
         );
       case VerificationStatus.rejected:
+        // Fail state uses the grey Not Verified card from Verified.png.
         return const _GradientCard(
-          colors: [Color(0xFFFFB74D), Color(0xFFD84315)],
-          icon: Icons.warning_amber_outlined,
-          title: 'Verification Needs Attention',
-          subtitle: 'Please review the message below',
+          colors: [Color(0xFF6B7280), Color(0xFF374151)],
+          title: 'Not Verified',
+          subtitle: "You haven't submitted your application yet.",
         );
       case VerificationStatus.notSubmitted:
         return const _GradientCard(
-          colors: [Color(0xFF455A64), Color(0xFF37474F)],
-          icon: Icons.cancel_outlined,
+          colors: [Color(0xFF6B7280), Color(0xFF374151)],
           title: 'Not Verified',
-          subtitle: 'You haven\'t submitted your verification yet',
+          subtitle: "You haven't submitted your application yet.",
         );
     }
   }
@@ -44,13 +43,11 @@ class VerificationStatusCard extends StatelessWidget {
 class _GradientCard extends StatelessWidget {
   const _GradientCard({
     required this.colors,
-    required this.icon,
     required this.title,
     required this.subtitle,
   });
 
   final List<Color> colors;
-  final IconData icon;
   final String title;
   final String subtitle;
 
@@ -60,20 +57,48 @@ class _GradientCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white24,
-            child: Icon(icon, color: Colors.white, size: 30),
+          // Translucent circle + white outline clock (Verified.png).
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.28),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.access_time_outlined,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 14),
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.95),
+              fontSize: 14,
+            ),
+          ),
         ],
       ),
     );

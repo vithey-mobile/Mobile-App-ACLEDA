@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
-import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_sheet.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_section_sheets.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
 
 class EditProfileController extends GetxController {
@@ -16,15 +18,15 @@ class EditProfileController extends GetxController {
   final isLoading = true.obs;
   final isSaving = false.obs;
 
-  final bioController = TextEditingController();
-  final locationController = TextEditingController();
-  final workplaceController = TextEditingController();
-  final portfolioController = TextEditingController();
-  final phoneController = TextEditingController();
-  final emailController = TextEditingController();
-  final universityController = TextEditingController();
-  final majorController = TextEditingController();
-  final graduationYearController = TextEditingController();
+  final bio = ''.obs;
+  final location = ''.obs;
+  final gender = ''.obs;
+  final dateOfBirth = Rxn<DateTime>();
+  final skills = <ProfileSkill>[].obs;
+  final workEntries = <ProfileWorkEntry>[].obs;
+  final educationEntries = <ProfileEducationEntry>[].obs;
+  final linkEntries = <ProfileLinkEntry>[].obs;
+  final contactEntries = <ProfileContactEntry>[].obs;
 
   @override
   void onInit() {
@@ -35,17 +37,18 @@ class EditProfileController extends GetxController {
   Future<void> _load() async {
     isLoading.value = true;
     try {
-      final loaded = await _repository.getProfile(ProfileRepository.currentUserId);
+      final loaded =
+          await _repository.getProfile(ProfileRepository.currentUserId);
       profile.value = loaded;
-      bioController.text = loaded.bio ?? '';
-      locationController.text = loaded.location ?? '';
-      workplaceController.text = loaded.workplace ?? '';
-      portfolioController.text = loaded.portfolioUrl ?? '';
-      phoneController.text = loaded.phone ?? '';
-      emailController.text = loaded.email ?? '';
-      universityController.text = loaded.university ?? '';
-      majorController.text = loaded.major ?? '';
-      graduationYearController.text = loaded.graduationYear?.toString() ?? '';
+      bio.value = loaded.bio ?? '';
+      location.value = loaded.location ?? '';
+      gender.value = loaded.gender ?? '';
+      dateOfBirth.value = loaded.dateOfBirth;
+      skills.assignAll(loaded.skills);
+      workEntries.assignAll(loaded.workItems);
+      educationEntries.assignAll(loaded.educationItems);
+      linkEntries.assignAll(loaded.linkItems);
+      contactEntries.assignAll(loaded.contactItems);
     } finally {
       isLoading.value = false;
     }
@@ -54,19 +57,30 @@ class EditProfileController extends GetxController {
   Future<void> save() async {
     isSaving.value = true;
     try {
-      final yearText = graduationYearController.text.trim();
-      final year = yearText.isEmpty ? null : int.tryParse(yearText);
-      profile.value = await _repository.updateProfile(
-        bio: bioController.text.trim(),
-        location: locationController.text.trim(),
-        workplace: workplaceController.text.trim(),
-        portfolioUrl: portfolioController.text.trim(),
-        phone: phoneController.text.trim(),
-        email: emailController.text.trim(),
-        university: universityController.text.trim(),
-        major: majorController.text.trim(),
-        graduationYear: year,
+      final firstContact =
+          contactEntries.isNotEmpty ? contactEntries.first : null;
+      final firstWork = workEntries.isNotEmpty ? workEntries.first : null;
+      final firstEdu =
+          educationEntries.isNotEmpty ? educationEntries.first : null;
+
+      final updated = await _repository.updateProfile(
+        bio: bio.value,
+        location: location.value,
+        gender: gender.value,
+        dateOfBirth: dateOfBirth.value,
+        updateDateOfBirth: true,
+        workplace: firstWork?.workplace ?? '',
+        workEntries: List.of(workEntries),
+        educationEntries: List.of(educationEntries),
+        university: firstEdu?.school ?? '',
+        major: firstEdu?.major ?? '',
+        linkEntries: List.of(linkEntries),
+        contactEntries: List.of(contactEntries),
+        phone: firstContact?.phone ?? '',
+        email: firstContact?.email ?? '',
+        skills: List.of(skills),
       );
+      profile.value = updated;
       Get.back(result: true);
       Get.snackbar(AppStrings.appName, 'Profile updated');
     } catch (e) {
@@ -76,19 +90,7 @@ class EditProfileController extends GetxController {
     }
   }
 
-  @override
-  void onClose() {
-    bioController.dispose();
-    locationController.dispose();
-    workplaceController.dispose();
-    portfolioController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    universityController.dispose();
-    majorController.dispose();
-    graduationYearController.dispose();
-    super.onClose();
-  }
+  void cancel() => Get.back(result: false);
 }
 
 class EditProfileScreen extends GetView<EditProfileController> {
@@ -96,70 +98,517 @@ class EditProfileScreen extends GetView<EditProfileController> {
 
   @override
   Widget build(BuildContext context) {
+    final heading = context.appColors.heading;
     return Scaffold(
+      backgroundColor: context.appColors.bodyBackground,
       appBar: AppBar(
-        title: const Text('Edit personal info', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          Obx(
-            () => TextButton(
-              onPressed: controller.isSaving.value ? null : controller.save,
-              child: controller.isSaving.value
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Save'),
-            ),
-          ),
-        ],
+        elevation: 0,
+        backgroundColor: context.appColors.bodyBackground,
+        foregroundColor: heading,
+        title: Text(
+          'Edit personal info',
+          style: TextStyle(fontWeight: FontWeight.bold, color: heading),
+        ),
       ),
       body: Obx(() {
-        final p = controller.profile.value;
-        if (controller.isLoading.value || p == null) {
+        if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        return ListView(
-          padding: const EdgeInsets.all(16),
+        return Column(
           children: [
-            ProfileSkillsRow(skills: p.skills),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton.icon(
-                onPressed: () => Get.snackbar(AppStrings.appName, 'Skill editing will use profile API v2'),
-                icon: const Icon(Icons.add_circle_outline),
-                label: const Text('Add Skill'),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                children: [
+                  _SkillsBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _BioBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _PersonalBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _WorkBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _EducationBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _LinksBlock(controller: controller),
+                  const SizedBox(height: 22),
+                  _ContactBlock(controller: controller),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('Personal details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            CustomTextField(controller: controller.bioController, label: 'Bio', maxLines: 3),
-            CustomTextField(controller: controller.locationController, label: 'Location'),
-            if (p.dateOfBirth != null)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.cake_outlined),
-                title: Text(DateFormat('MMMM dd yyyy').format(p.dateOfBirth!)),
-                subtitle: const Text('Date of birth'),
-              ),
-            const SizedBox(height: 16),
-            const Text('Work & education', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            CustomTextField(controller: controller.workplaceController, label: 'Workplace'),
-            CustomTextField(controller: controller.universityController, label: 'University'),
-            CustomTextField(controller: controller.majorController, label: 'Major'),
-            CustomTextField(
-              controller: controller.graduationYearController,
-              label: 'Graduation year',
-              keyboardType: TextInputType.number,
+            _Footer(
+              isSaving: controller.isSaving.value,
+              onSave: controller.save,
+              onCancel: controller.cancel,
             ),
-            const SizedBox(height: 16),
-            const Text('Links & contact', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            CustomTextField(controller: controller.portfolioController, label: 'Portfolio URL'),
-            CustomTextField(controller: controller.phoneController, label: 'Phone', keyboardType: TextInputType.phone),
-            CustomTextField(controller: controller.emailController, label: 'Email', keyboardType: TextInputType.emailAddress),
           ],
         );
       }),
     );
+  }
+}
+
+class _Footer extends StatelessWidget {
+  const _Footer({
+    required this.isSaving,
+    required this.onSave,
+    required this.onCancel,
+  });
+
+  final bool isSaving;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cancelFill =
+        isDark ? const Color(0xFF3A3A4E) : const Color(0xFFE8E8EC);
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border: Border(top: BorderSide(color: context.appColors.border)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: FilledButton(
+                  onPressed: isSaving ? null : onSave,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: primary,
+                    foregroundColor: onPrimary,
+                    disabledBackgroundColor: primary.withValues(alpha: 0.45),
+                    elevation: 0,
+                    alignment: Alignment.center,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isSaving
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: onPrimary,
+                          ),
+                        )
+                      : Text(
+                          'Save',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: onPrimary,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: FilledButton(
+                  onPressed: isSaving ? null : onCancel,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cancelFill,
+                    foregroundColor: context.appColors.heading,
+                    elevation: 0,
+                    alignment: Alignment.center,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: context.appColors.border),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: context.appColors.heading,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TappableRow extends StatelessWidget {
+  const _TappableRow({
+    required this.icon,
+    required this.text,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 20, color: context.appColors.muted),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 1.35,
+                  color: context.appColors.heading,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkillsBlock extends StatelessWidget {
+  const _SkillsBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context, {int? index}) async {
+    final result = await showSkillSheet(
+      context,
+      existing: index == null ? null : controller.skills[index],
+    );
+    if (result == null) return;
+    if (index != null) {
+      controller.skills[index] = result;
+      controller.skills.refresh();
+    } else {
+      controller.skills.add(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final list = controller.skills;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(
+            title: 'Skills',
+            onAdd: () => _open(context),
+          ),
+          const SizedBox(height: 8),
+          if (list.isEmpty)
+            Text('No skills yet',
+                style: TextStyle(color: context.appColors.muted))
+          else
+            SizedBox(
+              height: 118,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: list.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) => GestureDetector(
+                  onTap: () => _open(context, index: i),
+                  child: ProfileSkillRing(skill: list[i]),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
+  }
+}
+
+class _BioBlock extends StatelessWidget {
+  const _BioBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context) async {
+    final result = await showBioSheet(context, existing: controller.bio.value);
+    if (result != null) controller.bio.value = result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final text = controller.bio.value.trim();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(title: 'Bio', onAdd: () => _open(context)),
+          if (text.isNotEmpty)
+            _TappableRow(
+              icon: Icons.format_quote_outlined,
+              text: text,
+              onTap: () => _open(context),
+            )
+          else
+            Text('No bio yet',
+                style: TextStyle(color: context.appColors.muted)),
+        ],
+      );
+    });
+  }
+}
+
+class _PersonalBlock extends StatelessWidget {
+  const _PersonalBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context) async {
+    final result = await showPersonalDetailsSheet(
+      context,
+      location: controller.location.value,
+      gender: controller.gender.value,
+      dateOfBirth: controller.dateOfBirth.value,
+    );
+    if (result == null) return;
+    // Apply after sheet closes — never mutate Obx while sheet is dismissing.
+    controller.location.value = result.location;
+    controller.gender.value = result.gender;
+    controller.dateOfBirth.value = result.dateOfBirth;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final loc = controller.location.value.trim();
+      final g = controller.gender.value.trim();
+      final dob = controller.dateOfBirth.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(
+            title: 'Personal details',
+            onAdd: () => _open(context),
+          ),
+          if (loc.isNotEmpty)
+            _TappableRow(
+              icon: Icons.location_on_outlined,
+              text: loc,
+              onTap: () => _open(context),
+            ),
+          if (g.isNotEmpty)
+            _TappableRow(
+              icon: Icons.person_outline,
+              text: g,
+              onTap: () => _open(context),
+            ),
+          if (dob != null)
+            _TappableRow(
+              icon: Icons.cake_outlined,
+              text: DateFormat('MMMM dd yyyy').format(dob),
+              onTap: () => _open(context),
+            ),
+          if (loc.isEmpty && g.isEmpty && dob == null)
+            Text('No personal details yet',
+                style: TextStyle(color: context.appColors.muted)),
+        ],
+      );
+    });
+  }
+}
+
+class _WorkBlock extends StatelessWidget {
+  const _WorkBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context, {int? index}) async {
+    final result = await showWorkSheet(
+      context,
+      existing: index == null ? null : controller.workEntries[index],
+    );
+    if (result == null) return;
+    if (index != null) {
+      controller.workEntries[index] = result;
+      controller.workEntries.refresh();
+    } else {
+      controller.workEntries.add(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final list = controller.workEntries;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(title: 'Work', onAdd: () => _open(context)),
+          if (list.isEmpty)
+            Text('No work yet',
+                style: TextStyle(color: context.appColors.muted))
+          else
+            for (var i = 0; i < list.length; i++)
+              _TappableRow(
+                icon: Icons.apartment_outlined,
+                text: list[i].displayLabel,
+                onTap: () => _open(context, index: i),
+              ),
+        ],
+      );
+    });
+  }
+}
+
+class _EducationBlock extends StatelessWidget {
+  const _EducationBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context, {int? index}) async {
+    final result = await showEducationSheet(
+      context,
+      existing: index == null ? null : controller.educationEntries[index],
+    );
+    if (result == null) return;
+    if (index != null) {
+      controller.educationEntries[index] = result;
+      controller.educationEntries.refresh();
+    } else {
+      controller.educationEntries.add(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final list = controller.educationEntries;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(
+            title: 'Education',
+            onAdd: () => _open(context),
+          ),
+          if (list.isEmpty)
+            Text('No education yet',
+                style: TextStyle(color: context.appColors.muted))
+          else
+            for (var i = 0; i < list.length; i++)
+              _TappableRow(
+                icon: Icons.school_outlined,
+                text: list[i].school,
+                onTap: () => _open(context, index: i),
+              ),
+        ],
+      );
+    });
+  }
+}
+
+class _LinksBlock extends StatelessWidget {
+  const _LinksBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context, {int? index}) async {
+    final result = await showLinkSheet(
+      context,
+      existing: index == null ? null : controller.linkEntries[index],
+    );
+    if (result == null) return;
+    if (index != null) {
+      controller.linkEntries[index] = result;
+      controller.linkEntries.refresh();
+    } else {
+      controller.linkEntries.add(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final list = controller.linkEntries;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(title: 'Links', onAdd: () => _open(context)),
+          if (list.isEmpty)
+            Text('No links yet',
+                style: TextStyle(color: context.appColors.muted))
+          else
+            for (var i = 0; i < list.length; i++)
+              _TappableRow(
+                icon: Icons.link,
+                text: '${list[i].platform}: ${list[i].url}',
+                onTap: () => _open(context, index: i),
+              ),
+        ],
+      );
+    });
+  }
+}
+
+class _ContactBlock extends StatelessWidget {
+  const _ContactBlock({required this.controller});
+  final EditProfileController controller;
+
+  Future<void> _open(BuildContext context, {int? index}) async {
+    final result = await showContactSheet(
+      context,
+      existing: index == null ? null : controller.contactEntries[index],
+    );
+    if (result == null) return;
+    if (index != null) {
+      controller.contactEntries[index] = result;
+      controller.contactEntries.refresh();
+    } else {
+      controller.contactEntries.add(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final list = controller.contactEntries;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProfileSectionAddHeader(
+            title: 'Contact info',
+            onAdd: () => _open(context),
+          ),
+          if (list.isEmpty)
+            Text('No contact info yet',
+                style: TextStyle(color: context.appColors.muted))
+          else
+            for (var i = 0; i < list.length; i++) ...[
+              if (list[i].phone != null && list[i].phone!.trim().isNotEmpty)
+                _TappableRow(
+                  icon: Icons.phone_outlined,
+                  text: list[i].phone!,
+                  onTap: () => _open(context, index: i),
+                ),
+              if (list[i].email != null && list[i].email!.trim().isNotEmpty)
+                _TappableRow(
+                  icon: Icons.email_outlined,
+                  text: list[i].email!,
+                  onTap: () => _open(context, index: i),
+                ),
+            ],
+        ],
+      );
+    });
   }
 }
 

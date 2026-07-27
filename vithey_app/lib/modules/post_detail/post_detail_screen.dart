@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
@@ -107,7 +106,15 @@ class _JobDetailBlock extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           if (post.applicationState == JobApplicationState.applied)
-            const Text('Applied', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w600))
+            Text(
+              'Applied',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFB0B0B0)
+                    : const Color(0xFF616161),
+                fontWeight: FontWeight.w600,
+              ),
+            )
           else if (canApply)
             CustomButton(label: 'Apply CV', icon: Icons.description_outlined, onPressed: onApply)
           else if (!post.isOwnPost)

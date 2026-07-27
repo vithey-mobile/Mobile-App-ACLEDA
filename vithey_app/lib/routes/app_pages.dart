@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
@@ -57,7 +58,7 @@ import 'package:aub_connect_app/modules/student_verification/student_verificatio
 import 'package:aub_connect_app/modules/student_verification/student_verification_screen.dart';
 import 'package:aub_connect_app/modules/student_verification/verification_status_screen.dart';
 import 'package:aub_connect_app/modules/startup/startup_binding.dart';
-import 'package:aub_connect_app/modules/startup/startup_screens.dart';
+import 'package:aub_connect_app/modules/startup/startup_screen.dart';
 
 class SplashBinding extends Bindings {
   @override
@@ -66,6 +67,7 @@ class SplashBinding extends Bindings {
       SplashController(
         Get.find<SecureStorageService>(),
         Get.find<LocalStorageService>(),
+        Get.find<FeatureFlags>(),
       ),
     );
   }
@@ -119,17 +121,17 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.startupSkills,
-      page: () => const StartupSkillsScreen(),
+      page: () => const StartupScreen(),
       binding: StartupBinding(),
     ),
     GetPage(
       name: AppRoutes.startupInterests,
-      page: () => const StartupInterestsScreen(),
+      page: () => const StartupScreen(),
       binding: StartupBinding(),
     ),
     GetPage(
       name: AppRoutes.startupDiscovery,
-      page: () => const StartupDiscoveryScreen(),
+      page: () => const StartupScreen(),
       binding: StartupBinding(),
     ),
     GetPage(

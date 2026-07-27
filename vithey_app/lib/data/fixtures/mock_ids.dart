@@ -16,6 +16,11 @@ abstract final class MockIds {
   static const post4 = 'post-4';
   static const post5 = 'post-5';
   static const post6 = 'post-6';
+  static const post7 = 'post-7';
+  static const post8 = 'post-8';
+  static const post9 = 'post-9';
+  /// Open job from another poster — eligible for Apply CV (not seeded as applied).
+  static const post10 = 'post-10';
 
   static const convHeng = 'conv-heng';
   static const convBora = 'conv-bora';
@@ -26,6 +31,10 @@ abstract final class MockIds {
   static const app2 = 'app-2';
   static const appMy1 = 'app-my-1';
   static const appMy2 = 'app-my-2';
+  static const appMy3 = 'app-my-3';
+  static const appMy4 = 'app-my-4';
+  static const appMy5 = 'app-my-5';
+  static const appMy6 = 'app-my-6';
 
   static const pay1 = 'pay-1';
   static const pay2 = 'pay-2';
@@ -33,6 +42,15 @@ abstract final class MockIds {
   static const pay4 = 'pay-4';
   static const pay5 = 'pay-5';
   static const pay6 = 'pay-6';
+  static const pay7 = 'pay-7';
+  static const pay8 = 'pay-8';
+  static const pay9 = 'pay-9';
+  static const pay10 = 'pay-10';
+  static const pay11 = 'pay-11';
+  static const pay12 = 'pay-12';
+  static const pay13 = 'pay-13';
+  static const pay14 = 'pay-14';
+  static const pay15 = 'pay-15';
 
   static const aiSession1 = 'ai-session-1';
   static const aiSession2 = 'ai-session-2';

@@ -11,6 +11,7 @@ import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 
 class ProfileController extends GetxController with GetSingleTickerProviderStateMixin {
@@ -95,7 +96,17 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     }
   }
 
-  Future<void> refreshProfile() => loadProfile();
+  /// Soft reload used after Edit Profile — updates About/header without full-screen spinner.
+  Future<void> refreshProfile() async {
+    if (_userId == null) return;
+    try {
+      var loaded = await _profileRepository.getProfile(_userId!);
+      loaded = loaded.copyWith(isFollowing: _profileRepository.isFollowing(loaded.id));
+      profile.value = loaded;
+    } catch (_) {
+      await loadProfile();
+    }
+  }
 
   Future<void> _ensureTabLoaded(PostType type) async {
     if (_userId == null || tabLoaded[type] == true || tabLoading[type]!.value) return;
@@ -180,9 +191,23 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
     Share.share('Check out ${current.fullName} on Vithey App');
   }
 
-  void openEditProfile() => Get.toNamed(AppRoutes.editProfile);
+  void openEditProfile() async {
+    final result = await Get.toNamed(AppRoutes.editProfile);
+    if (result == true) {
+      await refreshProfile();
+    }
+  }
 
-  void openVerifyStudent() => Get.toNamed(AppRoutes.studentVerification);
+  /// Opens form when not verified; opens status to review after success.
+  void openVerifyStudent() {
+    final verified =
+        Get.find<StudentVerificationRepository>().isVerified.value;
+    if (verified) {
+      Get.toNamed(AppRoutes.verificationStatus);
+    } else {
+      Get.toNamed(AppRoutes.studentVerification);
+    }
+  }
 
   void openPreviewOwnCv() => Get.toNamed(AppRoutes.previewOwnCv);
 
@@ -195,6 +220,25 @@ class ProfileController extends GetxController with GetSingleTickerProviderState
         jobPostId: jobPost.id,
         jobTitle: jobPost.jobMeta.title ?? 'Job',
       ),
+    );
+  }
+
+  void editJobPost(FeedPost jobPost) {
+    Get.snackbar(AppStrings.appName, 'Edit job coming soon');
+  }
+
+  void deleteJobPost(FeedPost jobPost) {
+    Get.defaultDialog(
+      title: 'Delete job?',
+      middleText: 'Remove “${jobPost.jobMeta.title ?? 'this job'}” from your posts?',
+      textCancel: 'Cancel',
+      textConfirm: 'Delete',
+      confirmTextColor: Colors.white,
+      onConfirm: () {
+        tabPosts[PostType.job]!.removeWhere((p) => p.id == jobPost.id);
+        Get.back();
+        Get.snackbar(AppStrings.appName, 'Job deleted');
+      },
     );
   }
 

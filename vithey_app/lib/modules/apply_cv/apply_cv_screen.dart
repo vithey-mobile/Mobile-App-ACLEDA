@@ -84,6 +84,8 @@ class _UploadStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final eligible = controller.eligibility.value?.eligibility == JobEligibility.eligible;
     final enabled = eligible && !controller.isSubmitting.value;
+    final primary = Theme.of(context).colorScheme.primary;
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
 
     return Column(
       children: [
@@ -103,19 +105,21 @@ class _UploadStep extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
                   child: Text(
                     AppStrings.uploadCvSubtitle,
-                    style: TextStyle(color: context.appColors.muted),
+                    style: TextStyle(color: context.appColors.muted, fontSize: 14),
                   ),
                 ),
-                ApplyJobContext(
-                  job: controller.job.value,
-                  eligibility: controller.eligibility.value,
-                  isLoading: false,
-                  onRetry: controller.retryLoad,
-                  compact: true,
-                ),
+                // Screen 1 mock has no job context block — only show when blocked.
+                if (!eligible)
+                  ApplyJobContext(
+                    job: controller.job.value,
+                    eligibility: controller.eligibility.value,
+                    isLoading: false,
+                    onRetry: controller.retryLoad,
+                    compact: true,
+                  ),
                 if (eligible) ...[
                   PositionSelector(
                     positions: controller.availablePositions,
@@ -134,21 +138,48 @@ class _UploadStep extends StatelessWidget {
           child: Column(
             children: [
               if (controller.isAlreadyApplied)
-                CustomButton(
-                  label: AppStrings.viewApplicationStatus,
-                  icon: Icons.visibility_outlined,
-                  onPressed: controller.viewApplicationStatus,
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomButton(
+                    label: AppStrings.viewApplicationStatus,
+                    icon: Icons.visibility_outlined,
+                    onPressed: controller.viewApplicationStatus,
+                  ),
                 )
               else if (!eligible)
-                CustomButton(
-                  label: AppStrings.back,
-                  variant: CustomButtonVariant.outline,
-                  onPressed: () => Get.back(),
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomButton(
+                    label: AppStrings.back,
+                    variant: CustomButtonVariant.outline,
+                    onPressed: () => Get.back(),
+                  ),
                 )
               else
-                CustomButton(
-                  label: AppStrings.continueLabel,
-                  onPressed: controller.canContinue ? controller.goToReview : null,
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed:
+                        controller.canContinue ? controller.goToReview : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: primary,
+                      foregroundColor: onPrimary,
+                      disabledBackgroundColor: primary.withValues(alpha: 0.4),
+                      disabledForegroundColor: onPrimary.withValues(alpha: 0.8),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      AppStrings.continueLabel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
               if (eligible) const PrivacyFooterNote(),
             ],

@@ -19,16 +19,26 @@ class FinanceRepository {
       return FinanceFixtures.buildDashboard();
     }
 
-    final payments = await _financeService.fetchPayments(page: page, limit: limit);
+    final payments = List<PaymentSummary>.from(
+      await _financeService.fetchPayments(page: page, limit: limit),
+    )..sort((a, b) => b.sortDate.compareTo(a.sortDate));
     final unpaid = payments.where((p) => p.status != PaymentStatus.paid).toList();
     final totalMinor = unpaid.fold<int>(0, (sum, p) => sum + p.amount.amountMinor);
-    final nextDue = unpaid.isEmpty ? DateTime.now() : unpaid.first.dueDate;
+    final paycheckMinor = payments
+        .where((p) => p.status == PaymentStatus.paid)
+        .fold<int>(0, (sum, p) => sum + p.amount.amountMinor);
+    final nextDuePayment = unpaid.isEmpty
+        ? null
+        : unpaid.reduce((a, b) => a.dueDate.isBefore(b.dueDate) ? a : b);
+    final nextDue = nextDuePayment?.dueDate ?? DateTime.now();
     return FinanceDashboard(
       totalDue: Money(amountMinor: totalMinor),
+      totalPaycheck: Money(amountMinor: paycheckMinor),
       nextDueDate: nextDue,
-      daysRemaining: nextDue.difference(DateTime.now()).inDays,
+      daysRemaining: nextDue.difference(DateTime.now()).inDays.clamp(0, 999),
       summaryStatus: totalMinor == 0 ? 'Paid' : 'Not Yet Paid',
       payments: payments,
+      nextDuePaymentId: nextDuePayment?.id,
       hasMore: payments.length >= limit,
     );
   }

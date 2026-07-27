@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -19,24 +19,43 @@ class CvUploadZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final heading = context.appColors.heading;
+    final muted = context.appColors.muted;
+    final border = enabled
+        ? context.appColors.border
+        : context.appColors.border.withValues(alpha: 0.5);
+
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 20, vertical: compact ? 0 : 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 0 : 20,
+        vertical: compact ? 0 : 8,
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(16),
           child: CustomPaint(
-            painter: _DashedRectPainter(
-              color: enabled ? context.appColors.border : context.appColors.border.withValues(alpha: 0.5),
-              radius: 16,
-            ),
+            painter: _DashedRectPainter(color: border, radius: 16),
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: compact ? 24 : 36, horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                vertical: compact ? 24 : 32,
+                horizontal: 20,
+              ),
               child: Column(
                 children: [
-                  _UploadIllustration(enabled: enabled),
+                  Opacity(
+                    opacity: enabled ? 1 : 0.5,
+                    child: Image.asset(
+                      AppAssets.uploadIcon,
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      gaplessPlayback: true,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.dragDropCv,
@@ -44,64 +63,26 @@ class CvUploadZone extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: enabled ? context.appColors.heading : context.appColors.muted,
+                      color: enabled ? heading : muted,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     AppStrings.orTapToBrowse,
-                    style: TextStyle(color: context.appColors.muted, fontSize: 14),
+                    style: TextStyle(color: muted, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
-                  Divider(color: context.appColors.border, height: 1),
+                  Divider(color: border, height: 1),
                   const SizedBox(height: 12),
                   Text(
                     policyLabel,
-                    style: TextStyle(color: context.appColors.muted, fontSize: 12),
+                    style: TextStyle(color: muted, fontSize: 12),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _UploadIllustration extends StatelessWidget {
-  const _UploadIllustration({required this.enabled});
-
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final docColor = enabled ? context.appColors.muted : context.appColors.border;
-    return SizedBox(
-      width: 72,
-      height: 72,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(72, 72),
-            painter: _DashedCirclePainter(color: context.appColors.border),
-          ),
-          Icon(Icons.description_outlined, size: 28, color: docColor),
-          Positioned(
-            right: 8,
-            bottom: 8,
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: const BoxDecoration(
-                color: AppColors.success,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 16),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -119,32 +100,16 @@ class _DashedRectPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    final path = Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)));
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
+      );
     _drawDashedPath(canvas, path, paint);
   }
 
   @override
   bool shouldRepaint(covariant _DashedRectPainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.radius != radius;
-}
-
-class _DashedCirclePainter extends CustomPainter {
-  _DashedCirclePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final path = Path()..addOval(Rect.fromLTWH(0, 0, size.width, size.height));
-    _drawDashedPath(canvas, path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) => oldDelegate.color != color;
 }
 
 void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
@@ -154,7 +119,8 @@ void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
     var distance = 0.0;
     while (distance < metric.length) {
       final next = distance + dashWidth;
-      final extractPath = metric.extractPath(distance, next.clamp(0, metric.length));
+      final extractPath =
+          metric.extractPath(distance, next.clamp(0, metric.length));
       canvas.drawPath(extractPath, paint);
       distance = next + dashSpace;
     }

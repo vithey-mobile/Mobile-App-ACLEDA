@@ -7,31 +7,29 @@ class VerificationInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: context.appColors.inputFill,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.appColors.border),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: context.appColors.border,
-            child: Icon(Icons.info_outline, size: 18, color: context.appColors.muted),
+          Text(
+            'Verification takes 24 - 48 hours',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: context.appColors.heading,
+            ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Verification takes 24–48 hours', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text(
-                  'You\'ll receive an email when your student status is verified. You can continue using Vithey in the meantime!',
-                  style: TextStyle(color: context.appColors.muted, height: 1.4),
-                ),
-              ],
+          const SizedBox(height: 6),
+          Text(
+            "You'll receive an email once your student status is verified.",
+            style: TextStyle(
+              color: context.appColors.muted,
+              height: 1.4,
             ),
           ),
         ],

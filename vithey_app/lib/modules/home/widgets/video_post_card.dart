@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
+import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
@@ -107,7 +108,14 @@ class VideoPostCard extends StatelessWidget {
       onLike: onLike,
       onComment: onComment,
       onShare: onShare,
-      onBodyTap: onOpen,
+      onBodyTap: () {
+        final url = post.mediaUrl ?? post.thumbnailUrl;
+        if (url == null || url.isEmpty) {
+          onOpen();
+          return;
+        }
+        showMediaFullscreen(context, post);
+      },
       onAuthorTap: onAuthorTap,
     );
   }

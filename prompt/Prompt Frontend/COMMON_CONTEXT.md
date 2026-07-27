@@ -31,6 +31,32 @@ class AppAssets {
 
 **Reusable widget:** `lib/core/widgets/app_logo.dart` — `AppLogo(size: 120)` wraps `Image.asset(AppAssets.logoApp)`.
 
+### Shared teal wave background (Onboarding → Auth)
+
+**Remember this style** — Auth (and similar entry screens) should reuse the **same or very similar** layered wavy background as Onboarding v2. Do not invent a new wave language for Auth.
+
+| Item | Value |
+|------|-------|
+| **Canonical implementation** | `vithey_app/lib/modules/onboarding/widgets/onboarding_background.dart` |
+| **Prompt detail** | `Screen prompt/auth/02-onboarding-prompt-version-2.md` → Fixed background / keyframes |
+| **Reference images** | `screen image/auth/Onboarding Screen.png`, `screen image/auth/image.png` |
+
+**Layers (back → front):**
+
+1. White page base  
+2. Light teal rear wave — `AppColors.authWaveRear` ≈ `#6AD6D2`  
+3. Teal front wave — `AppColors.authHeaderTeal` ≈ `#2FC5C1`
+
+**Wave rules:**
+
+- Soft organic wavy bottom edges (not half-circle / straight cut / busy random S-wave)
+- Teal + light teal use **staggered** width keyframes (separate X arrays)
+- Max gap between the two edges ≈ **10% of screen height**
+- Background stays **fixed** behind scrolling/paging content
+- Prefer extracting a shared widget later (e.g. `core/widgets/vithey_wave_background.dart`) when Auth is updated; until then, treat Onboarding’s painter + keyframe tables as the source of truth
+
+**When building Auth:** match these colors and the same wavy rhythm; Auth may crop/scale the wave height (e.g. shorter header) but should keep the same teal / light-teal / white language and similar curve feel.
+
 1. **Social Feed** — video, poster, and job posts with like, comment, mention, follow
 2. **Job Apply** — upload CV and apply to job posts
 3. **Profile** — user info, social links, content tabs, CV preview

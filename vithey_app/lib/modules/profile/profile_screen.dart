@@ -56,19 +56,22 @@ class ProfileScreen extends GetView<ProfileController> {
                     profile: profile,
                     showMenu: controller.isOwnProfile,
                     onMenuTap: () => Get.toNamed(AppRoutes.settings),
-                    showCvPreview: controller.isOwnProfile,
-                    onCvPreviewTap: controller.openPreviewOwnCv,
                   ),
                   ProfileStats(profile: profile),
-                  ProfileActionRow(
-                    isOwnProfile: controller.isOwnProfile,
-                    isFollowing: profile.isFollowing,
-                    isStudentVerified: profile.isStudentVerified,
-                    onFollow: controller.toggleFollow,
-                    onMessage: controller.startMessage,
-                    onEditProfile: controller.openEditProfile,
-                    onVerifyStudent: controller.openVerifyStudent,
-                    onShare: controller.shareProfile,
+                  Obx(
+                    () => ProfileActionRow(
+                      isOwnProfile: controller.isOwnProfile,
+                      isFollowing: profile.isFollowing,
+                      isStudentVerified:
+                          Get.find<StudentVerificationRepository>()
+                              .isVerified
+                              .value,
+                      onFollow: controller.toggleFollow,
+                      onMessage: controller.startMessage,
+                      onEditProfile: controller.openEditProfile,
+                      onVerifyStudent: controller.openVerifyStudent,
+                      onShare: controller.shareProfile,
+                    ),
                   ),
                 ],
               ),
@@ -80,10 +83,23 @@ class ProfileScreen extends GetView<ProfileController> {
                   controller: controller.tabController,
                   isScrollable: true,
                   labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  unselectedLabelColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   indicatorColor: Theme.of(context).colorScheme.primary,
                   indicatorWeight: 3,
                   tabAlignment: TabAlignment.start,
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
                   tabs: tabs,
                 ),
               ),

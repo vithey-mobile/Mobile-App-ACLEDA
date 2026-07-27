@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
+import 'package:aub_connect_app/core/utils/validators.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register }
 
@@ -15,12 +18,15 @@ class AuthController extends GetxController {
   final AuthRepository _authRepository;
 
   final loginFormKey = GlobalKey<FormState>();
-  final registerFormKey = GlobalKey<FormState>();
+  final registerPart1FormKey = GlobalKey<FormState>();
+  final registerPart2FormKey = GlobalKey<FormState>();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   final fullNameController = TextEditingController();
   final phoneController = TextEditingController();
+  final dateOfBirthController = TextEditingController();
 
   final isLoading = false.obs;
   final isGoogleLoading = false.obs;
@@ -33,13 +39,102 @@ class AuthController extends GetxController {
   final forgotPasswordFormKey = GlobalKey<FormState>();
   final forgotPasswordEmailController = TextEditingController();
 
+  /// Auth v2: 0 = Sign In, 1 = Sign Up. Switch only via footer toggle buttons.
+  final authPageIndex = 0.obs;
+
+  /// True while the Sign In ↔ Sign Up height morph is running.
+  final isPanelAnimating = false.obs;
+
+  /// Sign Up only: 0 = Part 1 (credentials), 1 = Part 2 (profile).
+  final registerStep = 0.obs;
+
+  /// True while Part 1 ↔ Part 2 field slide is running.
+  final isRegisterStepAnimating = false.obs;
+
+  DateTime? dateOfBirth;
+
   GoogleAccountSummary? selectedGoogleAccount;
 
   /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
   bool get isGoogleAuthEnabled => Get.find<FeatureFlags>().enableGoogleAuth;
 
+  @override
+  void onInit() {
+    super.onInit();
+    final startOnSignUp = Get.currentRoute == AppRoutes.register;
+    authPageIndex.value = startOnSignUp ? 1 : 0;
+  }
+
+  void showSignIn() {
+    if (isPanelAnimating.value ||
+        isRegisterStepAnimating.value ||
+        authPageIndex.value == 0) {
+      return;
+    }
+    clearError();
+    registerStep.value = 0;
+    authPageIndex.value = 0;
+  }
+
+  void showSignUp() {
+    if (isPanelAnimating.value ||
+        isRegisterStepAnimating.value ||
+        authPageIndex.value == 1) {
+      return;
+    }
+    clearError();
+    registerStep.value = 0;
+    authPageIndex.value = 1;
+  }
+
   void clearError() {
     if (errorMessage.isNotEmpty) errorMessage.value = '';
+  }
+
+  String? confirmPasswordValidator(String? value) {
+    return Validators.confirmPassword(value, passwordController.text);
+  }
+
+  Future<void> goToRegisterPart2() async {
+    if (isRegisterStepAnimating.value || registerStep.value == 1) return;
+    if (!(registerPart1FormKey.currentState?.validate() ?? false)) return;
+    clearError();
+    registerStep.value = 1;
+  }
+
+  void goToRegisterPart1() {
+    if (isRegisterStepAnimating.value ||
+        isLoading.value ||
+        registerStep.value == 0) {
+      return;
+    }
+    clearError();
+    registerStep.value = 0;
+  }
+
+  Future<void> pickDateOfBirth(BuildContext context) async {
+    final now = DateTime.now();
+    final initial = dateOfBirth ?? DateTime(now.year - 18, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1950),
+      lastDate: DateTime(now.year - 13, now.month, now.day),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.primary,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked == null) return;
+    dateOfBirth = picked;
+    dateOfBirthController.text = DateFormat('dd MMM yyyy').format(picked);
+    clearError();
   }
 
   Future<void> login() async {
@@ -62,7 +157,8 @@ class AuthController extends GetxController {
   }
 
   Future<void> register() async {
-    if (!(registerFormKey.currentState?.validate() ?? false)) return;
+    if (registerStep.value != 1) return;
+    if (!(registerPart2FormKey.currentState?.validate() ?? false)) return;
     isLoading.value = true;
     clearError();
     try {
@@ -128,7 +224,10 @@ class AuthController extends GetxController {
 
   void cancelGoogleAuth() {
     selectedGoogleAccount = null;
-    Get.until((route) => route.settings.name == AppRoutes.login || route.settings.name == AppRoutes.register);
+    Get.until((route) =>
+        route.settings.name == AppRoutes.login ||
+        route.settings.name == AppRoutes.register ||
+        route.settings.name == AppRoutes.auth);
   }
 
   Future<void> requestPasswordReset() async {
@@ -159,8 +258,10 @@ class AuthController extends GetxController {
   void onClose() {
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     fullNameController.dispose();
     phoneController.dispose();
+    dateOfBirthController.dispose();
     forgotPasswordEmailController.dispose();
     super.onClose();
   }

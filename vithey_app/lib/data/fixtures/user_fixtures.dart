@@ -6,7 +6,25 @@ import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/data/models/user_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 
+/// Profile / author mocks.
+///
+/// Logged-in user = Poster (HR) demo. `author-1` = Applier (Student) demo.
+/// Same screens for everyone; Jobs vs Applied Jobs content follows usage.
 abstract final class UserFixtures {
+  /// Mock IT skills for About tab (replace with API later).
+  static const mockItSkills = <ProfileSkill>[
+    ProfileSkill(name: 'Flutter', proficiency: 75),
+    ProfileSkill(name: 'Dart', proficiency: 70),
+    ProfileSkill(name: 'Java', proficiency: 65),
+    ProfileSkill(name: 'Spring Boot', proficiency: 60),
+    ProfileSkill(name: 'REST API', proficiency: 80),
+    ProfileSkill(name: 'PostgreSQL', proficiency: 55),
+    ProfileSkill(name: 'Docker', proficiency: 50),
+    ProfileSkill(name: 'Kubernetes', proficiency: 40),
+    ProfileSkill(name: 'Git', proficiency: 85),
+    ProfileSkill(name: 'UI/UX Design', proficiency: 60),
+  ];
+
   static const currentUserAuthor = PostAuthor(
     id: MockIds.currentUser,
     fullName: MockIdentities.mockUserFullName,
@@ -55,23 +73,56 @@ abstract final class UserFixtures {
         likeCount: 128000,
         postCount: 31,
         location: 'Kambol, Phnom Penh',
+        gender: 'Male',
         dateOfBirth: DateTime(2004, 8, 1),
         workplace: 'Fintech Center',
+        workEntries: const [
+          ProfileWorkEntry(
+            position: 'Web Developer',
+            workplace: 'Fintech Center',
+          ),
+        ],
         education: const [
           'Champuvorn High School',
           'ACLEDA University of Business',
           'Institute of Science and Technology Advanced',
         ],
+        educationEntries: const [
+          ProfileEducationEntry(school: 'Champuvorn High School'),
+          ProfileEducationEntry(
+            school: 'ACLEDA University of Business',
+            major: 'Computer Science',
+            certificate: 'Bachelor',
+          ),
+          ProfileEducationEntry(
+            school: 'Institute of Science and Technology Advanced',
+          ),
+        ],
+        linkEntries: const [
+          ProfileLinkEntry(
+            platform: 'Website',
+            url: 'https://www.khornmolika.com',
+          ),
+          ProfileLinkEntry(
+            platform: 'Telegram',
+            url: 'https://t.me/khornmolika',
+          ),
+          ProfileLinkEntry(
+            platform: 'Facebook',
+            url: 'https://facebook.com/khornmolika',
+          ),
+        ],
+        contactEntries: [
+          ProfileContactEntry(
+            phone: '098 765 432',
+            email: MockIdentities.mockUserEmail,
+          ),
+        ],
         portfolioUrl: 'https://www.khornmolika.com',
         phone: '098 765 432',
         email: MockIdentities.mockUserEmail,
-        isStudentVerified: true,
-        skills: const [
-          ProfileSkill(name: 'Flutter', proficiency: 75),
-          ProfileSkill(name: 'HTML', proficiency: 50),
-          ProfileSkill(name: 'Springboot', proficiency: 60),
-          ProfileSkill(name: 'React', proficiency: 80),
-        ],
+        isStudentVerified: false,
+        skills: mockItSkills,
       ),
       MockIds.author1: UserProfileModel(
         id: MockIds.author1,
@@ -87,12 +138,7 @@ abstract final class UserFixtures {
         location: 'Pur Senchey, Phnom Penh',
         dateOfBirth: DateTime(2005, 9, 1),
         workplace: 'Global Tech Solutions',
-        skills: const [
-          ProfileSkill(name: 'Flutter', proficiency: 75),
-          ProfileSkill(name: 'HTML', proficiency: 50),
-          ProfileSkill(name: 'Springboot', proficiency: 60),
-          ProfileSkill(name: 'React', proficiency: 80),
-        ],
+        skills: mockItSkills,
       ),
       MockIds.author2: const UserProfileModel(
         id: MockIds.author2,

@@ -68,7 +68,8 @@ class FinanceController extends GetxController {
   void toggleShowAll() => showAll.value = !showAll.value;
 
   List<PaymentSummary> get visiblePayments {
-    final items = dashboard.value?.payments ?? [];
+    final items = List<PaymentSummary>.from(dashboard.value?.payments ?? [])
+      ..sort((a, b) => b.sortDate.compareTo(a.sortDate));
     if (showAll.value) return items;
     return items.take(4).toList();
   }
@@ -83,6 +84,15 @@ class FinanceController extends GetxController {
     } catch (e) {
       Get.snackbar(AppStrings.appName, 'Payment no longer available');
     }
+  }
+
+  Future<void> payNow() async {
+    final id = dashboard.value?.nextDuePaymentId;
+    if (id == null) {
+      Get.snackbar(AppStrings.appName, 'No outstanding payment to pay');
+      return;
+    }
+    await openPaymentDetail(id);
   }
 
   Future<void> downloadInvoice(String paymentId) async {
