@@ -1,5 +1,6 @@
 package com.vithey.file.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -43,5 +44,26 @@ class FileValidationServiceTest {
         .isInstanceOf(ApiException.class)
         .extracting(exception -> ((ApiException) exception).getErrorCode())
         .isEqualTo(ErrorCode.FILE_TOO_LARGE);
+  }
+
+  @Test
+  void rejectsEmptyFile() {
+    assertThatThrownBy(() -> fileValidationService.validateUpload(
+        StoredFileType.AVATAR,
+        "image/png",
+        0
+    ))
+        .isInstanceOf(ApiException.class)
+        .extracting(exception -> ((ApiException) exception).getErrorCode())
+        .isEqualTo(ErrorCode.VALIDATION_ERROR);
+  }
+
+  @Test
+  void sanitizesUnsafeFileNames() {
+    assertThat(fileValidationService.sanitizeFileName("../weird name!.png"))
+        .isEqualTo("weird_name_.png");
+    assertThat(fileValidationService.sanitizeFileName("path/to/photo.jpg"))
+        .isEqualTo("photo.jpg");
+    assertThat(fileValidationService.sanitizeFileName("")).isEqualTo("upload.bin");
   }
 }
