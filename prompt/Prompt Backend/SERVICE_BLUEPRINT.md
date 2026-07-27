@@ -170,7 +170,8 @@ services/<service-name>/
     │       ├── application-dev.yml
     │       ├── application-prod.yml
     │       └── db/migration/
-    │           └── V1__init_schema.sql
+    │           ├── V1__init_schema.sql
+    │           └── V2__…_indexes_checks.sql   # follow-up constraints/indexes as needed
     └── test/java/com/vithey/<service>/
         ├── service/                              # unit tests
         ├── controller/                           # @WebMvcTest

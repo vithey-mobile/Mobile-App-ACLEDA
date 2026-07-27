@@ -5,7 +5,7 @@ services:
     env_file:
       - .env.example
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - vithey-postgres-data:/var/lib/postgresql/data
       - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
@@ -21,7 +21,7 @@ services:
     image: redis:7-alpine
     container_name: vithey-redis
     ports:
-      - "6379:6379"
+      - "16379:6379"
     volumes:
       - vithey-redis-data:/data
     healthcheck:
@@ -38,7 +38,6 @@ services:
     env_file:
       - .env.example
     ports:
-      - "5672:5672"
       - "15672:15672"
     volumes:
       - vithey-rabbitmq-data:/var/lib/rabbitmq
@@ -57,8 +56,8 @@ services:
       - .env.example
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "19000:9000"
+      - "19001:9001"
     volumes:
       - vithey-minio-data:/data
     healthcheck:

@@ -28,7 +28,9 @@ backend/services/notification-service/
     │   │   ├── event/listener/
     │   │   ├── event/mapper/
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_notification_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_notification_schema.sql
+    │       └── V2__Notification_type_and_platform_checks.sql
     └── test/java/com/vithey/notification/
 ```
 

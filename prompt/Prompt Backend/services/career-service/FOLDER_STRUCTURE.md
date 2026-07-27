@@ -31,7 +31,9 @@ backend/services/career-service/
     │   │   │   └── FileServiceClient.java
     │   │   ├── event/publisher/
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_career_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_career_schema.sql
+    │       └── V2__Job_application_composite_indexes_and_status_check.sql
     └── test/java/com/vithey/career/
 ```
 

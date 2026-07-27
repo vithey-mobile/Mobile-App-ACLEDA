@@ -33,8 +33,8 @@ public class AiCvInteraction {
   @Column(name = "suggested_text", nullable = false, columnDefinition = "TEXT")
   private String suggestedText;
 
-  @Column(name = "cv_id")
-  private UUID cvId;
+  @Column(name = "cv_file_id")
+  private UUID cvFileId;
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;

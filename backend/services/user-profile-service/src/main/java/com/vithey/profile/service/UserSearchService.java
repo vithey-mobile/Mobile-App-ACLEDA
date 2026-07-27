@@ -1,9 +1,10 @@
 package com.vithey.profile.service;
 
 import com.vithey.profile.dto.response.UserSearchResultResponse;
-import com.vithey.profile.mapper.ProfileMapper;
 import com.vithey.profile.repository.ProfileRepository;
+import com.vithey.profile.repository.UserSearchProjection;
 import com.vithey.profile.util.ApiResponseWrapper;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -15,31 +16,51 @@ public class UserSearchService {
 
   private static final int DEFAULT_LIMIT = 20;
   private static final int MAX_LIMIT = 50;
+  private static final int MAX_PAGE = 100;
+  private static final int MIN_SEARCH_LENGTH = 2;
 
   private final ProfileRepository profileRepository;
-  private final ProfileMapper profileMapper;
 
-  public UserSearchService(ProfileRepository profileRepository, ProfileMapper profileMapper) {
+  public UserSearchService(ProfileRepository profileRepository) {
     this.profileRepository = profileRepository;
-    this.profileMapper = profileMapper;
   }
 
   @Transactional(readOnly = true)
-  public ApiResponseWrapper<java.util.List<UserSearchResultResponse>> search(String search, int page, int limit) {
+  public ApiResponseWrapper<List<UserSearchResultResponse>> search(String search, int page, int limit) {
+    int safePage = Math.min(Math.max(page, 1), MAX_PAGE);
+    int safeLimit = Math.min(Math.max(limit > 0 ? limit : DEFAULT_LIMIT, 1), MAX_LIMIT);
+
     if (!StringUtils.hasText(search)) {
-      return ApiResponseWrapper.paginated(java.util.List.of(), new ApiResponseWrapper.Meta(page, limit, 0, 0));
+      return ApiResponseWrapper.paginated(List.of(), new ApiResponseWrapper.Meta(safePage, safeLimit, 0, 0));
     }
 
-    int safePage = Math.max(page, 1);
-    int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-    PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
-    Page<UserSearchResultResponse> results = profileRepository.searchByFullName(search.trim(), pageable)
-        .map(profileMapper::toSearchResult);
+    String query = search.trim();
+    if (query.length() < MIN_SEARCH_LENGTH) {
+      return ApiResponseWrapper.paginated(List.of(), new ApiResponseWrapper.Meta(safePage, safeLimit, 0, 0));
+    }
 
-    int totalPages = results.getTotalPages();
+    PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
+    Page<UserSearchProjection> results = profileRepository.searchByFullName(escapeLike(query), pageable);
+
+    List<UserSearchResultResponse> content = results.getContent().stream()
+        .map(row -> new UserSearchResultResponse(
+            row.getUserId(),
+            row.getFullName(),
+            row.getAvatarUrl(),
+            row.getUniversity()
+        ))
+        .toList();
+
     return ApiResponseWrapper.paginated(
-        results.getContent(),
-        new ApiResponseWrapper.Meta(safePage, safeLimit, results.getTotalElements(), totalPages)
+        content,
+        new ApiResponseWrapper.Meta(safePage, safeLimit, results.getTotalElements(), results.getTotalPages())
     );
+  }
+
+  private static String escapeLike(String value) {
+    return value
+        .replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_");
   }
 }

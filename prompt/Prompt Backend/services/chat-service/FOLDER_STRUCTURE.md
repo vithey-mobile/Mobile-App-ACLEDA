@@ -26,7 +26,9 @@ backend/services/chat-service/
     │   │   ├── dto/response/
     │   │   ├── event/publisher/
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_chat_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_chat_schema.sql
+    │       └── V2__Chat_indexes_checks_and_drop_dead.sql
     └── test/java/com/vithey/chat/
 ```
 

@@ -1,8 +1,7 @@
 package com.vithey.profile.security;
 
-import com.vithey.profile.exception.ApiException;
-import com.vithey.profile.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
@@ -16,19 +15,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtProvider {
 
-  private final SecretKey secretKey;
+  private final JwtParser jwtParser;
 
   public JwtProvider(@Value("${vithey.jwt.secret}") String secret) {
-    this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    this.jwtParser = Jwts.parser().verifyWith(secretKey).build();
   }
 
   public CurrentUser parseAccessToken(String token) {
-    Claims claims = Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+    Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
+    @SuppressWarnings("unchecked")
     List<String> roles = claims.get("roles", List.class);
     return new CurrentUser(
         UUID.fromString(claims.getSubject()),

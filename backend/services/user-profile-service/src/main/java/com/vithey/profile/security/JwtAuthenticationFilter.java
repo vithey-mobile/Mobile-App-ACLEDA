@@ -1,7 +1,5 @@
 package com.vithey.profile.security;
 
-import com.vithey.profile.exception.ApiException;
-import com.vithey.profile.exception.ErrorCode;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +21,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   public JwtAuthenticationFilter(JwtProvider jwtProvider) {
     this.jwtProvider = jwtProvider;
+  }
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path.startsWith("/actuator")
+        || path.startsWith("/swagger-ui")
+        || path.startsWith("/v3/api-docs");
   }
 
   @Override

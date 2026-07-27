@@ -70,14 +70,18 @@ services/auth-service/
 └── resources/
     ├── bootstrap.yml
     ├── application-dev.yml
-    └── db/migration/V1__init_auth_schema.sql
+    └── db/migration/
+        ├── V1__init_auth_schema.sql
+        └── V2__Soft_delete_unique_email_phone_and_cascade_tokens.sql
 ```
 
 ## Database entities
 
-**User:** `id` UUID PK, `email` unique, `phone` unique, `password_hash`, `full_name`, `role` enum, `is_student_verified`, `is_email_verified`, `created_at`, `updated_at`
+**User:** `id` UUID PK, `email` / `phone` unique among active rows (`deleted_at IS NULL`), `password_hash`, `full_name`, `role` enum, `is_active`, `is_student_verified`, `is_email_verified`, `created_at`, `updated_at`, `deleted_at`
 
-**RefreshToken:** `id`, `user_id` FK, `token_hash`, `expires_at`, `revoked_at`, `created_at`
+**RefreshToken:** `id`, `user_id` FK ON DELETE CASCADE, `token_hash`, `expires_at`, `revoked_at`, `created_at`
+
+**PasswordResetToken / EmailVerificationToken:** `id`, `user_id` FK ON DELETE CASCADE, `token_hash`, `expires_at`, `used_at`, `created_at`
 
 **StudentVerification:** `id`, `user_id` FK, `student_id`, `university_email`, `status` PENDING|VERIFIED|REJECTED, `verified_at`
 

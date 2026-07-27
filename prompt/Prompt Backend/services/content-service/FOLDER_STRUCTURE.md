@@ -37,7 +37,9 @@ backend/services/content-service/
     │   │   ├── event/publisher/
     │   │   ├── event/payload/
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_content_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_content_schema.sql
+    │       └── V2__Content_indexes_checks_and_drop_dead.sql
     └── test/java/com/vithey/content/
 ```
 
