@@ -16,9 +16,11 @@ class ApplySuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = _args;
-    final body = args.result.jobPostId.isNotEmpty
+    final jobTitle = args.jobTitle.trim();
+    final body = jobTitle.isEmpty
         ? AppStrings.applicationSubmittedBody
-        : AppStrings.applicationSubmittedBody;
+        : 'Your CV for $jobTitle has been submitted successfully. '
+            'It will be reviewed soon. Please stay tuned for updates.';
 
     return PopScope(
       canPop: false,
@@ -26,46 +28,61 @@ class ApplySuccessScreen extends StatelessWidget {
         if (!didPop) Get.back(result: args.result);
       },
       child: Scaffold(
-        backgroundColor: context.appColors.bodyBackground,
+        backgroundColor: context.appColors.cardSurface,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const Spacer(),
-                const ApplicationSubmittedHero(),
-                const SizedBox(height: 28),
-                Text(
-                  AppStrings.applicationSubmittedTitle,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: context.appColors.heading,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28,
+                vertical: 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const ApplicationSubmittedHero(),
+                  const SizedBox(height: 18),
+                  Text(
+                    AppStrings.applicationSubmittedTitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: context.appColors.heading,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 330),
+                    child: Text(
+                      body,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: context.appColors.muted,
+                        fontSize: 14,
+                        height: 1.45,
                       ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  body,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: context.appColors.muted, height: 1.5),
-                ),
-                const Spacer(),
-                CustomButton(
-                  label: AppStrings.viewApplicationStatus,
-                  variant: CustomButtonVariant.outline,
-                  icon: Icons.visibility_outlined,
-                  onPressed: () {
-                    Get.toNamed(
-                      AppRoutes.applicationStatus,
-                      arguments: ApplicationStatusArgs(
-                        applicationId: args.applicationId,
-                        jobPostId: args.jobPostId,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-              ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 250),
+                    child: CustomButton(
+                      label: AppStrings.viewApplicationStatus,
+                      variant: CustomButtonVariant.outline,
+                      icon: Icons.visibility_outlined,
+                      onPressed: () {
+                        Get.toNamed(
+                          AppRoutes.applicationStatus,
+                          arguments: ApplicationStatusArgs(
+                            applicationId: args.applicationId,
+                            jobPostId: args.jobPostId,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

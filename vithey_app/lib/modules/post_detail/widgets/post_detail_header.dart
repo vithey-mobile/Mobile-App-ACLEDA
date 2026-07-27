@@ -3,42 +3,85 @@ import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 class PostDetailHeader extends StatelessWidget {
   const PostDetailHeader({
     super.key,
     required this.post,
     required this.onFollow,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final FeedPost post;
   final VoidCallback onFollow;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Row(
-        children: [
-          UserAvatar(name: post.author.fullName, imageUrl: post.author.avatarUrl, radius: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(post.author.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(RelativeTime.format(post.createdAt), style: TextStyle(color: context.appColors.muted, fontSize: 12)),
-              ],
+    return Row(
+      children: [
+        UserAvatar(
+          name: post.author.fullName,
+          imageUrl: post.author.avatarUrl,
+          radius: 20,
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                post.author.fullName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: context.appColors.heading,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Public  ·  ${RelativeTime.format(post.createdAt)}',
+                style: TextStyle(
+                  color: context.appColors.muted,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (post.isOwnPost)
+          PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
+        else if (post.type != PostType.job) ...[
+          const SizedBox(width: 8),
+          Material(
+            color: context.scheme.primary,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              onTap: onFollow,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 7,
+                ),
+                child: Text(
+                  post.isFollowingAuthor ? 'Following' : 'Follow',
+                  style: TextStyle(
+                    color: context.scheme.onPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ),
-          if (!post.isOwnPost)
-            shad.Button.ghost(
-              onPressed: onFollow,
-              child: shad.Text(post.isFollowingAuthor ? 'Following' : 'Follow'),
-            ),
         ],
-      ),
+      ],
     );
   }
 }

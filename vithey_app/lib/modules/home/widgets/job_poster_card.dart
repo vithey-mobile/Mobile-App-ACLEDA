@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 class JobPosterCard extends StatelessWidget {
   const JobPosterCard({
@@ -13,6 +13,8 @@ class JobPosterCard extends StatelessWidget {
     required this.onShare,
     required this.onApply,
     required this.onOpen,
+    required this.onEdit,
+    required this.onDelete,
     this.onViewApplicants,
     this.onAuthorTap,
   });
@@ -23,6 +25,8 @@ class JobPosterCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onApply;
   final VoidCallback onOpen;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final VoidCallback? onViewApplicants;
   final VoidCallback? onAuthorTap;
 
@@ -30,21 +34,54 @@ class JobPosterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return PostCard(
       post: post,
-      headerTrailing: _JobActionButton(post: post, onApply: onApply, onViewApplicants: onViewApplicants),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.jobMeta.title != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-              child: Text(
-                post.jobMeta.title!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
+      headerTrailing: post.isOwnPost
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _JobActionButton(
+                  post: post,
+                  onApply: onApply,
+                  onViewApplicants: onViewApplicants,
+                ),
+                PostOwnerActions(onEdit: onEdit, onDelete: onDelete),
+              ],
+            )
+          : _JobActionButton(
+              post: post,
+              onApply: onApply,
+              onViewApplicants: onViewApplicants,
             ),
-          PostMediaImage(url: post.mediaUrl),
-        ],
+      caption: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (post.jobMeta.title?.isNotEmpty == true) ...[
+              Text(
+                post.jobMeta.title!,
+                style: TextStyle(
+                  color: context.appColors.heading,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            if (post.content.isNotEmpty)
+              Text(
+                post.content,
+                style: TextStyle(
+                  color: context.appColors.muted,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+          ],
+        ),
       ),
+      body: (post.mediaUrl == null || post.mediaUrl!.isEmpty)
+          ? null
+          : PostMediaImage(url: post.mediaUrl),
       onLike: onLike,
       onComment: onComment,
       onShare: onShare,
@@ -68,9 +105,14 @@ class _JobActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (post.isOwnPost) {
-      return shad.Button.ghost(
+      return TextButton(
         onPressed: onViewApplicants,
-        child: shad.Text('Applicants (${post.applicantCount})'),
+        style: TextButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          textStyle: const TextStyle(fontSize: 10.5),
+        ),
+        child: Text('Applicants (${post.applicantCount})'),
       );
     }
 
@@ -78,42 +120,48 @@ class _JobActionButton extends StatelessWidget {
       case JobApplicationState.applied:
         return Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: Text(
-            'Applied',
-            style: TextStyle(
-              color: _appliedGrey(context),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: Text('Applied',
+              style: TextStyle(
+                  color: context.appColors.muted, fontWeight: FontWeight.w600)),
         );
       case JobApplicationState.checking:
         return const Padding(
           padding: EdgeInsets.all(12),
-          child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+          child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2)),
         );
       case JobApplicationState.notApplied:
         if (post.lifecycleState != JobLifecycleState.open) {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: Text('Closed', style: TextStyle(color: context.appColors.muted)),
+            child: Text('Closed',
+                style: TextStyle(color: context.appColors.muted)),
           );
         }
-        return shad.Button.ghost(
-          onPressed: onApply,
-          child: shad.Text(
-            'Apply',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
+        return Material(
+          color: context.scheme.primary,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: onApply,
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              width: 50,
+              height: 26,
+              child: Center(
+                child: Text(
+                  'Apply',
+                  style: TextStyle(
+                    color: context.scheme.onPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ),
         );
     }
-  }
-
-  /// Dark grey label for Applied (not teal / success green).
-  static Color _appliedGrey(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return isDark ? const Color(0xFFB0B0B0) : const Color(0xFF616161);
   }
 }

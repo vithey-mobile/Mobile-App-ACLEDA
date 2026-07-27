@@ -1,9 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutController extends GetxController {
+  // App contact details shown on the About screen. Update in one place.
+  static const contactPhone = '+855 96 222 333';
+  static const contactEmail = 'support@vithey.app';
+  static const contactWebsite = 'https://vithey.app';
+  static const contactLocation = 'Phnom Penh, Cambodia';
+
   final version = ''.obs;
   final isLoading = true.obs;
 
@@ -32,16 +37,7 @@ class AboutController extends GetxController {
     }
   }
 
-  void openPrivacyPolicy() => openUrl('https://vithey.app/privacy');
-  void openTerms() => openUrl('https://vithey.app/terms');
-  void openCompetitionRules() => openUrl('https://www.acledabank.com.kh');
-  void contactSupport() => openUrl('mailto:support@vithey.app');
-
-  void showLicenses() {
-    showLicensePage(
-      context: Get.context!,
-      applicationName: 'Vithey',
-      applicationVersion: version.value,
-    );
-  }
+  void openWebsite() => openUrl(contactWebsite);
+  void callPhone() => openUrl('tel:${contactPhone.replaceAll(' ', '')}');
+  void sendEmail() => openUrl('mailto:$contactEmail');
 }

@@ -36,8 +36,10 @@ class AppRoutes {
   static const searchSeeAll = '/search/see-all';
   static const settings = '/settings';
   static const settingsAccount = '/settings/account';
+  static const settingsEditAccount = '/settings/account/edit';
   static const settingsPrivacy = '/settings/privacy';
   static const settingsPrivacyPractices = '/settings/privacy/practices';
+  static const settingsNotifications = '/settings/notifications';
   static const settingsSecurity = '/settings/security';
   static const settingsChangePassword = '/settings/security/change-password';
   static const settingsHelpCenter = '/settings/help-center';

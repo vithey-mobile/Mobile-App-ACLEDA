@@ -91,10 +91,14 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
             IconButton(
               iconSize: 56,
               color: Colors.white70,
-              icon: Icon(_controller!.value.isPlaying ? Icons.pause_circle : Icons.play_circle),
+              icon: Icon(_controller!.value.isPlaying
+                  ? Icons.pause_circle
+                  : Icons.play_circle),
               onPressed: () {
                 setState(() {
-                  _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
+                  _controller!.value.isPlaying
+                      ? _controller!.pause()
+                      : _controller!.play();
                 });
               },
             ),
@@ -115,16 +119,21 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(color: context.scheme.onSurfaceVariant, shape: BoxShape.circle),
-              child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+              decoration: BoxDecoration(
+                  color: context.scheme.onSurfaceVariant,
+                  shape: BoxShape.circle),
+              child:
+                  const Icon(Icons.play_arrow, color: Colors.white, size: 40),
             ),
           if (_error != null)
             Positioned(
               bottom: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 color: context.scheme.onSurfaceVariant,
-                child: Text(_error!, style: const TextStyle(color: Colors.white)),
+                child:
+                    Text(_error!, style: const TextStyle(color: Colors.white)),
               ),
             ),
         ],
@@ -137,7 +146,9 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
       height: 240,
       color: context.appColors.inputFill,
       alignment: Alignment.center,
-      child: loading ? const CircularProgressIndicator(strokeWidth: 2) : const Icon(Icons.image_not_supported_outlined),
+      child: loading
+          ? const CircularProgressIndicator(strokeWidth: 2)
+          : const Icon(Icons.image_not_supported_outlined),
     );
   }
 }

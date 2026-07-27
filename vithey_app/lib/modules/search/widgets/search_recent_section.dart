@@ -8,20 +8,24 @@ import 'package:aub_connect_app/modules/search/widgets/search_recent_tile.dart';
 class SearchRecentSection extends StatelessWidget {
   const SearchRecentSection({
     super.key,
-    required this.users,
+    required this.items,
     required this.isLoading,
-    required this.onUserTap,
-    this.onUserLongPress,
+    required this.onItemTap,
+    required this.onTogglePin,
+    required this.onRemove,
     this.onClearAll,
     this.header,
+    this.showActions = true,
   });
 
-  final List<SearchRecentUser> users;
+  final List<SearchRecentItem> items;
   final bool isLoading;
-  final ValueChanged<SearchRecentUser> onUserTap;
-  final ValueChanged<SearchRecentUser>? onUserLongPress;
+  final ValueChanged<SearchRecentItem> onItemTap;
+  final ValueChanged<SearchRecentItem> onTogglePin;
+  final ValueChanged<SearchRecentItem> onRemove;
   final VoidCallback? onClearAll;
   final Widget? header;
+  final bool showActions;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class SearchRecentSection extends StatelessWidget {
       );
     }
 
-    if (users.isEmpty) {
+    if (items.isEmpty) {
       return const EmptyStateWidget(
         title: 'No recent searches',
         subtitle: 'Try searching for people, posts, or jobs',
@@ -61,16 +65,19 @@ class SearchRecentSection extends StatelessWidget {
               if (onClearAll != null)
                 TextButton(
                   onPressed: onClearAll,
-                  child: Text('Clear all', style: TextStyle(color: colors.muted)),
+                  child:
+                      Text('Clear all', style: TextStyle(color: colors.muted)),
                 ),
             ],
           ),
         ),
-        ...users.map(
-          (user) => SearchRecentTile(
-            user: user,
-            onTap: () => onUserTap(user),
-            onLongPress: onUserLongPress == null ? null : () => onUserLongPress!(user),
+        ...items.map(
+          (item) => SearchRecentTile(
+            item: item,
+            onTap: () => onItemTap(item),
+            onTogglePin: () => onTogglePin(item),
+            onRemove: () => onRemove(item),
+            showActions: showActions,
           ),
         ),
       ],

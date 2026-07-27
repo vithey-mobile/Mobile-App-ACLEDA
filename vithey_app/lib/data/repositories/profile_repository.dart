@@ -90,6 +90,7 @@ class ProfileRepository {
   }
 
   Future<UserProfileModel> updateProfile({
+    String? fullName,
     String? bio,
     String? location,
     String? gender,
@@ -97,6 +98,7 @@ class ProfileRepository {
     String? portfolioUrl,
     String? telegramLink,
     String? facebookLink,
+    String? avatarUrl,
     String? phone,
     String? email,
     String? university,
@@ -134,6 +136,7 @@ class ProfileRepository {
     final clearedMajor = clearable(major);
 
     final fields = <String, dynamic>{
+      if (fullName != null) 'full_name': fullName,
       if (bio != null) 'bio': clearedBio ?? '',
       if (location != null) 'location': clearedLocation,
       if (gender != null) 'gender': clearedGender,
@@ -141,6 +144,7 @@ class ProfileRepository {
       if (portfolioUrl != null) 'portfolio_url': clearedPortfolio,
       if (telegramLink != null) 'telegram_link': clearedTelegram,
       if (facebookLink != null) 'facebook_link': clearedFacebook,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
       if (phone != null) 'phone': clearedPhone,
       if (email != null) 'email': clearedEmail,
       if (university != null) 'university': clearedUniversity,
@@ -170,9 +174,9 @@ class ProfileRepository {
       final contacts = contactEntries ?? current.contactItems;
       final updated = UserProfileModel(
         id: current.id,
-        fullName: current.fullName,
+        fullName: fullName ?? current.fullName,
         bio: bio != null ? clearedBio : current.bio,
-        avatarUrl: current.avatarUrl,
+        avatarUrl: avatarUrl ?? current.avatarUrl,
         coverUrl: current.coverUrl,
         university: university != null ? clearedUniversity : current.university,
         major: major != null ? clearedMajor : current.major,

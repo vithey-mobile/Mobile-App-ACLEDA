@@ -10,6 +10,7 @@ import 'package:aub_connect_app/data/push/fcm_service.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/settings_repository.dart';
+import 'package:aub_connect_app/modules/settings/widgets/language_picker_sheet.dart';
 
 class SettingsController extends GetxController {
   SettingsController(this._settingsRepository, this._authRepository, this._localStorage);
@@ -57,30 +58,15 @@ class SettingsController extends GetxController {
 
   void openLanguagePicker() {
     Get.bottomSheet(
-      SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Select Language', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-            ListTile(
-              title: const Text('English (US)'),
-              trailing: languageCode.value == 'en' ? const Icon(Icons.check, color: Colors.teal) : null,
-              onTap: () => _selectLanguage('en'),
-            ),
-            ListTile(
-              title: const Text('Khmer'),
-              trailing: languageCode.value == 'km' ? const Icon(Icons.check, color: Colors.teal) : null,
-              onTap: () => _selectLanguage('km'),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      LanguagePickerSheet(
+        selectedCode: languageCode.value,
+        onSelect: _selectLanguage,
       ),
-      backgroundColor: Get.context!.scheme.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor: Get.context!.appColors.bodyBackground,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
     );
   }
 
@@ -94,9 +80,10 @@ class SettingsController extends GetxController {
   Future<void> logout() async {
     final confirmed = await showConfirmDialog(
       context: Get.context!,
-      title: 'Log out',
+      title: 'Logout',
       message: 'Are you sure you want to log out of Vithey?',
-      confirmLabel: 'Log out',
+      confirmLabel: 'Logout',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
 

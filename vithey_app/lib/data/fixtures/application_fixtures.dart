@@ -6,7 +6,7 @@ import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/application_detail_model.dart';
 
-/// Mock job-application usage (no role picker — usage-shaped):
+/// Mock job-application usage (no role picker ΓÇö usage-shaped):
 /// - Logged-in user = **Poster (HR)**: owns JOB posts; Applied Jobs has **4**
 ///   mock rows in dev so the tab UI can be exercised.
 /// - `author-1` = **Applier (Student)**: applies to jobs; has no JOB posts.
@@ -75,7 +75,7 @@ abstract final class ApplicationFixtures {
         applicantUserId: MockIds.author1,
         applicantName: 'Heng Liza',
       ),
-      // Logged-in user's Applied Jobs (dev mocks) — original uploaded CV name.
+      // Logged-in user's Applied Jobs (dev mocks) ΓÇö original uploaded CV name.
       MockIds.appMy3: ApplicationDetailModel(
         applicationId: MockIds.appMy3,
         jobPostId: MockIds.post3,
@@ -251,7 +251,7 @@ abstract final class ApplicationFixtures {
     ];
   }
 
-  /// Applier (Student) sample history — for future applier session demos.
+  /// Applier (Student) sample history ΓÇö for future applier session demos.
   static List<AppliedJobSummary> applierAppliedJobs() {
     return [
       AppliedJobSummary(

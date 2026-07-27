@@ -16,17 +16,21 @@ class SettingsRepository {
     final theme = await _localStorage.readThemeMode();
     final language = await _localStorage.readLanguage();
     final privacy = await _loadLocalPrivacy();
+    final notifications = await _loadLocalNotificationPreferences();
 
     final local = UserSettingsModel(
       themeMode: theme ?? 'light',
       language: language,
       privacy: privacy,
+      notifications: notifications,
     );
 
     if (useMockApi) return local;
 
     try {
-      final remote = await _settingsService.getSettings();
+      final remote = await _settingsService.getSettings(
+        notificationFallback: notifications,
+      );
       await _persistLocal(remote);
       return remote;
     } catch (_) {
@@ -79,11 +83,59 @@ class SettingsRepository {
     }
   }
 
+  Future<NotificationPreferences> loadNotificationPreferences() async {
+    final local = await _loadLocalNotificationPreferences();
+    if (useMockApi) return local;
+
+    try {
+      final remote = await _settingsService.getSettings(
+        notificationFallback: local,
+      );
+      await _persistLocalNotificationPreferences(remote.notifications);
+      return remote.notifications;
+    } catch (_) {
+      return local;
+    }
+  }
+
+  /// Reads the locally cached notification preferences without hitting the
+  /// network. Used on hot paths (incoming push) where a remote fetch per
+  /// notification would be too expensive.
+  Future<NotificationPreferences> loadCachedNotificationPreferences() {
+    return _loadLocalNotificationPreferences();
+  }
+
+  Future<void> saveNotificationPreferences(
+    NotificationPreferences settings,
+  ) async {
+    if (!useMockApi) {
+      await _settingsService.updateSettings(settings.toJson());
+    }
+    await _persistLocalNotificationPreferences(settings);
+  }
+
   Future<PrivacySettings> _loadLocalPrivacy() async {
     return PrivacySettings(
       profileVisible: await _localStorage.readPrivacyProfileVisible(),
       dataSharing: await _localStorage.readPrivacyDataSharing(),
       activityTracking: await _localStorage.readPrivacyActivityTracking(),
+    );
+  }
+
+  Future<NotificationPreferences> _loadLocalNotificationPreferences() async {
+    final values = await _localStorage.readNotificationPreferences();
+    return NotificationPreferences.fromJson(values);
+  }
+
+  Future<void> _persistLocalNotificationPreferences(
+    NotificationPreferences settings,
+  ) {
+    return _localStorage.saveNotificationPreferences(
+      enabled: settings.allowNotifications,
+      chatMessages: settings.chatMessages,
+      reminders: settings.reminders,
+      announcements: settings.announcements,
+      appUpdates: settings.appUpdates,
     );
   }
 
@@ -95,5 +147,6 @@ class SettingsRepository {
       dataSharing: settings.privacy.dataSharing,
       activityTracking: settings.privacy.activityTracking,
     );
+    await _persistLocalNotificationPreferences(settings.notifications);
   }
 }

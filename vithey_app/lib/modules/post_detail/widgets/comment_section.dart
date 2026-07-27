@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
-import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/post_detail/post_detail_controller.dart';
-import 'package:aub_connect_app/modules/post_detail/widgets/mention_user_box.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class CommentSection extends StatelessWidget {
   const CommentSection({super.key});
@@ -20,21 +17,21 @@ class CommentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Text('Comments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ),
         Obx(() {
-          if (controller.isCommentsLoading.value && controller.comments.isEmpty) {
-            return const Column(children: [ShimmerListTile(), ShimmerListTile()]);
+          if (controller.isCommentsLoading.value &&
+              controller.comments.isEmpty) {
+            return const Column(
+                children: [ShimmerListTile(), ShimmerListTile()]);
           }
           if (controller.comments.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: EmptyStateWidget(
-                title: 'No comments yet',
-                subtitle: 'Be the first to comment.',
-                icon: Icons.chat_bubble_outline,
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Text(
+                'No comments yet. Be the first to comment.',
+                style: TextStyle(
+                  color: context.appColors.muted,
+                  fontSize: 13,
+                ),
               ),
             );
           }
@@ -44,39 +41,105 @@ class CommentSection extends StatelessWidget {
             itemCount: controller.comments.length,
             itemBuilder: (_, index) {
               final comment = controller.comments[index];
+              final isReply = comment.isReply;
               return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                padding: EdgeInsets.fromLTRB(
+                  isReply ? 56 : 20,
+                  6,
+                  10,
+                  8,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    UserAvatar(name: comment.author.fullName, radius: 18),
-                    const SizedBox(width: 10),
+                    UserAvatar(
+                      name: comment.author.fullName,
+                      imageUrl: comment.author.avatarUrl,
+                      radius: isReply ? 15 : 18,
+                    ),
+                    const SizedBox(width: 9),
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: context.appColors.inputFill,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: context.appColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(comment.author.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            _MentionText(text: comment.text),
-                            const SizedBox(height: 6),
-                            Text(
-                              RelativeTime.format(comment.createdAt),
-                              style: TextStyle(color: context.appColors.muted, fontSize: 11),
-                            ),
-                            if (comment.isFailed)
-                              shad.Button.ghost(
-                                onPressed: controller.submitComment,
-                                child: const shad.Text('Retry'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                            decoration: BoxDecoration(
+                              color: context.appColors.cardSurface,
+                              borderRadius: BorderRadius.circular(9),
+                              border: Border.all(
+                                color: context.appColors.border,
                               ),
-                          ],
-                        ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  comment.author.fullName,
+                                  style: TextStyle(
+                                    color: context.appColors.heading,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: isReply ? 13 : 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                _MentionText(text: comment.text),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 1, top: 5),
+                            child: Wrap(
+                              spacing: 12,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                _CommentAction(
+                                  label: 'Like',
+                                  onTap: () {},
+                                ),
+                                _CommentAction(
+                                  label: 'Reply',
+                                  onTap: () => controller.replyTo(comment),
+                                ),
+                                if (comment
+                                    .isOwnedBy(controller.currentUserId)) ...[
+                                  _CommentAction(
+                                    label: 'Edit',
+                                    onTap: () => controller.startEdit(comment),
+                                  ),
+                                  _CommentAction(
+                                    label: 'Delete',
+                                    color: AppColors.error,
+                                    onTap: () =>
+                                        controller.deleteComment(comment),
+                                  ),
+                                ],
+                                Text(
+                                  RelativeTime.format(comment.createdAt),
+                                  style: TextStyle(
+                                    color: context.appColors.muted,
+                                    fontSize: 11.5,
+                                  ),
+                                ),
+                                if (comment.isPending)
+                                  Text(
+                                    'Sending…',
+                                    style: TextStyle(
+                                      color: context.appColors.muted,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                if (comment.isFailed)
+                                  _CommentAction(
+                                    label: 'Retry',
+                                    color: AppColors.primary,
+                                    onTap: controller.submitComment,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -85,49 +148,38 @@ class CommentSection extends StatelessWidget {
             },
           );
         }),
-        const SizedBox(height: 8),
-        Obx(() {
-          if (!controller.showMentions.value) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: MentionUserBox(
-              users: controller.filteredMentionUsers,
-              onSelect: controller.mentionUser,
-            ),
-          );
-        }),
-        SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller.commentController,
-                    focusNode: controller.commentFocus,
-                    decoration: InputDecoration(
-                      hintText: 'Write a comment…',
-                      filled: true,
-                      fillColor: context.appColors.inputFill,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => controller.submitComment(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Obx(() => IconButton(
-                      onPressed: controller.isSending.value ? null : controller.submitComment,
-                      icon: controller.isSending.value
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.send, color: AppColors.primary),
-                    )),
-              ],
-            ),
+      ],
+    );
+  }
+}
+
+class _CommentAction extends StatelessWidget {
+  const _CommentAction({
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color ?? context.appColors.muted,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -148,12 +200,15 @@ class _MentionText extends StatelessWidget {
       }
       spans.add(TextSpan(
         text: match.group(0),
-        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+            color: AppColors.primary, fontWeight: FontWeight.w600),
       ));
       start = match.end;
     }
     if (start < text.length) spans.add(TextSpan(text: text.substring(start)));
 
-    return RichText(text: TextSpan(style: DefaultTextStyle.of(context).style, children: spans));
+    return RichText(
+        text: TextSpan(
+            style: DefaultTextStyle.of(context).style, children: spans));
   }
 }

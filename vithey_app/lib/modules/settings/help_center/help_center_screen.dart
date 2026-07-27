@@ -28,7 +28,7 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -74,12 +74,17 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
                 const SizedBox(height: 8),
                 Text('Need more help? Reach out to our support team.', style: TextStyle(color: context.appColors.muted)),
                 const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.email_outlined, color: AppColors.primary),
-                  title: const Text('Email Support'),
-                  subtitle: const Text('support@vithey.app'),
-                  onTap: controller.contactSupport,
+                // Transparent Material so the tile's ink splash renders above
+                // the decorated card instead of being hidden by it.
+                Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.email_outlined, color: AppColors.primary),
+                    title: const Text('Email Support'),
+                    subtitle: const Text('support@vithey.app'),
+                    onTap: controller.contactSupport,
+                  ),
                 ),
               ],
             ),

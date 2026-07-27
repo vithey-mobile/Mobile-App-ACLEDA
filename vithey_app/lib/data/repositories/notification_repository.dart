@@ -32,9 +32,17 @@ class NotificationRepository extends GetxService {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      var list = _items.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      if (filter == NotificationFilter.unread) {
-        list = list.where((n) => !n.isRead).toList();
+      var list = _items.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      switch (filter) {
+        case NotificationFilter.all:
+          break;
+        case NotificationFilter.read:
+          list = list.where((n) => n.isRead).toList();
+          break;
+        case NotificationFilter.unread:
+          list = list.where((n) => !n.isRead).toList();
+          break;
       }
       final start = (page - 1) * limit;
       final pageItems = list.skip(start).take(limit).toList();
@@ -49,7 +57,11 @@ class NotificationRepository extends GetxService {
     final result = await _notificationService.fetchNotifications(
       page: page,
       limit: limit,
-      unreadOnly: filter == NotificationFilter.unread,
+      isRead: switch (filter) {
+        NotificationFilter.all => null,
+        NotificationFilter.read => true,
+        NotificationFilter.unread => false,
+      },
     );
     _cacheItems(result.items);
     if (result.unreadTotal != null) {
@@ -140,7 +152,8 @@ class NotificationRepository extends GetxService {
 
   AppNotification? getById(String id) => _items[id];
 
-  void cacheNotification(AppNotification notification) => _cacheItems([notification]);
+  void cacheNotification(AppNotification notification) =>
+      _cacheItems([notification]);
 
   Future<void> reconcileUnreadCount() async {
     if (useMockApi) {

@@ -17,6 +17,8 @@ class SettingsMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = context.scheme.primary;
+
     return Material(
       color: context.appColors.cardSurface,
       child: InkWell(
@@ -25,13 +27,20 @@ class SettingsMenuTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Icon(icon, color: context.appColors.muted, size: 22),
+              Icon(icon, color: primary, size: 22),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: context.appColors.heading,
+                      ),
+                    ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(subtitle!, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
@@ -39,7 +48,7 @@ class SettingsMenuTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onTap != null) Icon(Icons.chevron_right, color: context.appColors.muted),
+              if (onTap != null) Icon(Icons.chevron_right, color: primary, size: 22),
             ],
           ),
         ),

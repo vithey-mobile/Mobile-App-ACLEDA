@@ -7,13 +7,20 @@ class SettingsService {
 
   final ApiService _api;
 
-  Future<UserSettingsModel> getSettings() async {
+  Future<UserSettingsModel> getSettings({
+    NotificationPreferences notificationFallback =
+        const NotificationPreferences(),
+  }) async {
     final response = await _api.get(
       ApiEndpoints.usersMeSettings,
-      fromJson: (json) => UserSettingsModel.fromJson(json as Map<String, dynamic>),
+      fromJson: (json) => UserSettingsModel.fromJson(
+        json as Map<String, dynamic>,
+        notificationFallback: notificationFallback,
+      ),
     );
     if (!response.isSuccess || response.data == null) {
-      throw SettingsServiceException(response.error?.message ?? 'Failed to load settings');
+      throw SettingsServiceException(
+          response.error?.message ?? 'Failed to load settings');
     }
     return response.data!;
   }
@@ -22,10 +29,12 @@ class SettingsService {
     final response = await _api.patch(
       ApiEndpoints.usersMeSettings,
       data: data,
-      fromJson: (json) => UserSettingsModel.fromJson(json as Map<String, dynamic>),
+      fromJson: (json) =>
+          UserSettingsModel.fromJson(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
-      throw SettingsServiceException(response.error?.message ?? 'Failed to save settings');
+      throw SettingsServiceException(
+          response.error?.message ?? 'Failed to save settings');
     }
     return response.data!;
   }

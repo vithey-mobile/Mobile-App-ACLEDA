@@ -8,7 +8,7 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/modules/apply_cv/apply_cv_controller.dart';
-import 'package:aub_connect_app/modules/apply_cv/widgets/application_description_field.dart';
+import 'package:aub_connect_app/modules/apply_cv/widgets/application_submitted_hero.dart';
 import 'package:aub_connect_app/modules/apply_cv/widgets/apply_job_context.dart';
 import 'package:aub_connect_app/modules/apply_cv/widgets/apply_job_stepper.dart';
 import 'package:aub_connect_app/modules/apply_cv/widgets/cv_upload_zone.dart';
@@ -32,12 +32,18 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
         if (shouldPop) Get.back();
       },
       child: Scaffold(
-        backgroundColor: context.appColors.bodyBackground,
+        backgroundColor: context.appColors.cardSurface,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: context.appColors.bodyBackground,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          backgroundColor: context.appColors.cardSurface,
           foregroundColor: context.appColors.heading,
-          title: const Text(AppStrings.applyJobTitle, style: TextStyle(fontWeight: FontWeight.bold)),
+          surfaceTintColor: Colors.transparent,
+          title: const Text(
+            AppStrings.applyJobTitle,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
           leading: BackButton(
             onPressed: () async {
               final shouldPop = await controller.handleBack();
@@ -56,8 +62,12 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
                 onRetry: controller.retryLoad,
               );
             }
+            if (controller.isAlreadyApplied) {
+              return _AlreadyAppliedView(controller: controller);
+            }
 
-            final stepIndex = controller.currentStep.value == ApplyCvStep.upload ? 0 : 1;
+            final stepIndex =
+                controller.currentStep.value == ApplyCvStep.upload ? 0 : 1;
             return Column(
               children: [
                 ApplyJobStepper(currentStep: stepIndex),
@@ -75,6 +85,61 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
   }
 }
 
+class _AlreadyAppliedView extends StatelessWidget {
+  const _AlreadyAppliedView({required this.controller});
+
+  final ApplyCvController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ApplicationSubmittedHero(),
+            const SizedBox(height: 18),
+            Text(
+              'Application Already Submitted!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.appColors.heading,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 330),
+              child: Text(
+                'Your application for ${controller.jobTitle} has already been '
+                'submitted. View its latest status and updates.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: context.appColors.muted,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 250),
+              child: CustomButton(
+                label: AppStrings.viewApplicationStatus,
+                variant: CustomButtonVariant.outline,
+                icon: Icons.visibility_outlined,
+                onPressed: controller.viewApplicationStatus,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _UploadStep extends StatelessWidget {
   const _UploadStep({required this.controller});
 
@@ -82,10 +147,9 @@ class _UploadStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eligible = controller.eligibility.value?.eligibility == JobEligibility.eligible;
+    final eligible =
+        controller.eligibility.value?.eligibility == JobEligibility.eligible;
     final enabled = eligible && !controller.isSubmitting.value;
-    final primary = Theme.of(context).colorScheme.primary;
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
 
     return Column(
       children: [
@@ -98,20 +162,23 @@ class _UploadStep extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
                     AppStrings.uploadYourCv,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: context.appColors.heading,
-                        ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: context.appColors.heading,
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
                     AppStrings.uploadCvSubtitle,
-                    style: TextStyle(color: context.appColors.muted, fontSize: 14),
+                    style: TextStyle(
+                      color: context.appColors.muted,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-                // Screen 1 mock has no job context block — only show when blocked.
                 if (!eligible)
                   ApplyJobContext(
                     job: controller.job.value,
@@ -122,10 +189,7 @@ class _UploadStep extends StatelessWidget {
                   ),
                 if (eligible) ...[
                   PositionSelector(
-                    positions: controller.availablePositions,
-                    selected: controller.selectedPosition.value,
-                    enabled: enabled,
-                    onChanged: controller.selectPosition,
+                    position: controller.positionLabel,
                   ),
                   _buildCvSection(enabled),
                 ],
@@ -138,48 +202,22 @@ class _UploadStep extends StatelessWidget {
           child: Column(
             children: [
               if (controller.isAlreadyApplied)
-                SizedBox(
-                  width: double.infinity,
-                  child: CustomButton(
-                    label: AppStrings.viewApplicationStatus,
-                    icon: Icons.visibility_outlined,
-                    onPressed: controller.viewApplicationStatus,
-                  ),
+                CustomButton(
+                  label: AppStrings.viewApplicationStatus,
+                  icon: Icons.visibility_outlined,
+                  onPressed: controller.viewApplicationStatus,
                 )
               else if (!eligible)
-                SizedBox(
-                  width: double.infinity,
-                  child: CustomButton(
-                    label: AppStrings.back,
-                    variant: CustomButtonVariant.outline,
-                    onPressed: () => Get.back(),
-                  ),
+                CustomButton(
+                  label: AppStrings.back,
+                  variant: CustomButtonVariant.outline,
+                  onPressed: () => Get.back(),
                 )
               else
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton(
-                    onPressed:
-                        controller.canContinue ? controller.goToReview : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: primary,
-                      foregroundColor: onPrimary,
-                      disabledBackgroundColor: primary.withValues(alpha: 0.4),
-                      disabledForegroundColor: onPrimary.withValues(alpha: 0.8),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      AppStrings.continueLabel,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
+                CustomButton(
+                  label: AppStrings.continueLabel,
+                  onPressed:
+                      controller.canContinue ? controller.goToReview : null,
                 ),
               if (eligible) const PrivacyFooterNote(),
             ],
@@ -204,7 +242,8 @@ class _UploadStep extends StatelessWidget {
             enabled: enabled,
             showSaveAsDefault: mode == CvSelectionMode.localApplicationOnly,
             saveAsDefault: controller.saveAsDefault.value,
-            onReplace: () => controller.pickLocalCv(updateDefault: mode == CvSelectionMode.localUpdateDefault),
+            onReplace: () => controller.pickLocalCv(
+                updateDefault: mode == CvSelectionMode.localUpdateDefault),
             onRemove: controller.removeLocalCv,
             onSaveAsDefaultChanged: controller.toggleSaveAsDefault,
           )
@@ -226,7 +265,8 @@ class _UploadStep extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: shad.Button.outline(
               onPressed: enabled ? controller.useSavedCv : null,
-              leading: const Icon(Icons.description_outlined, color: AppColors.primary),
+              leading: const Icon(Icons.description_outlined,
+                  color: AppColors.primary),
               child: shad.Text('${AppStrings.useSavedCv}: ${saved.fileName}'),
             ),
           ),
@@ -263,16 +303,21 @@ class _ReviewStep extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
                     AppStrings.reviewYourCv,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: TextStyle(
+                      color: context.appColors.heading,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
                     AppStrings.reviewCvSubtitle,
-                    style: TextStyle(color: context.appColors.muted),
+                    style: TextStyle(
+                      color: context.appColors.muted,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
                 ReviewCvCard(
@@ -281,23 +326,21 @@ class _ReviewStep extends StatelessWidget {
                   enabled: enabled,
                   onRemove: controller.removeCvAndGoBack,
                 ),
-                if (controller.showPositionSelector || controller.organizationName.isNotEmpty) ...[
+                if (controller.hasDetectedPosition ||
+                    controller.organizationName.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
                       'Applying for ${controller.positionLabel}'
                       '${controller.organizationName.isNotEmpty ? ' at ${controller.organizationName}' : ''}',
-                      style: TextStyle(fontSize: 13, color: context.appColors.muted),
+                      style: TextStyle(
+                          fontSize: 13, color: context.appColors.muted),
                     ),
                   ),
                 ],
                 const SizedBox(height: 24),
                 const WhatHappensNextList(),
-                ApplicationDescriptionField(
-                  controller: controller.descriptionController,
-                  enabled: enabled,
-                ),
                 if (controller.submitError.value.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.all(20),
@@ -322,8 +365,10 @@ class _ReviewStep extends StatelessWidget {
               const SizedBox(height: 12),
               TextButton.icon(
                 onPressed: enabled ? controller.goToUpload : null,
-                icon: const Icon(Icons.arrow_back, size: 16, color: AppColors.primary),
-                label: const Text(AppStrings.back, style: TextStyle(color: AppColors.primary)),
+                icon: const Icon(Icons.arrow_back,
+                    size: 16, color: AppColors.primary),
+                label: const Text(AppStrings.back,
+                    style: TextStyle(color: AppColors.primary)),
               ),
             ],
           ),

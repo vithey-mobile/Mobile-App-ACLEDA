@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationGroupHeader extends StatelessWidget {
   const NotificationGroupHeader({
@@ -13,13 +14,17 @@ class NotificationGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              style: TextStyle(
+                color: context.appColors.heading,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
             ),
           ),
           if (trailing != null) trailing!,

@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:aub_connect_app/core/config/app_config.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/data/push/notification_router.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
+import 'package:aub_connect_app/data/repositories/settings_repository.dart';
 import 'package:aub_connect_app/data/services/notification_service.dart';
 
 /// Firebase push wrapper — enable with FCM_ENABLED=true after Firebase setup.
@@ -26,10 +28,11 @@ class FcmService {
 
     // When firebase_messaging is configured:
     // await Firebase.initializeApp();
-    // FirebaseMessaging.onMessage.listen(_onForegroundMessage);
-    // FirebaseMessaging.onMessageOpenedApp.listen(handlePushData);
+    // FirebaseMessaging.onMessage.listen((m) => handlePushData(m.data));
+    // FirebaseMessaging.onMessageOpenedApp.listen(
+    //     (m) => handlePushData(m.data, userTapped: true));
     // final initial = await FirebaseMessaging.instance.getInitialMessage();
-    // if (initial != null) handlePushData(initial.data);
+    // if (initial != null) handlePushData(initial.data, userTapped: true);
 
     final debugToken = AppConfig.instance.fcmDebugToken;
     if (debugToken != null && debugToken.isNotEmpty) {
@@ -39,6 +42,13 @@ class FcmService {
 
   Future<void> registerToken() async {
     if (!enabled || _useMockApi) return;
+
+    // Don't register a device token when the user turned notifications off.
+    if (Get.isRegistered<SettingsRepository>()) {
+      final preferences = await Get.find<SettingsRepository>()
+          .loadCachedNotificationPreferences();
+      if (!preferences.allowNotifications) return;
+    }
 
     // final token = _cachedToken ?? await FirebaseMessaging.instance.getToken();
     final token = _cachedToken ?? AppConfig.instance.fcmDebugToken;
@@ -63,7 +73,19 @@ class FcmService {
     }
   }
 
-  void handlePushData(Map<String, dynamic> data) {
+  /// Whether the user's saved notification preferences allow delivering a
+  /// notification of [type]. Checks the master switch plus category toggles.
+  Future<bool> shouldDeliver(NotificationType type, {String? event}) async {
+    if (!Get.isRegistered<SettingsRepository>()) return true;
+    final preferences = await Get.find<SettingsRepository>()
+        .loadCachedNotificationPreferences();
+    return preferences.allowsType(type, event: event);
+  }
+
+  Future<void> handlePushData(
+    Map<String, dynamic> data, {
+    bool userTapped = false,
+  }) async {
     final repository = Get.find<NotificationRepository>();
     final notification = NotificationService.fromJson({
       'id': data['notification_id'] ?? data['id'] ?? '',
@@ -89,6 +111,13 @@ class FcmService {
       },
       'dedupe_key': data['dedupe_key'],
     });
+
+    // Drop the notification when the user's preferences mute this category,
+    // unless the user explicitly tapped it in the OS tray.
+    if (!userTapped &&
+        !await shouldDeliver(notification.type, event: notification.event)) {
+      return;
+    }
 
     if (notification.id.isNotEmpty) {
       repository.cacheNotification(notification);

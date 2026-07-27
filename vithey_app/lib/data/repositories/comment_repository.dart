@@ -21,11 +21,35 @@ class CommentRepository {
     required String postId,
     required String text,
     required PostAuthor currentUser,
+    String? parentCommentId,
   }) {
     return _postRepository.createComment(
       postId: postId,
       text: text,
       currentUser: currentUser,
+      parentCommentId: parentCommentId,
+    );
+  }
+
+  Future<CommentModel> updateComment({
+    required String postId,
+    required String commentId,
+    required String text,
+  }) {
+    return _postRepository.updateComment(
+      postId: postId,
+      commentId: commentId,
+      text: text,
+    );
+  }
+
+  Future<void> deleteComment({
+    required String postId,
+    required String commentId,
+  }) {
+    return _postRepository.deleteComment(
+      postId: postId,
+      commentId: commentId,
     );
   }
 

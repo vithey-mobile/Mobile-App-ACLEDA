@@ -41,7 +41,7 @@ See the dedicated [`media/README.md`](media/README.md).
 | Prompt | Purpose |
 |---|---|
 | [`chat/README.md`](chat/README.md) | Private chat — Vithey list, thread (Seen + pill composer), profile with Medias/Videos/Files/Links, Isar, STOMP, FCM |
-| [`profile/README.md`](profile/README.md) | User profile — wavy header, 5 tabs, edit info, API contract (`06`) |
+| [`profile/README.md`](profile/README.md) | User profile — wavy header, 5 tabs, Update Information, API contract (`06`) |
 | [`job_apply/README.md`](job_apply/README.md) | Apply Job wizard (upload → review → success) + Apply Status timeline |
 | [`notification/README.md`](notification/README.md) | Facebook-style notification center — FCM, local notifications, 9 types, Isar, backend |
 | [`search/README.md`](search/README.md) | Facebook-style global search — recent users, grouped People/Posts/Jobs/Videos, local recents |

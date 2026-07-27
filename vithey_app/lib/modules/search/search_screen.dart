@@ -19,22 +19,27 @@ class SearchScreen extends GetView<SearchController> {
         focusNode: controller.focusNode,
         onChanged: controller.onQueryChanged,
         onClear: controller.clearQuery,
-        onSubmitted: () => FocusScope.of(context).unfocus(),
+        onSubmitted: controller.submitSearch,
       ),
       body: Obx(() {
         if (controller.showRecent) {
           return SearchRecentSection(
-            users: controller.recentUsers,
+            items: controller.visibleRecentItems,
             isLoading: controller.isLoadingRecents.value,
-            onUserTap: controller.openRecentUser,
-            onUserLongPress: controller.pickUserForChat ? null : controller.removeRecentUser,
-            onClearAll: controller.pickUserForChat ? null : controller.confirmClearRecents,
+            onItemTap: controller.openRecentItem,
+            onTogglePin: controller.toggleRecentPin,
+            onRemove: controller.removeRecent,
+            onClearAll: controller.pickUserForChat
+                ? null
+                : controller.confirmClearRecents,
+            showActions: !controller.pickUserForChat,
             header: controller.pickUserForChat
                 ? Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Text(
                       AppStrings.pickUserToChat,
-                      style: TextStyle(color: context.appColors.muted, fontSize: 13),
+                      style: TextStyle(
+                          color: context.appColors.muted, fontSize: 13),
                     ),
                   )
                 : null,

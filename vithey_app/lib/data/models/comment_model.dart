@@ -7,6 +7,7 @@ class CommentModel {
     required this.author,
     required this.text,
     required this.createdAt,
+    this.parentCommentId,
     this.isPending = false,
     this.isFailed = false,
   });
@@ -16,11 +17,19 @@ class CommentModel {
   final PostAuthor author;
   final String text;
   final DateTime createdAt;
+  final String? parentCommentId;
   final bool isPending;
   final bool isFailed;
 
+  bool get isReply => parentCommentId != null && parentCommentId!.isNotEmpty;
+
+  bool isOwnedBy(String? userId) =>
+      userId != null && userId.isNotEmpty && author.id == userId;
+
   CommentModel copyWith({
     String? id,
+    String? text,
+    String? parentCommentId,
     bool? isPending,
     bool? isFailed,
   }) {
@@ -28,8 +37,9 @@ class CommentModel {
       id: id ?? this.id,
       postId: postId,
       author: author,
-      text: text,
+      text: text ?? this.text,
       createdAt: createdAt,
+      parentCommentId: parentCommentId ?? this.parentCommentId,
       isPending: isPending ?? this.isPending,
       isFailed: isFailed ?? this.isFailed,
     );
@@ -41,7 +51,9 @@ class CommentModel {
       postId: json['post_id']?.toString() ?? '',
       author: PostAuthor.fromJson(json['author'] as Map<String, dynamic>? ?? {}),
       text: json['text'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      parentCommentId: json['parent_comment_id']?.toString(),
     );
   }
 }

@@ -15,6 +15,10 @@ class VitheyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Vithey App',
       debugShowCheckedModeBanner: false,
+      // shadcn_flutter widgets (text field context menu, etc.) look up
+      // ShadcnLocalizations and crash if the delegate is not registered.
+      localizationsDelegates: shad.ShadcnLocalizations.localizationsDelegates,
+      supportedLocales: shad.ShadcnLocalizations.supportedLocales,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,

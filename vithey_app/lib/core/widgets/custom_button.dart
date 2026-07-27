@@ -22,24 +22,33 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final leading = icon != null ? Icon(icon, size: 18) : null;
+    // Keep the label centered when the button is stretched full width;
+    // icon buttons keep the default start alignment next to the icon.
+    final alignment = icon == null ? Alignment.center : null;
+    final child = isLoading ? const shad.CircularProgressIndicator() : shad.Text(label);
+
     switch (variant) {
       case CustomButtonVariant.primary:
         return shad.Button.primary(
           onPressed: isLoading ? null : onPressed,
-          leading: icon != null ? Icon(icon, size: 18) : null,
-          child: isLoading ? const shad.CircularProgressIndicator() : shad.Text(label),
+          leading: leading,
+          alignment: alignment,
+          child: child,
         );
       case CustomButtonVariant.secondary:
         return shad.Button.secondary(
           onPressed: isLoading ? null : onPressed,
-          leading: icon != null ? Icon(icon, size: 18) : null,
-          child: isLoading ? const shad.CircularProgressIndicator() : shad.Text(label),
+          leading: leading,
+          alignment: alignment,
+          child: child,
         );
       case CustomButtonVariant.outline:
         return shad.Button.outline(
           onPressed: isLoading ? null : onPressed,
-          leading: icon != null ? Icon(icon, size: 18) : null,
-          child: isLoading ? const shad.CircularProgressIndicator() : shad.Text(label),
+          leading: leading,
+          alignment: alignment,
+          child: child,
         );
     }
   }

@@ -10,8 +10,6 @@ class FeedActionBar extends StatelessWidget {
     required this.onLike,
     required this.onComment,
     required this.onShare,
-    this.alignStart = false,
-    this.onDark = false,
   });
 
   final FeedPost post;
@@ -19,52 +17,30 @@ class FeedActionBar extends StatelessWidget {
   final VoidCallback onComment;
   final VoidCallback onShare;
 
-  /// When true (profile Videos & Posters): Like/Comment left, Share right
-  /// (`spaceBetween`). When false (Home feed): equal-width centered actions.
-  final bool alignStart;
-
-  /// White / primary styling for black fullscreen overlays.
-  final bool onDark;
-
   @override
   Widget build(BuildContext context) {
-    final idle = onDark
-        ? Colors.white.withValues(alpha: 0.85)
-        : context.appColors.muted;
-    final labelColor =
-        onDark ? Colors.white : context.appColors.heading;
-    final liked = post.userReacted
-        ? AppColors.primary
-        : idle;
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: Row(
         children: [
           _ActionButton(
-            icon: post.userReacted ? Icons.thumb_up : Icons.thumb_up_outlined,
-            label: post.reactionCount > 0 ? '${post.reactionCount}' : 'Like',
-            color: liked,
-            labelColor: post.userReacted ? AppColors.primary : labelColor,
+            icon: post.userReacted
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            label: '${post.reactionCount}',
+            color:
+                post.userReacted ? AppColors.primary : context.appColors.muted,
             onTap: onLike,
-            expanded: !alignStart,
           ),
           _ActionButton(
             icon: Icons.chat_bubble_outline,
-            label: post.commentCount > 0 ? '${post.commentCount}' : 'Comment',
-            color: idle,
-            labelColor: labelColor,
+            label: '${post.commentCount}',
             onTap: onComment,
-            expanded: !alignStart,
           ),
-          if (alignStart) const Spacer(),
           _ActionButton(
-            icon: Icons.share_outlined,
-            label: post.shareCount > 0 ? '${post.shareCount}' : 'Share',
-            color: idle,
-            labelColor: labelColor,
+            icon: Icons.link_rounded,
+            label: '${post.shareCount}',
             onTap: onShare,
-            expanded: !alignStart,
           ),
         ],
       ),
@@ -78,47 +54,39 @@ class _ActionButton extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.color,
-    this.labelColor,
-    this.expanded = true,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final Color? color;
-  final Color? labelColor;
-  final bool expanded;
 
   @override
   Widget build(BuildContext context) {
-    final child = InkWell(
+    return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: 10,
-          horizontal: expanded ? 0 : 10,
-        ),
-        child: Row(
-          mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
-          mainAxisAlignment:
-              expanded ? MainAxisAlignment.center : MainAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: color ?? context.appColors.muted),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: labelColor ?? color ?? context.appColors.heading,
-                fontSize: 13,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 40),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: color ?? context.appColors.muted),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color ?? context.appColors.muted,
+                  fontSize: 13,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-
-    if (expanded) return Expanded(child: child);
-    return child;
   }
 }

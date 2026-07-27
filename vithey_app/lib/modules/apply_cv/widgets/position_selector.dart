@@ -2,27 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
-/// Position field matching Apply CV Screen 1 — always visible when a title exists.
 class PositionSelector extends StatelessWidget {
   const PositionSelector({
     super.key,
-    required this.positions,
-    required this.selected,
-    required this.enabled,
-    required this.onChanged,
+    required this.position,
   });
 
-  final List<String> positions;
-  final String? selected;
-  final bool enabled;
-  final ValueChanged<String?> onChanged;
+  final String position;
 
   @override
   Widget build(BuildContext context) {
-    if (positions.isEmpty) return const SizedBox.shrink();
-
-    final value = selected ?? positions.first;
-    final canChange = enabled && positions.length > 1;
+    if (position.trim().isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -32,60 +22,58 @@ class PositionSelector extends StatelessWidget {
           Text(
             AppStrings.position,
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: context.appColors.muted,
-            ),
+                fontWeight: FontWeight.w500, color: context.appColors.heading),
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: positions.contains(value) ? value : positions.first,
-            isExpanded: true,
-            icon: Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: context.appColors.muted,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Theme.of(context).scaffoldBackgroundColor,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(
+          Semantics(
+            label: 'Position automatically selected from this job post',
+            value: position,
+            readOnly: true,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              decoration: BoxDecoration(
+                color: context.appColors.inputFill,
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.appColors.border),
+                border: Border.all(color: context.appColors.border),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.appColors.border),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.appColors.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.5,
-                ),
-              ),
-            ),
-            hint: const Text(AppStrings.selectPosition),
-            items: positions
-                .map(
-                  (p) => DropdownMenuItem(
-                    value: p,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.work_outline_rounded,
+                    size: 19,
+                    color: context.appColors.muted,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
                     child: Text(
-                      p,
+                      position,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontWeight: FontWeight.w500,
                         color: context.appColors.heading,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                )
-                .toList(),
-            onChanged: canChange ? onChanged : null,
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.check_circle_outline_rounded,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Auto-selected from this job post',
+            style: TextStyle(
+              color: context.appColors.muted,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
