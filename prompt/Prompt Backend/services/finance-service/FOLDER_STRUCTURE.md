@@ -27,7 +27,9 @@ backend/services/finance-service/
     │   │   ├── event/publisher/PaymentEventPublisher.java
     │   │   ├── security/StudentRoleRequiredAspect.java
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_finance_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_finance_schema.sql
+    │       └── V2__Payment_indexes_and_status_check.sql
     └── test/java/com/vithey/finance/
 ```
 

@@ -2,10 +2,10 @@
 
 Database: `notification_db`
 
-Use Flyway migrations:
+Flyway migrations:
 
-- `V1__init_notification_schema.sql` — base tables
-- `V2__notification_ui_upgrade.sql` — UI contract fields (see **`UPGRADE_FOR_UI.md`**)
+- `src/main/resources/db/migration/V1__init_notification_schema.sql`
+- `src/main/resources/db/migration/V2__Notification_type_and_platform_checks.sql`
 
 ## Tables
 
@@ -14,20 +14,13 @@ Use Flyway migrations:
 | Column | Type | Rules |
 | --- | --- | --- |
 | `id` | UUID | PK |
-| `user_id` | UUID | indexed — recipient |
-| `type` | varchar(32) | notification type enum |
-| `event` | varchar(64) | RabbitMQ event name e.g. `reaction.added` |
+| `user_id` | UUID | indexed |
+| `type` | varchar(32) | CHECK: `LIKE`, `COMMENT`, `MENTION`, `FOLLOW`, `CHAT`, `CHAT_REQUEST`, `PAYMENT`, `JOB` |
 | `title` | varchar(180) | not null |
 | `body` | text | not null |
-| `reference_id` | UUID | nullable — legacy; prefer `destination` |
-| `reference_type` | varchar(64) | nullable — legacy |
-| `destination` | jsonb | structured deep-link payload |
-| `actor_id` | UUID | nullable |
-| `actor_name` | varchar(120) | nullable — denormalized |
-| `actor_avatar_url` | text | nullable |
-| `dedupe_key` | varchar(180) | nullable — unique per user when set |
+| `reference_id` | UUID | nullable |
+| `reference_type` | varchar(64) | nullable |
 | `is_read` | boolean | default false |
-| `read_at` | timestamptz | nullable |
 | `created_at` | timestamptz | not null |
 
 ### `device_tokens`
@@ -37,32 +30,18 @@ Use Flyway migrations:
 | `id` | UUID | PK |
 | `user_id` | UUID | indexed |
 | `fcm_token` | text | unique, not null |
-| `platform` | varchar(16) | `ANDROID`, `IOS` |
+| `platform` | varchar(16) | CHECK: `ANDROID`, `IOS` |
 | `created_at` | timestamptz | not null |
 | `updated_at` | timestamptz | not null |
 
-## Indexes
+## Indexes / constraints (current)
 
-- `notifications (user_id, created_at DESC)`
-- `notifications (user_id, is_read, created_at DESC)` — unread filter
-- unique partial `notifications (user_id, dedupe_key) WHERE dedupe_key IS NOT NULL`
-- `device_tokens (user_id)`
-- unique `device_tokens (fcm_token)`
+- `idx_notifications_user_created` on `(user_id, created_at DESC)`
+- `idx_notifications_user_read` on `(user_id, is_read)`
+- `idx_device_tokens_user` on `(user_id)`
+- Unique: `uq_device_tokens_fcm_token`
+- CHECK: `chk_notifications_type`, `chk_device_tokens_platform`
 
-## `destination` JSON (example)
+## V2 notes
 
-```json
-{
-  "reference_type": "POST",
-  "reference_id": "uuid",
-  "post_id": "uuid",
-  "comment_id": "uuid",
-  "conversation_id": "uuid",
-  "job_post_id": "uuid",
-  "application_id": "uuid",
-  "payment_id": "uuid",
-  "ai_thread_id": "uuid"
-}
-```
-
-Only include keys relevant to the notification type.
+- Added CHECK constraints for notification `type` and device `platform` enums.

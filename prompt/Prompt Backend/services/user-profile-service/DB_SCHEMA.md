@@ -2,7 +2,10 @@
 
 Database: `user_db`
 
-Use Flyway migration: `src/main/resources/db/migration/V1__init_profile_schema.sql`
+Flyway migrations:
+
+- `src/main/resources/db/migration/V1__init_profile_schema.sql`
+- `src/main/resources/db/migration/V2__Enable_pg_trgm_and_full_name_gin_index.sql`
 
 ## Tables
 
@@ -35,12 +38,14 @@ Use Flyway migration: `src/main/resources/db/migration/V1__init_profile_schema.s
 | `fcm_token` | text | nullable |
 | `updated_at` | timestamptz | not null |
 
-## Indexes
+## Indexes / constraints (current)
 
-- `profiles.full_name` — btree for sort
-- `V2__search_indexes.sql` — `CREATE INDEX idx_profiles_full_name_trgm ON profiles USING gin (full_name gin_trgm_ops);` (requires `pg_trgm`)
-- Optional: btree on `university`, `major` for ILIKE fallback
-- `user_settings.fcm_token` if device token remains here; notification-service also owns device registration
+- `idx_profiles_full_name_trgm` — GIN on `LOWER(full_name)` using `gin_trgm_ops` (requires `pg_trgm`)
+- Extension: `CREATE EXTENSION IF NOT EXISTS pg_trgm`
 
-**Search spec:** `Prompt Backend/_shared/SEARCH.md`
+Search path uses escaped `LIKE` on `full_name` / `university` / `major` with `ORDER BY full_name` and column projections (`user_id`, `full_name`, `avatar_url`, `university`, `major`, `workplace`) so `bio` TEXT is not loaded for typeahead.
 
+## V2 notes
+
+- Replaced btree `idx_profiles_full_name` with trigram GIN for fuzzy/full-name search.
+- Managed Postgres may need a one-time DBA grant to create `pg_trgm`.

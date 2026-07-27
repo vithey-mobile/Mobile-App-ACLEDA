@@ -45,7 +45,9 @@ backend/services/auth-service/
     │       ├── bootstrap.yml
     │       ├── application.yml
     │       ├── application-dev.yml
-    │       └── db/migration/V1__init_auth_schema.sql
+    │       └── db/migration/
+    │           ├── V1__init_auth_schema.sql
+    │           └── V2__Soft_delete_unique_email_phone_and_cascade_tokens.sql
     └── test/java/com/vithey/auth/
 ```
 

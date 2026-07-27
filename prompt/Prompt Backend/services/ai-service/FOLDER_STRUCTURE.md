@@ -9,7 +9,9 @@ backend/services/ai-service/
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .env.example
-└── src/                        # Java ai-service if implemented here
+└── src/main/resources/db/migration/
+    ├── V1__init_ai_schema.sql
+    └── V2__Ai_composite_indexes_checks_and_rename_cv_file_id.sql
 ```
 
 Prompt docs (this folder):

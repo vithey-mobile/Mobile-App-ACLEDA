@@ -11,6 +11,7 @@ import com.vithey.profile.mapper.SettingsMapper;
 import com.vithey.profile.repository.UserSettingsRepository;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,20 +35,33 @@ public class SettingsService {
   @Transactional
   public SettingsResponse updateSettings(UUID userId, UpdateSettingsRequest request) {
     UserSettings settings = requireSettings(userId);
-    if (request.language() != null) {
+    boolean changed = false;
+
+    if (request.language() != null && request.language() != settings.getLanguage()) {
       settings.setLanguage(request.language());
+      changed = true;
     }
-    if (request.theme() != null) {
+    if (request.theme() != null && request.theme() != settings.getTheme()) {
       settings.setTheme(request.theme());
+      changed = true;
     }
-    if (request.notifications() != null) {
+    if (request.notifications() != null
+        && !Objects.equals(settings.getNotificationPrefs(), request.notifications())) {
       settings.setNotificationPrefs(new HashMap<>(request.notifications()));
+      changed = true;
     }
-    if (request.privacy() != null) {
+    if (request.privacy() != null
+        && !Objects.equals(settings.getPrivacyPrefs(), request.privacy())) {
       settings.setPrivacyPrefs(new HashMap<>(request.privacy()));
+      changed = true;
     }
-    if (request.fcmToken() != null) {
+    if (request.fcmToken() != null && !Objects.equals(request.fcmToken(), settings.getFcmToken())) {
       settings.setFcmToken(request.fcmToken());
+      changed = true;
+    }
+
+    if (!changed) {
+      return settingsMapper.toResponse(settings);
     }
     return settingsMapper.toResponse(userSettingsRepository.save(settings));
   }

@@ -31,3 +31,6 @@ __pycache__/
 
 # Office temp files
 ~$*
+
+# Postman — local collections/environments (keep files on disk, untracked)
+postman/

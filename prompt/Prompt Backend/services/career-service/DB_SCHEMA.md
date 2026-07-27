@@ -4,8 +4,8 @@ Database: `career_db`
 
 Flyway migrations:
 
-- `V1__init_career_schema.sql`
-- `V2__application_timeline_and_idempotency.sql`
+- `src/main/resources/db/migration/V1__init_career_schema.sql`
+- `src/main/resources/db/migration/V2__Job_application_composite_indexes_and_status_check.sql`
 
 ## Tables
 
@@ -14,22 +14,15 @@ Flyway migrations:
 | Column | Type | Rules |
 | --- | --- | --- |
 | `id` | UUID | PK |
-| `job_post_id` | UUID | indexed, content-service post id |
-| `applicant_id` | UUID | indexed |
+| `job_post_id` | UUID | content-service post id |
+| `applicant_id` | UUID | not null |
 | `cv_file_id` | UUID | file-service id |
 | `cover_note` | text | nullable |
-| `status` | varchar(32) | `PENDING`, `REVIEWED`, `ACCEPTED`, `REJECTED` |
+| `status` | varchar(32) | CHECK: `PENDING`, `REVIEWED`, `ACCEPTED`, `REJECTED` |
 | `applied_at` | timestamptz | not null |
 | `updated_at` | timestamptz | not null |
-| `review_started_at` | timestamptz | nullable, set when status → `REVIEWED` |
-| `decided_at` | timestamptz | nullable, set when status → `ACCEPTED` / `REJECTED` |
-| `reviewer_note` | text | nullable, poster message to applicant |
-| `idempotency_key` | varchar(128) | nullable, unique per applicant when set |
 
-Unique constraints:
-
-- `(job_post_id, applicant_id)`
-- `(applicant_id, idempotency_key)` where `idempotency_key IS NOT NULL`
+Unique: `(job_post_id, applicant_id)`.
 
 ### `user_cvs`
 
@@ -40,9 +33,13 @@ Unique constraints:
 | `file_name` | varchar(255) | cached display name |
 | `updated_at` | timestamptz | not null |
 
-## Indexes
+## Indexes / constraints (current)
 
-- `job_applications.applicant_id`
-- `job_applications.job_post_id`
-- `job_applications.status`
-- `job_applications (applicant_id, idempotency_key)` partial unique
+- `idx_job_applications_applicant_applied` on `(applicant_id, applied_at DESC)`
+- `idx_job_applications_post_applied` on `(job_post_id, applied_at DESC)`
+- Unique: `uq_job_applications_post_applicant` on `(job_post_id, applicant_id)`
+- CHECK: `chk_job_applications_status`
+
+## V2 notes
+
+- Single-column indexes on `applicant_id`, `job_post_id`, and `status` were replaced by the composites above.

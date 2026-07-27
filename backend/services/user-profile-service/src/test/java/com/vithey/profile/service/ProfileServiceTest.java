@@ -14,11 +14,11 @@ import com.vithey.profile.entity.AppTheme;
 import com.vithey.profile.entity.FieldVisibility;
 import com.vithey.profile.entity.Profile;
 import com.vithey.profile.entity.ProfileSkillEntry;
-import com.vithey.profile.entity.UserSettings;
 import com.vithey.profile.event.publisher.ProfileEventPublisher;
 import com.vithey.profile.exception.ApiException;
 import com.vithey.profile.mapper.ProfileMapper;
 import com.vithey.profile.mapper.ProfileMapperImpl;
+import com.vithey.profile.repository.LanguageThemeProjection;
 import com.vithey.profile.repository.ProfileRepository;
 import com.vithey.profile.repository.UserSettingsRepository;
 import java.time.LocalDate;
@@ -32,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileServiceTest {
@@ -57,6 +58,9 @@ class ProfileServiceTest {
   @Mock
   private ProfileEventPublisher profileEventPublisher;
 
+  @Mock
+  private PlatformTransactionManager transactionManager;
+
   @InjectMocks
   private ProfileService profileService;
 
@@ -65,13 +69,20 @@ class ProfileServiceTest {
     UUID userId = UUID.randomUUID();
     Profile profile = sampleProfile(userId);
 
-    UserSettings settings = new UserSettings();
-    settings.setUserId(userId);
-    settings.setLanguage(AppLanguage.km);
-    settings.setTheme(AppTheme.dark);
+    LanguageThemeProjection languageTheme = new LanguageThemeProjection() {
+      @Override
+      public AppLanguage getLanguage() {
+        return AppLanguage.km;
+      }
+
+      @Override
+      public AppTheme getTheme() {
+        return AppTheme.dark;
+      }
+    };
 
     when(profileRepository.findById(userId)).thenReturn(Optional.of(profile));
-    when(settingsService.requireSettings(userId)).thenReturn(settings);
+    when(userSettingsRepository.findLanguageThemeByUserId(userId)).thenReturn(Optional.of(languageTheme));
 
     MeProfileResponse response = profileService.getMyProfile(userId);
 

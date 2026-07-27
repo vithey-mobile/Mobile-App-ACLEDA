@@ -28,7 +28,9 @@ backend/services/file-service/
     │   │   ├── mapper/FileMapper.java
     │   │   ├── security/CurrentUserProvider.java
     │   │   └── exception/GlobalExceptionHandler.java
-    │   └── resources/db/migration/V1__init_file_schema.sql
+    │   └── resources/db/migration/
+    │       ├── V1__init_file_schema.sql
+    │       └── V2__Drop_unused_file_metadata_indexes.sql
     └── test/java/com/vithey/file/
 ```
 

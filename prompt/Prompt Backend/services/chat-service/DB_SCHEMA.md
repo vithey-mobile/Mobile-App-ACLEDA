@@ -2,101 +2,58 @@
 
 Database: `chat_db`
 
-Use Flyway migrations under `src/main/resources/db/migration/`.
+Flyway migrations:
 
-- `V1__init_chat_schema.sql` — base tables
-- `V2__message_media_and_reply.sql` — `message_type`, `file_id`, `reply_to`, `client_message_id`
+- `src/main/resources/db/migration/V1__init_chat_schema.sql`
+- `src/main/resources/db/migration/V2__Chat_indexes_checks_and_drop_dead.sql`
 
 ## Tables
 
 ### `conversations`
 
-| Column | Type | Rules |
-| --- | --- | --- |
-| `id` | UUID | PK |
-| `status` | varchar(32) | `PENDING`, `ACTIVE`, `BLOCKED`, `DECLINED` |
-| `created_at` | timestamptz | not null |
-| `updated_at` | timestamptz | not null |
+`id` UUID PK, `status` varchar(32), `created_at` timestamptz, `updated_at` timestamptz.
+
+Status CHECK: `PENDING`, `ACTIVE`, `BLOCKED`, `DECLINED`.
 
 ### `conversation_participants`
 
-| Column | Type | Rules |
-| --- | --- | --- |
-| `conversation_id` | UUID | FK → conversations |
-| `user_id` | UUID | indexed |
-| `role` | varchar(32) | `REQUESTER`, `RECIPIENT` |
-| `joined_at` | timestamptz | not null |
+`conversation_id` UUID, `user_id` UUID, `role` varchar(32), `joined_at` timestamptz.
 
 Primary key: `(conversation_id, user_id)`.
 
-Optional: store sorted pair `(participant1_id, participant2_id)` on `conversations` with unique constraint to prevent duplicate threads.
+Role CHECK: `REQUESTER`, `RECIPIENT`.
 
 ### `messages`
 
 | Column | Type | Rules |
 | --- | --- | --- |
 | `id` | UUID | PK |
-| `conversation_id` | UUID | indexed |
-| `sender_id` | UUID | indexed |
-| `text` | text | nullable for pure media |
-| `message_type` | varchar(16) | `TEXT`, `IMAGE`, `FILE` — default `TEXT` |
-| `file_id` | UUID | nullable; references file-service metadata |
-| `reply_to_message_id` | UUID | nullable FK → messages.id |
-| `client_message_id` | varchar(64) | nullable; unique per (conversation_id, sender_id) |
-| `status` | varchar(32) | `SENT`, `DELIVERED`, `READ` |
-| `deleted_at` | timestamptz | nullable soft-delete |
+| `conversation_id` | UUID | indexed with `created_at` |
+| `sender_id` | UUID | not null |
+| `text` | text | not null |
+| `status` | varchar(32) | CHECK: `SENT`, `DELIVERED`, `READ` |
 | `created_at` | timestamptz | not null |
-
-Unique index (partial): `(conversation_id, sender_id, client_message_id)` WHERE `client_message_id IS NOT NULL`.
 
 ### `blocks`
 
-| Column | Type | Rules |
-| --- | --- | --- |
-| `blocker_id` | UUID | |
-| `blocked_id` | UUID | |
-| `created_at` | timestamptz | |
+`blocker_id` UUID, `blocked_id` UUID, `created_at` timestamptz.
 
-Unique: `(blocker_id, blocked_id)`.
+Unique / PK: `(blocker_id, blocked_id)`.
 
 ### `user_reports`
 
-| Column | Type | Rules |
-| --- | --- | --- |
-| `id` | UUID | PK |
-| `reporter_id` | UUID | |
-| `reported_id` | UUID | |
-| `reason` | text | not null |
-| `created_at` | timestamptz | |
+`id` UUID PK, `reporter_id` UUID, `reported_id` UUID, `reason` text, `created_at` timestamptz.
 
-## Indexes
+## Indexes / constraints (current)
 
-- `conversation_participants.user_id`
-- `messages.conversation_id, messages.created_at DESC`
-- `messages.sender_id`
-- `blocks.blocker_id, blocks.blocked_id`
+- `idx_conversations_updated_at` on `(updated_at DESC)`
+- `idx_conversations_status` on `(status)`
+- `idx_conversation_participants_user` on `(user_id)`
+- `idx_messages_conversation_created` on `(conversation_id, created_at DESC)`
+- `idx_blocks_blocked` on `(blocked_id)`
+- CHECK: `chk_conversations_status`, `chk_conversation_participants_role`, `chk_messages_status`
 
-## What is NOT in PostgreSQL
+## V2 notes
 
-| Data | Store |
-| --- | --- |
-| Online status | Redis `chat:presence:{userId}` |
-| Typing state | Redis `chat:typing:{conv}:{user}` |
-| Recent message window | Redis `chat:recent:{conv}` |
-| File binary | MinIO via file-service |
-| FCM tokens | notification-service DB |
-
-## V2 migration sketch
-
-```sql
-ALTER TABLE messages
-  ADD COLUMN message_type varchar(16) NOT NULL DEFAULT 'TEXT',
-  ADD COLUMN file_id uuid,
-  ADD COLUMN reply_to_message_id uuid REFERENCES messages(id),
-  ADD COLUMN client_message_id varchar(64),
-  ADD COLUMN deleted_at timestamptz;
-
-CREATE UNIQUE INDEX uq_messages_client_id
-  ON messages (conversation_id, sender_id, client_message_id)
-  WHERE client_message_id IS NOT NULL;
-```
+- Added conversation status/updated indexes and enum CHECKs.
+- Dropped unused indexes: `idx_messages_sender`, `idx_blocks_blocker`, `idx_user_reports_reporter`, `idx_user_reports_reported`.

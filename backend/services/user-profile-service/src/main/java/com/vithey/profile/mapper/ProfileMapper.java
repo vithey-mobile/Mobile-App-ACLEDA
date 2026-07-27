@@ -2,14 +2,13 @@ package com.vithey.profile.mapper;
 
 import com.vithey.profile.dto.response.MeProfileResponse;
 import com.vithey.profile.dto.response.ProfileSkillResponse;
-import com.vithey.profile.dto.response.UserSearchResultResponse;
+import com.vithey.profile.entity.AppLanguage;
+import com.vithey.profile.entity.AppTheme;
 import com.vithey.profile.entity.Profile;
 import com.vithey.profile.entity.ProfileSkillEntry;
-import com.vithey.profile.entity.UserSettings;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.util.StringUtils;
 
 @Mapper(componentModel = "spring")
 public interface ProfileMapper {
@@ -32,36 +31,9 @@ public interface ProfileMapper {
   @Mapping(target = "skills", expression = "java(mapSkillEntries(profile.getSkills()))")
   @Mapping(target = "education", source = "profile.education")
   @Mapping(target = "fieldVisibility", source = "profile.fieldVisibility")
-  @Mapping(target = "language", source = "settings.language")
-  @Mapping(target = "theme", source = "settings.theme")
-  MeProfileResponse toMeResponse(Profile profile, UserSettings settings);
-
-  @Mapping(target = "userId", source = "userId")
-  @Mapping(target = "fullName", source = "fullName")
-  @Mapping(target = "avatarUrl", source = "avatarUrl")
-  @Mapping(target = "university", source = "university")
-  @Mapping(target = "major", source = "major")
-  @Mapping(target = "headline", expression = "java(buildSearchHeadline(profile))")
-  UserSearchResultResponse toSearchResult(Profile profile);
-
-  default String buildSearchHeadline(Profile profile) {
-    if (profile == null) {
-      return null;
-    }
-    if (StringUtils.hasText(profile.getWorkplace())) {
-      return profile.getWorkplace();
-    }
-    if (StringUtils.hasText(profile.getMajor()) && StringUtils.hasText(profile.getUniversity())) {
-      return profile.getMajor() + " · " + profile.getUniversity();
-    }
-    if (StringUtils.hasText(profile.getMajor())) {
-      return profile.getMajor();
-    }
-    if (StringUtils.hasText(profile.getUniversity())) {
-      return profile.getUniversity();
-    }
-    return null;
-  }
+  @Mapping(target = "language", source = "language")
+  @Mapping(target = "theme", source = "theme")
+  MeProfileResponse toMeResponse(Profile profile, AppLanguage language, AppTheme theme);
 
   default List<ProfileSkillResponse> mapSkillEntries(List<ProfileSkillEntry> skills) {
     if (skills == null || skills.isEmpty()) {
