@@ -5,6 +5,10 @@ import com.vithey.content.dto.response.CommentResponse;
 import com.vithey.content.security.CurrentUserProvider;
 import com.vithey.content.service.CommentService;
 import com.vithey.content.util.ApiResponseWrapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/posts/{postId}/comments")
+@Tag(name = "Comments", description = "List and add comments on posts")
 public class CommentController {
 
   private final CommentService commentService;
@@ -31,16 +36,33 @@ public class CommentController {
   }
 
   @GetMapping
+  @Operation(
+      summary = "List comments",
+      description = "Paginated comments for a post, newest first. Requires JWT."
+  )
+  @ApiResponse(responseCode = "200", description = "Comment page")
+  @ApiResponse(responseCode = "404", description = "Post not found")
   ResponseEntity<ApiResponseWrapper<List<CommentResponse>>> getComments(
+      @Parameter(description = "Post UUID", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
       @PathVariable UUID postId,
+      @Parameter(description = "Page number (1-based)", example = "1")
       @RequestParam(defaultValue = "1") int page,
+      @Parameter(description = "Page size (max 50)", example = "20")
       @RequestParam(defaultValue = "20") int limit
   ) {
     return ResponseEntity.ok(commentService.getComments(postId, page, limit));
   }
 
   @PostMapping
+  @Operation(
+      summary = "Add comment",
+      description = "Adds a comment and optional mention_user_ids. Publishes comment.added and mention.created events. Requires JWT."
+  )
+  @ApiResponse(responseCode = "201", description = "Created")
+  @ApiResponse(responseCode = "400", description = "Validation error")
+  @ApiResponse(responseCode = "404", description = "Post not found")
   ResponseEntity<ApiResponseWrapper<CommentResponse>> addComment(
+      @Parameter(description = "Post UUID", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
       @PathVariable UUID postId,
       @Valid @RequestBody CreateCommentRequest request
   ) {
