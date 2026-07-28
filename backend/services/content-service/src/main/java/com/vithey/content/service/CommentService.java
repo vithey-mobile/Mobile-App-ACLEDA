@@ -1,6 +1,7 @@
 package com.vithey.content.service;
 
 import com.vithey.content.dto.request.CreateCommentRequest;
+import com.vithey.content.dto.response.AuthorSummaryResponse;
 import com.vithey.content.dto.response.CommentResponse;
 import com.vithey.content.entity.Comment;
 import com.vithey.content.entity.Mention;
@@ -13,6 +14,7 @@ import com.vithey.content.repository.MentionRepository;
 import com.vithey.content.util.ApiResponseWrapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -58,9 +60,22 @@ public class CommentService {
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
 
     Page<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable);
-    List<CommentResponse> content = comments.getContent().stream()
-        .map(this::toResponse)
-        .toList();
+    List<UUID> authorIds = comments.getContent().stream().map(Comment::getAuthorId).toList();
+    List<AuthorSummaryResponse> authors = postEnrichmentService.resolveAuthors(authorIds);
+
+    List<CommentResponse> content = new ArrayList<>(comments.getNumberOfElements());
+    List<Comment> rows = comments.getContent();
+    for (int i = 0; i < rows.size(); i++) {
+      Comment comment = rows.get(i);
+      CommentResponse base = commentMapper.toBaseResponse(comment);
+      content.add(new CommentResponse(
+          base.commentId(),
+          base.postId(),
+          authors.get(i),
+          base.text(),
+          base.createdAt()
+      ));
+    }
 
     return ApiResponseWrapper.paginated(
         content,
