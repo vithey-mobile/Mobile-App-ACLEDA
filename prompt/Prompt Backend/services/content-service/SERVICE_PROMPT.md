@@ -1,7 +1,8 @@
 # Content Service — Complete API Design
 
 > Read `SERVICE_BLUEPRINT.md`, `COMMON_CONTEXT.md`, `integration-contract.md`.  
-> **Scope:** Backend REST API only — posts, comments, reactions, follows.
+> **Scope:** Backend REST API only — posts, comments, reactions, follows.  
+> **Authority:** This file reflects the implemented service. Prefer it over older notes that mention feed `sort=` or top-level `/comments` controllers.
 
 ## Identity
 
@@ -12,48 +13,31 @@
 | Eureka | `content-service` |
 | Database | `content_db` |
 | Package | `com.vithey.content` |
+| Swagger | `http://localhost:8084/swagger-ui.html` |
 
 ## Spring Cloud + tools
 
-Eureka, Config, OpenFeign, RabbitMQ publisher, JPA, Flyway, MapStruct, springdoc.
+Eureka, Config, OpenFeign (`FeignAuthConfig` header forwarding), RabbitMQ publisher (`Jackson2JsonMessageConverter`), JPA, Flyway (V1–V3), MapStruct, springdoc (`@Tag` / `@Operation` / `@Schema`).
 
 ## Folder structure
 
-```text
-services/content-service/
-└── src/main/java/com/vithey/content/
-    ├── ContentServiceApplication.java
-    ├── config/SecurityConfig.java, RabbitMqConfig.java, OpenApiConfig.java
-    ├── controller/
-    │   ├── PostController.java
-    │   ├── CommentController.java
-    │   ├── ReactionController.java
-    │   └── FollowController.java
-    ├── service/PostService.java, CommentService.java, ReactionService.java, FollowService.java, FeedService.java
-    ├── repository/PostRepository.java, CommentRepository.java, ReactionRepository.java, FollowRepository.java, MentionRepository.java
-    ├── entity/Post.java, Comment.java, Reaction.java, Follow.java, JobPostMeta.java (embedded or separate)
-    ├── dto/request/CreatePostRequest.java, CreateCommentRequest.java
-    ├── dto/response/PostResponse.java, CommentResponse.java, ReactionSummaryResponse.java
-    ├── mapper/PostMapper.java, CommentMapper.java
-    ├── client/UserProfileClient.java, FileServiceClient.java
-    ├── event/publisher/ContentEventPublisher.java
-    ├── event/payload/PostCreatedEvent.java, CommentAddedEvent.java, ...
-    └── exception/GlobalExceptionHandler.java
-```
+See `FOLDER_STRUCTURE.md`. Notable pieces: `FeignAuthConfig`, `PostEnrichmentService.enrichAll`, `V3__Restore_reaction_and_mention_indexes.sql`, `PostServiceTest`.
 
 ## Database entities
 
-**Post:** `id`, `author_id`, `type` VIDEO|POSTER|JOB, `content` text, `media_file_id`, `job_title`, `job_description`, `job_requirement`, `job_deadline`, `created_at`, `deleted_at`
+**Post:** `id`, `author_id`, `type` VIDEO\|POSTER\|JOB, `content`, `media_file_id`, job columns, `created_at`, `updated_at`, `deleted_at`
 
 **Comment:** `id`, `post_id`, `author_id`, `text`, `created_at`
 
 **Mention:** `id`, `comment_id`, `mentioned_user_id`
 
-**Reaction:** `id`, `post_id`, `user_id`, unique(post_id, user_id)
+**Reaction:** `id`, `post_id`, `user_id`, unique(`post_id`, `user_id`)
 
 **Follow:** `id`, `follower_id`, `following_id`, unique pair
 
 ## Complete API (all JWT)
+
+Pagination: `page` default `1` (1-based, clamped), `limit` default `20` max `50`. Feed order: `created_at DESC` only (no `sort` param).
 
 ### Posts
 
@@ -61,11 +45,11 @@ services/content-service/
 |--------|------|-------------|------|
 | GET | `/api/v1/posts` | Feed: followed users + own, paginated | 200 |
 | POST | `/api/v1/posts` | Create VIDEO/POSTER/JOB post | 201 |
-| GET | `/api/v1/posts/{postId}` | Post detail | 200 |
-| DELETE | `/api/v1/posts/{postId}` | Delete own post | 204 |
-| GET | `/api/v1/users/{userId}/posts` | User posts `?type=VIDEO` | 200 |
+| GET | `/api/v1/posts/{postId}` | Post detail (not soft-deleted) | 200 |
+| DELETE | `/api/v1/posts/{postId}` | Soft-delete own post | 204 |
+| GET | `/api/v1/users/{userId}/posts` | User posts `?type=VIDEO\|POSTER\|JOB` | 200 |
 
-**Create VIDEO/POSTER:**
+**Create VIDEO/POSTER** (upload via file-service first):
 ```json
 { "type": "VIDEO", "content": "Check out my project", "media_file_id": "uuid" }
 ```
@@ -93,7 +77,7 @@ services/content-service/
     "type": "JOB",
     "content": "...",
     "media_url": null,
-    "job_meta": { "title": "...", "deadline": "2026-08-01" },
+    "job_meta": { "title": "...", "description": "...", "requirement": "...", "deadline": "2026-08-01" },
     "reaction_count": 5,
     "comment_count": 2,
     "user_reacted": false,
@@ -110,7 +94,7 @@ services/content-service/
 | POST | `/api/v1/posts/{postId}/comments` | 201 |
 
 ```json
-{ "text": "Great post @jane!", "mention_user_ids": ["uuid"] }
+{ "text": "Great post!", "mention_user_ids": ["uuid"] }
 ```
 
 ### Reactions
@@ -118,13 +102,13 @@ services/content-service/
 | Method | Path | HTTP |
 |--------|------|------|
 | POST | `/api/v1/posts/{postId}/reactions` | 200 toggle like |
-| GET | `/api/v1/posts/{postId}/reactions` | 200 count + user_reacted |
+| GET | `/api/v1/posts/{postId}/reactions` | 200 `{ reaction_count, user_reacted }` |
 
 ### Follows
 
 | Method | Path | HTTP |
 |--------|------|------|
-| POST | `/api/v1/users/{userId}/follow` | 201 |
+| POST | `/api/v1/users/{userId}/follow` | 201 (empty body; idempotent) |
 | DELETE | `/api/v1/users/{userId}/follow` | 204 |
 | GET | `/api/v1/users/{userId}/followers` | 200 paginated |
 | GET | `/api/v1/users/{userId}/following` | 200 paginated |
@@ -134,10 +118,14 @@ services/content-service/
 | Rule | Implementation |
 |------|----------------|
 | Feed | Posts where `author_id IN (following ∪ self)` ORDER BY `created_at DESC` |
-| Like toggle | Insert reaction or delete if exists → publish `reaction.added` |
-| Comment | Save + parse mentions → publish `comment.added`, `mention.created` |
-| Follow | Reject self-follow → publish `follow.created` |
-| Create post | Validate media_file_id via FileServiceClient for VIDEO/POSTER |
+| Enrichment | Batch counts + in-request author/media cache (`PostEnrichmentService.enrichAll`) |
+| Like toggle | Insert reaction or delete if exists → publish `reaction.added` on insert only |
+| Comment | Save + persist mention IDs → publish `comment.added`, `mention.created` |
+| Follow | Reject self-follow; skip insert if pair exists → publish `follow.created` on new edge |
+| Create post | Validate `media_file_id` via FileServiceClient for VIDEO/POSTER (type must match) |
+| Soft delete | Owner only; set `deleted_at` |
+| Feign | Forward JWT / gateway user headers |
+| Events | JSON RabbitMQ payloads; publish failures logged, do not mask as 401 |
 
 ## Events published
 
@@ -145,12 +133,25 @@ services/content-service/
 
 ## Errors
 
-| Case | HTTP |
-|------|------|
-| Post not found | 404 |
-| Not post owner on delete | 403 |
-| Follow self | 422 |
-| Invalid media file | 400 |
+| Case | Code | HTTP |
+|------|------|------|
+| Validation / invalid enum / unreadable JSON | `VALIDATION_ERROR` | 400 |
+| Invalid or missing media file | `INVALID_FILE` | 400 |
+| Missing/invalid JWT | `UNAUTHORIZED` | 401 |
+| Not post owner on delete | `FORBIDDEN` | 403 |
+| Post not found / deleted | `NOT_FOUND` | 404 |
+| Follow self | `BUSINESS_RULE_VIOLATION` | 422 |
+| Unexpected / Feign failure | `INTERNAL_ERROR` | 500 |
+
+## Tests
+
+- `FollowServiceTest` — self-follow rejection
+- `PostServiceTest` — media/job validation, JOB create + event, mismatched media type
+
+## Local testing
+
+- Postman: `postman/Content-Module.postman_collection.json` + `Vithey-Local.postman_environment.json`
+- See root `prompt/Prompt Backend/README.md` API testing section
 
 ## Output
 
