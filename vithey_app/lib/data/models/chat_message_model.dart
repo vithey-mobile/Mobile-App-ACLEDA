@@ -1,8 +1,32 @@
+import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 
 enum ConversationStatus { active, pending, blocked, declined }
 
 enum MessageDeliveryStatus { sending, sent, delivered, read, failed }
+
+class MessageReaction {
+  const MessageReaction({
+    required this.emoji,
+    this.count = 1,
+    this.reactedByMe = false,
+  });
+
+  final String emoji;
+  final int count;
+  final bool reactedByMe;
+
+  MessageReaction copyWith({
+    int? count,
+    bool? reactedByMe,
+  }) {
+    return MessageReaction(
+      emoji: emoji,
+      count: count ?? this.count,
+      reactedByMe: reactedByMe ?? this.reactedByMe,
+    );
+  }
+}
 
 class ChatMessage {
   ChatMessage({
@@ -18,6 +42,8 @@ class ChatMessage {
     this.replyToMessageId,
     this.replyToPreview,
     this.isDeleted = false,
+    this.attachments = const [],
+    this.reactions = const [],
   });
 
   final String id;
@@ -32,6 +58,8 @@ class ChatMessage {
   final String? replyToMessageId;
   final String? replyToPreview;
   final bool isDeleted;
+  final List<ChatAttachment> attachments;
+  final List<MessageReaction> reactions;
 
   ChatMessage copyWith({
     String? id,
@@ -40,6 +68,8 @@ class ChatMessage {
     bool? isFailed,
     DateTime? createdAt,
     bool? isDeleted,
+    List<ChatAttachment>? attachments,
+    List<MessageReaction>? reactions,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -54,6 +84,8 @@ class ChatMessage {
       replyToMessageId: replyToMessageId,
       replyToPreview: replyToPreview,
       isDeleted: isDeleted ?? this.isDeleted,
+      attachments: attachments ?? this.attachments,
+      reactions: reactions ?? this.reactions,
     );
   }
 }

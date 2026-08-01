@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
 import 'package:aub_connect_app/modules/chatbot/utils/ai_api_error.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatbotController extends GetxController {
   ChatbotController(this._aiRepository);
 
   final AiRepository _aiRepository;
-  final scaffoldKey = GlobalKey<ScaffoldState>();
+  final _imagePicker = ImagePicker();
+  GlobalKey<ScaffoldState>? scaffoldKey;
 
   final sessions = <AiSession>[].obs;
   final messages = <AiMessage>[].obs;
@@ -20,6 +22,7 @@ class ChatbotController extends GetxController {
   final isLoadingMessages = false.obs;
   final isGenerating = false.obs;
   final showJumpToLatest = false.obs;
+  final pendingAttachments = <ChatAttachment>[].obs;
 
   final inputController = TextEditingController();
   final scrollController = ScrollController();
@@ -40,9 +43,12 @@ class ChatbotController extends GetxController {
 
   bool get hasMessages => messages.isNotEmpty;
   String? get currentSessionId => _currentSessionId;
+  bool get hasPendingAttachments => pendingAttachments.isNotEmpty;
 
-  List<AiSession> get pinnedSessions => sessions.where((s) => s.isPinned).toList();
-  List<AiSession> get recentSessions => sessions.where((s) => !s.isPinned).toList();
+  List<AiSession> get pinnedSessions =>
+      sessions.where((s) => s.isPinned).toList();
+  List<AiSession> get recentSessions =>
+      sessions.where((s) => !s.isPinned).toList();
 
   List<AiSession> get sortedSessions {
     final list = List<AiSession>.from(sessions);
@@ -86,11 +92,151 @@ class ChatbotController extends GetxController {
     }
   }
 
-  void openDrawer() => scaffoldKey.currentState?.openDrawer();
+  void bindScaffold(GlobalKey<ScaffoldState> key) => scaffoldKey = key;
 
-  void showAttachmentComingSoon() {
-    Get.snackbar(AppStrings.appName, AppStrings.chatbotAttachComingSoon);
+  void unbindScaffold(GlobalKey<ScaffoldState> key) {
+    if (identical(scaffoldKey, key)) scaffoldKey = null;
   }
+
+  void openDrawer() => scaffoldKey?.currentState?.openDrawer();
+
+  void closeDrawer() => scaffoldKey?.currentState?.closeDrawer();
+
+  Future<void> openAttachmentMenu() async {
+    if (isGenerating.value) return;
+    final choice = await Get.bottomSheet<String>(
+      SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Get.theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Get.theme.dividerColor,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_outlined),
+                title: const Text('Photo'),
+                onTap: () => Get.back(result: 'photo'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam_outlined),
+                title: const Text('Video'),
+                onTap: () => Get.back(result: 'video'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.attach_file_rounded),
+                title: const Text('File'),
+                onTap: () => Get.back(result: 'file'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    switch (choice) {
+      case 'photo':
+        await pickPhoto();
+      case 'video':
+        await pickVideo();
+      case 'file':
+        await pickFile();
+    }
+  }
+
+  Future<void> pickPhoto() async {
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+      _addAttachment(
+        ChatAttachment(
+          path: picked.path,
+          name: picked.name,
+          kind: ChatAttachmentKind.photo,
+        ),
+      );
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not pick photo');
+    }
+  }
+
+  Future<void> pickVideo() async {
+    try {
+      final picked = await _imagePicker.pickVideo(source: ImageSource.gallery);
+      if (picked == null) return;
+      _addAttachment(
+        ChatAttachment(
+          path: picked.path,
+          name: picked.name,
+          kind: ChatAttachmentKind.video,
+        ),
+      );
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not pick video');
+    }
+  }
+
+  Future<void> pickFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.single;
+      final path = file.path;
+      if (path == null || path.isEmpty) {
+        Get.snackbar(AppStrings.appName, 'Could not read that file');
+        return;
+      }
+      final name = file.name;
+      final lower = name.toLowerCase();
+      final kind = (lower.endsWith('.png') ||
+              lower.endsWith('.jpg') ||
+              lower.endsWith('.jpeg') ||
+              lower.endsWith('.gif') ||
+              lower.endsWith('.webp'))
+          ? ChatAttachmentKind.photo
+          : (lower.endsWith('.mp4') ||
+                  lower.endsWith('.mov') ||
+                  lower.endsWith('.avi') ||
+                  lower.endsWith('.mkv'))
+              ? ChatAttachmentKind.video
+              : ChatAttachmentKind.file;
+      _addAttachment(ChatAttachment(path: path, name: name, kind: kind));
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not pick file');
+    }
+  }
+
+  void _addAttachment(ChatAttachment attachment) {
+    if (pendingAttachments.length >= 5) {
+      Get.snackbar(AppStrings.appName, 'You can attach up to 5 items');
+      return;
+    }
+    if (pendingAttachments.any((a) => a.path == attachment.path)) return;
+    pendingAttachments.add(attachment);
+  }
+
+  void removePendingAttachment(ChatAttachment attachment) {
+    pendingAttachments.removeWhere((a) => a.path == attachment.path);
+  }
+
+  void clearPendingAttachments() => pendingAttachments.clear();
 
   void newChat() {
     _saveDraft();
@@ -98,12 +244,13 @@ class ChatbotController extends GetxController {
     _selectedTopic = null;
     messages.clear();
     inputController.clear();
-    scaffoldKey.currentState?.closeDrawer();
+    clearPendingAttachments();
+    closeDrawer();
   }
 
   Future<void> selectSession(String sessionId) async {
     if (_currentSessionId == sessionId) {
-      scaffoldKey.currentState?.closeDrawer();
+      closeDrawer();
       return;
     }
     _saveDraft();
@@ -111,14 +258,16 @@ class ChatbotController extends GetxController {
     final token = ++_requestToken;
     isLoadingMessages.value = true;
     messages.clear();
+    clearPendingAttachments();
     inputController.text = _drafts[sessionId] ?? '';
-    scaffoldKey.currentState?.closeDrawer();
+    closeDrawer();
     try {
       final loaded = await _aiRepository.fetchMessages(sessionId: sessionId);
       if (token != _requestToken) return;
       messages.assignAll(loaded);
       WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
     } catch (e) {
+      if (token != _requestToken) return;
       Get.snackbar(AppStrings.appName, aiApiErrorMessage(e));
     } finally {
       if (token == _requestToken) isLoadingMessages.value = false;
@@ -132,21 +281,30 @@ class ChatbotController extends GetxController {
 
   Future<void> sendMessage() async {
     final text = inputController.text.trim();
-    if (text.isEmpty || _sendLocked || isGenerating.value) return;
+    final attachments = List<ChatAttachment>.from(pendingAttachments);
+    if ((text.isEmpty && attachments.isEmpty) ||
+        _sendLocked ||
+        isGenerating.value) {
+      return;
+    }
 
     _sendLocked = true;
     isGenerating.value = true;
     final clientId = 'client-${DateTime.now().millisecondsSinceEpoch}';
     final token = ++_requestToken;
 
+    final displayContent = text;
+    final apiMessage = _buildApiMessage(text, attachments);
+
     final userMessage = AiMessage(
       id: clientId,
       sessionId: _currentSessionId ?? 'draft',
       role: AiMessageRole.user,
-      content: text,
+      content: displayContent,
       status: AiMessageStatus.complete,
       createdAt: DateTime.now(),
       clientId: clientId,
+      attachments: attachments,
     );
     messages.add(userMessage);
 
@@ -160,12 +318,13 @@ class ChatbotController extends GetxController {
     );
     messages.add(thinking);
     inputController.clear();
+    clearPendingAttachments();
     _drafts.remove(_currentSessionId ?? 'draft');
     scrollToBottom();
 
     try {
       final response = await _aiRepository.sendMessage(
-        message: text,
+        message: apiMessage,
         sessionId: _currentSessionId,
         topic: _selectedTopic,
       );
@@ -199,12 +358,28 @@ class ChatbotController extends GetxController {
         ),
       );
       inputController.text = text;
+      pendingAttachments.assignAll(attachments);
     } finally {
       if (token == _requestToken) {
         isGenerating.value = false;
         _sendLocked = false;
       }
     }
+  }
+
+  String _buildApiMessage(String text, List<ChatAttachment> attachments) {
+    if (attachments.isEmpty) return text;
+    final labels = attachments.map((a) {
+      return switch (a.kind) {
+        ChatAttachmentKind.photo => 'Photo: ${a.name}',
+        ChatAttachmentKind.video => 'Video: ${a.name}',
+        ChatAttachmentKind.file => 'File: ${a.name}',
+      };
+    }).join('\n');
+    if (text.isEmpty) {
+      return 'I attached:\n$labels\nPlease review and help me with this.';
+    }
+    return '$text\n\nAttached:\n$labels';
   }
 
   void stopGenerating() {
@@ -265,29 +440,43 @@ class ChatbotController extends GetxController {
   }
 
   Future<void> renameSession(AiSession session) async {
-    final controller = TextEditingController(text: session.title);
+    final titleController = TextEditingController(text: session.title);
     final saved = await Get.dialog<String>(
-      shad.AlertDialog(
-        title: const shad.Text('Rename chat'),
-        content: shad.TextField(
-          controller: controller,
-          hintText: 'Chat title',
+      AlertDialog(
+        title: const Text('Rename chat'),
+        content: TextField(
+          controller: titleController,
+          autofocus: true,
           maxLength: 80,
+          decoration: const InputDecoration(
+            hintText: 'Chat title',
+            labelText: 'Title',
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (value) {
+            final title = value.trim();
+            if (title.isEmpty) return;
+            Get.back(result: title);
+          },
         ),
         actions: [
-          shad.Button.ghost(onPressed: () => Get.back(), child: const shad.Text('Cancel')),
-          shad.Button.primary(
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
             onPressed: () {
-              final title = controller.text.trim();
+              final title = titleController.text.trim();
               if (title.isEmpty) return;
               Get.back(result: title);
             },
-            child: const shad.Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
-    if (saved == null) return;
+    titleController.dispose();
+    if (saved == null || saved.isEmpty) return;
     await _aiRepository.renameSession(session.id, saved);
     await loadSessions();
   }
@@ -299,16 +488,23 @@ class ChatbotController extends GetxController {
 
   Future<void> deleteSession(AiSession session) async {
     final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Delete chat?'),
-        content: shad.Text(
-          'This will permanently delete "${session.title}" and its messages. This action can\'t be undone.',
+      AlertDialog(
+        title: const Text('Delete this chat?'),
+        content: Text(
+          '“${session.title}” and all its messages will be permanently deleted. This can’t be undone.',
         ),
         actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.destructive(
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Get.back(result: true),
-            child: const shad.Text('Delete'),
+            child: const Text('Delete'),
           ),
         ],
       ),

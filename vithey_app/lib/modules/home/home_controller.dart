@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_mutation_result.dart';
@@ -12,10 +13,9 @@ import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
-import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
-import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/home/widgets/comment_sheet.dart';
+import 'package:aub_connect_app/modules/home/widgets/home_media_header.dart';
 import 'package:aub_connect_app/modules/home/widgets/share_sheet.dart';
 import 'package:aub_connect_app/modules/create_post/models/create_post_args.dart';
 
@@ -34,13 +34,69 @@ class HomeController extends GetxController {
   final errorMessage = ''.obs;
   final paginationError = false.obs;
   final activeVideoId = RxnString();
-  final currentTab = 0.obs;
+  final currentTab = MainTabNavigation.home.obs;
 
   int _page = 1;
   final _mutationPosts = <String>{};
   final _mutationAuthors = <String>{};
 
   PostAuthor get currentUser => Get.find<CurrentUserService>().postAuthor;
+
+  /// Media circles for the flexible home header (Telegram-style).
+  List<HomeMediaItem> get mediaStories {
+    final me = currentUser;
+    final items = <HomeMediaItem>[
+      HomeMediaItem(
+        id: 'own-media',
+        label: 'Your media',
+        imageUrl: me.avatarUrl,
+        authorId: me.id,
+        isOwn: true,
+        hasUnseen: false,
+      ),
+    ];
+
+    final seenAuthors = <String>{me.id};
+    for (final post in posts) {
+      if (post.type == PostType.job) continue;
+      final preview = post.thumbnailUrl ?? post.mediaUrl ?? post.author.avatarUrl;
+      if (preview == null || preview.isEmpty) {
+        if (post.author.avatarUrl == null || post.author.avatarUrl!.isEmpty) {
+          continue;
+        }
+      }
+      if (!seenAuthors.add(post.author.id)) continue;
+
+      final name = post.author.fullName.trim();
+      final label = name.split(RegExp(r'\s+')).first;
+      items.add(
+        HomeMediaItem(
+          id: 'media-${post.author.id}',
+          label: label.isEmpty ? 'User' : label,
+          imageUrl: preview ?? post.author.avatarUrl,
+          postId: post.id,
+          authorId: post.author.id,
+          hasUnseen: true,
+        ),
+      );
+      if (items.length >= 12) break;
+    }
+    return items;
+  }
+
+  void openMediaItem(HomeMediaItem item) {
+    if (item.isOwn) {
+      openCreatePost(type: PostType.poster);
+      return;
+    }
+    if (item.postId != null && item.postId!.isNotEmpty) {
+      openPost(item.postId!);
+      return;
+    }
+    if (item.authorId != null && item.authorId!.isNotEmpty) {
+      openAuthorProfile(item.authorId!);
+    }
+  }
 
   @override
   void onInit() {
@@ -124,6 +180,9 @@ class HomeController extends GetxController {
               appliedJobIds.contains(post.id));
       return post.copyWith(
         userReacted: reacted,
+        userReaction: reacted
+            ? (post.userReaction ?? PostReactionType.like)
+            : null,
         isFollowingAuthor: following,
         applicationState:
             applied ? JobApplicationState.applied : post.applicationState,
@@ -144,22 +203,42 @@ class HomeController extends GetxController {
   }
 
   Future<void> toggleReaction(String postId) async {
+    await setReaction(postId, PostReactionType.like);
+  }
+
+  Future<void> setReaction(String postId, PostReactionType type) async {
     if (_mutationPosts.contains(postId)) return;
     _mutationPosts.add(postId);
 
     FeedPost? previous;
     _updatePostsById(postId, (post) {
       previous = post;
-      final reacted = !post.userReacted;
+      final current = post.activeReaction;
+      if (current == type) {
+        // Same reaction again → remove.
+        return post.copyWith(
+          userReacted: false,
+          userReaction: null,
+          reactionCount: (post.reactionCount - 1).clamp(0, 999999),
+        );
+      }
+      final wasReacted = post.userReacted;
       return post.copyWith(
-        userReacted: reacted,
-        reactionCount:
-            (post.reactionCount + (reacted ? 1 : -1)).clamp(0, 999999),
+        userReacted: true,
+        userReaction: type,
+        reactionCount: wasReacted
+            ? post.reactionCount
+            : (post.reactionCount + 1).clamp(0, 999999),
       );
     });
 
     try {
-      await _postRepository.toggleReaction(postId);
+      final next = posts.firstWhereOrNull((p) => p.id == postId);
+      final shouldBeReacted = next?.userReacted ?? false;
+      final wasReacted = previous?.userReacted ?? false;
+      if (shouldBeReacted != wasReacted) {
+        await _postRepository.toggleReaction(postId);
+      }
     } catch (_) {
       if (previous != null) _updatePostsById(postId, (_) => previous!);
       Get.snackbar(AppStrings.appName, 'Could not update reaction');
@@ -303,28 +382,7 @@ class HomeController extends GetxController {
   }
 
   void onTabSelected(int index) {
-    currentTab.value = index;
-    switch (index) {
-      case 1:
-        FinanceNavigation.openFinanceEntry();
-        currentTab.value = 0;
-        break;
-      case 2:
-        openCreatePost();
-        currentTab.value = 0;
-        break;
-      case 3:
-        Get.toNamed(AppRoutes.chat);
-        currentTab.value = 0;
-        break;
-      case 4:
-        Get.toNamed(
-          AppRoutes.profile,
-          arguments: ProfileArgs(userId: ProfileRepository.currentUserId),
-        );
-        currentTab.value = 0;
-        break;
-    }
+    MainTabNavigation.handle(index, currentIndex: currentTab.value);
   }
 
   void openJobApplication(String jobPostId) {

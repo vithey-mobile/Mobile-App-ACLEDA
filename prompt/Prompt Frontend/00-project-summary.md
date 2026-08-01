@@ -45,8 +45,9 @@ Official rules: https://www.acledabank.com.kh/sl/app-competition/
 ## Repo structure (documentation)
 
 ```text
-MASTER_AI_PROMPT.md            ← paste into Cursor to start building
-Project Overview.txt           ← human-readable repo map
+Prompt Frontend/README.md      ← frontend task entry point
+Prompt Frontend/03-flutter-code-audit-and-refactor.md
+                               ← existing-code audit/refactor prompt
 Prompt Frontend/Screen prompt/ ← all screen specs + AI prompts
 Prompt Frontend/               ← Flutter context + API contract
 Prompt Backend/                ← Cursor prompts per microservice
@@ -83,6 +84,8 @@ Prompt Devops/                 ← Docker, GitHub Actions, GHCR
 ## Team workflow
 
 1. Read `api-intergration/integration-contract.md` and the screen file in `Screen prompt/`  
-2. Run matching prompt in `Screen prompt/` or `Prompt Backend/services/` (or `MASTER_AI_PROMPT.md`)  
+2. Give the coding agent the matching prompt in `Screen prompt/`,
+   `Prompt Backend/services/`, or
+   `03-flutter-code-audit-and-refactor.md`
 3. Update **Status checklist** in that screen file when done  
 4. Commit docs + code together  

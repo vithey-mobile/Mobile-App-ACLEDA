@@ -51,6 +51,7 @@ flutter:
     - assets/images/brand/app_logo.png
     - assets/images/splash/
     - assets/images/onboarding/
+    - assets/images/locale/
     - assets/images/jobs/
     - assets/images/cv/
     - assets/icons/

@@ -4,6 +4,23 @@ enum AiMessageRole { user, assistant }
 
 enum AiMessageStatus { sending, thinking, streaming, complete, failed, stopped }
 
+enum ChatAttachmentKind { photo, video, file }
+
+class ChatAttachment {
+  const ChatAttachment({
+    required this.path,
+    required this.name,
+    required this.kind,
+  });
+
+  final String path;
+  final String name;
+  final ChatAttachmentKind kind;
+
+  bool get isImage => kind == ChatAttachmentKind.photo;
+  bool get isVideo => kind == ChatAttachmentKind.video;
+}
+
 class AiSession {
   AiSession({
     required this.id,
@@ -47,6 +64,7 @@ class AiMessage {
     this.status = AiMessageStatus.complete,
     required this.createdAt,
     this.clientId,
+    this.attachments = const [],
   });
 
   final String id;
@@ -56,6 +74,7 @@ class AiMessage {
   final AiMessageStatus status;
   final DateTime createdAt;
   final String? clientId;
+  final List<ChatAttachment> attachments;
 
   bool get isThinking => status == AiMessageStatus.thinking;
   bool get isStreaming => status == AiMessageStatus.streaming;
@@ -68,6 +87,7 @@ class AiMessage {
     String? id,
     String? content,
     AiMessageStatus? status,
+    List<ChatAttachment>? attachments,
   }) {
     return AiMessage(
       id: id ?? this.id,
@@ -77,6 +97,7 @@ class AiMessage {
       status: status ?? this.status,
       createdAt: createdAt,
       clientId: clientId,
+      attachments: attachments ?? this.attachments,
     );
   }
 }

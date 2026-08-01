@@ -5,6 +5,7 @@ import 'package:aub_connect_app/modules/chatbot/widgets/assistant_thinking_indic
 import 'package:aub_connect_app/modules/chatbot/widgets/markdown_message_body.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/message_action_row.dart';
 
+/// Flat ChatGPT-style assistant reply (no card / border / shadow).
 class AssistantMessage extends StatelessWidget {
   const AssistantMessage({
     super.key,
@@ -26,29 +27,29 @@ class AssistantMessage extends StatelessWidget {
     final showActions = message.isTerminal && message.content.isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (message.isThinking)
             const AssistantThinkingIndicator()
           else if (message.status == AiMessageStatus.failed)
-            _BubbleCard(
-              child: Text(
-                message.content,
-                style: TextStyle(color: context.scheme.error),
+            Text(
+              message.content,
+              style: TextStyle(
+                color: context.scheme.error,
+                fontSize: 16,
+                height: 1.55,
               ),
             )
           else if (message.content.isNotEmpty)
-            _BubbleCard(
-              child: MarkdownMessageBody(
-                content: message.content,
-                onCodeCopied: onCodeCopied,
-              ),
+            MarkdownMessageBody(
+              content: message.content,
+              onCodeCopied: onCodeCopied,
             ),
           if (showActions)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 10),
               child: MessageActionRow(
                 message: message,
                 onCopy: onCopy,
@@ -57,35 +58,6 @@ class AssistantMessage extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _BubbleCard extends StatelessWidget {
-  const _BubbleCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.92),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: context.scheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.appColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: context.appColors.subtleShadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: child,
       ),
     );
   }

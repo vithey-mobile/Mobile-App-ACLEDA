@@ -1,43 +1,188 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 
+/// Splash-only backdrop.
+/// White base → white-50% drops first → teal drops on top (same motion, slight delay).
+/// Teal always finishes as a full-screen solid fill.
 class SplashBackground extends StatelessWidget {
-  const SplashBackground({super.key});
+  const SplashBackground({
+    super.key,
+    this.washFill = 0.0,
+    this.tealFill = 0.0,
+  });
+
+  /// White-50% drop progress (starts first).
+  final double washFill;
+
+  /// Teal drop progress (overlaps wash; must reach 1 for full cover).
+  final double tealFill;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseWhite = isDark ? AppColors.darkBackground : Colors.white;
     return CustomPaint(
-      painter: _SplashWavePainter(),
+      painter: _SplashFillPainter(
+        isDark: isDark,
+        washFill: washFill.clamp(0.0, 1.0),
+        tealFill: tealFill.clamp(0.0, 1.0),
+        baseWhite: baseWhite,
+      ),
       size: Size.infinite,
     );
   }
 }
 
-class _SplashWavePainter extends CustomPainter {
+class _SplashFillPainter extends CustomPainter {
+  const _SplashFillPainter({
+    required this.isDark,
+    required this.washFill,
+    required this.tealFill,
+    required this.baseWhite,
+  });
+
+  final bool isDark;
+  final double washFill;
+  final double tealFill;
+  final Color baseWhite;
+
+  static const _baseTeal = AppColors.authHeaderTeal;
+  static const _white = Color(0xFFFFFFFF);
+
+  Color get _tealSolid => isDark ? AppColors.darkBackground : _baseTeal;
+
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = AppColors.splashBaseTeal,
-    );
+    // 1) Full white background first.
+    canvas.drawRect(Offset.zero & size, Paint()..color = baseWhite);
 
-    final darkWave = Path()
-      ..moveTo(0, size.height * 0.15)
-      ..quadraticBezierTo(size.width * 0.35, size.height * 0.05, size.width * 0.7, size.height * 0.2)
-      ..quadraticBezierTo(size.width, size.height * 0.35, size.width, size.height * 0.45)
-      ..lineTo(0, size.height * 0.55)
-      ..close();
-    canvas.drawPath(darkWave, Paint()..color = AppColors.splashWaveDark.withOpacity(0.55));
+    // 2) White-50% drops first (same drop shape as teal).
+    if (washFill > 0.001 && tealFill < 1.0) {
+      final wash = _white.withValues(alpha: isDark ? 0.22 : 0.50);
+      _paintDropLayer(
+        canvas,
+        size,
+        progress: washFill,
+        color: wash,
+        phase: 0.35,
+      );
+    }
 
-    final lightWave = Path()
-      ..moveTo(0, size.height * 0.55)
-      ..quadraticBezierTo(size.width * 0.4, size.height * 0.75, size.width, size.height * 0.6)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(lightWave, Paint()..color = AppColors.splashWaveLight.withOpacity(0.7));
+    // 3) Teal on top — solid full screen once complete (no clip = no gap).
+    if (tealFill >= 0.999) {
+      _paintSolidTeal(canvas, size);
+      return;
+    }
+
+    if (tealFill > 0.001) {
+      _paintDropLayer(
+        canvas,
+        size,
+        progress: tealFill,
+        color: _tealSolid,
+        phase: 0.0,
+      );
+      if (isDark) {
+        _paintDropLayer(
+          canvas,
+          size,
+          progress: tealFill,
+          color: _baseTeal.withValues(alpha: 0.40),
+          phase: 0.0,
+        );
+      }
+    }
+  }
+
+  void _paintSolidTeal(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, Paint()..color = _tealSolid);
+    if (isDark) {
+      canvas.drawRect(
+        Offset.zero & size,
+        Paint()..color = _baseTeal.withValues(alpha: 0.40),
+      );
+    }
+  }
+
+  void _paintDropLayer(
+    Canvas canvas,
+    Size size, {
+    required double progress,
+    required Color color,
+    required double phase,
+  }) {
+    final w = size.width;
+    final h = size.height;
+    canvas.save();
+    if (progress >= 0.999) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = color);
+    } else {
+      canvas.clipPath(_revealClip(w, h, progress, phase: phase));
+      canvas.drawRect(Offset.zero & size, Paint()..color = color);
+    }
+    canvas.restore();
+  }
+
+  /// Soft wave leading edge (Vithey-style curve — smooth, not sharp).
+  /// Wave only extends downward — never leaves a gap.
+  Path _revealClip(
+    double w,
+    double h,
+    double progress, {
+    required double phase,
+  }) {
+    // Slight overshoot so the leading edge clears the physical bottom.
+    final baseY = math.min(h, h * progress + h * 0.04);
+
+    // Single smooth wave across the width (one crest + one trough feel).
+    // Low frequency + cubic segments = soft water wave, not zigzags.
+    final amp = h * 0.045;
+    Offset point(double t) {
+      // t: 0 at right → 1 at left (path builds right → left).
+      final x = w * (1.0 - t);
+      final wave = math.sin(t * math.pi + phase) * amp +
+          math.sin(t * math.pi * 0.5 + phase * 0.6) * amp * 0.35;
+      final y = math.min(h, baseY + math.max(0.0, wave + amp * 0.35));
+      return Offset(x, y);
+    }
+
+    // Keyframes along the wave for Catmull-Rom → cubic.
+    final pts = <Offset>[
+      for (var i = 0; i <= 6; i++) point(i / 6),
+    ];
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(w, 0)
+      ..lineTo(pts.first.dx, pts.first.dy);
+
+    for (var i = 0; i < pts.length - 1; i++) {
+      final p0 = i > 0 ? pts[i - 1] : pts[i];
+      final p1 = pts[i];
+      final p2 = pts[i + 1];
+      final p3 = i + 2 < pts.length ? pts[i + 2] : pts[i + 1];
+      final cp1 = Offset(
+        p1.dx + (p2.dx - p0.dx) / 6,
+        p1.dy + (p2.dy - p0.dy) / 6,
+      );
+      final cp2 = Offset(
+        p2.dx - (p3.dx - p1.dx) / 6,
+        p2.dy - (p3.dy - p1.dy) / 6,
+      );
+      path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p2.dx, p2.dy);
+    }
+
+    path.close();
+    return path;
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _SplashFillPainter oldDelegate) {
+    return oldDelegate.isDark != isDark ||
+        oldDelegate.washFill != washFill ||
+        oldDelegate.tealFill != tealFill ||
+        oldDelegate.baseWhite != baseWhite;
+  }
 }

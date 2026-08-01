@@ -6,12 +6,16 @@ import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_header.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_tabs.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_wavy_header.dart';
+import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/modules/home/widgets/home_bottom_navigation.dart';
+import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.embedded = false});
+
+  /// When true, used inside [MainShellScreen] (shell owns the bottom bar).
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -111,20 +115,15 @@ class ProfileScreen extends GetView<ProfileController> {
           ),
         );
       }),
-      bottomNavigationBar: HomeBottomNavigation(
-        currentIndex: 4,
-        onTap: (index) {
-          if (index == 0) {
-            Get.offAllNamed(AppRoutes.home);
-          } else if (index == 1) {
-            FinanceNavigation.openFinanceEntry();
-          } else if (index == 2) {
-            Get.toNamed(AppRoutes.createPost);
-          } else if (index == 3) {
-            Get.offNamed(AppRoutes.chat);
-          }
-        },
-      ),
+      bottomNavigationBar: embedded
+          ? null
+          : AppBottomNavigation(
+              currentIndex: MainTabNavigation.profile,
+              onTap: (index) => MainTabNavigation.handle(
+                index,
+                currentIndex: MainTabNavigation.profile,
+              ),
+            ),
     );
   }
 }

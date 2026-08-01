@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
@@ -17,6 +18,8 @@ class JobPosterCard extends StatelessWidget {
     required this.onDelete,
     this.onViewApplicants,
     this.onAuthorTap,
+    this.onFollow,
+    this.onReact,
   });
 
   final FeedPost post;
@@ -29,9 +32,13 @@ class JobPosterCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback? onViewApplicants;
   final VoidCallback? onAuthorTap;
+  final VoidCallback? onFollow;
+  final ValueChanged<PostReactionType>? onReact;
 
   @override
   Widget build(BuildContext context) {
+    final hasMedia = post.mediaUrl != null && post.mediaUrl!.isNotEmpty;
+
     return PostCard(
       post: post,
       headerTrailing: post.isOwnPost
@@ -79,13 +86,26 @@ class JobPosterCard extends StatelessWidget {
           ],
         ),
       ),
-      body: (post.mediaUrl == null || post.mediaUrl!.isEmpty)
-          ? null
-          : PostMediaImage(url: post.mediaUrl),
+      body: hasMedia ? PostMediaImage(url: post.mediaUrl) : null,
       onLike: onLike,
+      onReact: onReact,
       onComment: onComment,
       onShare: onShare,
-      onBodyTap: onOpen,
+      onBodyTap: () {
+        if (!hasMedia) {
+          onOpen();
+          return;
+        }
+        showMediaFullscreen(
+          context,
+          post,
+          onLike: onLike,
+          onComment: onComment,
+          onShare: onShare,
+          onFollow: onFollow,
+          onAuthorTap: onAuthorTap,
+        );
+      },
       onAuthorTap: onAuthorTap,
     );
   }

@@ -70,7 +70,7 @@ class CreatePostController extends GetxController {
       };
 
   String get audienceLabel => switch (audience.value) {
-        PostAudience.public => 'Public',
+        PostAudience.public => 'Anyone',
         PostAudience.friends => 'Friends',
         PostAudience.private => 'Only Me',
       };

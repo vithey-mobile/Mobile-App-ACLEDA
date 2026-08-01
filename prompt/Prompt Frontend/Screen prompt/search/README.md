@@ -1,5 +1,7 @@
 # Search — Facebook-Style Global Search Prompt Index
 
+**UI status: complete** in `vithey_app/lib/modules/search/`.
+
 Complete specification for a **Facebook / Messenger-style global search** experience in Vithey App.
 
 ## Product goal

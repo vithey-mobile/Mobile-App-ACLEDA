@@ -22,71 +22,54 @@ class CreatePostScreen extends GetView<CreatePostController> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleBack(context);
       },
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: context.appColors.cardSurface,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          centerTitle: true,
-          elevation: 0,
-          scrolledUnderElevation: 0,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: Theme.of(context).brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light.copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: context.appColors.cardSurface,
+              )
+            : SystemUiOverlayStyle.dark.copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: context.appColors.cardSurface,
+              ),
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: context.appColors.cardSurface,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 19),
-            onPressed: () => _handleBack(context),
-            tooltip: 'Back',
+          // Header lives in the body so status-bar + header share one flat color
+          // (no separate Scaffold appBar tint / "live" strip on top).
+          body: Column(
+            children: [
+              ColoredBox(
+                color: context.appColors.cardSurface,
+                child: SafeArea(
+                  bottom: false,
+                  child: _CreatePostHeader(
+                    onBack: () => _handleBack(context),
+                    onAudienceTap: () => _showAudienceSheet(context),
+                    onPost: controller.publish,
+                  ),
+                ),
+              ),
+              Obx(() {
+                final scheduledAt = controller.scheduledAt.value;
+                if (scheduledAt == null) return const SizedBox.shrink();
+                return _ScheduleBanner(
+                  value: scheduledAt,
+                  onTap: () => controller.pickSchedule(context),
+                  onClear: controller.clearSchedule,
+                );
+              }),
+              Expanded(child: _AdaptiveEditor(controller: controller)),
+            ],
           ),
-          title: Text(
-            controller.isEditing ? 'Edit Post' : 'Post',
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+          bottomNavigationBar: _ComposerToolbar(
+            onMedia: controller.showMediaSourceSheet,
+            onSchedule: () => controller.pickSchedule(context),
+            onCvLimit: () => _showCvLimitSheet(context),
+            onCategory: controller.isEditing
+                ? null
+                : () => _showCategorySheet(context),
           ),
-          actions: [
-            Obx(() {
-              controller.contentRevision.value;
-              return _PublishAction(
-                label: controller.isEditing
-                    ? 'Save'
-                    : controller.scheduledAt.value == null
-                        ? 'Post'
-                        : 'Schedule',
-                enabled: controller.canPublish,
-                loading: controller.isPosting.value,
-                onPressed: controller.publish,
-              );
-            }),
-            const SizedBox(width: 10),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1),
-            child: Divider(
-              height: 1,
-              color: context.appColors.border,
-            ),
-          ),
-        ),
-        body: Column(
-          children: [
-            _AuthorAudienceRow(
-              onAudienceTap: () => _showAudienceSheet(context),
-            ),
-            Obx(() {
-              final scheduledAt = controller.scheduledAt.value;
-              if (scheduledAt == null) return const SizedBox.shrink();
-              return _ScheduleBanner(
-                value: scheduledAt,
-                onTap: () => controller.pickSchedule(context),
-                onClear: controller.clearSchedule,
-              );
-            }),
-            Expanded(child: _AdaptiveEditor(controller: controller)),
-          ],
-        ),
-        bottomNavigationBar: _ComposerToolbar(
-          onMedia: controller.showMediaSourceSheet,
-          onSchedule: () => controller.pickSchedule(context),
-          onCvLimit: () => _showCvLimitSheet(context),
-          onCategory:
-              controller.isEditing ? null : () => _showCategorySheet(context),
         ),
       ),
     );
@@ -253,6 +236,113 @@ class _ComposerError extends StatelessWidget {
   }
 }
 
+class _CreatePostHeader extends GetView<CreatePostController> {
+  const _CreatePostHeader({
+    required this.onBack,
+    required this.onAudienceTap,
+    required this.onPost,
+  });
+
+  final VoidCallback onBack;
+  final VoidCallback onAudienceTap;
+  final VoidCallback onPost;
+
+  static const double _headerHeight = 48;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final currentUser = Get.find<CurrentUserService>();
+
+    return ColoredBox(
+      color: colors.cardSurface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: _headerHeight,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+              child: Obx(() {
+                controller.contentRevision.value;
+                final postLabel = controller.isEditing
+                    ? 'Save'
+                    : controller.scheduledAt.value != null
+                        ? 'Schedule'
+                        : 'Post';
+
+                return Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Back to home',
+                      onPressed: onBack,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.arrow_back_rounded,
+                        size: 22,
+                        color: colors.heading,
+                      ),
+                    ),
+                    UserAvatar(
+                      name: currentUser.displayName,
+                      imageUrl: currentUser.user.value?.avatarUrl,
+                      radius: 15,
+                    ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: onAudienceTap,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 2,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              controller.audienceLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.muted,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_drop_down_rounded,
+                              color: colors.muted,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    _PublishAction(
+                      label: postLabel,
+                      enabled: controller.canPublish,
+                      loading: controller.isPosting.value,
+                      onPressed: onPost,
+                    ),
+                  ],
+                );
+              }),
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: colors.border),
+        ],
+      ),
+    );
+  }
+}
+
 class _PublishAction extends StatelessWidget {
   const _PublishAction({
     required this.label,
@@ -268,21 +358,21 @@ class _PublishAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Material(
-        color: enabled ? context.scheme.primary : context.appColors.inputFill,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: enabled && !loading ? onPressed : null,
-          borderRadius: BorderRadius.circular(16),
-          child: SizedBox(
-            width: label == 'Schedule' ? 76 : 54,
-            height: 30,
+    return Material(
+      color: enabled ? context.scheme.primary : context.appColors.inputFill,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: enabled && !loading ? onPressed : null,
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          height: 28,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Center(
               child: loading
                   ? SizedBox(
-                      width: 15,
-                      height: 15,
+                      width: 14,
+                      height: 14,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: context.scheme.onPrimary,
@@ -294,84 +384,13 @@ class _PublishAction extends StatelessWidget {
                         color: enabled
                             ? context.scheme.onPrimary
                             : context.appColors.muted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
                       ),
                     ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AuthorAudienceRow extends GetView<CreatePostController> {
-  const _AuthorAudienceRow({required this.onAudienceTap});
-
-  final VoidCallback onAudienceTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final currentUser = Get.find<CurrentUserService>();
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 9),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: context.appColors.border)),
-      ),
-      child: Obx(
-        () => Row(
-          children: [
-            UserAvatar(
-              name: currentUser.displayName,
-              imageUrl: currentUser.user.value?.avatarUrl,
-              radius: 18,
-            ),
-            const SizedBox(width: 9),
-            Expanded(
-              child: Text(
-                currentUser.displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.appColors.heading,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Material(
-              color: context.scheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(13),
-              child: InkWell(
-                onTap: onAudienceTap,
-                borderRadius: BorderRadius.circular(13),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        controller.audienceLabel,
-                        style: TextStyle(
-                          color: context.scheme.primary,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.arrow_drop_down_rounded,
-                        color: context.scheme.primary,
-                        size: 16,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -452,20 +471,22 @@ class _ComposerToolbar extends GetView<CreatePostController> {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        border: Border(top: BorderSide(color: context.appColors.border)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        elevation: 2,
-        shadowColor: context.appColors.subtleShadow,
+    final colors = context.appColors;
+    return Material(
+      color: colors.cardSurface,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.cardSurface,
+          border: Border(top: BorderSide(color: colors.border)),
+        ),
         child: SafeArea(
           top: false,
           child: Obx(
             () => SizedBox(
-              height: 55,
+              height: 48,
               child: Row(
                 children: [
                   _ToolbarAction(
@@ -485,36 +506,33 @@ class _ComposerToolbar extends GetView<CreatePostController> {
                       onTap: onCvLimit,
                     ),
                   const Spacer(),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onCategory,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 13,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              controller.categoryLabel,
-                              style: TextStyle(
-                                color: context.scheme.primary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Icon(
-                              onCategory == null
-                                  ? Icons.lock_outline_rounded
-                                  : Icons.arrow_drop_down_rounded,
+                  InkWell(
+                    onTap: onCategory,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            controller.categoryLabel,
+                            style: TextStyle(
                               color: context.scheme.primary,
-                              size: 18,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
-                        ),
+                          ),
+                          Icon(
+                            onCategory == null
+                                ? Icons.lock_outline_rounded
+                                : Icons.arrow_drop_down_rounded,
+                            color: context.scheme.primary,
+                            size: 18,
+                          ),
+                        ],
                       ),
                     ),
                   ),

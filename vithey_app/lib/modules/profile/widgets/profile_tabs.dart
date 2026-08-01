@@ -12,8 +12,6 @@ import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_job_card.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_video_card.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 
 class ProfileAboutTab extends StatelessWidget {
@@ -30,18 +28,10 @@ class ProfileAboutTab extends StatelessWidget {
         children: [
           ProfileSkillsRow(skills: profile.skills),
           if (profile.skills.isNotEmpty) const SizedBox(height: 20),
-          ProfilePersonalDetails(
-              profile: profile, isOwnProfile: controller.isOwnProfile),
-          if (profile.telegramLink != null || profile.facebookLink != null) ...[
-            const SizedBox(height: 20),
-            const Text('Links',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            if (profile.telegramLink != null)
-              _LinkRow(label: 'Telegram', url: profile.telegramLink!),
-            if (profile.facebookLink != null)
-              _LinkRow(label: 'Facebook', url: profile.facebookLink!),
-          ],
+          ProfileAboutDetails(
+            profile: profile,
+            isOwnProfile: controller.isOwnProfile,
+          ),
         ],
       );
     });
@@ -166,10 +156,15 @@ class _ProfilePostsTab extends StatelessWidget {
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: 100),
           itemCount: posts.length,
-          itemBuilder: (_, index) => ProfileVideoCard(
-            post: posts[index],
-            onTap: () => controller.openPost(posts[index].id),
-          ),
+          itemBuilder: (_, index) {
+            final post = posts[index];
+            return ProfileVideoCard(
+              post: post,
+              onLike: () {},
+              onComment: () => controller.openPost(post.id),
+              onShare: () {},
+            );
+          },
         );
       }
 
@@ -177,13 +172,18 @@ class _ProfilePostsTab extends StatelessWidget {
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: 100),
           itemCount: posts.length,
-          itemBuilder: (_, index) => ProfileJobCard(
-            post: posts[index],
-            isOwnProfile: controller.isOwnProfile,
-            onTap: () => controller.openPost(posts[index].id),
-            onViewApplicants: () => controller.openJobApplicants(posts[index]),
-            onApply: () => controller.applyToJob(posts[index].id),
-          ),
+          itemBuilder: (_, index) {
+            final post = posts[index];
+            return ProfileJobCard(
+              post: post,
+              isOwnProfile: controller.isOwnProfile,
+              onOpenApplicants: () => controller.openJobApplicants(post),
+              onApply: () => controller.applyToJob(post.id),
+              onOpenPost: () => controller.openPost(post.id),
+              onEdit: () => controller.editJobPost(post),
+              onDelete: () => controller.deleteJobPost(post),
+            );
+          },
         );
       }
 
@@ -213,25 +213,5 @@ class _ProfilePostsTab extends StatelessWidget {
       PostType.video => 'video',
       PostType.job => 'job',
     };
-  }
-}
-
-class _LinkRow extends StatelessWidget {
-  const _LinkRow({required this.label, required this.url});
-
-  final String label;
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(Icons.link, color: context.appColors.muted, size: 20),
-      title: Text(label),
-      subtitle: Text(url, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: const Icon(Icons.open_in_new, size: 18),
-      onTap: () =>
-          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
-    );
   }
 }

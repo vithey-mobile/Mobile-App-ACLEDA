@@ -36,15 +36,15 @@ Paths relative to repo root. See [REPO_PATHS.md](REPO_PATHS.md).
 
 | Screens | Backend services |
 | --- | --- |
-| 01–02 Splash, Onboarding | — (local only) |
-| 03 Auth, 11 Student Verification | auth-service |
-| 04–06 Home, Create Post, Post Detail | content-service, file-service |
-| 07–08, 17 Apply/Preview/Applicant CV | career-service, file-service |
-| 09 Profile, 16 Settings | user-profile-service, auth-service |
-| 10 Finance | finance-service (STUDENT role) |
-| 12–13 Chat | chat-service |
-| 14 AI Chatbot | ai-service |
-| 15 Notification | notification-service |
+| Splash, Select Language, Onboarding | — (local only) |
+| Auth (login/register/Google), Student Verification | auth-service |
+| Home, Create Post, Post Detail, Reels | content-service, file-service |
+| Apply / Preview / Applicant CV | career-service, file-service |
+| Profile, Settings | user-profile-service, auth-service |
+| Finance | finance-service (STUDENT role) |
+| Chat | chat-service |
+| AI Chatbot | ai-service |
+| Notification | notification-service |
 
 Full screen index: `Prompt Frontend/Screen prompt/README.md`.
 

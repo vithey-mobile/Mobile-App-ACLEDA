@@ -18,58 +18,64 @@ class ChatbotSuggestionList extends StatelessWidget {
   final List<ChatbotSuggestionItem> items;
   final ValueChanged<String> onPromptTap;
 
+  /// ChatGPT-style quick actions (Vithey-focused prompts).
   static const defaultItems = [
     ChatbotSuggestionItem(
-      icon: Icons.description_outlined,
+      icon: Icons.image_outlined,
       text: 'Help me improve my CV for campus jobs',
     ),
     ChatbotSuggestionItem(
-      icon: Icons.work_outline,
-      text: 'What jobs can I apply to on Vithey?',
-    ),
-    ChatbotSuggestionItem(
-      icon: Icons.record_voice_over_outlined,
+      icon: Icons.edit_outlined,
       text: 'Practice interview questions for my major',
     ),
     ChatbotSuggestionItem(
-      icon: Icons.school_outlined,
-      text: 'What student services does AUB offer?',
-    ),
-    ChatbotSuggestionItem(
-      icon: Icons.account_balance_wallet_outlined,
-      text: 'How does Vithey Finance verification work?',
+      icon: Icons.public_outlined,
+      text: 'What jobs can I apply to on Vithey?',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: items
-          .map(
-            (item) => InkWell(
-              onTap: () => onPromptTap(item.text),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Icon(item.icon, size: 24, color: context.appColors.muted),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        item.text,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 15, color: context.appColors.muted),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: items
+            .map(
+              (item) => InkWell(
+                onTap: () => onPromptTap(item.text),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    children: [
+                      Icon(
+                        item.icon,
+                        size: 22,
+                        color: context.appColors.muted,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          item.text,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: context.appColors.heading
+                                .withValues(alpha: 0.75),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          )
-          .toList(),
+            )
+            .toList(),
+      ),
     );
   }
 }

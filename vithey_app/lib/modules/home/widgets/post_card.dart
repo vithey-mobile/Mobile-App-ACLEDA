@@ -17,6 +17,7 @@ class PostCard extends StatelessWidget {
     required this.onComment,
     required this.onShare,
     required this.onBodyTap,
+    this.onReact,
     this.onAuthorTap,
     this.caption,
   });
@@ -28,6 +29,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback onComment;
   final VoidCallback onShare;
   final VoidCallback onBodyTap;
+  final ValueChanged<PostReactionType>? onReact;
   final VoidCallback? onAuthorTap;
   final Widget? caption;
 
@@ -67,6 +69,7 @@ class PostCard extends StatelessWidget {
             onLike: onLike,
             onComment: onComment,
             onShare: onShare,
+            onReact: onReact,
           ),
         ],
       ),

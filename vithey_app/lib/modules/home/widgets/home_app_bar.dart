@@ -5,9 +5,9 @@ import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
+/// Legacy preferred-size app bar (kept for screens that still need it).
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({super.key});
 
@@ -16,8 +16,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final notificationRepo = Get.find<NotificationRepository>();
-
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -39,29 +37,17 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        _AnimatedAppBarAction(
-          icon: const Icon(Icons.auto_awesome_outlined),
-          onPressed: () => Get.toNamed(AppRoutes.chatbot),
-          tooltip: 'Vithey AI',
-        ),
-        Obx(() {
-          final count = notificationRepo.unreadCount.value;
-          return _AnimatedAppBarAction(
-            icon: Badge(
-              isLabelVisible: count > 0,
-              label: Text(count > 99 ? '99+' : '$count'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () => Get.toNamed(AppRoutes.notifications),
-            tooltip: 'Notifications',
-          );
-        }),
-        _AnimatedAppBarAction(
+        HomeAppBarAction(
           icon: const Icon(Icons.search),
           onPressed: () => Get.toNamed(AppRoutes.search),
           tooltip: 'Search',
         ),
-        const _AnimatedAppBarAction(
+        HomeAppBarAction(
+          icon: const Icon(Icons.chat_bubble_outline_rounded),
+          onPressed: () => Get.toNamed(AppRoutes.chat),
+          tooltip: 'Messages',
+        ),
+        const HomeAppBarAction(
           icon: Icon(Icons.account_balance_wallet_outlined),
           onPressed: FinanceNavigation.openFinanceEntry,
           tooltip: 'Finance',
@@ -76,8 +62,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-class _AnimatedAppBarAction extends StatefulWidget {
-  const _AnimatedAppBarAction({
+class HomeAppBarAction extends StatefulWidget {
+  const HomeAppBarAction({
+    super.key,
     required this.icon,
     required this.onPressed,
     required this.tooltip,
@@ -88,10 +75,10 @@ class _AnimatedAppBarAction extends StatefulWidget {
   final String tooltip;
 
   @override
-  State<_AnimatedAppBarAction> createState() => _AnimatedAppBarActionState();
+  State<HomeAppBarAction> createState() => _HomeAppBarActionState();
 }
 
-class _AnimatedAppBarActionState extends State<_AnimatedAppBarAction> {
+class _HomeAppBarActionState extends State<HomeAppBarAction> {
   bool _hovered = false;
   bool _focused = false;
   bool _pressed = false;

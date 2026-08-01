@@ -422,19 +422,34 @@ class ChatRepository {
   }
 
   Future<void> _ensureMockSeed() async {
-    if (_mockConversations.isNotEmpty) return;
+    final fixtures = ChatFixtures.buildConversations();
+    final seededMessages =
+        ChatFixtures.buildMessages(currentUserId: currentUserId);
 
-    _mockConversations.addAll(ChatFixtures.buildConversations());
-    final seededMessages = ChatFixtures.buildMessages(currentUserId: currentUserId);
+    if (_mockConversations.isEmpty) {
+      _mockConversations.addAll(fixtures);
+    } else {
+      for (final conv in fixtures) {
+        if (!_mockConversations.any((c) => c.id == conv.id)) {
+          _mockConversations.add(conv);
+        }
+      }
+    }
+
     for (final entry in seededMessages.entries) {
-      _mockMessages[entry.key] = List<ChatMessage>.from(entry.value);
+      _mockMessages.putIfAbsent(
+        entry.key,
+        () => List<ChatMessage>.from(entry.value),
+      );
     }
 
     await _isar.upsertConversations(
       _mockConversations.map(ChatIsarMapper.toLocalConversation).toList(),
     );
     for (final entry in _mockMessages.entries) {
-      await _isar.upsertMessages(entry.value.map(ChatIsarMapper.toLocalMessage).toList());
+      await _isar.upsertMessages(
+        entry.value.map(ChatIsarMapper.toLocalMessage).toList(),
+      );
     }
   }
 

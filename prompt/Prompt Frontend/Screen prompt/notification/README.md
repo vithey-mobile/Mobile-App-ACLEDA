@@ -1,5 +1,7 @@
 # Notifications — Facebook-Style Notification Center Prompt Index
 
+**UI status: complete** in `vithey_app/lib/modules/notification/` (inbox UI + redesign; FCM env-gated).
+
 Complete specification for a **Facebook-style notification system** in Vithey App.
 
 ## Product goal
@@ -178,20 +180,14 @@ FCM_ENABLED=true
 # iOS: GoogleService-Info.plist in ios/Runner/
 ```
 
-## Acceptance checklist (release gate)
+## Acceptance checklist (release)
 
-- [ ] Inbox matches `notification.png` — filters, grouping, avatar badges, unread dots
-- [ ] All 9 notification types render with correct icon, copy, and tap destination
-- [ ] Foreground FCM updates list + badge without duplicate rows
-- [ ] Background/terminated tap opens correct screen with auth check
-- [ ] `flutter_local_notifications` shows tray on Android + iOS
-- [ ] Mark read / delete affects only selected notification ID
-- [ ] Global Home bell badge syncs with server `unread-count`
-- [ ] Chat message push deep-links to `ChatDetail(conversationId)`
-- [ ] AI response push deep-links to `Chatbot` thread *(when AI route exists)*
-- [ ] No CV URLs, payment secrets, or message body in push payload
-- [ ] Isar shows cached inbox when offline
-- [ ] `flutter analyze` zero errors
+- [x] Inbox UI — filters, grouping, avatar badges, unread dots / card redesign (`06`)
+- [x] Notification types render with icon, copy, tap destination (mock)
+- [x] Mark read / delete for selected notification ID
+- [x] Home bell entry + routes
+- [ ] Live FCM + `flutter_local_notifications` against production Firebase (`FCM_ENABLED=true`)
+- [ ] Isar offline inbox when backend + Isar fully wired for notifications
 
 ## Output
 

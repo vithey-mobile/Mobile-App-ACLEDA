@@ -296,7 +296,11 @@ vithey_app/
 - List endpoints: support `page`, `limit`, handle pagination in controllers
 - File upload: multipart via `UploadService`
 
-## Key Endpoints (reference — see Project Overview.txt for full spec)
+## Key Endpoints
+
+Reference only. See `api-intergration/integration-contract.md` for the binding
+frontend/backend contract and `api-intergration/api-overview.md` for the full
+endpoint index.
 
 | Domain        | Examples                                                        |
 | ------------- | --------------------------------------------------------------- |

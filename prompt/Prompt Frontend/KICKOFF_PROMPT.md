@@ -1,6 +1,8 @@
 # Vithey App — Frontend Kickoff Prompt
 
-You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank AUB App Competition. Use the provided context files and work **one screen/module at a time**.
+You are building and maintaining the **Vithey App** Flutter mobile frontend for
+the ACLEDA Bank AUB App Competition. Use the provided context files and work
+**one screen/module or one focused refactor batch at a time**.
 
 ## Read First
 1. `Prompt Frontend/api-intergration/integration-contract.md` — API contract with backend
@@ -12,7 +14,7 @@ You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank 
 - Platform: Flutter mobile app (Android + iOS)
 - Must include: Register/Login, Settings, Light + Dark mode, at least 5 features
 - Official rules: [ACLEDA App Competition](https://www.acledabank.com.kh/sl/app-competition/)
-- Full product spec: `Project Overview.txt` in the repo root
+- Product summary: `Prompt Frontend/00-project-summary.md`
 
 ## Rules
 - **Frontend only.** Do not build backend code in this pass.
@@ -23,6 +25,16 @@ You are building the **Vithey App** Flutter mobile frontend for the ACLEDA Bank 
 - Build **complete runnable UI code**, not placeholders or `// TODO` stubs.
 - **Reuse components:** put shared UI in `lib/core/widgets/`; screen-specific UI in `lib/modules/<feature>/widgets/`.
 - **UI system (Shadcn Flutter style):** build screens by composing the existing shared components and design tokens. Do not recreate ad-hoc buttons/cards/forms per screen.
+- **No harmful hard-coding:** configuration, URLs, routes, assets, identity,
+  domain limits, repeated strings, colors, spacing, and durations belong in
+  their appropriate config, constants, localization, fixture, or theme layer.
+  Do not mechanically replace clear one-off layout literals.
+- **Safe cleanup only:** remove unused code, assets, or dependencies only after
+  proving they are unreachable through analyzer output, full-project searches,
+  routes/bindings, platform configuration, assets, generated-code inputs, and
+  tests.
+- For an existing-project audit or cleanup, follow
+  `03-flutter-code-audit-and-refactor.md`.
 - Mock API responses when backend is unavailable, but structure repositories/services so real API integration is a drop-in swap.
 - Match the folder structure defined in `COMMON_CONTEXT.md` exactly.
 - Each screen file in `Screen prompt/` contains product/design requirements and implementation instructions.
@@ -76,6 +88,10 @@ Recommended packages (installed in this repo):
 - Verify the screen navigates correctly from the previous flow.
 - Reuse existing `core/widgets/` before creating new widgets.
 - Do not duplicate buttons, text fields, loading states, or empty states across screens.
+- Search before extracting. Keep feature-only widgets local; promote a widget
+  to `core/widgets/` only when independent features share the same contract.
+- Refactor in small batches and preserve current behavior. Do not rewrite a
+  working feature only to make its folder structure resemble an older prompt.
 
 ## Output Quality
 - Use typed Dart models in `lib/data/models/`.
@@ -86,6 +102,8 @@ Recommended packages (installed in this repo):
 - Keep widgets small and composable.
 - Support Khmer + English strings via `app_strings.dart` keys.
 - Animations: use subtle transitions (page routes, button feedback, list items).
+- Before handoff, format touched files, run `flutter analyze`, run relevant
+  tests, and report any pre-existing failures separately.
 
 ## API Assumption
 

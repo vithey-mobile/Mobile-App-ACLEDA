@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
@@ -15,6 +16,7 @@ class PosterPostCard extends StatelessWidget {
     required this.onOpen,
     required this.onEdit,
     required this.onDelete,
+    this.onReact,
     this.onAuthorTap,
   });
 
@@ -26,22 +28,38 @@ class PosterPostCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final ValueChanged<PostReactionType>? onReact;
   final VoidCallback? onAuthorTap;
 
   @override
   Widget build(BuildContext context) {
+    final hasMedia = post.mediaUrl != null && post.mediaUrl!.isNotEmpty;
+
     return PostCard(
       post: post,
       headerTrailing: post.isOwnPost
           ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
           : _FollowButton(post: post, onFollow: onFollow),
-      body: (post.mediaUrl == null || post.mediaUrl!.isEmpty)
-          ? null
-          : PostMediaImage(url: post.mediaUrl),
+      body: hasMedia ? PostMediaImage(url: post.mediaUrl) : null,
       onLike: onLike,
+      onReact: onReact,
       onComment: onComment,
       onShare: onShare,
-      onBodyTap: onOpen,
+      onBodyTap: () {
+        if (!hasMedia) {
+          onOpen();
+          return;
+        }
+        showMediaFullscreen(
+          context,
+          post,
+          onLike: onLike,
+          onComment: onComment,
+          onShare: onShare,
+          onFollow: onFollow,
+          onAuthorTap: onAuthorTap,
+        );
+      },
       onAuthorTap: onAuthorTap,
     );
   }

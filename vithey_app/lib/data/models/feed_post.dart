@@ -8,6 +8,31 @@ enum JobLifecycleState { open, closed, expired, full }
 
 enum JobApplicationState { notApplied, applied, checking }
 
+/// Facebook-style post reactions.
+enum PostReactionType { like, love, care, haha, wow, sad, angry }
+
+extension PostReactionTypeX on PostReactionType {
+  String get emoji => switch (this) {
+        PostReactionType.like => '👍',
+        PostReactionType.love => '❤️',
+        PostReactionType.care => '🤗',
+        PostReactionType.haha => '😆',
+        PostReactionType.wow => '😮',
+        PostReactionType.sad => '😢',
+        PostReactionType.angry => '😡',
+      };
+
+  String get label => switch (this) {
+        PostReactionType.like => 'Like',
+        PostReactionType.love => 'Love',
+        PostReactionType.care => 'Care',
+        PostReactionType.haha => 'Haha',
+        PostReactionType.wow => 'Wow',
+        PostReactionType.sad => 'Sad',
+        PostReactionType.angry => 'Angry',
+      };
+}
+
 class JobMeta {
   const JobMeta({
     this.title,
@@ -55,6 +80,7 @@ class FeedPost {
     this.commentCount = 0,
     this.shareCount = 0,
     this.userReacted = false,
+    this.userReaction,
     this.isFollowingAuthor = false,
     this.currentUserId,
   });
@@ -76,10 +102,15 @@ class FeedPost {
   final int commentCount;
   final int shareCount;
   final bool userReacted;
+  final PostReactionType? userReaction;
   final bool isFollowingAuthor;
   final String? currentUserId;
 
   bool get isOwnPost => currentUserId != null && currentUserId == author.id;
+
+  /// Effective reaction shown in UI (defaults to like when reacted with no type).
+  PostReactionType? get activeReaction =>
+      userReacted ? (userReaction ?? PostReactionType.like) : null;
 
   FeedPost copyWith({
     String? content,
@@ -91,6 +122,7 @@ class FeedPost {
     int? commentCount,
     int? shareCount,
     bool? userReacted,
+    Object? userReaction = _unset,
     bool? isFollowingAuthor,
     JobApplicationState? applicationState,
     VideoProcessingState? processingState,
@@ -116,6 +148,9 @@ class FeedPost {
       commentCount: commentCount ?? this.commentCount,
       shareCount: shareCount ?? this.shareCount,
       userReacted: userReacted ?? this.userReacted,
+      userReaction: identical(userReaction, _unset)
+          ? this.userReaction
+          : userReaction as PostReactionType?,
       isFollowingAuthor: isFollowingAuthor ?? this.isFollowingAuthor,
       currentUserId: currentUserId,
     );
@@ -191,8 +226,23 @@ class FeedPost {
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
       shareCount: (json['share_count'] as num?)?.toInt() ?? 0,
       userReacted: json['user_reacted'] as bool? ?? false,
+      userReaction: _parseReaction(json['user_reaction']?.toString()),
       isFollowingAuthor: json['is_following_author'] as bool? ?? false,
       currentUserId: currentUserId,
     );
+  }
+
+  static PostReactionType? _parseReaction(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    return switch (raw.toLowerCase()) {
+      'like' => PostReactionType.like,
+      'love' => PostReactionType.love,
+      'care' => PostReactionType.care,
+      'haha' => PostReactionType.haha,
+      'wow' => PostReactionType.wow,
+      'sad' => PostReactionType.sad,
+      'angry' => PostReactionType.angry,
+      _ => null,
+    };
   }
 }

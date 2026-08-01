@@ -9,6 +9,14 @@ abstract final class MockIds {
   static const author5 = 'author-5';
   static const author6 = 'author-6';
   static const author7 = 'author-7';
+  static const author8 = 'author-8';
+  static const author9 = 'author-9';
+  static const author10 = 'author-10';
+  static const author11 = 'author-11';
+  static const author12 = 'author-12';
+  static const author13 = 'author-13';
+  static const author14 = 'author-14';
+  static const author15 = 'author-15';
 
   static const post1 = 'post-1';
   static const post2 = 'post-2';
@@ -21,11 +29,26 @@ abstract final class MockIds {
   static const post9 = 'post-9';
   /// Open job from another poster — eligible for Apply CV (not seeded as applied).
   static const post10 = 'post-10';
+  static const post11 = 'post-11';
+  static const post12 = 'post-12';
+  static const post13 = 'post-13';
+  static const post14 = 'post-14';
 
   static const convHeng = 'conv-heng';
   static const convBora = 'conv-bora';
   static const convMeas = 'conv-meas';
   static const convMoeng = 'conv-moeng';
+  static const convMolika = 'conv-molika';
+  static const convCareer = 'conv-career';
+  static const convSreynich = 'conv-sreynich';
+  static const convSokha = 'conv-sokha';
+  static const convDara = 'conv-dara';
+  static const convVanna = 'conv-vanna';
+  static const convPisey = 'conv-pisey';
+  static const convRith = 'conv-rith';
+  static const convSophea = 'conv-sophea';
+  static const convNewContact = 'conv-new-contact';
+  static const convGroupStudy = 'conv-group-study';
 
   static const app1 = 'app-1';
   static const app2 = 'app-2';

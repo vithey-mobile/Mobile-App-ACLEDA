@@ -6,6 +6,10 @@ class AppAssets {
   static const walletIcon = 'assets/icons/wallet_icon.png';
   static const uploadIcon = 'assets/icons/upload_icon.png';
 
+  /// Select Language — circular flag icons.
+  static const englishLanguage = 'assets/images/locale/english_language.png';
+  static const khmerLanguage = 'assets/images/locale/khmer_language.png';
+
   static const jobPost1 = 'assets/images/jobs/Job Post 1.png';
   static const jobPost2 = 'assets/images/jobs/Job Post 2.png';
   static const jobPost3 = 'assets/images/jobs/Job Post 3.png';

@@ -2,24 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
-/// Fixed onboarding backdrop: white base + light-teal rear wave + teal front wave.
-/// Must stay outside the [PageView] so it does not move on swipe / Next.
+/// Fixed intro backdrop: white base + light-teal rear wave + teal front wave.
 ///
-/// CANONICAL Vithey entry-screen wave style — reuse (or extract shared) for Auth:
-/// colors `AppColors.authHeaderTeal` + `AppColors.authWaveRear`, staggered keyframes,
-/// max ~10% height gap. See also `Prompt Frontend/COMMON_CONTEXT.md`
-/// and `02-onboarding-prompt-version-2.md`.
-///
-/// Wave keyframes (% of width) — gap between teal bottom and light-teal bottom
-/// is at most ~10% of screen height:
-/// - 0%: small gap
-/// - 20%: mid gap, both dip lower (then rise toward 40%)
-/// - 40%: expanded gap
-/// - close bend: light teal holds 60%→75%, teal at 80% (teal dipped a bit lower)
-/// - light teal: lowest at 95%, then flat through 100% (no rise)
-/// - 100%: teal risen up; light teal stable from 95%
+/// [tealHeightFactor] and [lightHeightFactor] can differ so teal stays fixed while
+/// white-50% (light wave) morphs (e.g. Select Language → Onboarding).
 class OnboardingBackground extends StatelessWidget {
-  const OnboardingBackground({super.key});
+  const OnboardingBackground({
+    super.key,
+    this.waveHeightFactor = 1.0,
+    double? tealHeightFactor,
+    double? lightHeightFactor,
+    this.authMorph = 0.0,
+  })  : tealHeightFactor = tealHeightFactor ?? waveHeightFactor,
+        lightHeightFactor = lightHeightFactor ?? waveHeightFactor;
+
+  /// Convenience: sets both teal and light when separate factors are omitted.
+  final double waveHeightFactor;
+
+  /// Front teal wave depth (1.0 = onboarding default).
+  final double tealHeightFactor;
+
+  /// Rear white-50% / light-teal wave depth.
+  final double lightHeightFactor;
+
+  /// 0 = normal onboarding waves, 1 = solid auth teal (wave edge to bottom).
+  final double authMorph;
+
+  /// Select Language default (taller white body).
+  static const languageFactor = 0.68;
+
+  /// Onboarding default.
+  static const onboardingFactor = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +43,9 @@ class OnboardingBackground extends StatelessWidget {
         painter: _OnboardingWavePainter(
           baseColor: baseColor,
           waveRearColor: waveRearColor,
+          tealHeightFactor: tealHeightFactor,
+          lightHeightFactor: lightHeightFactor,
+          authMorph: authMorph.clamp(0.0, 1.0),
         ),
       ),
     );
@@ -40,47 +56,66 @@ class _OnboardingWavePainter extends CustomPainter {
   const _OnboardingWavePainter({
     required this.baseColor,
     required this.waveRearColor,
+    required this.tealHeightFactor,
+    required this.lightHeightFactor,
+    required this.authMorph,
   });
 
   final Color baseColor;
   final Color waveRearColor;
+  final double tealHeightFactor;
+  final double lightHeightFactor;
+  final double authMorph;
 
-  /// Teal width keyframes — hold the 40% peak until 50%, then fall toward 80%.
   static const _tealX = [0.0, 0.20, 0.40, 0.50, 0.80, 1.0];
-
-  /// Light-teal width — hold close bend 60%→75%, fall from 75%, flat 95%→100%.
   static const _lightX = [0.0, 0.20, 0.40, 0.60, 0.75, 0.95, 1.0];
-
-  /// Teal bottom-edge Y — 40%→50% stays up; falls from 50% toward 80%; 100% risen.
   static const _tealY = [0.510, 0.528, 0.485, 0.485, 0.525, 0.460];
-
-  /// Light-teal bottom-edge Y — 60%→75% stays close/up; falls from 75%; 95%→100% flat.
   static const _lightY = [0.535, 0.575, 0.570, 0.535, 0.535, 0.580, 0.580];
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (authMorph >= 0.999) {
+      canvas.drawRect(
+        Offset.zero & size,
+        Paint()..color = AppColors.authHeaderTeal,
+      );
+      return;
+    }
+
     canvas.drawRect(
       Offset.zero & size,
       Paint()..color = baseColor,
     );
 
+    final lightAlpha = (1.0 - authMorph).clamp(0.0, 1.0);
+    if (lightAlpha > 0.01) {
+      canvas.drawPath(
+        _layerPath(size, _lightX, _lightY, lightHeightFactor, authMorph),
+        Paint()..color = waveRearColor.withValues(alpha: lightAlpha),
+      );
+    }
     canvas.drawPath(
-      _layerPath(size, _lightX, _lightY),
-      Paint()..color = waveRearColor,
-    );
-    canvas.drawPath(
-      _layerPath(size, _tealX, _tealY),
+      _layerPath(size, _tealX, _tealY, tealHeightFactor, authMorph),
       Paint()..color = AppColors.authHeaderTeal,
     );
   }
 
-  /// Filled band from the top of the screen down to a smooth wave edge.
-  Path _layerPath(Size size, List<double> xFrac, List<double> yFrac) {
+  Path _layerPath(
+    Size size,
+    List<double> xFrac,
+    List<double> yFrac,
+    double heightFactor,
+    double morph,
+  ) {
     assert(xFrac.length == yFrac.length);
+    final yScale = heightFactor.clamp(0.35, 1.0);
 
     final pts = <Offset>[
       for (var i = 0; i < xFrac.length; i++)
-        Offset(size.width * xFrac[i], size.height * yFrac[i]),
+        Offset(
+          size.width * xFrac[i],
+          size.height * (yFrac[i] * yScale * (1.0 - morph) + 1.0 * morph),
+        ),
     ];
 
     final path = Path()
@@ -88,7 +123,6 @@ class _OnboardingWavePainter extends CustomPainter {
       ..lineTo(size.width, 0)
       ..lineTo(pts.last.dx, pts.last.dy);
 
-    // Smooth edge from right → left through the keyframes.
     final edge = pts.reversed.toList();
     for (var i = 0; i < edge.length - 1; i++) {
       final p0 = i > 0 ? edge[i - 1] : edge[i];
@@ -96,7 +130,6 @@ class _OnboardingWavePainter extends CustomPainter {
       final p2 = edge[i + 1];
       final p3 = i + 2 < edge.length ? edge[i + 2] : edge[i + 1];
 
-      // Catmull-Rom → cubic for a continuous wavy edge.
       final cp1 = Offset(
         p1.dx + (p2.dx - p0.dx) / 6,
         p1.dy + (p2.dy - p0.dy) / 6,
@@ -115,6 +148,9 @@ class _OnboardingWavePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _OnboardingWavePainter oldDelegate) {
     return baseColor != oldDelegate.baseColor ||
-        waveRearColor != oldDelegate.waveRearColor;
+        waveRearColor != oldDelegate.waveRearColor ||
+        tealHeightFactor != oldDelegate.tealHeightFactor ||
+        lightHeightFactor != oldDelegate.lightHeightFactor ||
+        authMorph != oldDelegate.authMorph;
   }
 }

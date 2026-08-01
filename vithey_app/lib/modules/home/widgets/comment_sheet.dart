@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
@@ -28,9 +28,12 @@ class CommentSheet extends StatefulWidget {
 
 class _CommentSheetState extends State<CommentSheet> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   final _comments = <CommentModel>[].obs;
   final _isLoading = true.obs;
   final _isSending = false.obs;
+  final _likedIds = <String>{}.obs;
+  final _likeCounts = <String, int>{}.obs;
   final _repo = Get.find<PostRepository>();
   final _currentUser = Get.find<CurrentUserService>();
 
@@ -155,6 +158,7 @@ class _CommentSheetState extends State<CommentSheet> {
     _controller.text = '@$handle ';
     _controller.selection =
         TextSelection.collapsed(offset: _controller.text.length);
+    _focusNode.requestFocus();
   }
 
   void _startEdit(CommentModel comment) {
@@ -166,6 +170,7 @@ class _CommentSheetState extends State<CommentSheet> {
     _controller.text = comment.text;
     _controller.selection =
         TextSelection.collapsed(offset: _controller.text.length);
+    _focusNode.requestFocus();
   }
 
   Future<void> _delete(CommentModel comment) async {
@@ -198,6 +203,19 @@ class _CommentSheetState extends State<CommentSheet> {
     }
   }
 
+  void _toggleLike(CommentModel comment) {
+    final id = comment.id;
+    final liked = _likedIds.contains(id);
+    if (liked) {
+      _likedIds.remove(id);
+      _likeCounts[id] = ((_likeCounts[id] ?? 1) - 1).clamp(0, 999999);
+      if ((_likeCounts[id] ?? 0) == 0) _likeCounts.remove(id);
+    } else {
+      _likedIds.add(id);
+      _likeCounts[id] = (_likeCounts[id] ?? 0) + 1;
+    }
+  }
+
   List<CommentModel> _flattenThreaded(List<CommentModel> items) {
     final roots = items.where((c) => !c.isReply).toList();
     final replies = <String, List<CommentModel>>{};
@@ -212,226 +230,341 @@ class _CommentSheetState extends State<CommentSheet> {
     ];
   }
 
+  String _compactTime(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+    return '${(diff.inDays / 7).floor()}w';
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.45,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (_, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: context.appColors.cardSurface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 42,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.appColors.muted.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                child: Row(
-                  children: [
-                    Text(
-                      'Comments',
-                      style: TextStyle(
-                        color: context.appColors.heading,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${widget.post.commentCount}',
-                      style: TextStyle(
-                        color: context.appColors.muted,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, color: context.appColors.border),
-              Expanded(
-                child: Obx(() {
-                  if (_isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    );
-                  }
-                  if (_comments.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No comments yet. Be the first to comment.',
-                        style: TextStyle(
-                          color: context.appColors.muted,
-                          fontSize: 13,
-                        ),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(12, 8, 10, 12),
-                    itemCount: _comments.length,
-                    itemBuilder: (_, index) =>
-                        _buildComment(context, _comments[index]),
-                  );
-                }),
-              ),
-              _buildComposer(context),
-            ],
-          ),
-        );
-      },
-    );
-  }
+    final colors = context.appColors;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
 
-  Widget _buildComment(BuildContext context, CommentModel comment) {
-    final isReply = comment.isReply;
-    final isOwn = comment.isOwnedBy(_currentUser.userId);
     return Padding(
-      padding: EdgeInsets.fromLTRB(isReply ? 40 : 8, 4, 0, 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          UserAvatar(
-            name: comment.author.fullName,
-            imageUrl: comment.author.avatarUrl,
-            radius: isReply ? 15 : 18,
-          ),
-          const SizedBox(width: 9),
-          Expanded(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.94,
+        minChildSize: 0.55,
+        maxChildSize: 0.98,
+        expand: false,
+        builder: (_, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: colors.cardSurface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: context.appColors.cardSurface,
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: context.appColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        comment.author.fullName,
-                        style: TextStyle(
-                          color: context.appColors.heading,
-                          fontWeight: FontWeight.w600,
-                          fontSize: isReply ? 13 : 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        comment.text,
-                        style: TextStyle(
-                          color: context.appColors.heading,
-                          fontSize: 13,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+                    color: colors.muted.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(99),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 1, top: 5),
-                  child: Wrap(
-                    spacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  padding: const EdgeInsets.fromLTRB(16, 10, 12, 8),
+                  child: Row(
                     children: [
-                      _SheetCommentAction(label: 'Like', onTap: () {}),
-                      _SheetCommentAction(
-                        label: 'Reply',
-                        onTap: () => _replyTo(comment),
-                      ),
-                      if (isOwn) ...[
-                        _SheetCommentAction(
-                          label: 'Edit',
-                          onTap: () => _startEdit(comment),
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
                         ),
-                        _SheetCommentAction(
-                          label: 'Delete',
-                          color: context.scheme.error,
-                          onTap: () => _delete(comment),
-                        ),
-                      ],
-                      Text(
-                        RelativeTime.format(comment.createdAt),
-                        style: TextStyle(
-                          color: context.appColors.muted,
-                          fontSize: 11.5,
+                        child: const Icon(
+                          Icons.thumb_up,
+                          size: 12,
+                          color: Colors.white,
                         ),
                       ),
-                      if (comment.isPending)
-                        Text(
-                          'Sending…',
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Comments',
                           style: TextStyle(
-                            color: context.appColors.muted,
-                            fontSize: 11.5,
+                            color: colors.heading,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
+                      ),
+                      Text(
+                        widget.post.shareCount > 0
+                            ? '${widget.post.shareCount} shares'
+                            : '${widget.post.commentCount} comments',
+                        style: TextStyle(
+                          color: colors.muted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                Divider(height: 1, color: colors.border),
+                Expanded(
+                  child: Obx(() {
+                    if (_isLoading.value) {
+                      return const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    }
+                    if (_comments.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No comments yet. Be the first to comment.',
+                          style: TextStyle(color: colors.muted, fontSize: 14),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(12, 10, 8, 16),
+                      itemCount: _comments.length,
+                      itemBuilder: (_, index) =>
+                          _buildComment(context, _comments[index]),
+                    );
+                  }),
+                ),
+                _buildComposer(context),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
+  Widget _buildComment(BuildContext context, CommentModel comment) {
+    final colors = context.appColors;
+    final isReply = comment.isReply;
+    final isOwn = comment.isOwnedBy(_currentUser.userId);
+
+    return Obx(() {
+      final liked = _likedIds.contains(comment.id);
+      final likeCount = _likeCounts[comment.id] ?? 0;
+
+      return Padding(
+        padding: EdgeInsets.fromLTRB(isReply ? 36 : 4, 6, 4, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            UserAvatar(
+              name: comment.author.fullName,
+              imageUrl: comment.author.avatarUrl,
+              radius: isReply ? 14 : 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: comment.author.fullName,
+                                    style: TextStyle(
+                                      color: colors.heading,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: isReply ? 13.5 : 14.5,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: '  ·  ${_compactTime(comment.createdAt)}',
+                                    style: TextStyle(
+                                      color: colors.muted,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 12.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            _CommentText(
+                              text: comment.text,
+                              fontSize: isReply ? 13.5 : 14.5,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                _ActionLabel(
+                                  label: 'Reply',
+                                  onTap: () => _replyTo(comment),
+                                ),
+                                if (isOwn) ...[
+                                  const SizedBox(width: 14),
+                                  _ActionLabel(
+                                    label: 'Edit',
+                                    onTap: () => _startEdit(comment),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  _ActionLabel(
+                                    label: 'Delete',
+                                    color: context.scheme.error,
+                                    onTap: () => _delete(comment),
+                                  ),
+                                ],
+                                if (comment.isPending) ...[
+                                  const SizedBox(width: 14),
+                                  Text(
+                                    'Sending…',
+                                    style: TextStyle(
+                                      color: colors.muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                                if (likeCount > 0) ...[
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: colors.inputFill,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.thumb_up,
+                                          size: 12,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$likeCount',
+                                          style: TextStyle(
+                                            color: colors.heading,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 34,
+                              minHeight: 34,
+                            ),
+                            onPressed: () => _toggleLike(comment),
+                            icon: Icon(
+                              liked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_outlined,
+                              size: 18,
+                              color: liked
+                                  ? AppColors.primary
+                                  : colors.muted,
+                            ),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 34,
+                              minHeight: 34,
+                            ),
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.thumb_down_outlined,
+                              size: 18,
+                              color: colors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   Widget _buildComposer(BuildContext context) {
+    final colors = context.appColors;
+    final me = _currentUser.postAuthor;
     final modeLabel = _editingComment != null
         ? 'Editing comment'
         : _replyTarget != null
             ? 'Replying to ${_replyTarget!.author.fullName}'
             : null;
+    final hint = _editingComment != null
+        ? 'Edit your comment…'
+        : 'Comment as ${me.fullName.split(' ').first}';
+
+    // Avatar diameter == single-line input height (focus keeps same height).
+    const fieldHeight = 40.0;
+    const avatarRadius = fieldHeight / 2;
+    const maxLines = 5;
+
     return Container(
       decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        border: Border(top: BorderSide(color: context.appColors.border)),
+        color: colors.cardSurface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            10 + MediaQuery.viewInsetsOf(context).bottom,
-          ),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (modeLabel != null)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           modeLabel,
                           style: TextStyle(
-                            color: context.appColors.muted,
+                            color: colors.muted,
                             fontSize: 12.5,
                             fontWeight: FontWeight.w500,
                           ),
@@ -454,94 +587,118 @@ class _CommentSheetState extends State<CommentSheet> {
                     ],
                   ),
                 ),
-              Container(
-                constraints: const BoxConstraints(minHeight: 50),
-                decoration: BoxDecoration(
-                  color: context.appColors.cardSurface,
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: context.appColors.border),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        minLines: 1,
-                        maxLines: 3,
-                        style: TextStyle(
-                          color: context.appColors.heading,
-                          fontSize: 15,
-                        ),
-                        cursorColor: context.scheme.primary,
-                        decoration: InputDecoration(
-                          hintText: 'Amazing!',
-                          hintStyle: TextStyle(
-                            color: context.appColors.muted,
-                            fontSize: 15,
-                          ),
-                          filled: false,
-                          isDense: true,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.fromLTRB(
-                            14,
-                            15,
-                            8,
-                            14,
-                          ),
-                        ),
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _send(),
-                      ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Padding(
+                    // Keep avatar visually centered with the single-line pill.
+                    padding: const EdgeInsets.only(bottom: 0),
+                    child: UserAvatar(
+                      name: me.fullName,
+                      imageUrl: me.avatarUrl,
+                      radius: avatarRadius,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(2, 4, 4, 4),
-                      child: ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: _controller,
-                        builder: (_, value, __) => Obx(() {
-                          final canSend =
-                              value.text.trim().isNotEmpty && !_isSending.value;
-                          return SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: IconButton(
-                              tooltip: _editingComment != null
-                                  ? 'Save comment'
-                                  : 'Send comment',
-                              onPressed: canSend ? _send : null,
-                              style: IconButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                shape: const CircleBorder(),
-                                backgroundColor: context.scheme.primary,
-                                foregroundColor: context.scheme.onPrimary,
-                                disabledBackgroundColor:
-                                    context.appColors.inputFill,
-                                disabledForegroundColor:
-                                    context.appColors.muted,
-                              ),
-                              icon: _isSending.value
-                                  ? SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: context.scheme.onPrimary,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.send_rounded,
-                                      size: 20,
-                                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _controller,
+                      builder: (context, value, _) {
+                        final lineBreaks = '\n'.allMatches(value.text).length;
+                        final estimatedLines = (lineBreaks + 1).clamp(1, maxLines);
+                        final isMulti = estimatedLines > 1 ||
+                            value.text.length > 36;
+
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          curve: Curves.easeOut,
+                          constraints: BoxConstraints(
+                            minHeight: fieldHeight,
+                            maxHeight: fieldHeight * maxLines,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.cardSurface,
+                            borderRadius: BorderRadius.circular(
+                              isMulti ? 18 : fieldHeight / 2,
                             ),
-                          );
-                        }),
-                      ),
+                            border: Border.all(color: colors.border),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _controller,
+                                  focusNode: _focusNode,
+                                  minLines: 1,
+                                  maxLines: maxLines,
+                                  style: TextStyle(
+                                    color: colors.heading,
+                                    fontSize: 15,
+                                    height: 1.25,
+                                  ),
+                                  cursorColor: AppColors.primary,
+                                  decoration: InputDecoration(
+                                    hintText: hint,
+                                    hintStyle: TextStyle(
+                                      color: colors.muted,
+                                      fontSize: 15,
+                                      height: 1.25,
+                                    ),
+                                    filled: false,
+                                    isDense: true,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    // Symmetric padding so focused/unfocused
+                                    // single-line height stays == avatar (40).
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10.5,
+                                    ),
+                                  ),
+                                  textInputAction: TextInputAction.newline,
+                                  keyboardType: TextInputType.multiline,
+                                ),
+                              ),
+                              Obx(() {
+                                final canSend = value.text.trim().isNotEmpty &&
+                                    !_isSending.value;
+                                return SizedBox(
+                                  width: fieldHeight,
+                                  height: fieldHeight,
+                                  child: IconButton(
+                                    tooltip: _editingComment != null
+                                        ? 'Save'
+                                        : 'Send',
+                                    onPressed: canSend ? _send : null,
+                                    padding: EdgeInsets.zero,
+                                    icon: _isSending.value
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Icon(
+                                            Icons.send_rounded,
+                                            size: 22,
+                                            color: canSend
+                                                ? AppColors.primary
+                                                : colors.muted
+                                                    .withValues(alpha: 0.45),
+                                          ),
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -551,8 +708,8 @@ class _CommentSheetState extends State<CommentSheet> {
   }
 }
 
-class _SheetCommentAction extends StatelessWidget {
-  const _SheetCommentAction({
+class _ActionLabel extends StatelessWidget {
+  const _ActionLabel({
     required this.label,
     required this.onTap,
     this.color,
@@ -567,16 +724,57 @@ class _SheetCommentAction extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color ?? context.appColors.muted,
-            fontSize: 11.5,
-            fontWeight: FontWeight.w500,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color ?? context.appColors.muted,
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _CommentText extends StatelessWidget {
+  const _CommentText({required this.text, required this.fontSize});
+
+  final String text;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final spans = <InlineSpan>[];
+    final regex = RegExp(r'(@[A-Za-z0-9_]+)');
+    var start = 0;
+    for (final match in regex.allMatches(text)) {
+      if (match.start > start) {
+        spans.add(TextSpan(text: text.substring(start, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
           ),
         ),
+      );
+      start = match.end;
+    }
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start)));
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: TextStyle(
+          color: colors.heading,
+          fontSize: fontSize,
+          height: 1.35,
+        ),
+        children: spans.isEmpty ? [TextSpan(text: text)] : spans,
       ),
     );
   }

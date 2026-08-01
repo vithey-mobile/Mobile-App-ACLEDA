@@ -1,5 +1,8 @@
 # Profile About Screen - Edit Profile UI Update
 
+> **Status: applied (v1 UI complete).**  
+> Canonical spec: [`v1/07.profile_edit_info-v1.md`](v1/07.profile_edit_info-v1.md). Bottom-sheet Add / tap-to-edit behavior is implemented in the app.
+
 ## Objective
 
 Update the **Edit Profile Info** screen based on the new UI design.

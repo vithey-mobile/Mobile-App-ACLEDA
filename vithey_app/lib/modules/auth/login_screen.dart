@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
@@ -10,14 +10,14 @@ import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_panel_switcher.dart';
-import 'package:aub_connect_app/modules/auth/widgets/auth_teal_backdrop.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
+import 'package:aub_connect_app/modules/onboarding/widgets/onboarding_background.dart';
 
 /// Auth v2 shell:
-/// - Fixed teal back (auto height — fills space above the hugging white sheet)
+/// - Wave → solid teal morph from Onboarding (shared painter)
 /// - Light-teal wave band (~10% screen) + white body (hugs form content)
-/// - Toggle animation: sheet grows up / shrinks down to hug each form; logo eases with teal
+/// - Toggle animation: sheet grows up / shrinks down to hug each form
 class LoginScreen extends GetView<AuthController> {
   const LoginScreen({super.key});
 
@@ -25,43 +25,101 @@ class LoginScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const AuthTealBackdrop(),
-          Column(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    FormErrorHost.clearAll();
-                  },
-                  child: SafeArea(
-                    bottom: false,
-                    child: Center(
-                      child: Obx(() {
-                        final animating = controller.isPanelAnimating.value;
-                        return AnimatedOpacity(
-                          opacity: animating ? 0.9 : 1.0,
-                          duration: const Duration(milliseconds: 420),
-                          curve: Curves.easeInOut,
-                          child: const AppLogo(size: 108, onWhiteCircle: true),
-                        );
-                      }),
+      body: Obx(() {
+        final bgMorph = controller.bgMorph.value.clamp(0.0, 1.0);
+        final layout = controller.layoutReveal.value.clamp(0.0, 1.0);
+        final content = controller.contentOpacity.value.clamp(0.0, 1.0);
+        final busy = controller.isBusy.value;
+        final sheetSlide =
+            MediaQuery.sizeOf(context).height * 0.35 * (1.0 - layout);
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            OnboardingBackground(
+              waveHeightFactor: OnboardingBackground.onboardingFactor,
+              authMorph: bgMorph,
+            ),
+            Opacity(
+              opacity: content,
+              child: IgnorePointer(
+                ignoring: busy,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Column(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              FormErrorHost.clearAll();
+                            },
+                            child: SafeArea(
+                              bottom: false,
+                              child: Center(
+                                child: Obx(() {
+                                  final animating =
+                                      controller.isPanelAnimating.value;
+                                  return AnimatedOpacity(
+                                    opacity: animating ? 0.9 : 1.0,
+                                    duration: const Duration(milliseconds: 420),
+                                    curve: Curves.easeInOut,
+                                    child: const AppLogo(
+                                      size: 108,
+                                      onWhiteCircle: true,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Transform.translate(
+                          offset: Offset(0, sheetSlide),
+                          child: Opacity(
+                            opacity: layout,
+                            child: const AuthPanelSwitcher(
+                              signInForm: _SignInForm(),
+                              signUpForm: _SignUpForm(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: SafeArea(
+                        child: TextButton(
+                          onPressed: busy ? null : controller.goBack,
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(44, 44),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                          child: const Text(
+                            AppStrings.back,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const AuthPanelSwitcher(
-                signInForm: _SignInForm(),
-                signUpForm: _SignUpForm(),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -254,7 +312,7 @@ class _SignUpForm extends GetView<AuthController> {
                 ),
           ),
           const SizedBox(height: 16),
-          // Fields slide inside this padded lane (clipped — never to screen edge).
+          // Fields slide inside this padded lane (clipped ΓÇö never to screen edge).
           RegisterStepSlider(
             part1: FormErrorHost(
               formKey: controller.registerPart1FormKey,
@@ -311,7 +369,7 @@ class _SignUpForm extends GetView<AuthController> {
           const SizedBox(height: 14),
           Obx(() {
             final step = controller.registerStep.value;
-            // Part 1: labeled divider; Part 2: line only — same vertical chrome.
+            // Part 1: labeled divider; Part 2: line only ΓÇö same vertical chrome.
             return SocialDivider(
               label: step == 0 ? AppStrings.signInWith : null,
               fontSize: 12,

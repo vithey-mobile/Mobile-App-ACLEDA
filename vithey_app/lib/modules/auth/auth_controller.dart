@@ -4,18 +4,28 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
+import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:aub_connect_app/modules/onboarding/intro_morph.dart';
+import 'package:aub_connect_app/modules/onboarding/onboarding_controller.dart';
 import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register }
 
 class AuthController extends GetxController {
-  AuthController(this._authRepository);
+  AuthController(
+    this._authRepository, {
+    this.fadeContentIn = false,
+  });
 
   final AuthRepository _authRepository;
+
+  /// When true, crossfade from onboarding backdrop into Auth UI.
+  final bool fadeContentIn;
 
   final loginFormKey = GlobalKey<FormState>();
   final registerPart1FormKey = GlobalKey<FormState>();
@@ -51,6 +61,17 @@ class AuthController extends GetxController {
   /// True while Part 1 ↔ Part 2 field slide is running.
   final isRegisterStepAnimating = false.obs;
 
+  /// Intro morph: 0 = onboarding waves, 1 = full teal (Auth).
+  final bgMorph = 1.0.obs;
+
+  /// Intro morph: sheet + forms slide/fade in over teal.
+  final layoutReveal = 1.0.obs;
+
+  /// Intro morph: auth chrome + forms opacity.
+  final contentOpacity = 1.0.obs;
+
+  final isBusy = false.obs;
+
   DateTime? dateOfBirth;
 
   GoogleAccountSummary? selectedGoogleAccount;
@@ -63,6 +84,27 @@ class AuthController extends GetxController {
     super.onInit();
     final startOnSignUp = Get.currentRoute == AppRoutes.register;
     authPageIndex.value = startOnSignUp ? 1 : 0;
+
+    if (fadeContentIn) {
+      contentOpacity.value = 0;
+      layoutReveal.value = 0;
+      bgMorph.value = 0;
+      _enterFromOnboarding();
+    }
+  }
+
+  Future<void> _enterFromOnboarding() async {
+    await IntroMorph.run(IntroMorph.duration, (t) {
+      if (isClosed) return;
+      bgMorph.value = t;
+      layoutReveal.value = t;
+      contentOpacity.value = t;
+    });
+    if (!isClosed) {
+      layoutReveal.value = 1;
+      contentOpacity.value = 1;
+      bgMorph.value = 1;
+    }
   }
 
   void showSignIn() {
@@ -85,6 +127,22 @@ class AuthController extends GetxController {
     clearError();
     registerStep.value = 0;
     authPageIndex.value = 1;
+  }
+
+  /// Leave Auth toward Onboarding (morph when this is the root intro route).
+  Future<void> goBack() async {
+    if (isBusy.value) return;
+
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
+      return;
+    }
+
+    isBusy.value = true;
+    await Get.find<LocalStorageService>().setOnboardingCompleted(false);
+    IntroMorph.fromAuth = true;
+    IntroMorph.initialOnboardingPage = OnboardingController.totalPages - 1;
+    Get.offAllNamed(AppRoutes.onboarding);
   }
 
   void clearError() {
@@ -179,26 +237,57 @@ class AuthController extends GetxController {
   }
 
   void beginGoogleAuth({required AuthIntent intent}) {
-    if (!isGoogleAuthEnabled) {
-      Get.snackbar(
-        AppStrings.appName,
-        AppStrings.googleAuthComingSoon,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
-        messageText: Text(
-          '${AppStrings.googleAuthComingSoon}\n${AppStrings.googleAuthEnvHint}',
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-      return;
-    }
+    // UI chooser/confirmation is always available (mock or pre-Auth0).
+    // Real provider handoff remains behind adapter / mock auth repository.
     authIntent.value = intent;
+    selectedGoogleAccount = null;
     Get.toNamed(AppRoutes.googleAccountChooser);
   }
 
   Future<void> selectGoogleAccount(GoogleAccountSummary account) async {
     selectedGoogleAccount = account;
+    await Get.toNamed(AppRoutes.googleAuthConfirmation);
+  }
+
+  /// Success dialog only (3s). Caller fades then navigates to Screen 2.
+  Future<void> promptGoogleAccountAdded() async {
+    Get.dialog<void>(
+      barrierDismissible: false,
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            'New account added successfully.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(seconds: 3));
+    if (Get.isDialogOpen ?? false) {
+      Get.back<void>();
+    }
+    selectedGoogleAccount = const GoogleAccountSummary(
+      displayName: MockIdentities.mockUserFullName,
+      email: 'molika.ops@aub.edu.kh',
+    );
+  }
+
+  /// Add Account (legacy): dialog then Screen 2.
+  Future<void> addGoogleAccount() async {
+    await promptGoogleAccountAdded();
     Get.toNamed(AppRoutes.googleAuthConfirmation);
+  }
+
+  /// Bottom primary path — confirm with fixture account.
+  Future<void> newGoogleSignIn() async {
+    await selectGoogleAccount(
+      const GoogleAccountSummary(
+        displayName: MockIdentities.mockUserFullName,
+        email: 'molika.ops@aub.edu.kh',
+      ),
+    );
   }
 
   Future<void> completeGoogleAuth() async {
@@ -222,6 +311,16 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Cancel confirmation → back to chooser (Screen 1).
+  void backToGoogleChooser() {
+    if (Get.currentRoute == AppRoutes.googleAuthConfirmation) {
+      Get.back();
+      return;
+    }
+    cancelGoogleAuth();
+  }
+
+  /// Exit Google UI flow → Sign In / Register.
   void cancelGoogleAuth() {
     selectedGoogleAccount = null;
     Get.until((route) =>
@@ -271,8 +370,15 @@ class GoogleAccountSummary {
   const GoogleAccountSummary({
     required this.displayName,
     required this.email,
+    this.photoUrl,
   });
 
   final String displayName;
   final String email;
+  final String? photoUrl;
+
+  String get firstName {
+    final parts = displayName.trim().split(RegExp(r'\s+'));
+    return parts.isEmpty ? displayName : parts.first;
+  }
 }

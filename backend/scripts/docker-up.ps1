@@ -1,15 +1,16 @@
-# Start infrastructure only (Postgres, Redis, RabbitMQ, MinIO, Eureka, Config)
+# Start full Vithey stack (infra + all microservices)
 $ErrorActionPreference = "Stop"
-Set-Location (Join-Path $PSScriptRoot "..\infrastructure")
+Set-Location (Join-Path $PSScriptRoot "..")
 
-Write-Host "Starting Vithey infrastructure..." -ForegroundColor Cyan
-docker compose up -d
+Write-Host "Starting Vithey full stack..." -ForegroundColor Cyan
+docker compose up -d --build
 
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host ""
-Write-Host "Infrastructure is up. Build services from their folders, e.g.:" -ForegroundColor Green
-Write-Host "  cd services\auth-service" -ForegroundColor Green
-Write-Host "  docker compose up -d --build" -ForegroundColor Green
+Write-Host "Stack is starting. Check status:" -ForegroundColor Green
+Write-Host "  docker compose ps" -ForegroundColor Green
+Write-Host "  Invoke-RestMethod http://localhost:8080/actuator/health" -ForegroundColor Green
 Write-Host ""
-Write-Host "Or: ..\scripts\docker-build-service.ps1 auth-service -Up" -ForegroundColor Green
+Write-Host "Infra only:  cd infrastructure; docker compose up -d --build" -ForegroundColor DarkGray
+Write-Host "One service: .\scripts\docker-build-service.ps1 auth-service -Up" -ForegroundColor DarkGray

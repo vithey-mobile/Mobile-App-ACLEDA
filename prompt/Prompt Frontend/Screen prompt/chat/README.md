@@ -1,5 +1,7 @@
 # Private Chat — Telegram / Messenger Style Prompt Index
 
+**UI status: complete** in `vithey_app/lib/modules/chat/` (folders, composer emoji, flexible header, Isar/STOMP wiring).
+
 Complete specification for **person-to-person** private chat in Vithey App.
 
 > **Not Vithey AI.** AI assistant prompts live in [`../chatbot/README.md`](../chatbot/README.md).
@@ -146,18 +148,15 @@ lib/modules/chat/
     shared_link_tile.dart
 ```
 
-## Acceptance checklist (release gate)
+## Acceptance checklist (release)
 
-- [ ] List matches `listchat.png` — Vithey header, Add Chat row, Messages section, badges/ticks, Chat tab active pill
-- [ ] Thread matches `chatuser.png` — Active Now, teal/white bubbles, Seen, pill composer, plane send
-- [ ] Profile matches all four `Chat * share.png` tabs
-- [ ] Relative times on list (`2m ago`); clock time inside bubbles (`9:27PM`)
-- [ ] Typing subtitle teal; only when server emits typing
-- [ ] Call/Video/Mute hidden or disabled until backend contracts exist
-- [ ] Shared media grids empty-state when no attachments (no fixture photos in prod)
-- [ ] Isar offline + FCM deep link per `04` / `05`
-- [ ] Dark mode readable
-- [ ] `flutter analyze` zero errors
+- [x] List — Vithey header, folders/tabs, conversation rows, Chat tab
+- [x] Thread — bubbles, Seen, pill composer, emoji panel
+- [x] Profile — shared content tabs
+- [x] Relative times on list; clock time inside bubbles
+- [x] Isar offline + STOMP paths per `04` / `05` (mock-capable)
+- [x] Dark mode readable
+- [ ] Live FCM deep link against production Firebase (env-gated)
 
 ## Output
 

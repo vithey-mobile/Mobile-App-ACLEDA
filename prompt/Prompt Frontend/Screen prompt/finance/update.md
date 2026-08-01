@@ -1,5 +1,8 @@
 # Finance Screen UI Update
 
+> **Status: applied (v1 UI complete).**  
+> Canonical specs: [`v1/03.finance_home-v1.md`](v1/03.finance_home-v1.md) and siblings. Do not re-scaffold v0→v1 folders.
+
 ## Objective
 
 Update the **Finance Screen** UI.

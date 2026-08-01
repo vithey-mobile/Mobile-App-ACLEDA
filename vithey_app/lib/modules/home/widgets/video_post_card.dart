@@ -18,6 +18,7 @@ class VideoPostCard extends StatelessWidget {
     required this.onOpen,
     required this.onEdit,
     required this.onDelete,
+    this.onReact,
     this.onAuthorTap,
   });
 
@@ -29,6 +30,7 @@ class VideoPostCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final ValueChanged<PostReactionType>? onReact;
   final VoidCallback? onAuthorTap;
 
   String _formatDuration(int seconds) {
@@ -132,6 +134,7 @@ class VideoPostCard extends StatelessWidget {
             ),
       body: body,
       onLike: onLike,
+      onReact: onReact,
       onComment: onComment,
       onShare: onShare,
       onBodyTap: () {
@@ -140,7 +143,15 @@ class VideoPostCard extends StatelessWidget {
           onOpen();
           return;
         }
-        showMediaFullscreen(context, post);
+        showMediaFullscreen(
+          context,
+          post,
+          onLike: onLike,
+          onComment: onComment,
+          onShare: onShare,
+          onFollow: onFollow,
+          onAuthorTap: onAuthorTap,
+        );
       },
       onAuthorTap: onAuthorTap,
     );

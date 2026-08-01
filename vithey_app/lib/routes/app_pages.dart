@@ -8,8 +8,9 @@ import 'package:aub_connect_app/modules/auth/forgot_password_screen.dart';
 import 'package:aub_connect_app/modules/auth/google_auth_screen.dart';
 import 'package:aub_connect_app/modules/auth/login_screen.dart';
 import 'package:aub_connect_app/modules/create_post/create_post_screen.dart';
-import 'package:aub_connect_app/modules/home/home_binding.dart';
-import 'package:aub_connect_app/modules/home/home_screen.dart';
+import 'package:aub_connect_app/modules/shell/main_shell_screen.dart';
+import 'package:aub_connect_app/modules/reels/reels_binding.dart';
+import 'package:aub_connect_app/modules/reels/reels_screen.dart';
 import 'package:aub_connect_app/modules/apply_cv/apply_cv_binding.dart';
 import 'package:aub_connect_app/modules/apply_cv/apply_cv_screen.dart';
 import 'package:aub_connect_app/modules/apply_cv/apply_success_screen.dart';
@@ -24,6 +25,8 @@ import 'package:aub_connect_app/modules/profile/profile_binding.dart';
 import 'package:aub_connect_app/modules/profile/profile_screen.dart';
 import 'package:aub_connect_app/modules/onboarding/onboarding_binding.dart';
 import 'package:aub_connect_app/modules/onboarding/onboarding_screen.dart';
+import 'package:aub_connect_app/modules/select_language/select_language_binding.dart';
+import 'package:aub_connect_app/modules/select_language/select_language_screen.dart';
 import 'package:aub_connect_app/modules/splash/splash_controller.dart';
 import 'package:aub_connect_app/modules/splash/splash_screen.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_binding.dart';
@@ -89,24 +92,34 @@ class AppPages {
       binding: SplashBinding(),
     ),
     GetPage(
+      name: AppRoutes.selectLanguage,
+      page: () => const SelectLanguageScreen(),
+      binding: SelectLanguageBinding(),
+      transition: Transition.noTransition,
+    ),
+    GetPage(
       name: AppRoutes.onboarding,
       page: () => const OnboardingScreen(),
       binding: OnboardingBinding(),
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.auth,
       page: () => const LoginScreen(),
       binding: AuthBinding(),
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginScreen(),
       binding: AuthBinding(),
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterScreen(),
       binding: AuthBinding(),
+      transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.forgotPassword,
@@ -117,11 +130,15 @@ class AppPages {
       name: AppRoutes.googleAccountChooser,
       page: () => const GoogleAccountChooserScreen(),
       binding: AuthBinding(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 320),
     ),
     GetPage(
       name: AppRoutes.googleAuthConfirmation,
       page: () => const GoogleAuthConfirmationScreen(),
       binding: AuthBinding(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 320),
     ),
     GetPage(
       name: AppRoutes.startupSkills,
@@ -140,8 +157,13 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => const HomeScreen(),
-      binding: HomeBinding(),
+      page: () => const MainShellScreen(),
+      binding: MainShellBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.reels,
+      page: () => const ReelsScreen(),
+      binding: ReelsBinding(),
     ),
     GetPage(
       name: AppRoutes.createPost,

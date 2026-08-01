@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   static const _themeKey = 'theme_mode';
   static const _languageKey = 'language';
+  static const _languageSelectedKey = 'language_selected';
   static const _onboardingKey = 'onboarding_completed';
   static const _startupKey = 'startup_completed';
   static const _verificationStatusKey = 'verification_status';
@@ -19,6 +20,17 @@ class LocalStorageService {
   static const _notificationsRemindersKey = 'notifications_reminders';
   static const _notificationsAnnouncementsKey = 'notifications_announcements';
   static const _notificationsAppUpdatesKey = 'notifications_app_updates';
+  static const _chatFoldersKey = 'chat_folders_json';
+
+  Future<String?> readChatFoldersJson() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_chatFoldersKey);
+  }
+
+  Future<void> saveChatFoldersJson(String json) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_chatFoldersKey, json);
+  }
 
   Future<String?> readThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,6 +50,17 @@ class LocalStorageService {
   Future<void> saveLanguage(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_languageKey, value);
+  }
+
+  /// True after the user has completed Select Language (Apply or Skip).
+  Future<bool> isLanguageSelected() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_languageSelectedKey) ?? false;
+  }
+
+  Future<void> setLanguageSelected(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_languageSelectedKey, value);
   }
 
   Future<bool> isOnboardingCompleted() async {

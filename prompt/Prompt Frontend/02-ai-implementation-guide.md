@@ -12,9 +12,12 @@ Use this document to build Vithey App end-to-end with Cursor or another AI codin
 | Backend | `backend/` |
 | API contract | `api-intergration/integration-contract.md` |
 
-## Master prompt
+## Task prompt
 
-Use `MASTER_AI_PROMPT.md` — set `TASK:` to your prompt file. Read order: `_shared/READ_ORDER.md`.
+Give the coding agent the relevant prompt file as its task and follow
+`_shared/READ_ORDER.md`. Use
+`Prompt Frontend/03-flutter-code-audit-and-refactor.md` for an existing-code
+audit, reusable-widget refactor, hard-code cleanup, or safe unused-code removal.
 
 ## Recommended build order
 

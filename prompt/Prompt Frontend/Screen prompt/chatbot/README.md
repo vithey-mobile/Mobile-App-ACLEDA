@@ -1,5 +1,7 @@
 # Vithey AI Chatbot — New Design Prompt Index
 
+**UI status: complete** in `vithey_app/lib/modules/chatbot/` (home, suggestions, history drawer, composer, reasoning UI).
+
 Complete specification for the **new Vithey AI** experience — minimal ChatGPT-style UI from updated reference screens.
 
 ## Product goal

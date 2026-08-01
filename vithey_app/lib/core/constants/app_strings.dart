@@ -127,4 +127,17 @@ class AppStrings {
   static const chatCallAction = 'Call';
   static const chatVideoAction = 'Video';
   static const chatMuteAction = 'Mute';
+  static const chatSearchHint = 'Search chats';
+  static const chatFolderAll = 'All';
+  static const chatFolderUnread = 'Unread';
+  static const chatFolders = 'Folders';
+  static const chatManageFolders = 'Manage folders';
+  static const chatNewFolder = 'New folder';
+  static const chatRenameFolder = 'Rename folder';
+  static const chatDeleteFolder = 'Delete folder';
+  static const chatFolderNameHint = 'Folder name';
+  static const chatMoveToFolder = 'Move to folder';
+  static const chatRemoveFromFolder = 'Remove from folder';
+  static const chatAddChatsToFolder = 'Add chats to folder';
+  static const chatNoChatsToAdd = 'No more chats to add';
 }

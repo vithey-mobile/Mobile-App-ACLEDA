@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/chat/chat_detail_controller.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_composer.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_detail_header.dart';
+import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
 import 'package:aub_connect_app/modules/chat/widgets/jump_to_latest_chip.dart';
 import 'package:aub_connect_app/modules/chat/widgets/message_bubble.dart';
@@ -93,6 +94,8 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
                             participantAvatarUrl: controller.participant.value?.avatarUrl,
                             onRetry: () => controller.retryMessage(message),
                             onLongPress: () => controller.showMessageActions(message),
+                            onReactionTap: (emoji) =>
+                                controller.reactToMessage(message, emoji),
                             showSeenLabel: controller.shouldShowSeenLabelInThread(index),
                           ),
                         ],
@@ -128,11 +131,33 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
               onCancel: controller.cancelReply,
             );
           }),
-          ChatComposer(
-            controller: controller.messageController,
-            isSending: controller.isSending,
-            onSend: controller.sendMessage,
+          Obx(
+            () => ChatComposer(
+              controller: controller.messageController,
+              isSending: controller.isSending,
+              onSend: () {
+                controller.hideEmojiPanel();
+                controller.sendMessage();
+              },
+              attachments: List.from(controller.pendingAttachments),
+              onAddAttachment: controller.openAttachmentMenu,
+              onRemoveAttachment: controller.removePendingAttachment,
+              showEmojiPanel: controller.showEmojiPanel.value,
+              onToggleEmoji: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+                controller.toggleEmojiPanel();
+              },
+              onFocusText: controller.hideEmojiPanel,
+            ),
           ),
+          Obx(() {
+            if (!controller.showEmojiPanel.value) {
+              return const SizedBox.shrink();
+            }
+            return ChatEmojiPanel(
+              onEmojiSelected: controller.insertEmoji,
+            );
+          }),
         ],
       ),
     );

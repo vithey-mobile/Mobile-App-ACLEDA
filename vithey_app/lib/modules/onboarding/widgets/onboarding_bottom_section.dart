@@ -74,19 +74,24 @@ class OnboardingBottomChrome extends StatelessWidget {
     required this.currentPage,
     required this.totalPages,
     required this.onNext,
+    this.isLastSlide,
   });
 
   final int currentPage;
   final int totalPages;
   final VoidCallback onNext;
 
+  /// When set, overrides `currentPage == totalPages - 1` for Get Started label
+  /// (needed when dots include Select Language as step 0).
+  final bool? isLastSlide;
+
   @override
   Widget build(BuildContext context) {
-    final isLast = currentPage == totalPages - 1;
+    final isLast = isLastSlide ?? (currentPage == totalPages - 1);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(24, 0, 24, 16 + bottomInset),
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

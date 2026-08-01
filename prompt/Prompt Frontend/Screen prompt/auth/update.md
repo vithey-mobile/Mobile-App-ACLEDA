@@ -1,127 +1,179 @@
-# Update Request: Startup Screen
+# Auth Screen Background Update
 
-## Overview
+> **Status: applied (v1 UI complete).**  
+> This brief drove the Auth wave-background redesign. Do **not** re-implement from scratch — code lives under `vithey_app/lib/modules/auth/` (and shared wave widgets with Splash / Select Language / Onboarding).  
+> Canonical prompts: [`README.md`](README.md) → `v1/04`–`v1/07`.
 
-Update the existing Startup Screen while preserving the current architecture and navigation flow. Only implement the changes described below. Do not modify unrelated screens or features.
+## Objective
+
+Update all **Auth** screens so they follow the same visual design language as the other startup screens.
+
+### Reference
+
+Use the existing implementations as the design reference:
+
+- Splash Screen
+- Language Screen
+- Onboarding Screens
+
+These screens already have the correct background implementation.
 
 ---
 
-## 1. Add Content Transition Animation
+# Overall Goal
+
+The Auth screens should feel like they belong to the same design system as the Splash, Language, and Onboarding screens.
+
+Reuse the same background concept, colors, and design language while allowing each Auth screen to have its own unique wave shape.
+
+---
+
+# Background Design
+
+Update every Auth screen to use the shared background design.
+
+## Background Colors
+
+Use the same three background layers:
+
+- Teal
+- White
+- White (50% opacity)
+
+Do not introduce new colors.
+
+---
+
+## Wave Shapes
+
+The White and White 50% layers should be implemented as wave shapes.
 
 ### Requirements
 
-- Add a smooth slide animation when navigating between Startup pages.
-- The animation should work for both:
-  - **Next**
-  - **Back**
-- Only the **content section** should animate.
-- The following components must remain fixed:
-  - AppBar
-  - Bottom action buttons
-- Do not animate the entire screen.
-- The transition should be smooth and feel natural in both directions.
+- Each Auth screen should have its own unique wave shape.
+- The curve, bend, and angle should vary between screens.
+- The design language should remain consistent across all screens.
+- Reuse the same drawing/material implementation whenever possible.
+- Avoid creating separate implementations for each screen.
+
+Examples:
+
+- Different curve height
+- Different curve angle
+- Different bending position
+- Different wave depth
+
+Although every screen looks different, they should clearly belong to the same visual family.
 
 ---
 
-## 2. Standardize Startup Page Interaction
+# Existing Screens
 
-Currently, **startup-2** has the correct interaction behavior.
+The following screens already have the correct implementation:
 
-Update all other Startup pages so they follow the same interaction logic.
+- Splash Screen
+- Language Screen
+- Onboarding Screens
 
-### Important
+Use these as the reference implementation.
 
-This update is **only about behavior**, **not** the UI design.
-
-Do **not** copy the appearance of `startup-2`.
-
-Each Startup page should keep its own:
-
-- Layout
-- Design
-- Colors
-- Icons
-- Typography
-- Shapes
-- Spacing
-- Overall visual style
-
-Only make the interaction behave consistently across all Startup pages.
-
-### Interaction Requirements
-
-When a user taps or selects an option:
-
-- The selected option should immediately update to its active state.
-- The icon should change to its selected/active state.
-- The text should change to its selected/active state.
-- The border should change to its selected/active state.
-- Previously selected options should return to their inactive state.
-- The interaction should behave exactly like `startup-2`.
-
-The visual styling of each page should remain unique. Only the selection behavior should be shared.
-
-### Implementation Notes
-
-- Reuse the existing interaction logic from `startup-2` where possible.
-- Avoid duplicating code.
-- Create reusable components if appropriate.
-- Preserve the existing UI design of every Startup page.
+Only update the **Auth** screens.
 
 ---
 
-## 3. Improve Dark & Light Mode Support
+# Auth Background
 
-Update all Startup pages to fully support both Light Mode and Dark Mode.
+Replace the current Auth background.
 
 ### Requirements
 
-- Icons should adapt correctly.
-- Text colors should follow the current theme.
-- Buttons should use the app's theme.
-- Borders and backgrounds should adapt correctly.
-- Avoid hardcoded colors whenever possible.
-- Use the existing theme system throughout the Startup feature.
+- Match the background style used by the other startup screens.
+- Implement the layered Teal + White + White 50% design.
+- Ensure the White layers use wave shapes instead of simple containers.
+- Maintain responsive behavior across different screen sizes.
 
 ---
 
-## 4. Update the AppBar
+# Auth Content Layout
 
-Replace the current AppBar title.
+Update the placement of the Auth content.
 
-### Current
+## Current Issue
 
-```
-Vithey StartUp
-```
+Some content is currently placed inside the White background layer.
 
-### New
+This makes the background behave like a container instead of a decorative background.
 
-- Replace the text with the application logo.
-- The logo should fit naturally within the AppBar.
-- Maintain the logo's aspect ratio.
-- Vertically center the logo.
-- Do not make the logo appear too large or too small.
+## New Behavior
 
----
+The wave shapes should remain purely decorative.
 
-## Constraints
+The Auth content should be positioned independently of the background.
 
-- Only modify the Startup feature.
-- Do not change the Startup flow.
-- Do not modify unrelated screens.
-- Preserve the existing project architecture.
-- Keep the implementation clean and reusable.
-- Avoid introducing breaking changes.
-- Follow the existing coding style and project conventions.
+Requirements:
+
+- Do not place content inside the White or White 50% layers.
+- Treat the wave layers as background elements only.
+- Position the Auth content above the background using the normal screen layout.
 
 ---
 
-## Expected Result
+# Content Alignment
 
-- Smooth slide animation when navigating between Startup pages.
-- Only the content area animates while the AppBar and bottom buttons remain fixed.
-- All Startup pages have consistent interaction behavior.
-- Each Startup page keeps its own unique UI design.
-- Full support for both Light Mode and Dark Mode.
-- The AppBar displays the application logo instead of the text "Vithey StartUp".
+Update the layout of every Auth screen.
+
+### Requirements
+
+- Place the content inside a `Column`.
+- Use `MainAxisAlignment.end`.
+- The content should start from the bottom portion of the screen.
+- Apply **30px padding** around the content.
+- Keep spacing consistent across every Auth screen.
+
+---
+
+# Consistency
+
+All Auth-related screens should follow the same visual language.
+
+Examples include:
+
+- Sign In
+- Sign Up
+- Forgot Password
+- Reset Password
+- Verify Code
+- Google Auth screens
+- Any other Auth screens
+
+Each screen may have:
+
+- Different wave angles
+- Different wave curves
+- Different wave positions
+
+However, they must all use the same:
+
+- Background colors
+- Wave material
+- Design language
+- Overall visual identity
+
+---
+
+# Design Requirements
+
+- Match the Splash, Language, and Onboarding screens as closely as possible.
+- Keep the UI modern, clean, and consistent.
+- Support responsive layouts.
+- Support both Light Mode and Dark Mode where applicable.
+
+---
+
+# Implementation Notes
+
+- Preserve all existing business logic.
+- Do not modify navigation or authentication functionality.
+- Reuse the existing background implementation whenever possible.
+- Avoid duplicate implementations.
+- Keep the code modular, reusable, and maintainable.

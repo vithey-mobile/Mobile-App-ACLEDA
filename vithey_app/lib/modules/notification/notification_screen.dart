@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
@@ -12,7 +14,9 @@ import 'package:aub_connect_app/modules/notification/widgets/notification_item_s
 import 'package:aub_connect_app/modules/notification/widgets/notification_list_entrance.dart';
 
 class NotificationScreen extends GetView<NotificationController> {
-  const NotificationScreen({super.key});
+  const NotificationScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +25,7 @@ class NotificationScreen extends GetView<NotificationController> {
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
         backgroundColor: context.appColors.bodyBackground,
         foregroundColor: context.appColors.heading,
         titleSpacing: 0,
@@ -50,6 +55,15 @@ class NotificationScreen extends GetView<NotificationController> {
           ],
         );
       }),
+      bottomNavigationBar: embedded
+          ? null
+          : AppBottomNavigation(
+              currentIndex: MainTabNavigation.notifications,
+              onTap: (index) => MainTabNavigation.handle(
+                index,
+                currentIndex: MainTabNavigation.notifications,
+              ),
+            ),
     );
   }
 
@@ -95,7 +109,7 @@ class NotificationScreen extends GetView<NotificationController> {
         },
         child: ListView(
           controller: controller.scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             ..._buildAnimatedSections(),

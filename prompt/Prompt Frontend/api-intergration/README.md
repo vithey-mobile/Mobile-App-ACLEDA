@@ -24,7 +24,7 @@ Do not create or use API integration prompts in `reference/`, screen prompt fold
 
 ## Build Command
 
-Use this in `MASTER_AI_PROMPT.md` when the backend and UI shell are ready:
+Give the coding agent this task when the backend and UI shell are ready:
 
 ```text
 TASK: Prompt Frontend/api-intergration/00-api-intergration-prompt.md

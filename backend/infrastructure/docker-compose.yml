@@ -1,3 +1,9 @@
+# Infrastructure only. Prefer full stack from backend/:
+#   docker compose up -d --build
+#
+# Infra-only from this folder:
+#   docker compose up -d --build
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -38,6 +44,7 @@ services:
     env_file:
       - .env.example
     ports:
+      - "5672:5672"
       - "15672:15672"
     volumes:
       - vithey-rabbitmq-data:/var/lib/rabbitmq

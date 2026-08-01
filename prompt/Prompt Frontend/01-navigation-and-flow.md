@@ -4,19 +4,26 @@
 
 ```mermaid
 flowchart TD
-    A[Splash /splash] --> B{Has valid token?}
-    B -->|Yes| H[Home]
-    B -->|No| C{First time user?}
-    C -->|Yes| D[Onboarding]
-    C -->|No| E[Auth Login/Register]
+    A["Splash /splash"] --> B{Has valid token?}
+    B -->|Yes| H[Home MainShell]
+    B -->|No| L{Language selected?}
+    L -->|No| SL["Select Language"]
+    L -->|Yes| C{Onboarding done?}
+    SL --> C
+    C -->|No| D[Onboarding]
+    C -->|Yes| E[Auth Login/Register]
     D --> E
-    E --> H
+    E --> S{Startup done?}
+    S -->|No| ST[Startup skills/interests/discovery]
+    S -->|Yes| H
+    ST --> H
 ```
 
 ## Main navigation (after login)
 
 ```text
-Home (feed)
+Home (MainShell — feed tab)
+├── Reels (full-screen / tab)
 ├── Create Post
 ├── Post Detail → Apply CV (job posts)
 ├── Profile (self or other user)
@@ -36,14 +43,17 @@ Home (feed)
 
 | From screen | User action | To screen |
 |-------------|-------------|-----------|
-| Splash | Auto after token check | Home, Onboarding, or Auth |
+| Splash | Auto after intro / token check | Select Language, Onboarding, Auth, Startup, or Home |
+| Select Language | Apply / Skip | Onboarding or Auth (if onboarding done) |
 | Onboarding | Skip / Get Started | Login |
 | Auth | Login / Register success | Home or Startup |
 | Auth | Forgot password? | Forgot Password |
+| Auth | Continue with Google | Google account chooser → confirm |
 | Home | Tap post | Post Detail |
 | Home | Tap Apply on job | Apply CV |
 | Home | Tap avatar | Profile |
 | Home | Nav: Chat | Chat |
+| Home | Nav: Reels | Reels |
 | Home | Nav: Notifications | Notification |
 | Home | Nav: Create | Create Post |
 | Home | App bar search icon | Search |
@@ -63,6 +73,8 @@ Home (feed)
 | Student Verification | Contact support | Chatbot (prefilled) |
 | Student Verification | Success | Finance |
 | Finance | Not verified gate | Student Verification |
+| Settings | Edit account | Edit Account |
+| Settings | Notification preferences | Notification preferences |
 | Settings | Privacy practices | Privacy Practices article |
 | Settings | Logout | Auth |
 
@@ -73,6 +85,7 @@ Defined in `lib/core/constants/app_routes.dart` — keep in sync with this doc.
 | Route constant | Path | Screen |
 |----------------|------|--------|
 | `splash` | `/splash` | Splash |
+| `selectLanguage` | `/select-language` | Select Language |
 | `onboarding` | `/onboarding` | Onboarding |
 | `auth` / `login` | `/auth`, `/login` | Login |
 | `register` | `/register` | Register |
@@ -82,7 +95,8 @@ Defined in `lib/core/constants/app_routes.dart` — keep in sync with this doc.
 | `startupSkills` | `/startup/skills` | Startup skills |
 | `startupInterests` | `/startup/interests` | Startup interests |
 | `startupDiscovery` | `/startup/discovery` | Startup discovery |
-| `home` | `/home` | Home |
+| `home` | `/home` | Home (MainShell) |
+| `reels` | `/reels` | Reels |
 | `createPost` | `/create-post` | Create Post |
 | `postDetail` | `/posts/detail` | Post Detail |
 | `applyCv` | `/apply-cv` | Apply CV |
@@ -106,8 +120,10 @@ Defined in `lib/core/constants/app_routes.dart` — keep in sync with this doc.
 | `searchSeeAll` | `/search/see-all` | Search see all |
 | `settings` | `/settings` | Settings home |
 | `settingsAccount` | `/settings/account` | Account |
+| `settingsEditAccount` | `/settings/account/edit` | Edit account |
 | `settingsPrivacy` | `/settings/privacy` | Privacy |
 | `settingsPrivacyPractices` | `/settings/privacy/practices` | Privacy article |
+| `settingsNotifications` | `/settings/notifications` | Notification preferences |
 | `settingsSecurity` | `/settings/security` | Security |
 | `settingsChangePassword` | `/settings/security/change-password` | Change password |
 | `settingsHelpCenter` | `/settings/help-center` | Help center |

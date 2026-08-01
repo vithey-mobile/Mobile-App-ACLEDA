@@ -1,5 +1,7 @@
 # Job Apply — CV Upload & Application Status Prompt Index
 
+**UI status: complete** in `vithey_app/lib/modules/apply_cv/`.
+
 Complete specification for the **Apply Job** wizard and **Apply Status** tracking in Vithey App.
 
 ## Product goal

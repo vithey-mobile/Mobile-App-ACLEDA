@@ -11,10 +11,12 @@ class ConversationListTile extends StatelessWidget {
     super.key,
     required this.conversation,
     required this.onTap,
+    this.onLongPress,
   });
 
   final ConversationModel conversation;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   String get _subtitle {
     if (conversation.isTyping) return AppStrings.chatTyping;
@@ -36,6 +38,7 @@ class ConversationListTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(

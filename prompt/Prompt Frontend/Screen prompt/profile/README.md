@@ -1,6 +1,18 @@
 # Profile — Prompt Index (Facebook / Vithey Style)
 
+**UI status: v1 complete** in `vithey_app/lib/modules/profile/`.
+
 Complete specification for the **user profile module** matching `Prompt Frontend/screen image/profile/`.
+
+## Folder layout
+
+| Path | Contents |
+| --- | --- |
+| `v0/` | Archive — original profile prompts |
+| `v1/` | **Current implemented UI** (`*-v1.md`) |
+| Root | `update.md` (edit-profile bottom-sheet brief — applied in v1 edit flow), this README |
+
+Implement and maintain **`v1/` only**.
 
 ## Product goal
 
@@ -11,7 +23,7 @@ Deliver a production-quality profile experience:
 - Stats row: **Likes · Followers · Following**
 - Owner vs visitor action buttons
 - **5 scrollable tabs:** About, Videos, Posters, Jobs, Applied Jobs
-- Bottom navigation with Profile tab active
+- Bottom navigation with Profile tab active (via MainShell)
 - Job owner flows: applicants list, CV preview, accept/reject
 
 ## Backend stack (profile data)
@@ -23,7 +35,7 @@ Deliver a production-quality profile experience:
 | Posts / likes / follows | `content-service` | 8084 |
 | Saved CV | `career-service` | 8085 |
 
-API contract: [`06.profile_api_backend.md`](06.profile_api_backend.md)  
+API contract: [`v0/08.profile_api_backend.md`](v0/08.profile_api_backend.md) (API doc; still valid)  
 Backend prompts: `Prompt Backend/services/user-profile-service/`
 
 ## Visual references
@@ -40,53 +52,34 @@ Backend prompts: `Prompt Backend/services/user-profile-service/`
 | Application list (owner) | `Application list screen.png` |
 | Applicant detail / CV | `Job List Detail.png` |
 | Feedback submitted | `Feed back submitted.png` |
-| Legacy shell | `profile_home.png`, `profile_about.png`, `profile_video.png`, `profile_job.png` |
 
-## Reading order
+## Reading order (v1)
 
 | # | Prompt | Delivers |
 |---|--------|----------|
-| 1 | [`01.profile_home.md`](01.profile_home.md) | Shell, wavy header, stats, actions, 5 tabs, owner/visitor |
-| 2 | [`02.profile.about.md`](02.profile.about.md) | Skills rings, personal details, links, contact |
-| 3 | [`03.profile_poster.md`](03.profile_poster.md) | Posters tab — feed-style cards |
-| 4 | [`profile_video.md`](profile_video.md) | Videos tab — thumbnail + play overlay |
-| 5 | [`profile_job.md`](profile_job.md) | Jobs tab — owner cards + applicant count |
-| 6 | [`04.profile_applied_jobs.md`](04.profile_applied_jobs.md) | Applied Jobs tab (own profile only) |
-| 7 | [`05.profile_edit_info.md`](05.profile_edit_info.md) | Edit personal info screen |
-| 8 | [`06.profile_api_backend.md`](06.profile_api_backend.md) | **REST contract** — read/update/avatar/settings, v1 field matrix |
-| 9 | [`poster_job/list_poster_job.md`](poster_job/list_poster_job.md) | Owner job management list |
-| 10 | [`poster_job/list_cv_apply_job.md`](poster_job/list_cv_apply_job.md) | Application list per job |
-| 11 | [`poster_job/applicant_detail.md`](poster_job/applicant_detail.md) | Applicant CV / experience detail |
-| 12 | [`poster_job/preview_cv.md`](poster_job/preview_cv.md) | Secure CV preview + Accept/Reject |
-| 13 | [`preview_own_cv.md`](preview_own_cv.md) | Own saved CV preview |
+| 1 | [`v1/01.profile_home-v1.md`](v1/01.profile_home-v1.md) | Shell, wavy header, stats, actions, 5 tabs |
+| 2 | [`v1/02.profile.about-v1.md`](v1/02.profile.about-v1.md) | Skills, personal details, links, contact |
+| 3 | [`v1/03.profile_video-v1.md`](v1/03.profile_video-v1.md) | Videos tab |
+| 4 | [`v1/04.profile_poster-v1.md`](v1/04.profile_poster-v1.md) | Posters tab |
+| 5 | [`v1/05.profile_job-v1.md`](v1/05.profile_job-v1.md) | Jobs tab |
+| 6 | [`v1/06.profile_applied_jobs-v1.md`](v1/06.profile_applied_jobs-v1.md) | Applied Jobs tab |
+| 7 | [`v1/07.profile_edit_info-v1.md`](v1/07.profile_edit_info-v1.md) | Edit personal info (Add / tap-to-edit sheets) |
+| 8 | [`v1/poster_job/03.applicant_detail-v1.md`](v1/poster_job/03.applicant_detail-v1.md) | Applicant detail |
 
-Job application flow: [`../job_apply/README.md`](../job_apply/README.md).
+Related archive job flows still useful: `v0/poster_job/*`, `v0/09.preview_own_cv.md`.  
+Job application wizard: [`../job_apply/README.md`](../job_apply/README.md).
 
 ## Tab visibility matrix
 
 | Tab | Own profile | Visitor profile |
 |-----|-------------|-----------------|
-| About | ✅ | ✅ |
-| Videos | ✅ | ✅ |
-| Posters | ✅ | ✅ |
-| Jobs | ✅ (owner management) | ✅ (Apply when eligible) |
-| Applied Jobs | ✅ | ❌ hidden |
+| About | Yes | Yes |
+| Videos | Yes | Yes |
+| Posters | Yes | Yes |
+| Jobs | Yes (owner management) | Yes (Apply when eligible) |
+| Applied Jobs | Yes | Hidden |
 
-## Ownership boundaries
-
-| File | Owns |
-|------|------|
-| Profile Home | Shell, wavy header, avatar, stats, action row, tab bar |
-| About | Skills, personal details, public links |
-| Posters | `type=POSTER` feed cards |
-| Videos | `type=VIDEO` thumbnail list |
-| Jobs | `type=JOB` cards; owner **View List** / visitor **Apply** |
-| Applied Jobs | Current user's submitted applications |
-| Update Information | Owner edit form — v1 fields per `06.profile_api_backend.md` |
-| Applicants | Owner-only list per job post |
-| Applicant detail | Experience/education timeline + decisions |
-
-## Module architecture (target)
+## Module architecture (implemented)
 
 ```text
 lib/modules/profile/
@@ -94,37 +87,26 @@ lib/modules/profile/
   profile_controller.dart
   profile_binding.dart
   edit_profile_screen.dart
-  edit_profile_controller.dart
   job_applicants_screen.dart
   applicant_detail_screen.dart
+  cv_screens.dart
   widgets/
     profile_wavy_header.dart
-    profile_avatar.dart
-    profile_stats_row.dart
-    profile_action_row.dart
-    profile_tab_bar.dart
-    profile_skills_row.dart
-    profile_personal_details.dart
+    profile_tabs.dart
     profile_video_card.dart
-    profile_job_card.dart
-    profile_applied_job_empty.dart
+    ...
 ```
 
-## Acceptance checklist
+## Acceptance checklist (v1 release)
 
-- [ ] Wavy teal header matches `Own Profile (About).png`
-- [ ] Stats show Likes / Followers / Following with K formatting
-- [ ] Owner: Edit profile info + Verify student + Share
-- [ ] Visitor: Follow + Message + Share
-- [ ] 5 scrollable tabs; Applied Jobs hidden for visitors
-- [ ] About: circular skill progress rings + personal details
-- [ ] Videos: play overlay thumbnail cards
-- [ ] Jobs owner: "5 Application" badge + View List
-- [ ] Applied Jobs empty state matches reference
-- [ ] Edit personal info matches `Profile (Update Information).png`
-- [ ] Application list matches `Application list screen.png`
-- [ ] `flutter analyze` zero errors
+- [x] Wavy teal header + avatar + stats
+- [x] Owner / visitor actions
+- [x] 5 scrollable tabs; Applied Jobs hidden for visitors
+- [x] About / Videos / Posters / Jobs / Applied Jobs UIs
+- [x] Edit profile info (v1 bottom-sheet Add / edit)
+- [x] Applicant list / detail / CV preview routes
+- [x] Wired into MainShell Profile tab
 
 ## Output
 
-Implement the full profile module by following prompts **01 → 06** then job/applicant sub-prompts. Extend existing `lib/modules/profile/` — do not rewrite from scratch.
+Maintain the profile module via **v1** prompts. Extend existing `lib/modules/profile/` — do not rewrite from scratch.

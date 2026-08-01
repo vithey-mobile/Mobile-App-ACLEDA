@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -15,6 +18,7 @@ class MessageBubble extends StatelessWidget {
     this.participantAvatarUrl,
     this.onRetry,
     this.onLongPress,
+    this.onReactionTap,
     this.showSeenLabel = false,
   });
 
@@ -24,6 +28,7 @@ class MessageBubble extends StatelessWidget {
   final String? participantAvatarUrl;
   final VoidCallback? onRetry;
   final VoidCallback? onLongPress;
+  final ValueChanged<String>? onReactionTap;
   final bool showSeenLabel;
 
   String _formatBubbleTime(DateTime time) {
@@ -80,56 +85,154 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-                    decoration: BoxDecoration(
-                      color: message.isDeleted ? bubbleColor.withValues(alpha: 0.7) : bubbleColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isOwn ? 16 : 4),
-                        bottomRight: Radius.circular(isOwn ? 4 : 16),
-                      ),
-                      border: isOwn ? null : Border.all(color: context.appColors.border),
+                  if (!message.isDeleted && message.attachments.isNotEmpty) ...[
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      alignment:
+                          isOwn ? WrapAlignment.end : WrapAlignment.start,
+                      children: message.attachments
+                          .map(
+                            (a) => _BubbleAttachment(
+                              attachment: a,
+                              isOwn: isOwn,
+                            ),
+                          )
+                          .toList(),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            displayText,
-                            style: TextStyle(
-                              color: message.isDeleted ? textColor.withValues(alpha: 0.7) : textColor,
-                              fontSize: 15,
-                              height: 1.4,
-                              fontStyle: message.isDeleted ? FontStyle.italic : FontStyle.normal,
+                    if (displayText.trim().isNotEmpty) const SizedBox(height: 6),
+                  ],
+                  if (message.isDeleted || displayText.trim().isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                      decoration: BoxDecoration(
+                        color: message.isDeleted
+                            ? bubbleColor.withValues(alpha: 0.7)
+                            : bubbleColor,
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(16),
+                          topRight: const Radius.circular(16),
+                          bottomLeft: Radius.circular(isOwn ? 16 : 4),
+                          bottomRight: Radius.circular(isOwn ? 4 : 16),
+                        ),
+                        border: isOwn
+                            ? null
+                            : Border.all(color: context.appColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              displayText,
+                              style: TextStyle(
+                                color: message.isDeleted
+                                    ? textColor.withValues(alpha: 0.7)
+                                    : textColor,
+                                fontSize: 15,
+                                height: 1.4,
+                                fontStyle: message.isDeleted
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _formatBubbleTime(message.createdAt),
-                              style: TextStyle(fontSize: 11, color: timeColor),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _formatBubbleTime(message.createdAt),
+                                style:
+                                    TextStyle(fontSize: 11, color: timeColor),
+                              ),
+                              if (message.isFailed) ...[
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: onRetry,
+                                  child: const Text(
+                                    'Retry',
+                                    style: TextStyle(
+                                      color: AppColors.error,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (message.attachments.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatBubbleTime(message.createdAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: context.appColors.muted,
                             ),
-                            if (message.isFailed) ...[
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: onRetry,
-                                child: const Text(
-                                  'Retry',
-                                  style: TextStyle(color: AppColors.error, fontSize: 11),
+                          ),
+                          if (message.isFailed) ...[
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: onRetry,
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(
+                                  color: AppColors.error,
+                                  fontSize: 11,
                                 ),
                               ),
-                            ],
+                            ),
                           ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  if (!message.isDeleted && message.reactions.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      alignment:
+                          isOwn ? WrapAlignment.end : WrapAlignment.start,
+                      children: message.reactions.map((reaction) {
+                        return GestureDetector(
+                          onTap: onReactionTap == null
+                              ? null
+                              : () => onReactionTap!(reaction.emoji),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: reaction.reactedByMe
+                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  : context.appColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: reaction.reactedByMe
+                                    ? AppColors.primary.withValues(alpha: 0.5)
+                                    : context.appColors.border,
+                              ),
+                            ),
+                            child: Text(
+                              reaction.count > 1
+                                  ? '${reaction.emoji} ${reaction.count}'
+                                  : reaction.emoji,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   if (showSeenLabel && isOwn && message.status == MessageDeliveryStatus.read)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, right: 4),
@@ -144,6 +247,71 @@ class MessageBubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BubbleAttachment extends StatelessWidget {
+  const _BubbleAttachment({
+    required this.attachment,
+    required this.isOwn,
+  });
+
+  final ChatAttachment attachment;
+  final bool isOwn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 110,
+      height: 110,
+      decoration: BoxDecoration(
+        color: isOwn
+            ? Colors.white.withValues(alpha: 0.15)
+            : context.appColors.inputFill,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isOwn
+              ? Colors.white.withValues(alpha: 0.25)
+              : context.appColors.border.withValues(alpha: 0.7),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: attachment.isImage
+          ? Image.file(
+              File(attachment.path),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.broken_image_outlined,
+                color: isOwn ? Colors.white70 : context.appColors.muted,
+              ),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  attachment.isVideo
+                      ? Icons.videocam_rounded
+                      : Icons.insert_drive_file_rounded,
+                  color: isOwn ? Colors.white : AppColors.primary,
+                  size: 26,
+                ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    attachment.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isOwn ? Colors.white : context.appColors.heading,
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

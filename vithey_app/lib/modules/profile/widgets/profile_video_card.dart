@@ -40,7 +40,13 @@ class ProfileVideoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => showMediaFullscreen(context, post),
+            onTap: () => showMediaFullscreen(
+              context,
+              post,
+              onLike: onLike,
+              onComment: onComment,
+              onShare: onShare,
+            ),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Stack(

@@ -61,6 +61,14 @@ abstract final class UserFixtures {
       MockIds.author5 => 'Meas Lily',
       MockIds.author6 => 'Ponloeng Bora',
       MockIds.author7 => 'Moeng Kimheang',
+      MockIds.author8 => 'Sokha Phan',
+      MockIds.author9 => 'Dara Lim',
+      MockIds.author10 => 'Vanna Chea',
+      MockIds.author11 => 'Pisey Nget',
+      MockIds.author12 => 'Rith Sok',
+      MockIds.author13 => 'Sophea Keo',
+      MockIds.author14 => 'New Contact',
+      MockIds.author15 => 'Study Group AUB',
       _ => 'Unknown',
     };
   }
@@ -282,6 +290,10 @@ abstract final class UserFixtures {
       ChatParticipant(id: MockIds.author5, fullName: 'Meas Lily', isOnline: true),
       ChatParticipant(id: MockIds.author7, fullName: 'Moeng Kimheang', isOnline: true),
       ChatParticipant(id: MockIds.author6, fullName: 'Ponloeng Bora'),
+      ChatParticipant(id: MockIds.author2, fullName: 'Molika Khorn', isOnline: true),
+      ChatParticipant(id: MockIds.author8, fullName: 'Sokha Phan'),
+      ChatParticipant(id: MockIds.author9, fullName: 'Dara Lim', isOnline: true),
+      ChatParticipant(id: MockIds.author11, fullName: 'Pisey Nget'),
     ];
   }
 }

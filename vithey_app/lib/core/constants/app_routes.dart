@@ -2,6 +2,7 @@ class AppRoutes {
   AppRoutes._();
 
   static const splash = '/splash';
+  static const selectLanguage = '/select-language';
   static const onboarding = '/onboarding';
   static const auth = '/auth';
   static const login = '/login';
@@ -13,6 +14,7 @@ class AppRoutes {
   static const startupInterests = '/startup/interests';
   static const startupDiscovery = '/startup/discovery';
   static const home = '/home';
+  static const reels = '/reels';
   static const createPost = '/create-post';
   static const postDetail = '/posts/detail';
   static const applyCv = '/apply-cv';

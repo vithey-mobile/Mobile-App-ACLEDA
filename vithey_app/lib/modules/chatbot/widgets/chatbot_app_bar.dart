@@ -4,39 +4,54 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 PreferredSizeWidget buildChatbotAppBar({
   required VoidCallback onMenu,
-  required VoidCallback onNewChat,
+  required VoidCallback onBackHome,
 }) {
   return AppBar(
     elevation: 0,
-    centerTitle: false,
-    leading: _CircleIconButton(icon: Icons.menu, onPressed: onMenu),
-    title: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Text(
-        'Vithey AI',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+    scrolledUnderElevation: 0,
+    centerTitle: true,
+    backgroundColor: Colors.transparent,
+    leading: _CircleIconButton(
+      icon: Icons.menu_rounded,
+      tooltip: 'Menu',
+      onPressed: onMenu,
+    ),
+    title: Material(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(22),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(
+          'Vithey AI',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+          ),
+        ),
       ),
     ),
     actions: [
-      _CircleIconButton(icon: Icons.chevron_right, onPressed: onNewChat),
+      _CircleIconButton(
+        icon: Icons.arrow_back_rounded,
+        tooltip: 'Back to home',
+        onPressed: onBackHome,
+      ),
       const SizedBox(width: 8),
     ],
-    bottom: const PreferredSize(
-      preferredSize: Size.fromHeight(1),
-      child: Divider(height: 1),
-    ),
   );
 }
 
 class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onPressed});
+  const _CircleIconButton({
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +61,8 @@ class _CircleIconButton extends StatelessWidget {
         color: context.appColors.inputFill,
         shape: const CircleBorder(),
         child: IconButton(
-          icon: Icon(icon, size: 22),
-          tooltip: icon == Icons.chevron_right ? 'New Chat' : 'Menu',
+          icon: Icon(icon, size: 22, color: context.appColors.heading),
+          tooltip: tooltip,
           onPressed: onPressed,
         ),
       ),

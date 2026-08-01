@@ -1,4 +1,5 @@
 export 'app_app_bar.dart';
+export 'app_bottom_navigation.dart';
 export 'app_error_widget.dart';
 export 'app_logo.dart';
 export 'confirm_dialog.dart';

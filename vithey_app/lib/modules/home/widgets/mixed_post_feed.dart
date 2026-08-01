@@ -10,49 +10,96 @@ import 'package:aub_connect_app/modules/home/widgets/poster_post_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/video_post_card.dart';
 
 class MixedPostFeed extends StatelessWidget {
-  const MixedPostFeed({super.key});
+  const MixedPostFeed({super.key, this.topSlivers = const []});
+
+  /// Pinned / leading slivers above the feed (flexible header, composer, …).
+  final List<Widget> topSlivers;
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
 
     return Obx(() {
-      if (controller.isInitialLoading.value) {
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 5, bottom: 90),
-          itemCount: 3,
-          itemBuilder: (_, __) => const _FeedCardSkeleton(),
-        );
-      }
-
-      if (controller.hasError.value && controller.posts.isEmpty) {
-        return AppErrorWidget(
-          message: controller.errorMessage.value,
-          onRetry: controller.retryFeed,
-        );
-      }
-
-      if (controller.posts.isEmpty) {
-        return EmptyStateWidget(
-          title: 'Nothing here yet',
-          subtitle: 'Follow people or create your first post',
-          actionLabel: 'Create Post',
-          onAction: () => controller.openCreatePost(),
-        );
-      }
-
       return RefreshIndicator(
         onRefresh: controller.refreshFeed,
-        child: ListView.builder(
-          padding: const EdgeInsets.only(top: 5, bottom: 92),
-          itemCount: controller.posts.length + 1,
-          itemBuilder: (context, index) {
+        edgeOffset: topSlivers.isEmpty ? 0 : 40,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            ...topSlivers,
+            ..._bodySlivers(controller),
+          ],
+        ),
+      );
+    });
+  }
+
+  List<Widget> _bodySlivers(HomeController controller) {
+    if (controller.isInitialLoading.value) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 5, bottom: 90),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, __) => const _FeedCardSkeleton(),
+              childCount: 3,
+            ),
+          ),
+        ),
+      ];
+    }
+
+    if (controller.hasError.value && controller.posts.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: AppErrorWidget(
+            message: controller.errorMessage.value,
+            onRetry: controller.retryFeed,
+          ),
+        ),
+      ];
+    }
+
+    if (controller.posts.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyStateWidget(
+            title: 'Nothing here yet',
+            subtitle: 'Follow people or create your first post',
+            actionLabel: 'Create Post',
+            onAction: () => controller.openCreatePost(),
+          ),
+        ),
+      ];
+    }
+
+    return [
+      ContentedSliverList(controller: controller),
+    ];
+  }
+}
+
+class ContentedSliverList extends StatelessWidget {
+  const ContentedSliverList({super.key, required this.controller});
+
+  final HomeController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.only(top: 5, bottom: 92),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
             if (index == controller.posts.length) {
               if (controller.isLoadingMore.value) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child:
-                      Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 );
               }
               if (controller.paginationError.value) {
@@ -81,9 +128,10 @@ class MixedPostFeed extends StatelessWidget {
               controller: controller,
             );
           },
+          childCount: controller.posts.length + 1,
         ),
-      );
-    });
+      ),
+    );
   }
 }
 
@@ -101,6 +149,8 @@ class _FeedPostItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final common = (
       onLike: () => controller.toggleReaction(post.id),
+      onReact: (PostReactionType type) =>
+          controller.setReaction(post.id, type),
       onComment: () => controller.openComments(post.id),
       onShare: () => controller.openShareSheet(post.id),
       onOpen: () => controller.openPost(post.id),
@@ -112,6 +162,7 @@ class _FeedPostItem extends StatelessWidget {
         return PosterPostCard(
           post: post,
           onLike: common.onLike,
+          onReact: common.onReact,
           onComment: common.onComment,
           onShare: common.onShare,
           onFollow: () => controller.toggleFollow(post.author.id),
@@ -124,6 +175,7 @@ class _FeedPostItem extends StatelessWidget {
         return VideoPostCard(
           post: post,
           onLike: common.onLike,
+          onReact: common.onReact,
           onComment: common.onComment,
           onShare: common.onShare,
           onFollow: () => controller.toggleFollow(post.author.id),
@@ -136,11 +188,13 @@ class _FeedPostItem extends StatelessWidget {
         return JobPosterCard(
           post: post,
           onLike: common.onLike,
+          onReact: common.onReact,
           onComment: common.onComment,
           onShare: common.onShare,
           onApply: () => controller.openJobApplication(post.id),
           onOpen: common.onOpen,
           onAuthorTap: common.onAuthorTap,
+          onFollow: () => controller.toggleFollow(post.author.id),
           onEdit: () => controller.editPost(post),
           onDelete: () => controller.deletePost(context, post),
         );

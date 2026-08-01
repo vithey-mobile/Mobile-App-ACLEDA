@@ -1,7 +1,12 @@
 # Vithey App — DevOps Common Context
 
 ## Objective
-Provide Docker-based local development and GitHub Actions CI/CD that builds and publishes container images to **GitHub Container Registry (GHCR)**. Phase 2 adds a Docker Compose monitoring stack (Prometheus, Grafana, Loki). Production server provisioning (VPS, Nginx, SSL) remains out of scope for now.
+**Development:** Docker Compose for local full-stack runs.  
+**Production:** Kubernetes (GKE / OpenShift / other) pulling the same images.  
+**CI/CD:** GitHub Actions builds and publishes images to **GitHub Container Registry (GHCR)**.  
+Local monitoring uses Docker Compose (Prometheus, Grafana, Loki); cluster monitoring is part of the production K8s phase.
+
+Shareable plan: `DEVOPS_REQUIREMENTS_PROPOSAL.md`.
 
 ## App Stack
 | Layer | Technology |
@@ -13,13 +18,18 @@ Provide Docker-based local development and GitHub Actions CI/CD that builds and 
 | Config | Spring Cloud Config :8888 |
 | Data | PostgreSQL 16, Redis 7, RabbitMQ 3, MinIO |
 
-## Explicitly Excluded (v1 DevOps)
-Do **not** create prompts, configs, or workflows for:
-- Ubuntu VPS provisioning
-- Nginx / Traefik / Caddy reverse proxy
-- Certbot / Let's Encrypt SSL
-- Kubernetes manifests (defer to later phase)
-- OpenTelemetry collectors (defer to later phase)
+## Environment split
+| Env | Runtime | Notes |
+|-----|---------|--------|
+| Development | Docker Compose | `backend/docker-compose.yml` — one command for all services |
+| Production | Kubernetes | Manifests/Helm; Ingress+TLS → api-gateway only |
+| Images | Same GHCR tags | `ghcr.io/<owner>/vithey-<service>:sha-*` |
+
+## Explicitly Excluded (early DevOps phases)
+Do **not** treat Docker Compose as the production runtime.  
+Defer until the K8s phase is scheduled:
+- Full OpenTelemetry collectors (optional)
+- Bank SOC / network policies (unless provided)
 
 ## Observability (v2 — `v1/08-monitoring-observability-prompt.md`)
 
