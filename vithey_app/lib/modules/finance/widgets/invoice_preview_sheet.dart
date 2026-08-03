@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/finance/widgets/finance_status_colors.dart';
 
 class InvoicePreviewSheet {
   static Future<void> show({
     required PaymentInvoice invoice,
     required Future<void> Function() onDownload,
   }) {
+    final context = Get.context!;
     return Get.bottomSheet<void>(
       _InvoiceSheet(invoice: invoice, onDownload: onDownload),
       isScrollControlled: true,
-      backgroundColor: Get.context!.scheme.surface,
+      backgroundColor: context.scheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -44,88 +46,241 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
     }
   }
 
+  void _reportIssue() {
+    Get.snackbar(AppStrings.appName, 'Report an issue is coming soon');
+  }
+
   @override
   Widget build(BuildContext context) {
     final invoice = widget.invoice;
+    final theme = _InvoiceTheme.fromStatus(invoice.status);
     final date = invoice.status == PaymentStatus.paid ? invoice.paidAt : invoice.dueAt;
-    final dateLabel = invoice.status == PaymentStatus.paid ? 'Paid Date' : 'Due Date';
 
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 12,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: context.appColors.border, borderRadius: BorderRadius.circular(4)),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
-          ),
-          Text(invoice.feeName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          Text(invoice.invoiceReference, style: TextStyle(color: context.appColors.muted)),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: context.appColors.inputFill,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                _StatusPill(label: invoice.statusLabel, status: invoice.status),
-                const Spacer(),
-                if (date != null) Text('$dateLabel: ${_formatDate(date)}'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text('BREAKDOWN', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-          const SizedBox(height: 10),
-          _BreakdownRow(label: 'Base Amount', value: invoice.baseAmount.formatted),
-          _BreakdownRow(label: 'Processing Fee', value: invoice.processingFee.formatted),
-          _BreakdownRow(label: 'Late Charges', value: invoice.lateCharges.formatted),
-          const Divider(height: 24),
-          Row(
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(invoice.totalLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              Text(invoice.total.formatted, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.appColors.border,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                invoice.feeName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: context.appColors.heading,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                invoice.invoiceReference,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: context.appColors.muted,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: theme.panelFill,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'STATUS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: context.appColors.muted,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.pillColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              invoice.statusLabel.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'DATE',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: context.appColors.muted,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            date != null ? _formatDate(date) : '—',
+                            style: TextStyle(
+                              color: theme.accent,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'BREAKDOWN',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                  fontSize: 12,
+                  color: context.appColors.muted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _BreakdownRow(
+                label: 'Base Amount',
+                value: invoice.baseAmount.formatted,
+              ),
+              _BreakdownRow(
+                label: 'Processing Fee',
+                value: invoice.processingFee.formatted,
+              ),
+              _BreakdownRow(
+                label: 'Late Charge',
+                value: invoice.lateCharges.formatted,
+                valueColor: theme.moneyAccent,
+              ),
+              Divider(height: 28, color: context.appColors.border),
+              Row(
+                children: [
+                  Text(
+                    'Total Due',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: context.appColors.heading,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    invoice.total.formatted,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: theme.moneyAccent,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              _InvoiceActionButton(
+                label: 'Download PDF Invoice',
+                icon: Icons.download_outlined,
+                isLoading: _downloading,
+                onPressed: _download,
+              ),
+              const SizedBox(height: 10),
+              _InvoiceActionButton(
+                label: 'Report an Issue',
+                icon: Icons.help_outline,
+                onPressed: _reportIssue,
+              ),
             ],
           ),
-          const SizedBox(height: 24),
-          CustomButton(
-            label: 'Download PDF Invoice',
-            icon: Icons.download_outlined,
-            isLoading: _downloading,
-            onPressed: _download,
-          ),
-        ],
+        ),
       ),
     );
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
 
+class _InvoiceTheme {
+  const _InvoiceTheme({
+    required this.panelFill,
+    required this.pillColor,
+    required this.accent,
+    required this.moneyAccent,
+  });
+
+  final Color panelFill;
+  final Color pillColor;
+  final Color accent;
+  final Color moneyAccent;
+
+  factory _InvoiceTheme.fromStatus(PaymentStatus status) {
+    final color = FinanceStatusColors.invoiceAccent(status);
+    return _InvoiceTheme(
+      panelFill: FinanceStatusColors.invoicePanelFill(status),
+      pillColor: color,
+      accent: color,
+      moneyAccent: color,
+    );
+  }
+}
+
 class _BreakdownRow extends StatelessWidget {
-  const _BreakdownRow({required this.label, required this.value});
+  const _BreakdownRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
 
   final String label;
   final String value;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -135,37 +290,63 @@ class _BreakdownRow extends StatelessWidget {
         children: [
           Text(label, style: TextStyle(color: context.appColors.muted)),
           const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? context.appColors.heading,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label, required this.status});
+class _InvoiceActionButton extends StatelessWidget {
+  const _InvoiceActionButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.isLoading = false,
+  });
 
   final String label;
-  final PaymentStatus status;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (status) {
-      case PaymentStatus.paid:
-        color = AppColors.success;
-      case PaymentStatus.overdue:
-        color = AppColors.error;
-      case PaymentStatus.unpaid:
-        color = AppColors.warning;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: FilledButton.icon(
+        onPressed: isLoading ? null : onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: isLoading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Icon(icon, size: 20),
+        label: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+        ),
       ),
-      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
-import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
+import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 import 'package:aub_connect_app/data/repositories/finance_repository.dart';
+import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/finance/widgets/invoice_preview_sheet.dart';
 
@@ -20,7 +21,7 @@ class FinanceController extends GetxController {
   final hasError = false.obs;
   final errorMessage = ''.obs;
   final showAll = false.obs;
-  final currentTab = MainTabNavigation.home.obs;
+  final currentTab = 1.obs;
 
   @override
   void onInit() {
@@ -104,9 +105,25 @@ class FinanceController extends GetxController {
   }
 
   void onTabSelected(int index) {
-    MainTabNavigation.handle(
-      index,
-      currentIndex: MainTabNavigation.home,
-    );
+    currentTab.value = index;
+    switch (index) {
+      case 0:
+        Get.offNamed(AppRoutes.home);
+        break;
+      case 1:
+        break;
+      case 2:
+        Get.offNamed(AppRoutes.createPost);
+        break;
+      case 3:
+        Get.offNamed(AppRoutes.chat);
+        break;
+      case 4:
+        Get.offNamed(
+          AppRoutes.profile,
+          arguments: ProfileArgs(userId: ProfileRepository.currentUserId),
+        );
+        break;
+    }
   }
 }
