@@ -101,7 +101,15 @@ class EditAccountSettingsController extends GetxController {
   List<ProfileSkill> _normalizedSkills() {
     return skills
         .where((skill) => skill.name.trim().isNotEmpty)
-        .map((skill) => ProfileSkill(name: skill.name.trim(), proficiency: skill.proficiency.clamp(0, 100)))
+        .map(
+          (skill) => ProfileSkill(
+            name: skill.name.trim(),
+            proficiency: skill.proficiency.clamp(0, 100),
+            colorValue: skill.colorValue,
+            iconKey: skill.iconKey,
+            iconPath: skill.iconPath,
+          ),
+        )
         .toList();
   }
 
@@ -131,6 +139,9 @@ class EditAccountSettingsController extends GetxController {
     skills[index] = ProfileSkill(
       name: name ?? current.name,
       proficiency: current.proficiency,
+      colorValue: current.colorValue,
+      iconKey: current.iconKey,
+      iconPath: current.iconPath,
     );
     skills.assignAll(List<ProfileSkill>.from(skills));
   }

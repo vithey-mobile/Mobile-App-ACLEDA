@@ -14,21 +14,26 @@ class ProfileStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _StatItem(
-            label: 'Likes',
-            value: formatProfileCount(profile.likeCount),
+          Expanded(
+            child: _StatItem(
+              label: 'Likes',
+              value: formatProfileCount(profile.likeCount),
+            ),
           ),
-          _StatItem(
-            label: 'Followers',
-            value: formatProfileCount(profile.followerCount),
+          Expanded(
+            child: _StatItem(
+              label: 'Followers',
+              value: formatProfileCount(profile.followerCount),
+            ),
           ),
-          _StatItem(
-            label: 'Following',
-            value: formatProfileCount(profile.followingCount),
+          Expanded(
+            child: _StatItem(
+              label: 'Following',
+              value: formatProfileCount(profile.followingCount),
+            ),
           ),
         ],
       ),
@@ -51,17 +56,19 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             fontSize: 17,
             color: heading,
+            height: 1.15,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             color: muted,
-            fontSize: 12,
+            fontSize: 13,
+            height: 1.1,
           ),
         ),
       ],
@@ -97,16 +104,17 @@ class ProfileActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final heading = context.appColors.heading;
-    final verifyFill = context.appColors.inputFill;
     final primary = Theme.of(context).colorScheme.primary;
     final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final border = context.appColors.border;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       child: Row(
         children: [
           if (isOwnProfile) ...[
             Expanded(
+              flex: 5,
               child: SizedBox(
                 height: _buttonHeight,
                 child: FilledButton.icon(
@@ -135,26 +143,21 @@ class ProfileActionRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
+              flex: 4,
               child: SizedBox(
                 height: _buttonHeight,
-                child: FilledButton.icon(
+                child: OutlinedButton(
                   onPressed: onVerifyStudent,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: verifyFill,
+                  style: OutlinedButton.styleFrom(
                     foregroundColor: heading,
-                    elevation: 0,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    side: BorderSide(color: border),
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_radius),
                     ),
                   ),
-                  icon: Icon(
-                    isStudentVerified
-                        ? Icons.verified_outlined
-                        : Icons.verified_user_outlined,
-                    size: 16,
-                  ),
-                  label: Text(
+                  child: Text(
                     isStudentVerified ? 'Review Verify' : 'Verify Student',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -232,15 +235,22 @@ class ProfileActionRow extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(width: 4),
-          IconButton(
-            onPressed: onShare,
-            tooltip: 'Share',
-            icon: const Icon(Icons.ios_share, size: 22),
-            color: primary,
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: _buttonHeight,
+            height: _buttonHeight,
+            child: OutlinedButton(
+              onPressed: onShare,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: primary,
+                side: BorderSide(color: primary),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(_radius),
+                ),
+              ),
+              child: const Icon(Icons.ios_share, size: 20),
+            ),
           ),
         ],
       ),

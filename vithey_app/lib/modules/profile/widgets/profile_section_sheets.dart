@@ -1,27 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/data/models/profile_skill_catalog.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_sheet.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
+import 'package:aub_connect_app/modules/profile/widgets/skill_icon.dart';
 
 /// Typed Add/Edit sheets. Controllers live inside each form State so drag-dismiss
 /// and Submit never dispose listeners while TextFields are still mounted.
 
-Future<ProfileSkill?> showSkillSheet(
+/// Shared save / remove result for edit-profile section sheets.
+class ProfileSheetResult<T> {
+  const ProfileSheetResult.saved(this.value) : deleted = false;
+  const ProfileSheetResult.deleted()
+      : value = null,
+        deleted = true;
+
+  final T? value;
+  final bool deleted;
+}
+
+/// Legacy alias used by skills wiring.
+typedef SkillSheetResult = ProfileSheetResult<ProfileSkill>;
+
+Widget Function(BuildContext) _removeTrailing<T>({
+  required String title,
+  required String message,
+}) {
+  return (ctx) => TextButton(
+        onPressed: () async {
+          final confirmed = await showConfirmDialog(
+            context: ctx,
+            title: title,
+            message: message,
+            confirmLabel: 'Remove',
+            variant: ConfirmDialogVariant.destructive,
+          );
+          if (confirmed != true || !ctx.mounted) return;
+          Navigator.pop(ctx, ProfileSheetResult<T>.deleted());
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: Theme.of(ctx).colorScheme.error,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          minimumSize: const Size(0, 36),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: const Text(
+          'Remove',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      );
+}
+
+Future<ProfileSheetResult<ProfileSkill>?> showSkillSheet(
   BuildContext context, {
   ProfileSkill? existing,
 }) {
-  return showEditProfileSheet<ProfileSkill>(
+  return showEditProfileSheet<ProfileSheetResult<ProfileSkill>>(
     context: context,
     title: existing == null ? 'Add skill' : 'Edit skill',
+    titleTrailing: existing == null
+        ? null
+        : _removeTrailing<ProfileSkill>(
+            title: 'Remove skill',
+            message: 'Are you sure you want to remove "${existing.name}"?',
+          ),
     builder: (ctx) => _SkillForm(sheetContext: ctx, existing: existing),
   );
 }
 
-Future<String?> showBioSheet(BuildContext context, {String? existing}) {
-  return showEditProfileSheet<String>(
+Future<ProfileSheetResult<String>?> showBioSheet(
+  BuildContext context, {
+  String? existing,
+}) {
+  final hasExisting = existing != null && existing.trim().isNotEmpty;
+  return showEditProfileSheet<ProfileSheetResult<String>>(
     context: context,
-    title: (existing == null || existing.trim().isEmpty) ? 'Add bio' : 'Edit bio',
+    title: hasExisting ? 'Edit bio' : 'Add bio',
+    titleTrailing: hasExisting
+        ? _removeTrailing<String>(
+            title: 'Remove bio',
+            message: 'Are you sure you want to remove your bio?',
+          )
+        : null,
     builder: (ctx) => _BioForm(sheetContext: ctx, existing: existing ?? ''),
   );
 }
@@ -38,15 +106,25 @@ class PersonalDetailsResult {
   final DateTime? dateOfBirth;
 }
 
-Future<PersonalDetailsResult?> showPersonalDetailsSheet(
+Future<ProfileSheetResult<PersonalDetailsResult>?> showPersonalDetailsSheet(
   BuildContext context, {
   String location = '',
   String gender = '',
   DateTime? dateOfBirth,
 }) {
-  return showEditProfileSheet<PersonalDetailsResult>(
+  final hasExisting = location.trim().isNotEmpty ||
+      gender.trim().isNotEmpty ||
+      dateOfBirth != null;
+  return showEditProfileSheet<ProfileSheetResult<PersonalDetailsResult>>(
     context: context,
     title: 'Personal details',
+    titleTrailing: hasExisting
+        ? _removeTrailing<PersonalDetailsResult>(
+            title: 'Remove personal details',
+            message:
+                'Are you sure you want to remove your personal details?',
+          )
+        : null,
     builder: (ctx) => _PersonalForm(
       sheetContext: ctx,
       location: location,
@@ -56,46 +134,81 @@ Future<PersonalDetailsResult?> showPersonalDetailsSheet(
   );
 }
 
-Future<ProfileWorkEntry?> showWorkSheet(
+Future<ProfileSheetResult<ProfileWorkEntry>?> showWorkSheet(
   BuildContext context, {
   ProfileWorkEntry? existing,
 }) {
-  return showEditProfileSheet<ProfileWorkEntry>(
+  return showEditProfileSheet<ProfileSheetResult<ProfileWorkEntry>>(
     context: context,
     title: existing == null ? 'Add work' : 'Edit work',
+    titleTrailing: existing == null
+        ? null
+        : _removeTrailing<ProfileWorkEntry>(
+            title: 'Remove work',
+            message:
+                'Are you sure you want to remove "${existing.displayLabel}"?',
+          ),
     builder: (ctx) => _WorkForm(sheetContext: ctx, existing: existing),
   );
 }
 
-Future<ProfileEducationEntry?> showEducationSheet(
+Future<ProfileSheetResult<ProfileEducationEntry>?> showEducationSheet(
   BuildContext context, {
   ProfileEducationEntry? existing,
 }) {
-  return showEditProfileSheet<ProfileEducationEntry>(
+  return showEditProfileSheet<ProfileSheetResult<ProfileEducationEntry>>(
     context: context,
     title: existing == null ? 'Add education' : 'Edit education',
+    titleTrailing: existing == null
+        ? null
+        : _removeTrailing<ProfileEducationEntry>(
+            title: 'Remove education',
+            message: 'Are you sure you want to remove "${existing.school}"?',
+          ),
     builder: (ctx) => _EducationForm(sheetContext: ctx, existing: existing),
   );
 }
 
-Future<ProfileLinkEntry?> showLinkSheet(
+Future<ProfileSheetResult<ProfileLinkEntry>?> showLinkSheet(
   BuildContext context, {
   ProfileLinkEntry? existing,
 }) {
-  return showEditProfileSheet<ProfileLinkEntry>(
+  return showEditProfileSheet<ProfileSheetResult<ProfileLinkEntry>>(
     context: context,
     title: existing == null ? 'Add link' : 'Edit link',
+    titleTrailing: existing == null
+        ? null
+        : _removeTrailing<ProfileLinkEntry>(
+            title: 'Remove link',
+            message: 'Are you sure you want to remove "${existing.platform}"?',
+          ),
     builder: (ctx) => _LinkForm(sheetContext: ctx, existing: existing),
   );
 }
 
-Future<ProfileContactEntry?> showContactSheet(
+Future<ProfileSheetResult<ProfileContactEntry>?> showContactSheet(
   BuildContext context, {
   ProfileContactEntry? existing,
 }) {
-  return showEditProfileSheet<ProfileContactEntry>(
+  final label = existing == null
+      ? ''
+      : [
+          if (existing.phone != null && existing.phone!.trim().isNotEmpty)
+            existing.phone!,
+          if (existing.email != null && existing.email!.trim().isNotEmpty)
+            existing.email!,
+        ].join(' / ');
+  return showEditProfileSheet<ProfileSheetResult<ProfileContactEntry>>(
     context: context,
     title: existing == null ? 'Add contact' : 'Edit contact',
+    titleTrailing: existing == null
+        ? null
+        : _removeTrailing<ProfileContactEntry>(
+            title: 'Remove contact',
+            message: label.isEmpty
+                ? 'Are you sure you want to remove this contact?'
+                : 'Are you sure you want to remove "$label"?',
+          ),
     builder: (ctx) => _ContactForm(sheetContext: ctx, existing: existing),
   );
 }
@@ -112,53 +225,1059 @@ class _SkillForm extends StatefulWidget {
 }
 
 class _SkillFormState extends State<_SkillForm> {
-  late final TextEditingController _name;
-  late final TextEditingController _pct;
+  static const _other = 'Other';
+  static const _presetLevels = [25, 50, 75, 100];
+
+  late final TextEditingController _customName;
+  String? _selected;
+  String? _iconKey;
+  String? _iconPath;
+  late int _proficiency;
+
+  /// `null` = Auto (random by skill name).
+  int? _colorValue;
+
+  bool get _isOther => _selected == _other;
+
+  ProfileSkill get _previewSkill {
+    final name = _isOther
+        ? _customName.text.trim()
+        : (_selected?.trim() ?? '');
+    return ProfileSkill(
+      name: name.isEmpty ? 'Skill' : name,
+      proficiency: _proficiency,
+      colorValue: _colorValue,
+      iconKey: _iconKey,
+      iconPath: _iconPath,
+    );
+  }
+
+  Color get _previewColor => ProfileSkillRing.colorFor(_previewSkill);
 
   @override
   void initState() {
     super.initState();
-    _name = TextEditingController(text: widget.existing?.name ?? '');
-    _pct = TextEditingController(
-      text: widget.existing?.proficiency.toString() ?? '',
-    );
+    final existing = widget.existing;
+    final existingName = existing?.name.trim() ?? '';
+    _proficiency = (existing?.proficiency ?? 50).clamp(0, 100);
+    _colorValue = existing?.colorValue;
+    _iconPath = existing?.iconPath;
+
+    if (existingName.isEmpty) {
+      _selected = null;
+      _iconKey = null;
+      _customName = TextEditingController();
+    } else {
+      final catalog = findCatalogSkill(
+        iconKey: existing?.iconKey,
+        label: existingName,
+      );
+      if (catalog != null && catalog.id != 'other') {
+        _selected = catalog.label;
+        _iconKey = catalog.id;
+        _customName = TextEditingController();
+      } else {
+        _selected = _other;
+        _iconKey = existing?.iconKey;
+        _customName = TextEditingController(text: existingName);
+      }
+    }
+    _customName.addListener(() {
+      if (_isOther && mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
-    _name.dispose();
-    _pct.dispose();
+    _customName.dispose();
     super.dispose();
+  }
+
+  Future<CatalogSkill?> _showCatalogPicker({
+    required String title,
+    required List<CatalogSkill> options,
+    String? selectedLabel,
+  }) {
+    return showFullHeightEditProfileSheet<CatalogSkill>(
+      context: context,
+      title: title,
+      builder: (sheetCtx) => _SkillPickerList(
+        options: options,
+        selectedLabel: selectedLabel,
+        onPick: (value) => Navigator.pop(sheetCtx, value),
+      ),
+    );
+  }
+
+  Future<void> _pickSkill() async {
+    final level1 = await _showCatalogPicker(
+      title: 'Select skill',
+      options: topLevelSkillCatalog,
+      selectedLabel: _isOther ? null : _selected,
+    );
+    if (!mounted || level1 == null) return;
+
+    if (level1.id == 'other') {
+      setState(() {
+        _selected = _other;
+        _iconKey = null;
+        _iconPath = null;
+      });
+      return;
+    }
+
+    if (isCodingTopLevel(level1.label)) {
+      final level2 = await _showCatalogPicker(
+        title: 'Select category',
+        options: codingCategories,
+      );
+      if (!mounted || level2 == null) return;
+
+      if (level2.id == 'other') {
+        setState(() {
+          _selected = _other;
+          _iconKey = 'coding';
+          _iconPath = null;
+          if (_customName.text.isEmpty) _customName.clear();
+        });
+        return;
+      }
+
+      final techList = level2.id == 'frontend'
+          ? codingFrontendSkills
+          : codingBackendSkills;
+      final level3 = await _showCatalogPicker(
+        title: 'Select skill',
+        options: techList,
+        selectedLabel: _selected,
+      );
+      if (!mounted || level3 == null) return;
+
+      if (level3.id == 'other') {
+        setState(() {
+          _selected = _other;
+          _iconKey = null;
+          _iconPath = null;
+        });
+        return;
+      }
+
+      setState(() {
+        _selected = level3.label;
+        _iconKey = level3.id;
+        _iconPath = null;
+        _customName.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _selected = level1.label;
+      _iconKey = level1.id;
+      _iconPath = null;
+      _customName.clear();
+    });
+  }
+
+  Future<void> _pickCustomIconFromLibrary() async {
+    final picked = await showFullHeightEditProfileSheet<CatalogSkill>(
+      context: context,
+      title: 'Choose icon',
+      builder: (sheetCtx) => _SkillIconPickerGrid(
+        options: pickableSkillIcons,
+        selectedId: _iconPath == null ? _iconKey : null,
+        onPick: (value) => Navigator.pop(sheetCtx, value),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    setState(() {
+      _iconKey = picked.id;
+      _iconPath = null;
+    });
+  }
+
+  Future<void> _pickCustomImage() async {
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
+    if (!mounted || file == null) return;
+    setState(() {
+      _iconPath = file.path;
+      // Custom image overrides catalog icon key for display.
+    });
+  }
+
+  void _clearCustomIcon() {
+    setState(() {
+      _iconPath = null;
+      if (_isOther) _iconKey = null;
+    });
+  }
+
+  Future<void> _openCustomColorPicker() async {
+    final initial =
+        _colorValue != null ? Color(_colorValue!) : _previewColor;
+    final picked = await showEditProfileSheet<Color>(
+      context: context,
+      title: 'Pick color',
+      builder: (sheetCtx) => _SkillHsvColorPicker(
+        initial: initial,
+        onCancel: () => Navigator.pop(sheetCtx),
+        onDone: (color) => Navigator.pop(sheetCtx, color),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    setState(() => _colorValue = picked.toARGB32());
   }
 
   @override
   Widget build(BuildContext context) {
+    final muted = context.appColors.muted;
+    final heading = context.appColors.heading;
+    final fill = context.appColors.inputFill;
+    final accent = _previewColor;
+    final preview = _previewSkill;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        EditProfileSheetField(
-          label: 'Skill name',
-          controller: _name,
-          required: true,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Skill*',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: muted,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Material(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: _pickSkill,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: context.appColors.border),
+                    ),
+                    child: Row(
+                      children: [
+                        if (_selected != null && !_isOther) ...[
+                          SkillIcon.forSkill(preview, size: 22),
+                          const SizedBox(width: 10),
+                        ],
+                        Expanded(
+                          child: Text(
+                            _selected ?? 'Select a skill',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: _selected == null ? muted : heading,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: muted,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        EditProfileSheetField(
-          label: 'Skill percentage',
-          controller: _pct,
-          keyboardType: TextInputType.number,
+        if (_isOther) ...[
+          EditProfileSheetField(
+            label: 'Skill name',
+            controller: _customName,
+            required: true,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Skill icon (optional)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: muted,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: fill,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: context.appColors.border),
+                      ),
+                      alignment: Alignment.center,
+                      child: SkillIcon.forSkill(preview, size: 28),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: [
+                          TextButton(
+                            onPressed: _pickCustomIconFromLibrary,
+                            child: Text(
+                              _iconKey != null && _iconPath == null
+                                  ? 'Change icon'
+                                  : 'Choose icon',
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _pickCustomImage,
+                            child: Text(
+                              _iconPath == null
+                                  ? 'Choose image'
+                                  : 'Change image',
+                            ),
+                          ),
+                          if (_iconPath != null || _iconKey != null)
+                            TextButton(
+                              onPressed: _clearCustomIcon,
+                              child: const Text('Remove'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Color',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: muted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _SkillColorPicker(
+                colors: ProfileSkillRing.palette,
+                selected: _colorValue,
+                onChanged: (value) => setState(() => _colorValue = value),
+                onCustomTap: _openCustomColorPicker,
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Skill level',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: muted,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: ProfileSkillRing(
+                  skill: preview,
+                  size: 88,
+                  showLabel: false,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: accent,
+                  inactiveTrackColor: fill,
+                  thumbColor: accent,
+                  overlayColor: accent.withValues(alpha: 0.12),
+                  trackHeight: 6,
+                ),
+                child: Slider(
+                  value: _proficiency.toDouble(),
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  label: '$_proficiency%',
+                  onChanged: (v) => setState(() => _proficiency = v.round()),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final level in _presetLevels)
+                    ChoiceChip(
+                      label: Text('$level%'),
+                      selected: _proficiency == level,
+                      selectedColor: accent.withValues(alpha: 0.18),
+                      labelStyle: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _proficiency == level ? accent : heading,
+                      ),
+                      side: BorderSide(
+                        color: _proficiency == level
+                            ? accent
+                            : context.appColors.border,
+                      ),
+                      backgroundColor:
+                          Theme.of(context).scaffoldBackgroundColor,
+                      onSelected: (_) => setState(() => _proficiency = level),
+                      showCheckmark: false,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
         EditProfileSheetActions(
           onCancel: () => Navigator.pop(widget.sheetContext),
           onSubmit: () {
-            final name = _name.text.trim();
-            if (name.isEmpty) return;
-            final pct = (int.tryParse(_pct.text.trim()) ?? 0).clamp(0, 100);
+            final name = _isOther
+                ? _customName.text.trim()
+                : (_selected?.trim() ?? '');
+            if (name.isEmpty || name == _other) return;
             Navigator.pop(
               widget.sheetContext,
-              ProfileSkill(name: name, proficiency: pct),
+              ProfileSheetResult.saved(
+                ProfileSkill(
+                  name: name,
+                  proficiency: _proficiency,
+                  colorValue: _colorValue,
+                  iconKey: _iconKey,
+                  iconPath: _iconPath,
+                ),
+              ),
             );
           },
         ),
       ],
+    );
+  }
+}
+
+/// Swatches + first “custom” circle that opens an HSV/HEX picker.
+class _SkillColorPicker extends StatelessWidget {
+  const _SkillColorPicker({
+    required this.colors,
+    required this.selected,
+    required this.onChanged,
+    required this.onCustomTap,
+  });
+
+  final List<Color> colors;
+  final int? selected;
+  final ValueChanged<int?> onChanged;
+  final VoidCallback onCustomTap;
+
+  bool get _isCustom {
+    if (selected == null) return false;
+    return !colors.any((c) => c.toARGB32() == selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final border = context.appColors.border;
+    final customColor = _isCustom ? Color(selected!) : null;
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        _ColorSwatch(
+          selected: _isCustom,
+          border: border,
+          onTap: onCustomTap,
+          child: customColor != null
+              ? DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: customColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                )
+              : Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: SweepGradient(
+                      colors: [
+                        Color(0xFF08B9B3),
+                        Color(0xFFFF9800),
+                        Color(0xFF4CAF50),
+                        Color(0xFF9C27B0),
+                        Color(0xFF2196F3),
+                        Color(0xFFE91E63),
+                        Color(0xFF08B9B3),
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.colorize_rounded,
+                        size: 12,
+                        color: context.appColors.heading,
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        for (final color in colors)
+          _ColorSwatch(
+            selected: selected == color.toARGB32(),
+            border: border,
+            onTap: () => onChanged(color.toARGB32()),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+              child: selected == color.toARGB32()
+                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                  : null,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Figma-style HSV + HEX color picker for custom skill colors.
+class _SkillHsvColorPicker extends StatefulWidget {
+  const _SkillHsvColorPicker({
+    required this.initial,
+    required this.onCancel,
+    required this.onDone,
+  });
+
+  final Color initial;
+  final VoidCallback onCancel;
+  final ValueChanged<Color> onDone;
+
+  @override
+  State<_SkillHsvColorPicker> createState() => _SkillHsvColorPickerState();
+}
+
+class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
+  late HSVColor _hsv;
+  late final TextEditingController _hex;
+
+  @override
+  void initState() {
+    super.initState();
+    _hsv = HSVColor.fromColor(widget.initial);
+    _hex = TextEditingController(text: _toHex(_hsv.toColor()));
+  }
+
+  @override
+  void dispose() {
+    _hex.dispose();
+    super.dispose();
+  }
+
+  static String _toHex(Color c) {
+    final rgb = c.toARGB32() & 0x00FFFFFF;
+    return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
+  static Color? _parseHex(String raw) {
+    var s = raw.trim();
+    if (s.startsWith('#')) s = s.substring(1);
+    if (s.length == 3) {
+      s = '${s[0]}${s[0]}${s[1]}${s[1]}${s[2]}${s[2]}';
+    }
+    if (s.length != 6) return null;
+    final rgb = int.tryParse(s, radix: 16);
+    if (rgb == null) return null;
+    return Color(0xFF000000 | rgb);
+  }
+
+  void _setHsv(HSVColor next, {bool syncHex = true}) {
+    setState(() => _hsv = next);
+    if (syncHex) {
+      _hex.text = _toHex(next.toColor());
+      _hex.selection = TextSelection.collapsed(offset: _hex.text.length);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _hsv.toColor();
+    final muted = context.appColors.muted;
+    final heading = context.appColors.heading;
+    final border = context.appColors.border;
+    final hueColor = HSVColor.fromAHSV(1, _hsv.hue, 1, 1).toColor();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Saturation / value map
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: AspectRatio(
+            aspectRatio: 1.25,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GestureDetector(
+                  onPanDown: (d) => _updateSv(d.localPosition, constraints.biggest),
+                  onPanUpdate: (d) =>
+                      _updateSv(d.localPosition, constraints.biggest),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.white, hueColor],
+                          ),
+                        ),
+                      ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: (_hsv.saturation * constraints.maxWidth) - 10,
+                        top: ((1 - _hsv.value) * constraints.maxHeight) - 10,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: color,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Hue
+        _GradientSlider(
+          value: _hsv.hue / 360,
+          thumbColor: hueColor,
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFFF0000),
+              Color(0xFFFFFF00),
+              Color(0xFF00FF00),
+              Color(0xFF00FFFF),
+              Color(0xFF0000FF),
+              Color(0xFFFF00FF),
+              Color(0xFFFF0000),
+            ],
+          ),
+          onChanged: (t) => _setHsv(_hsv.withHue((t * 360).clamp(0, 359.9))),
+        ),
+        const SizedBox(height: 12),
+        // Opacity
+        _GradientSlider(
+          value: _hsv.alpha,
+          thumbColor: color,
+          showCheckerboard: true,
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0),
+              color.withValues(alpha: 1),
+            ],
+          ),
+          onChanged: (t) => _setHsv(_hsv.withAlpha(t.clamp(0, 1))),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: border),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _hex,
+                textCapitalization: TextCapitalization.characters,
+                style: TextStyle(
+                  color: heading,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+                decoration: InputDecoration(
+                  labelText: 'HEX',
+                  hintText: '#08B9B3',
+                  filled: true,
+                  fillColor: Theme.of(context).scaffoldBackgroundColor,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: color, width: 1.5),
+                  ),
+                ),
+                onChanged: (raw) {
+                  final parsed = _parseHex(raw);
+                  if (parsed == null) return;
+                  _setHsv(HSVColor.fromColor(parsed), syncHex: false);
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Drag the square & sliders, or type a HEX value',
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+        EditProfileSheetActions(
+          onCancel: widget.onCancel,
+          onSubmit: () => widget.onDone(color),
+          submitLabel: 'Done',
+        ),
+      ],
+    );
+  }
+
+  void _updateSv(Offset pos, Size size) {
+    final s = (pos.dx / size.width).clamp(0.0, 1.0);
+    final v = (1 - pos.dy / size.height).clamp(0.0, 1.0);
+    _setHsv(_hsv.withSaturation(s).withValue(v));
+  }
+}
+
+class _GradientSlider extends StatelessWidget {
+  const _GradientSlider({
+    required this.value,
+    required this.gradient,
+    required this.thumbColor,
+    required this.onChanged,
+    this.showCheckerboard = false,
+  });
+
+  final double value;
+  final Gradient gradient;
+  final Color thumbColor;
+  final ValueChanged<double> onChanged;
+  final bool showCheckerboard;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanDown: (d) => onChanged((d.localPosition.dx / w).clamp(0, 1)),
+          onPanUpdate: (d) => onChanged((d.localPosition.dx / w).clamp(0, 1)),
+          child: SizedBox(
+            height: 28,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 16,
+                    width: w,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (showCheckerboard)
+                          CustomPaint(painter: _CheckerboardPainter()),
+                        DecoratedBox(decoration: BoxDecoration(gradient: gradient)),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: (value * w) - 11,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: thumbColor,
+                      border: Border.all(color: Colors.white, width: 2.5),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 3),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CheckerboardPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const cell = 6.0;
+    final light = Paint()..color = const Color(0xFFE0E0E0);
+    final dark = Paint()..color = const Color(0xFFBDBDBD);
+    for (var y = 0.0; y < size.height; y += cell) {
+      for (var x = 0.0; x < size.width; x += cell) {
+        final odd = ((x / cell).floor() + (y / cell).floor()).isOdd;
+        canvas.drawRect(
+          Rect.fromLTWH(x, y, cell, cell),
+          odd ? dark : light,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ColorSwatch extends StatelessWidget {
+  const _ColorSwatch({
+    required this.selected,
+    required this.border,
+    required this.onTap,
+    required this.child,
+  });
+
+  final bool selected;
+  final Color border;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          width: selected ? 40 : 34,
+          height: selected ? 40 : 34,
+          padding: const EdgeInsets.all(2.5),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? primary : border,
+              width: selected ? 2.5 : 1.2,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: primary.withValues(alpha: 0.28),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom-aligned skill picker — same sheet chrome as Add/Edit, no actions.
+class _SkillPickerList extends StatelessWidget {
+  const _SkillPickerList({
+    required this.options,
+    required this.onPick,
+    this.selectedLabel,
+  });
+
+  final List<CatalogSkill> options;
+  final String? selectedLabel;
+  final ValueChanged<CatalogSkill> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final heading = context.appColors.heading;
+    final divider = context.appColors.border.withValues(alpha: 0.6);
+
+    return ListView.separated(
+      physics: const ClampingScrollPhysics(),
+      itemCount: options.length,
+      separatorBuilder: (_, __) => Divider(height: 1, color: divider),
+      itemBuilder: (_, i) {
+        final option = options[i];
+        final isSelected = option.label == selectedLabel;
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: SizedBox(
+            width: 32,
+            height: 32,
+            child: Center(
+              child: SkillIcon(
+                catalog: option,
+                size: 26,
+              ),
+            ),
+          ),
+          title: Text(
+            option.label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? primary : heading,
+            ),
+          ),
+          trailing: isSelected
+              ? Icon(Icons.check_rounded, color: primary, size: 22)
+              : null,
+          onTap: () => onPick(option),
+        );
+      },
+    );
+  }
+}
+
+/// Grid of Material + tech icons for custom “Other” skills.
+class _SkillIconPickerGrid extends StatelessWidget {
+  const _SkillIconPickerGrid({
+    required this.options,
+    required this.onPick,
+    this.selectedId,
+  });
+
+  final List<CatalogSkill> options;
+  final String? selectedId;
+  final ValueChanged<CatalogSkill> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final fill = context.appColors.inputFill;
+    final border = context.appColors.border;
+
+    return GridView.builder(
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.only(top: 4, bottom: 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.92,
+      ),
+      itemCount: options.length,
+      itemBuilder: (_, i) {
+        final option = options[i];
+        final selected = option.id == selectedId;
+        return Material(
+          color: selected ? primary.withValues(alpha: 0.12) : fill,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: () => onPick(option),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: selected ? primary : border,
+                  width: selected ? 1.5 : 1,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SkillIcon(catalog: option, size: 30),
+                  const SizedBox(height: 6),
+                  Text(
+                    option.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.w500,
+                      color: selected ? primary : context.appColors.heading,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -195,7 +1314,10 @@ class _BioFormState extends State<_BioForm> {
         EditProfileSheetField(label: 'Bio', controller: _ctrl, maxLines: 4),
         EditProfileSheetActions(
           onCancel: () => Navigator.pop(widget.sheetContext),
-          onSubmit: () => Navigator.pop(widget.sheetContext, _ctrl.text.trim()),
+          onSubmit: () => Navigator.pop(
+            widget.sheetContext,
+            ProfileSheetResult.saved(_ctrl.text.trim()),
+          ),
         ),
       ],
     );
@@ -287,10 +1409,12 @@ class _PersonalFormState extends State<_PersonalForm> {
           onCancel: () => Navigator.pop(widget.sheetContext),
           onSubmit: () => Navigator.pop(
             widget.sheetContext,
-            PersonalDetailsResult(
-              location: _location.text.trim(),
-              gender: _gender.text.trim(),
-              dateOfBirth: _dateOfBirth,
+            ProfileSheetResult.saved(
+              PersonalDetailsResult(
+                location: _location.text.trim(),
+                gender: _gender.text.trim(),
+                dateOfBirth: _dateOfBirth,
+              ),
             ),
           ),
         ),
@@ -353,10 +1477,12 @@ class _WorkFormState extends State<_WorkForm> {
             final desc = _desc.text.trim();
             Navigator.pop(
               widget.sheetContext,
-              ProfileWorkEntry(
-                position: _position.text.trim(),
-                workplace: workplace,
-                description: desc.isEmpty ? null : desc,
+              ProfileSheetResult.saved(
+                ProfileWorkEntry(
+                  position: _position.text.trim(),
+                  workplace: workplace,
+                  description: desc.isEmpty ? null : desc,
+                ),
               ),
             );
           },
@@ -426,11 +1552,13 @@ class _EducationFormState extends State<_EducationForm> {
             final desc = _desc.text.trim();
             Navigator.pop(
               widget.sheetContext,
-              ProfileEducationEntry(
-                school: school,
-                major: major.isEmpty ? null : major,
-                certificate: cert.isEmpty ? null : cert,
-                description: desc.isEmpty ? null : desc,
+              ProfileSheetResult.saved(
+                ProfileEducationEntry(
+                  school: school,
+                  major: major.isEmpty ? null : major,
+                  certificate: cert.isEmpty ? null : cert,
+                  description: desc.isEmpty ? null : desc,
+                ),
               ),
             );
           },
@@ -491,7 +1619,9 @@ class _LinkFormState extends State<_LinkForm> {
             if (platform.isEmpty || url.isEmpty) return;
             Navigator.pop(
               widget.sheetContext,
-              ProfileLinkEntry(platform: platform, url: url),
+              ProfileSheetResult.saved(
+                ProfileLinkEntry(platform: platform, url: url),
+              ),
             );
           },
         ),
@@ -550,9 +1680,11 @@ class _ContactFormState extends State<_ContactForm> {
             if (phone.isEmpty && email.isEmpty) return;
             Navigator.pop(
               widget.sheetContext,
-              ProfileContactEntry(
-                phone: phone.isEmpty ? null : phone,
-                email: email.isEmpty ? null : email,
+              ProfileSheetResult.saved(
+                ProfileContactEntry(
+                  phone: phone.isEmpty ? null : phone,
+                  email: email.isEmpty ? null : email,
+                ),
               ),
             );
           },

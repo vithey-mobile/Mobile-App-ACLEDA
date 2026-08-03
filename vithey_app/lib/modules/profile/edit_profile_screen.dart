@@ -298,11 +298,20 @@ class _SkillsBlock extends StatelessWidget {
       existing: index == null ? null : controller.skills[index],
     );
     if (result == null) return;
+    if (result.deleted) {
+      if (index != null) {
+        controller.skills.removeAt(index);
+        controller.skills.refresh();
+      }
+      return;
+    }
+    final skill = result.value;
+    if (skill == null) return;
     if (index != null) {
-      controller.skills[index] = result;
+      controller.skills[index] = skill;
       controller.skills.refresh();
     } else {
-      controller.skills.add(result);
+      controller.skills.add(skill);
     }
   }
 
@@ -310,30 +319,40 @@ class _SkillsBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final list = controller.skills;
+      // +1 for leading Add Skill circle
+      final count = list.length + 1;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProfileSectionAddHeader(
-            title: 'Skills',
-            onAdd: () => _open(context),
-          ),
-          const SizedBox(height: 8),
-          if (list.isEmpty)
-            Text('No skills yet',
-                style: TextStyle(color: context.appColors.muted))
-          else
-            SizedBox(
-              height: 118,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: list.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, i) => GestureDetector(
-                  onTap: () => _open(context, index: i),
-                  child: ProfileSkillRing(skill: list[i]),
-                ),
-              ),
+          Text(
+            'Skills',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: context.appColors.heading,
             ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 124,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: count,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) {
+                if (i == 0) {
+                  return ProfileAddSkillCircle(
+                    onTap: () => _open(context),
+                  );
+                }
+                final index = i - 1;
+                return GestureDetector(
+                  onTap: () => _open(context, index: index),
+                  child: ProfileSkillRing(skill: list[index]),
+                );
+              },
+            ),
+          ),
         ],
       );
     });
@@ -346,7 +365,13 @@ class _BioBlock extends StatelessWidget {
 
   Future<void> _open(BuildContext context) async {
     final result = await showBioSheet(context, existing: controller.bio.value);
-    if (result != null) controller.bio.value = result;
+    if (result == null) return;
+    if (result.deleted) {
+      controller.bio.value = '';
+      return;
+    }
+    final value = result.value;
+    if (value != null) controller.bio.value = value;
   }
 
   @override
@@ -356,7 +381,15 @@ class _BioBlock extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProfileSectionAddHeader(title: 'Bio', onAdd: () => _open(context)),
+          Text(
+            'Bio',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: context.appColors.heading,
+            ),
+          ),
+          const SizedBox(height: 8),
           if (text.isNotEmpty)
             _TappableRow(
               icon: Icons.format_quote_outlined,
@@ -364,8 +397,14 @@ class _BioBlock extends StatelessWidget {
               onTap: () => _open(context),
             )
           else
-            Text('No bio yet',
-                style: TextStyle(color: context.appColors.muted)),
+            GestureDetector(
+              onTap: () => _open(context),
+              behavior: HitTestBehavior.opaque,
+              child: Text(
+                'No bio yet',
+                style: TextStyle(color: context.appColors.muted),
+              ),
+            ),
         ],
       );
     });
@@ -384,10 +423,18 @@ class _PersonalBlock extends StatelessWidget {
       dateOfBirth: controller.dateOfBirth.value,
     );
     if (result == null) return;
+    if (result.deleted) {
+      controller.location.value = '';
+      controller.gender.value = '';
+      controller.dateOfBirth.value = null;
+      return;
+    }
+    final value = result.value;
+    if (value == null) return;
     // Apply after sheet closes — never mutate Obx while sheet is dismissing.
-    controller.location.value = result.location;
-    controller.gender.value = result.gender;
-    controller.dateOfBirth.value = result.dateOfBirth;
+    controller.location.value = value.location;
+    controller.gender.value = value.gender;
+    controller.dateOfBirth.value = value.dateOfBirth;
   }
 
   @override
@@ -440,11 +487,20 @@ class _WorkBlock extends StatelessWidget {
       existing: index == null ? null : controller.workEntries[index],
     );
     if (result == null) return;
+    if (result.deleted) {
+      if (index != null) {
+        controller.workEntries.removeAt(index);
+        controller.workEntries.refresh();
+      }
+      return;
+    }
+    final value = result.value;
+    if (value == null) return;
     if (index != null) {
-      controller.workEntries[index] = result;
+      controller.workEntries[index] = value;
       controller.workEntries.refresh();
     } else {
-      controller.workEntries.add(result);
+      controller.workEntries.add(value);
     }
   }
 
@@ -482,11 +538,20 @@ class _EducationBlock extends StatelessWidget {
       existing: index == null ? null : controller.educationEntries[index],
     );
     if (result == null) return;
+    if (result.deleted) {
+      if (index != null) {
+        controller.educationEntries.removeAt(index);
+        controller.educationEntries.refresh();
+      }
+      return;
+    }
+    final value = result.value;
+    if (value == null) return;
     if (index != null) {
-      controller.educationEntries[index] = result;
+      controller.educationEntries[index] = value;
       controller.educationEntries.refresh();
     } else {
-      controller.educationEntries.add(result);
+      controller.educationEntries.add(value);
     }
   }
 
@@ -527,11 +592,20 @@ class _LinksBlock extends StatelessWidget {
       existing: index == null ? null : controller.linkEntries[index],
     );
     if (result == null) return;
+    if (result.deleted) {
+      if (index != null) {
+        controller.linkEntries.removeAt(index);
+        controller.linkEntries.refresh();
+      }
+      return;
+    }
+    final value = result.value;
+    if (value == null) return;
     if (index != null) {
-      controller.linkEntries[index] = result;
+      controller.linkEntries[index] = value;
       controller.linkEntries.refresh();
     } else {
-      controller.linkEntries.add(result);
+      controller.linkEntries.add(value);
     }
   }
 
@@ -569,11 +643,20 @@ class _ContactBlock extends StatelessWidget {
       existing: index == null ? null : controller.contactEntries[index],
     );
     if (result == null) return;
+    if (result.deleted) {
+      if (index != null) {
+        controller.contactEntries.removeAt(index);
+        controller.contactEntries.refresh();
+      }
+      return;
+    }
+    final value = result.value;
+    if (value == null) return;
     if (index != null) {
-      controller.contactEntries[index] = result;
+      controller.contactEntries[index] = value;
       controller.contactEntries.refresh();
     } else {
-      controller.contactEntries.add(result);
+      controller.contactEntries.add(value);
     }
   }
 

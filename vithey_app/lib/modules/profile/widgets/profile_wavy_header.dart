@@ -76,8 +76,9 @@ class ProfileWavyHeader extends StatelessWidget {
     final cover = coverColor(context);
     final decor = decorColor(context);
     // Chrome icons must contrast the soft teal cover (not colorScheme.onPrimary).
-    final onCover =
-        cover.computeLuminance() > 0.45 ? const Color(0xFF1A1A2E) : Colors.white;
+    final onCover = cover.computeLuminance() > 0.45
+        ? const Color(0xFF1A1A2E)
+        : Colors.white;
     final avatarRing = Theme.of(context).scaffoldBackgroundColor;
     final heading = context.appColors.heading;
     final muted = context.appColors.muted;
@@ -249,7 +250,8 @@ class ProfileWavyHeader extends StatelessWidget {
     final codeSize = bigSizes[rng.nextInt(bigSizes.length)];
     widgets.add(
       Positioned(
-        left: (width * (0.12 + rng.nextDouble() * 0.22)).clamp(60.0, width - 48),
+        left:
+            (width * (0.12 + rng.nextDouble() * 0.22)).clamp(60.0, width - 48),
         top: (8 + rng.nextDouble() * (topPad + 18)).clamp(4.0, 56.0),
         child: Opacity(
           opacity: 0.55 + rng.nextDouble() * 0.35,

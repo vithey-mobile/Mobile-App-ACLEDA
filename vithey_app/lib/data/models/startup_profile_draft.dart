@@ -24,13 +24,18 @@ class SkillOption {
 const startupSkills = [
   SkillOption(id: 'graphic_design', label: 'Graphic Design', icon: Icons.brush_outlined),
   SkillOption(id: 'management', label: 'Management', icon: Icons.account_tree_outlined),
-  SkillOption(id: 'coding', label: 'Coding', icon: Icons.code),
-  SkillOption(id: 'social_media', label: 'Social Media Influence', icon: Icons.trending_up),
-  SkillOption(id: 'sale', label: 'Sale', icon: Icons.person_outline),
-  SkillOption(id: 'content_video', label: 'Content Video', icon: Icons.play_circle_outline),
   SkillOption(id: 'ai', label: 'AI', icon: Icons.public),
-  SkillOption(id: 'marketing', label: 'Marketing', icon: Icons.campaign_outlined),
+  SkillOption(id: 'social_media', label: 'Social Media Influence', icon: Icons.trending_up),
   SkillOption(id: 'data_analysis', label: 'Data Analysis', icon: Icons.analytics_outlined),
+  SkillOption(id: 'content_video', label: 'Content Video', icon: Icons.play_circle_outline),
+  SkillOption(id: 'coding', label: 'Coding', icon: Icons.code),
+  SkillOption(id: 'marketing', label: 'Marketing', icon: Icons.campaign_outlined),
+  SkillOption(id: 'sale', label: 'Sale', icon: Icons.person_outline),
+  SkillOption(id: 'ui_ux', label: 'UI/UX Design', icon: Icons.design_services_outlined),
+  SkillOption(id: 'photography', label: 'Photography', icon: Icons.photo_camera_outlined),
+  SkillOption(id: 'writing', label: 'Writing', icon: Icons.edit_note_outlined),
+  SkillOption(id: 'public_speaking', label: 'Public Speaking', icon: Icons.record_voice_over_outlined),
+  SkillOption(id: 'translation', label: 'Translation', icon: Icons.translate_outlined),
 ];
 
 const startupInterests = [

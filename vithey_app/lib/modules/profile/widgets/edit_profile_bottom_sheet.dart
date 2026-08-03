@@ -9,6 +9,39 @@ Future<T?> showEditProfileSheet<T>({
   required BuildContext context,
   required String title,
   required Widget Function(BuildContext sheetContext) builder,
+  Widget Function(BuildContext sheetContext)? titleTrailing,
+  bool enableDrag = true,
+  bool isDismissible = true,
+}) {
+  return showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+        child: _EditProfileSheetScaffold(
+          title: title,
+          titleTrailing: titleTrailing?.call(ctx),
+          child: builder(ctx),
+        ),
+      );
+    },
+  );
+}
+
+/// Full-height sheet (same chrome as [showEditProfileSheet]).
+/// Drag down dismisses and returns to the previous route (e.g. Add Skill).
+Future<T?> showFullHeightEditProfileSheet<T>({
+  required BuildContext context,
+  required String title,
+  required Widget Function(BuildContext sheetContext) builder,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -21,10 +54,12 @@ Future<T?> showEditProfileSheet<T>({
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (ctx) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+      final height = MediaQuery.sizeOf(ctx).height;
+      return SizedBox(
+        height: height,
         child: _EditProfileSheetScaffold(
           title: title,
+          expandChild: true,
           child: builder(ctx),
         ),
       );
@@ -36,39 +71,35 @@ class _EditProfileSheetScaffold extends StatelessWidget {
   const _EditProfileSheetScaffold({
     required this.title,
     required this.child,
+    this.titleTrailing,
+    this.expandChild = false,
   });
 
   final String title;
+  final Widget? titleTrailing;
   final Widget child;
+  final bool expandChild;
 
-  @override
-  Widget build(BuildContext context) {
-    // Non-scroll primary axis so drag-to-dismiss works; keyboard growth is
-    // handled by parent viewInsets padding. Nested scroll only if needed.
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        // Prevent the scroll view from fighting sheet dismiss when content
-        // is shorter than the viewport.
-        physics: const ClampingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.appColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
+  Widget _header(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: context.appColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
                 title,
                 style: TextStyle(
                   fontSize: 20,
@@ -76,7 +107,46 @@ class _EditProfileSheetScaffold extends StatelessWidget {
                   color: context.appColors.heading,
                 ),
               ),
-              const SizedBox(height: 16),
+            ),
+            if (titleTrailing != null) titleTrailing!,
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (expandChild) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _header(context),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Non-scroll primary axis so drag-to-dismiss works; keyboard growth is
+    // handled by parent viewInsets padding. Nested scroll only if needed.
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _header(context),
               child,
             ],
           ),

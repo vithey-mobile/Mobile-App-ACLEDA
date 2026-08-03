@@ -1,254 +1,267 @@
-# Profile About Screen - Edit Profile UI Update
-
-> **Status: applied (v1 UI complete).**  
-> Canonical spec: [`v1/07.profile_edit_info-v1.md`](v1/07.profile_edit_info-v1.md). Bottom-sheet Add / tap-to-edit behavior is implemented in the app.
+# Profile Skills - Coding Category Enhancement
 
 ## Objective
 
-Update the **Edit Profile Info** screen based on the new UI design.
-
-### Requirements
-
-- Preserve all existing business logic.
-- Update only the UI and interaction.
-- Follow the provided UI design as closely as possible.
-- Support both Light Mode and Dark Mode.
+Enhance the **Skills** section by providing a more detailed skill selection flow for the **Coding** category while keeping the existing design and interaction consistent with the rest of the application.
 
 ---
 
-# Overall Interaction
+# Scope
 
-Replace the current editing behavior with a new editing flow.
+Update only the **Skills** section.
 
-## Bottom Sheet Dialog
-
-All **Edit** and **Add** actions should open a **Bottom Sheet Dialog**.
-
-### Bottom Sheet Requirements
-
-- Slide up from the bottom.
-- Full width.
-- Horizontal padding: **20px**.
-- Margin: **0**.
-- Height should automatically adjust to its content.
-- Follow the application's design system.
-- Support both Light Mode and Dark Mode.
+Do not modify the business logic outside of the Skills feature.
 
 ---
 
-# Section Header
+# Coding Skill Selection Flow
 
-Update every editable section header.
+Currently, users can directly select **Coding** as a skill.
 
-Current:
+Update the behavior so that selecting **Coding** opens additional selections.
+
+The flow should be:
 
 ```text
-Personal Detail                      Edit
+Coding
+    │
+    ▼
+Select Category
+    │
+    ├── Frontend
+    ├── Backend
+    └── Other
+
+Frontend / Backend
+    │
+    ▼
+Select Specific Skill
 ```
-
-New:
-
-```text
-Personal Detail                      Add
-```
-
-### Requirements
-
-- Replace the **Edit** button with an **Add** button.
-- The **Add** button is used only for creating a new item.
-- Existing content should no longer be edited through the header button.
-
-This applies to every editable section.
 
 ---
 
-# Editable Sections
+# Step 1 - Select Category
 
-The following sections should support the new interaction:
+When the user selects **Coding**, display a second selection screen or bottom sheet.
 
-- Skills
-- Bio
-- Personal Detail
-- Work
-- Education
-- Links
-- Contact Info
+Display the following categories:
+
+- Frontend
+- Backend
+- Other
+
+The UI should follow the same design as the existing skill selection.
 
 ---
 
-# Edit Interaction
+# Step 2 - Select Specific Skill
 
-Editing should happen by tapping the **content**, not the section header.
+After selecting **Frontend** or **Backend**, display a list of related technologies.
+
+Provide **at least 20 skills** for each category.
+
+The final option in every list must always be:
+
+- Other
+
+Selecting **Other** allows users to create their own custom skill.
+
+---
+
+# Frontend Skills
+
+Include at least the following technologies:
+
+- Flutter
+- Dart
+- HTML
+- CSS
+- JavaScript
+- TypeScript
+- React
+- React Native
+- Next.js
+- Vue.js
+- Nuxt.js
+- Angular
+- Svelte
+- Tailwind CSS
+- Bootstrap
+- Material UI
+- jQuery
+- Sass (SCSS)
+- Less
+- Alpine.js
+- Ionic
+- Electron
+- Expo
+- Other
+
+You may include additional frontend technologies if appropriate.
+
+---
+
+# Backend Skills
+
+Include at least the following technologies:
+
+- Java
+- Spring Boot
+- Kotlin
+- C#
+- ASP.NET
+- PHP
+- Laravel
+- CodeIgniter
+- Node.js
+- Express.js
+- NestJS
+- Python
+- Django
+- Flask
+- FastAPI
+- Ruby on Rails
+- Go
+- Rust
+- C++
+- MySQL
+- PostgreSQL
+- MongoDB
+- Redis
+- Firebase
+- GraphQL
+- Docker
+- Kubernetes
+- Other
+
+You may include additional backend technologies if appropriate.
+
+---
+
+# Other Option
+
+When the user selects **Other**, display a form to create a custom skill.
+
+Fields:
+
+- Skill Name (Required)
+- Skill Icon/Image (Optional)
+
+Requirements:
+
+- Users may leave the image empty.
+- If no image is provided, display the default skill icon.
+- The custom skill should behave the same as predefined skills.
+
+---
+
+# Skill Icons
+
+Each predefined coding technology should have its own official icon or logo.
+
+Examples:
+
+- Flutter
+- Dart
+- Java
+- Spring Boot
+- HTML
+- CSS
+- JavaScript
+- React
+- Vue
+- Angular
+- Node.js
+- Docker
+- Kubernetes
+- Laravel
+- Django
+- MongoDB
+- MySQL
+- PostgreSQL
+- Firebase
+- etc.
 
 ## Requirements
 
-- Each content item is individually editable.
-- Tapping one item should edit **only that item**.
-- No other items or sections should enter edit mode.
+Find and use the most recognizable official logo or icon for each technology.
 
-### Example
+Do not reuse a generic coding icon.
 
-Skills contains 10 items:
+Each technology should display its own corresponding logo.
+
+---
+
+# Skill Circle Design
+
+The existing skill circle design should remain unchanged.
+
+Only update the content inside the circle.
+
+Requirements:
+
+- Keep the existing circle size.
+- Place the technology logo or icon inside the circle.
+- Display the logo as a background watermark with approximately **30% opacity**.
+- Keep the skill text readable above the background image.
+- Use consistent alignment and scaling for every technology.
+
+Example:
 
 ```text
-Flutter
-Dart
-Java
-Spring Boot
-Docker
-Git
-Kubernetes
-REST API
-PostgreSQL
-Firebase
+┌──────────────┐
+│              │
+│     70%      │
+│              │
+│  (Logo 30%)  │
+│              │
+└──────────────┘
 ```
 
-If the user taps **Docker**, only the **Docker** item should open the Edit dialog.
-
-The remaining skills stay unchanged.
-
-This behavior applies to every editable section.
-
 ---
 
-# Edit Dialog
+# Other Skill Categories
 
-When a content item is tapped:
+The same enhancement should also apply to the remaining skill categories.
 
-- Open the Bottom Sheet dialog.
-- Display only the selected item's information.
-- Do not display information from other items.
+Requirements:
 
-Each section should have its own dialog content.
+- Display an appropriate icon or image for each category.
+- Keep the same UI design used by the Coding category.
+- Maintain consistent sizing, spacing, and opacity.
 
----
+Examples:
 
-## Dialog Layout
+- Design
+- UI/UX
+- Networking
+- Cybersecurity
+- AI
+- Data Science
+- Cloud Computing
+- Mobile Development
+- DevOps
+- Project Management
+- Marketing
+- Business
+- Photography
+- Video Editing
+- Writing
+- Language
+- Music
+- Sports
+- Others
 
-Every Edit dialog should contain:
-
-- Section Header
-- Title input
-- Content input(s)
-- Save button
-- Cancel button (if already implemented)
-
-Use the existing design system.
-
----
-
-# Section Fields
-
-Each section displays different fields.
-
-## Skills
-
-Display:
-
-- Skill Name
-- Skill Percentage
-
----
-
-## Bio
-
-Display:
-
-- Bio
-
----
-
-## Personal Detail
-
-Display:
-
-- Location
-- Gender
-- Date of Birth
-
----
-
-## Work
-
-Display:
-
-- Company / Workplace
-- Position
-- Description (if available)
-
----
-
-## Education
-
-Display:
-
-- School / University
-- Major
-- Certificate
-- Description (if available)
-
----
-
-## Links
-
-Display:
-
-- Platform Name (e.g. Facebook)
-- URL
-
----
-
-## Contact Info
-
-Display:
-
-- Phone Number
-- Email Address
-
----
-
-# Add Button
-
-The **Add** button in the section header should open the same Bottom Sheet UI.
-
-## Behavior
-
-The layout is identical to Edit.
-
-Difference:
-
-### Edit
-
-- Existing values are pre-filled.
-- Saving updates the selected item.
-
-### Add
-
-- Fields are empty.
-- Saving creates a new item.
-- Existing items remain unchanged.
-
----
-
-# Behavior Summary
-
-| Action               | Result                               |
-| -------------------- | ------------------------------------ |
-| Tap existing content | Edit only the selected item          |
-| Tap Add button       | Create a new item                    |
-| Edit one item        | Other items remain unchanged         |
-| Open dialog          | Show only the selected item's fields |
-| Save                 | Update or create only that item      |
+Use icons or images that clearly represent each category.
 
 ---
 
 # Design Requirements
 
-- Match the provided UI as closely as possible.
-- Improve spacing and typography.
-- Use consistent section spacing.
-- Follow the project's design system.
-- Maintain responsive layouts.
+- Follow the existing Skills UI.
+- Maintain the current spacing, typography, and layout.
+- Keep the interaction consistent with other skill selections.
+- Use the existing bottom sheet or selection UI where applicable.
 - Support both Light Mode and Dark Mode.
 
 ---
@@ -256,9 +269,13 @@ Difference:
 # Implementation Notes
 
 - Preserve all existing business logic.
-- Do not modify unrelated sections.
-- Reuse existing widgets whenever possible.
+- Update only the skill selection flow and UI.
+- Reuse existing widgets where possible.
 - Avoid duplicate implementations.
-- Keep the code modular, reusable, and maintainable.
-- Each section should manage its own add/edit state independently.
-- Ensure only one Bottom Sheet dialog can be open at a time.
+- Organize the skill data into reusable models or constants.
+- Make it easy to add new categories or technologies in the future.
+- Ensure the "Other" option is always the last item in every selection list.
+
+```
+
+```

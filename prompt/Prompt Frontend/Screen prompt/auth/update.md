@@ -1,179 +1,182 @@
-# Auth Screen Background Update
-
-> **Status: applied (v1 UI complete).**  
-> This brief drove the Auth wave-background redesign. Do **not** re-implement from scratch — code lives under `vithey_app/lib/modules/auth/` (and shared wave widgets with Splash / Select Language / Onboarding).  
-> Canonical prompts: [`README.md`](README.md) → `v1/04`–`v1/07`.
+# Startup Background Redesign
 
 ## Objective
 
-Update all **Auth** screens so they follow the same visual design language as the other startup screens.
+Redesign the background for the startup screens to create a consistent and modern visual identity.
 
-### Reference
+This update focuses **only on the background design**.
 
-Use the existing implementations as the design reference:
-
-- Splash Screen
-- Language Screen
-- Onboarding Screens
-
-These screens already have the correct background implementation.
+The business logic, navigation, and screen functionality must remain unchanged.
 
 ---
 
-# Overall Goal
+# Scope
 
-The Auth screens should feel like they belong to the same design system as the Splash, Language, and Onboarding screens.
+Update the following screens:
 
-Reuse the same background concept, colors, and design language while allowing each Auth screen to have its own unique wave shape.
-
----
-
-# Background Design
-
-Update every Auth screen to use the shared background design.
-
-## Background Colors
-
-Use the same three background layers:
-
-- Teal
-- White
-- White (50% opacity)
-
-Do not introduce new colors.
+- Language
+- Onboarding
+- Authentication
+  - Sign In
+  - Sign Up
+  - Forgot Password
+  - Reset Password
+  - Verification
+  - Other Auth-related screens
 
 ---
 
-## Wave Shapes
+# Design Goal
 
-The White and White 50% layers should be implemented as wave shapes.
+All startup screens should share the same background design system.
 
-### Requirements
+The design consists of only two visual elements:
 
-- Each Auth screen should have its own unique wave shape.
-- The curve, bend, and angle should vary between screens.
-- The design language should remain consistent across all screens.
-- Reuse the same drawing/material implementation whenever possible.
-- Avoid creating separate implementations for each screen.
+1. **Teal Background**
+2. **White Sheet**
 
-Examples:
+The White Sheet includes:
 
-- Different curve height
-- Different curve angle
-- Different bending position
-- Different wave depth
+- White layer
+- White 50% opacity layer
 
-Although every screen looks different, they should clearly belong to the same visual family.
+Treat both white layers as one single design element.
 
 ---
 
-# Existing Screens
+# Background Structure
 
-The following screens already have the correct implementation:
+Every startup screen should follow this hierarchy.
 
-- Splash Screen
-- Language Screen
-- Onboarding Screens
+```text
+┌──────────────────────────────────────────┐
+│                                          │
+│              TEAL BACKGROUND             │
+│                                          │
+│         App Logo / Decoration            │
+│                                          │
+│                                          │
+│~~~~~~~~~~~~ Morphing White Sheet ~~~~~~~~│
+│                                          │
+│                                          │
+│            Screen Content                │
+│                                          │
+│                                          │
+└──────────────────────────────────────────┘
+```
 
-Use these as the reference implementation.
+The teal background always fills the entire screen.
 
-Only update the **Auth** screens.
+The White Sheet always rises from the bottom of the screen.
 
----
+The White Sheet spans the full width of the screen.
 
-# Auth Background
+There should be:
 
-Replace the current Auth background.
+- No left margin
+- No right margin
+- No bottom margin
 
-### Requirements
-
-- Match the background style used by the other startup screens.
-- Implement the layered Teal + White + White 50% design.
-- Ensure the White layers use wave shapes instead of simple containers.
-- Maintain responsive behavior across different screen sizes.
-
----
-
-# Auth Content Layout
-
-Update the placement of the Auth content.
-
-## Current Issue
-
-Some content is currently placed inside the White background layer.
-
-This makes the background behave like a container instead of a decorative background.
-
-## New Behavior
-
-The wave shapes should remain purely decorative.
-
-The Auth content should be positioned independently of the background.
-
-Requirements:
-
-- Do not place content inside the White or White 50% layers.
-- Treat the wave layers as background elements only.
-- Position the Auth content above the background using the normal screen layout.
+Only the top edge of the White Sheet changes shape.
 
 ---
 
-# Content Alignment
+# White Sheet Morphing
 
-Update the layout of every Auth screen.
+The White Sheet should morph based on the current screen.
 
-### Requirements
+Different screens have different:
 
-- Place the content inside a `Column`.
-- Use `MainAxisAlignment.end`.
-- The content should start from the bottom portion of the screen.
-- Apply **30px padding** around the content.
-- Keep spacing consistent across every Auth screen.
+- Content height
+- Wave shape
+- Curve angle
+- Curve depth
+- Sheet height
+
+Although the shape changes, it should always feel like the same White Sheet evolving throughout the startup flow.
 
 ---
 
-# Consistency
+# Content Placement
 
-All Auth-related screens should follow the same visual language.
+The content belongs inside the White Sheet.
+
+Depending on the current implementation, some content may need to be moved into the White Sheet.
 
 Examples include:
 
-- Sign In
-- Sign Up
-- Forgot Password
-- Reset Password
-- Verify Code
-- Google Auth screens
-- Any other Auth screens
+- Titles
+- Descriptions
+- Form fields
+- Buttons
+- Language selector
+- Onboarding information
 
-Each screen may have:
+Only move content when necessary to match the new background design.
 
-- Different wave angles
-- Different wave curves
-- Different wave positions
+Do not redesign or modify the content itself.
 
-However, they must all use the same:
+---
 
-- Background colors
-- Wave material
-- Design language
-- Overall visual identity
+# What To Update
+
+## Update
+
+- Redesign the startup background.
+- Introduce the new White Sheet design.
+- Add the White 50% layer behind the White Sheet.
+- Update the wave shape for each screen.
+- Make the White Sheet morph naturally across different screens.
+- Reposition content only if necessary so it sits inside the White Sheet.
+
+---
+
+## Do NOT Update
+
+Do **not** change:
+
+- Business logic
+- Navigation
+- Screen flow
+- Authentication logic
+- Form validation
+- Controllers
+- Services
+- Models
+- Existing functionality
+- Content
+- Text
+- Icons
+- Buttons
+- User interactions
+
+The only exception is moving existing content into the White Sheet if required by the new layout.
 
 ---
 
 # Design Requirements
 
-- Match the Splash, Language, and Onboarding screens as closely as possible.
-- Keep the UI modern, clean, and consistent.
-- Support responsive layouts.
-- Support both Light Mode and Dark Mode where applicable.
+- Teal always fills the entire screen.
+- White Sheet always comes from the bottom.
+- White Sheet always spans the full width.
+- White Sheet has no side or bottom margins.
+- White Sheet contains the page content.
+- White and White 50% behave as one design element.
+- Each screen has a unique wave shape.
+- The startup flow should feel like one continuous design system.
+- Support both Light Mode and Dark Mode.
 
 ---
 
 # Implementation Notes
 
 - Preserve all existing business logic.
-- Do not modify navigation or authentication functionality.
-- Reuse the existing background implementation whenever possible.
+- Update only the UI background and layout.
+- Reuse existing widgets whenever possible.
 - Avoid duplicate implementations.
-- Keep the code modular, reusable, and maintainable.
+- Keep the code clean and maintainable.
+- If the current content placement conflicts with the new background, move the existing content into the White Sheet without changing its functionality or behavior.
+
+```
+
+```

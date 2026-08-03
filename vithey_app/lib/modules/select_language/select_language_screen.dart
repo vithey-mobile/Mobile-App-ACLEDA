@@ -241,35 +241,6 @@ class SelectLanguageScreen extends StatelessWidget {
                 ),
               ),
             ),
-            if (interactive)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: SafeArea(
-                  child: Opacity(
-                    opacity: uiOpacity,
-                    child: TextButton(
-                      onPressed: busy ? null : controller.skip,
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(44, 44),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                      ),
-                      child: const Text(
-                        'Skip',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         );
       }),

@@ -20,6 +20,7 @@ class PostCard extends StatelessWidget {
     this.onReact,
     this.onAuthorTap,
     this.caption,
+    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
   });
 
   final FeedPost post;
@@ -32,11 +33,12 @@ class PostCard extends StatelessWidget {
   final ValueChanged<PostReactionType>? onReact;
   final VoidCallback? onAuthorTap;
   final Widget? caption;
+  final EdgeInsetsGeometry margin;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: margin,
       elevation: 0,
       color: context.appColors.cardSurface,
       shape: RoundedRectangleBorder(

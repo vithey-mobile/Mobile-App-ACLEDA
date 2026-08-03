@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/application_status_args.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -24,7 +25,7 @@ class ProfileAboutTab extends StatelessWidget {
       final profile = controller.profile.value;
       if (profile == null) return const LoadingWidget();
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         children: [
           ProfileSkillsRow(skills: profile.skills),
           if (profile.skills.isNotEmpty) const SizedBox(height: 20),
@@ -81,20 +82,35 @@ class ProfileAppliedJobsTab extends StatelessWidget {
         );
       }
       return ListView.builder(
-        padding: const EdgeInsets.only(bottom: 100, top: 8),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         itemCount: controller.appliedJobs.length,
         itemBuilder: (context, index) {
           final job = controller.appliedJobs[index];
-          return ListTile(
-            title: Text(job.jobTitle,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle:
-                Text('${job.company} · ${RelativeTime.format(job.appliedAt)}'),
-            trailing: _StatusPill(status: job.status),
-            onTap: () => Get.toNamed(
-              AppRoutes.applicationStatus,
-              arguments: ApplicationStatusArgs(
-                  applicationId: job.id, jobPostId: job.jobPostId),
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            elevation: 0,
+            color: context.appColors.cardSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: context.appColors.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              title: Text(
+                job.jobTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                '${job.company} · ${RelativeTime.format(job.appliedAt)}',
+              ),
+              trailing: _StatusPill(status: job.status),
+              onTap: () => Get.toNamed(
+                AppRoutes.applicationStatus,
+                arguments: ApplicationStatusArgs(
+                  applicationId: job.id,
+                  jobPostId: job.jobPostId,
+                ),
+              ),
             ),
           );
         },
@@ -154,7 +170,7 @@ class _ProfilePostsTab extends StatelessWidget {
 
       if (type == PostType.video) {
         return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
           itemCount: posts.length,
           itemBuilder: (_, index) {
             final post = posts[index];
@@ -170,7 +186,7 @@ class _ProfilePostsTab extends StatelessWidget {
 
       if (type == PostType.job) {
         return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
           itemCount: posts.length,
           itemBuilder: (_, index) {
             final post = posts[index];
@@ -188,12 +204,14 @@ class _ProfilePostsTab extends StatelessWidget {
       }
 
       return ListView.builder(
-        padding: const EdgeInsets.only(bottom: 100),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
         itemCount: posts.length,
         itemBuilder: (_, index) {
           final post = posts[index];
           return PosterPostCard(
             post: post,
+            // ListView already pads 20 — avoid PostCard's extra horizontal margin.
+            margin: const EdgeInsets.symmetric(vertical: 5),
             onLike: () {},
             onComment: () {},
             onShare: () {},

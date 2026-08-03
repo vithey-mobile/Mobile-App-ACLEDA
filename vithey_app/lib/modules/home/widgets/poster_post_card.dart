@@ -18,6 +18,7 @@ class PosterPostCard extends StatelessWidget {
     required this.onDelete,
     this.onReact,
     this.onAuthorTap,
+    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
   });
 
   final FeedPost post;
@@ -30,6 +31,7 @@ class PosterPostCard extends StatelessWidget {
   final VoidCallback onDelete;
   final ValueChanged<PostReactionType>? onReact;
   final VoidCallback? onAuthorTap;
+  final EdgeInsetsGeometry margin;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,7 @@ class PosterPostCard extends StatelessWidget {
 
     return PostCard(
       post: post,
+      margin: margin,
       headerTrailing: post.isOwnPost
           ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
           : _FollowButton(post: post, onFollow: onFollow),

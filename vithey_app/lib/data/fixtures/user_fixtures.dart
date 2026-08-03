@@ -15,16 +15,16 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 abstract final class UserFixtures {
   /// Mock IT skills for About tab (replace with API later).
   static const mockItSkills = <ProfileSkill>[
-    ProfileSkill(name: 'Flutter', proficiency: 75),
-    ProfileSkill(name: 'Dart', proficiency: 70),
-    ProfileSkill(name: 'Java', proficiency: 65),
-    ProfileSkill(name: 'Spring Boot', proficiency: 60),
-    ProfileSkill(name: 'REST API', proficiency: 80),
-    ProfileSkill(name: 'PostgreSQL', proficiency: 55),
-    ProfileSkill(name: 'Docker', proficiency: 50),
-    ProfileSkill(name: 'Kubernetes', proficiency: 40),
-    ProfileSkill(name: 'Git', proficiency: 85),
-    ProfileSkill(name: 'UI/UX Design', proficiency: 60),
+    ProfileSkill(name: 'Flutter', proficiency: 75, iconKey: 'flutter'),
+    ProfileSkill(name: 'Dart', proficiency: 70, iconKey: 'dart'),
+    ProfileSkill(name: 'Java', proficiency: 65, iconKey: 'java'),
+    ProfileSkill(name: 'Spring Boot', proficiency: 60, iconKey: 'spring'),
+    ProfileSkill(name: 'REST API', proficiency: 80, iconKey: 'rest_api'),
+    ProfileSkill(name: 'PostgreSQL', proficiency: 55, iconKey: 'postgresql'),
+    ProfileSkill(name: 'Docker', proficiency: 50, iconKey: 'docker'),
+    ProfileSkill(name: 'Kubernetes', proficiency: 40, iconKey: 'kubernetes'),
+    ProfileSkill(name: 'Git', proficiency: 85, iconKey: 'git'),
+    ProfileSkill(name: 'UI/UX Design', proficiency: 60, iconKey: 'ui_ux'),
   ];
 
   static const currentUserAuthor = PostAuthor(

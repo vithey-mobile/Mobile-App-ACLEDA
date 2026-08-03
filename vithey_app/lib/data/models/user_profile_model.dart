@@ -224,17 +224,40 @@ class ProfileSkill {
   const ProfileSkill({
     required this.name,
     required this.proficiency,
+    this.colorValue,
+    this.iconKey,
+    this.iconPath,
   });
 
   final String name;
   final int proficiency;
 
+  /// ARGB color chosen by the user. `null` = auto / random from palette.
+  final int? colorValue;
+
+  /// Catalog id used to resolve the skill logo (e.g. `java`, `flutter`).
+  final String? iconKey;
+
+  /// Optional local custom icon path (Other / user-uploaded).
+  final String? iconPath;
+
   factory ProfileSkill.fromJson(Map<String, dynamic> json) {
     return ProfileSkill(
       name: json['name'] as String? ?? '',
       proficiency: json['proficiency'] as int? ?? 0,
+      colorValue: json['colorValue'] as int?,
+      iconKey: json['iconKey'] as String?,
+      iconPath: json['iconPath'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'proficiency': proficiency,
+        if (colorValue != null) 'colorValue': colorValue,
+        if (iconKey != null) 'iconKey': iconKey,
+        if (iconPath != null) 'iconPath': iconPath,
+      };
 }
 
 class ProfileWorkEntry {

@@ -5,7 +5,7 @@ import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
 import 'package:aub_connect_app/modules/startup/startup_controller.dart';
 import 'package:aub_connect_app/modules/startup/widgets/discovery_source_row.dart';
 import 'package:aub_connect_app/modules/startup/widgets/selectable_interest_card.dart';
-import 'package:aub_connect_app/modules/startup/widgets/selectable_skill_chip.dart';
+import 'package:aub_connect_app/modules/startup/widgets/packed_skill_chip_flow.dart';
 
 class StartupSkillsPage extends GetView<StartupController> {
   const StartupSkillsPage({super.key});
@@ -38,18 +38,10 @@ class StartupSkillsPage extends GetView<StartupController> {
           child: GetBuilder<StartupController>(
             builder: (_) => SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: startupSkills.map((skill) {
-                  final selected = controller.draft.skillIds.contains(skill.id);
-                  return SelectableSkillChip(
-                    label: skill.label,
-                    icon: skill.icon,
-                    selected: selected,
-                    onTap: () => controller.toggleSkill(skill.id),
-                  );
-                }).toList(),
+              child: PackedSkillChipFlow(
+                skills: startupSkills,
+                selectedIds: controller.draft.skillIds.toSet(),
+                onToggle: controller.toggleSkill,
               ),
             ),
           ),

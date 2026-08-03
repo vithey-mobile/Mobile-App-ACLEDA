@@ -5,10 +5,11 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_header.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_tabs.dart';
-import 'package:aub_connect_app/modules/profile/widgets/profile_wavy_header.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_cover_redesign.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
@@ -56,10 +57,43 @@ class ProfileScreen extends GetView<ProfileController> {
             SliverToBoxAdapter(
               child: Column(
                 children: [
-                  ProfileWavyHeader(
+                  ProfileCoverRedesign(
                     profile: profile,
                     showMenu: controller.isOwnProfile,
                     onMenuTap: () => Get.toNamed(AppRoutes.settings),
+                  ),
+                  // Identity block — tight under avatar (Own Profile Home)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                    child: Column(
+                      children: [
+                        Text(
+                          profile.fullName,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: context.appColors.heading,
+                            height: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        if (profile.bio != null &&
+                            profile.bio!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            profile.bio!,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: context.appColors.muted,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   ProfileStats(profile: profile),
                   Obx(
