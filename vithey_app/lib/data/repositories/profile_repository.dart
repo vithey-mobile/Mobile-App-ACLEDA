@@ -150,6 +150,8 @@ class ProfileRepository {
       if (university != null) 'university': clearedUniversity,
       if (major != null) 'major': clearedMajor,
       if (graduationYear != null) 'graduation_year': graduationYear,
+      if (skills != null)
+        'skills': skills.map((s) => s.toJson()).toList(),
     };
     final hasListUpdate = education != null ||
         workplaces != null ||

@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
+import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:intl/intl.dart';
 
@@ -63,15 +64,7 @@ class _MessageActionRowState extends State<MessageActionRow> {
                 ),
                 Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        AppAssets.logoApp,
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
+                    const AppLogo(size: 22),
                     const SizedBox(width: 8),
                     Text(
                       'Sources',
@@ -211,17 +204,9 @@ class _MessageActionRowState extends State<MessageActionRow> {
             child: InkWell(
               onTap: () => _showSources(context),
               borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.asset(
-                    AppAssets.logoApp,
-                    width: 18,
-                    height: 18,
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              child: const Padding(
+                padding: EdgeInsets.all(6),
+                child: AppLogo(size: 22),
               ),
             ),
           ),

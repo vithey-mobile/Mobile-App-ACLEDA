@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
 /// Legacy preferred-size app bar (kept for screens that still need it).
@@ -24,7 +24,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
-          Image.asset(AppAssets.logoApp, width: 28, height: 28),
+          const AppLogo(size: 28),
           const SizedBox(width: 8),
           Text(
             AppStrings.appName.split(' ').first,

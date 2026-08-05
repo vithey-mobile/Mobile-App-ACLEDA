@@ -9,114 +9,114 @@ abstract final class FinanceFixtures {
   /// shows recent Paid and Pending together (not all pending on top).
   static List<PaymentSummary> buildPayments() {
     return [
-      PaymentSummary(
+      _payment(
         id: MockIds.pay1,
         feeName: 'School Fee',
-        amount: const Money(amountMinor: 120000),
+        baseMinor: 120000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(16),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay2,
         feeName: 'Housing Fee',
-        amount: const Money(amountMinor: 250000),
+        baseMinor: 250000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysFromNow(14),
         paidAt: MockClock.daysAgo(1),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay3,
         feeName: 'Library Fee',
-        amount: const Money(amountMinor: 1000),
+        baseMinor: 1000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(12),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay4,
         feeName: 'Food Fee',
-        amount: const Money(amountMinor: 50000),
+        baseMinor: 50000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysFromNow(10),
         paidAt: MockClock.daysAgo(2),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay5,
         feeName: 'Trip',
-        amount: const Money(amountMinor: 5000),
+        baseMinor: 5000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(8),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay6,
         feeName: 'Tuition Fee',
-        amount: const Money(amountMinor: 450000),
+        baseMinor: 450000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysFromNow(6),
         paidAt: MockClock.daysAgo(3),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay7,
         feeName: 'Lab Equipment',
-        amount: const Money(amountMinor: 45000),
+        baseMinor: 45000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(4),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay8,
         feeName: 'Sports Club',
-        amount: const Money(amountMinor: 35000),
+        baseMinor: 35000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysFromNow(2),
         paidAt: MockClock.now,
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay9,
         feeName: 'Exam Fee',
-        amount: const Money(amountMinor: 25000),
+        baseMinor: 25000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(1),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay10,
         feeName: 'Dormitory Deposit',
-        amount: const Money(amountMinor: 150000),
+        baseMinor: 150000,
         status: PaymentStatus.overdue,
         dueDate: MockClock.daysAgo(2),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay11,
         feeName: 'ID Card Replacement',
-        amount: const Money(amountMinor: 1500),
+        baseMinor: 1500,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysAgo(4),
         paidAt: MockClock.daysAgo(5),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay12,
         feeName: 'Workshop Fee',
-        amount: const Money(amountMinor: 8000),
+        baseMinor: 8000,
         status: PaymentStatus.overdue,
         dueDate: MockClock.daysAgo(7),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay13,
         feeName: 'Internet Package',
-        amount: const Money(amountMinor: 20000),
+        baseMinor: 20000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysAgo(9),
         paidAt: MockClock.daysAgo(8),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay14,
         feeName: 'Parking Permit',
-        amount: const Money(amountMinor: 12000),
+        baseMinor: 12000,
         status: PaymentStatus.unpaid,
         dueDate: MockClock.daysFromNow(28),
       ),
-      PaymentSummary(
+      _payment(
         id: MockIds.pay15,
         feeName: 'Graduation Fee',
-        amount: const Money(amountMinor: 75000),
+        baseMinor: 75000,
         status: PaymentStatus.paid,
         dueDate: MockClock.daysAgo(18),
         paidAt: MockClock.daysAgo(16),
@@ -151,21 +151,53 @@ abstract final class FinanceFixtures {
 
   static PaymentInvoice buildInvoice(String paymentId) {
     final payment = buildPayments().firstWhere((p) => p.id == paymentId);
-    final base = payment.amount.amountMinor;
-    final processing = (base * 0.02).round();
-    final late = payment.status == PaymentStatus.overdue ? 1500 : 0;
+    final base = payment.invoiceBase.amountMinor;
+    final parts = _feeParts(base: base, status: payment.status);
     return PaymentInvoice(
       paymentId: payment.id,
       invoiceReference: _referenceFor(payment.id),
       feeName: payment.feeName,
       status: payment.status,
       baseAmount: Money(amountMinor: base),
-      processingFee: Money(amountMinor: processing),
-      lateCharges: Money(amountMinor: late),
-      total: Money(amountMinor: base + processing + late),
+      processingFee: Money(amountMinor: parts.processing),
+      lateCharges: Money(amountMinor: parts.late),
+      total: Money(amountMinor: parts.total),
       dueAt: payment.dueDate,
       paidAt: payment.paidAt,
       invoiceFileId: 'invoice-${payment.id}',
+    );
+  }
+
+  static PaymentSummary _payment({
+    required String id,
+    required String feeName,
+    required int baseMinor,
+    required PaymentStatus status,
+    required DateTime dueDate,
+    DateTime? paidAt,
+  }) {
+    final parts = _feeParts(base: baseMinor, status: status);
+    return PaymentSummary(
+      id: id,
+      feeName: feeName,
+      baseAmount: Money(amountMinor: baseMinor),
+      amount: Money(amountMinor: parts.total),
+      status: status,
+      dueDate: dueDate,
+      paidAt: paidAt,
+    );
+  }
+
+  static ({int processing, int late, int total}) _feeParts({
+    required int base,
+    required PaymentStatus status,
+  }) {
+    final processing = (base * 0.02).round();
+    final late = status == PaymentStatus.overdue ? 1500 : 0;
+    return (
+      processing: processing,
+      late: late,
+      total: base + processing + late,
     );
   }
 

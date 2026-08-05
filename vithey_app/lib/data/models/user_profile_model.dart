@@ -216,8 +216,20 @@ class UserProfileModel {
       isFollowing: json['is_following'] as bool? ?? false,
       location: json['location'] as String?,
       gender: json['gender'] as String?,
+      skills: _skillsFromJson(json['skills']),
     );
   }
+}
+
+List<ProfileSkill> _skillsFromJson(dynamic raw) {
+  if (raw is! List) return const [];
+  return [
+    for (final item in raw)
+      if (item is Map<String, dynamic>)
+        ProfileSkill.fromJson(item)
+      else if (item is Map)
+        ProfileSkill.fromJson(Map<String, dynamic>.from(item)),
+  ];
 }
 
 class ProfileSkill {

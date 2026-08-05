@@ -10,14 +10,24 @@ class PaymentSummary {
     required this.status,
     required this.dueDate,
     this.paidAt,
+    this.baseAmount,
   });
 
   final String id;
   final String feeName;
+
+  /// Total charged (base + processing fee + late charges). Shown in Recent Transaction.
   final Money amount;
+
+  /// Base fee before fees/charges. Used when building invoice breakdown.
+  /// When null, [amount] is treated as the base (API payloads without a split).
+  final Money? baseAmount;
+
   final PaymentStatus status;
   final DateTime dueDate;
   final DateTime? paidAt;
+
+  Money get invoiceBase => baseAmount ?? amount;
 
   String get statusLabel {
     switch (status) {

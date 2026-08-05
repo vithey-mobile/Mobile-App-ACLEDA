@@ -36,10 +36,20 @@ class FinanceService {
   }
 
   PaymentSummary _parsePayment(Map<String, dynamic> json) {
+    final baseJson = json['base_amount'] as Map<String, dynamic>?;
+    final totalJson = json['total'] as Map<String, dynamic>?;
+    final amountJson = json['amount'] as Map<String, dynamic>? ?? {};
+    final baseAmount =
+        baseJson != null ? Money.fromJson(baseJson) : null;
+    // Prefer authoritative total when the API provides it; otherwise amount.
+    final amount = totalJson != null
+        ? Money.fromJson(totalJson)
+        : Money.fromJson(amountJson);
     return PaymentSummary(
       id: json['payment_id']?.toString() ?? json['id']?.toString() ?? '',
       feeName: json['fee_name'] as String? ?? 'Fee',
-      amount: Money.fromJson(json['amount'] as Map<String, dynamic>? ?? {}),
+      amount: amount,
+      baseAmount: baseAmount,
       status: _parseStatus(json['status'] as String?),
       dueDate: DateTime.tryParse(json['due_date']?.toString() ?? '') ?? DateTime.now(),
       paidAt: json['paid_at'] != null ? DateTime.tryParse(json['paid_at'].toString()) : null,

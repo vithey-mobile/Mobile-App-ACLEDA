@@ -226,7 +226,6 @@ class _SkillForm extends StatefulWidget {
 
 class _SkillFormState extends State<_SkillForm> {
   static const _other = 'Other';
-  static const _presetLevels = [25, 50, 75, 100];
 
   late final TextEditingController _customName;
   String? _selected;
@@ -259,7 +258,7 @@ class _SkillFormState extends State<_SkillForm> {
     super.initState();
     final existing = widget.existing;
     final existingName = existing?.name.trim() ?? '';
-    _proficiency = (existing?.proficiency ?? 50).clamp(0, 100);
+    _proficiency = (existing?.proficiency ?? 0).clamp(0, 100);
     _colorValue = existing?.colorValue;
     _iconPath = existing?.iconPath;
 
@@ -605,59 +604,42 @@ class _SkillFormState extends State<_SkillForm> {
                   color: muted,
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                'Set automatically by the system',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
               const SizedBox(height: 12),
               Center(
-                child: ProfileSkillRing(
-                  skill: preview,
-                  size: 88,
-                  showLabel: false,
+                child: Opacity(
+                  opacity: 0.85,
+                  child: ProfileSkillRing(
+                    skill: preview,
+                    size: 88,
+                    showLabel: false,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: accent,
+                  activeTrackColor: accent.withValues(alpha: 0.55),
                   inactiveTrackColor: fill,
-                  thumbColor: accent,
-                  overlayColor: accent.withValues(alpha: 0.12),
+                  disabledActiveTrackColor: accent.withValues(alpha: 0.55),
+                  disabledInactiveTrackColor: fill,
+                  thumbColor: accent.withValues(alpha: 0.7),
+                  disabledThumbColor: accent.withValues(alpha: 0.7),
+                  overlayColor: Colors.transparent,
                   trackHeight: 6,
                 ),
                 child: Slider(
                   value: _proficiency.toDouble(),
                   min: 0,
                   max: 100,
-                  divisions: 20,
+                  divisions: 100,
                   label: '$_proficiency%',
-                  onChanged: (v) => setState(() => _proficiency = v.round()),
+                  onChanged: null,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final level in _presetLevels)
-                    ChoiceChip(
-                      label: Text('$level%'),
-                      selected: _proficiency == level,
-                      selectedColor: accent.withValues(alpha: 0.18),
-                      labelStyle: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _proficiency == level ? accent : heading,
-                      ),
-                      side: BorderSide(
-                        color: _proficiency == level
-                            ? accent
-                            : context.appColors.border,
-                      ),
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
-                      onSelected: (_) => setState(() => _proficiency = level),
-                      showCheckmark: false,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                ],
               ),
             ],
           ),

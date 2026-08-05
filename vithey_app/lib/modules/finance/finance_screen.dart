@@ -34,7 +34,7 @@ class FinanceScreen extends GetView<FinanceController> {
           final showAll = controller.showAll.value;
 
           return Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

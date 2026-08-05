@@ -138,7 +138,7 @@ abstract final class UserFixtures {
         phone: '098 765 432',
         email: MockIdentities.mockUserEmail,
         isStudentVerified: false,
-        skills: mockItSkills,
+        skills: List<ProfileSkill>.of(mockItSkills),
       ),
       MockIds.author1: UserProfileModel(
         id: MockIds.author1,
@@ -154,7 +154,7 @@ abstract final class UserFixtures {
         location: 'Pur Senchey, Phnom Penh',
         dateOfBirth: DateTime(2005, 9, 1),
         workplace: 'Global Tech Solutions',
-        skills: mockItSkills,
+        skills: List<ProfileSkill>.of(mockItSkills),
       ),
       MockIds.author2: const UserProfileModel(
         id: MockIds.author2,

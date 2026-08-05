@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_sheet.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_section_sheets.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
@@ -81,6 +82,7 @@ class EditProfileController extends GetxController {
         skills: List.of(skills),
       );
       profile.value = updated;
+      await _syncProfileController(updated);
       Get.back(result: true);
       Get.snackbar(AppStrings.appName, 'Profile updated');
     } catch (e) {
@@ -88,6 +90,28 @@ class EditProfileController extends GetxController {
     } finally {
       isSaving.value = false;
     }
+  }
+
+  /// Persist skills immediately so About / profile stay in sync without
+  /// relying only on the footer Save button.
+  Future<void> persistSkills() async {
+    try {
+      final updated = await _repository.updateProfile(
+        skills: List.of(skills),
+      );
+      profile.value = updated;
+      await _syncProfileController(updated);
+    } catch (e) {
+      Get.snackbar(AppStrings.appName, e.toString());
+    }
+  }
+
+  Future<void> _syncProfileController(UserProfileModel updated) async {
+    if (!Get.isRegistered<ProfileController>()) return;
+    final profileController = Get.find<ProfileController>();
+    // Own profile only — never overwrite someone else's open profile.
+    if (!profileController.isOwnProfile) return;
+    profileController.profile.value = updated;
   }
 
   void cancel() => Get.back(result: false);
@@ -250,12 +274,12 @@ class _Footer extends StatelessWidget {
 
 class _TappableRow extends StatelessWidget {
   const _TappableRow({
-    required this.icon,
+    this.icon,
     required this.text,
     required this.onTap,
   });
 
-  final IconData icon;
+  final IconData? icon;
   final String text;
   final VoidCallback onTap;
 
@@ -269,8 +293,10 @@ class _TappableRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 20, color: context.appColors.muted),
-            const SizedBox(width: 12),
+            if (icon != null) ...[
+              Icon(icon, size: 20, color: context.appColors.muted),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Text(
                 text,
@@ -302,6 +328,7 @@ class _SkillsBlock extends StatelessWidget {
       if (index != null) {
         controller.skills.removeAt(index);
         controller.skills.refresh();
+        await controller.persistSkills();
       }
       return;
     }
@@ -309,10 +336,11 @@ class _SkillsBlock extends StatelessWidget {
     if (skill == null) return;
     if (index != null) {
       controller.skills[index] = skill;
-      controller.skills.refresh();
     } else {
       controller.skills.add(skill);
     }
+    controller.skills.refresh();
+    await controller.persistSkills();
   }
 
   @override
@@ -392,7 +420,6 @@ class _BioBlock extends StatelessWidget {
           const SizedBox(height: 8),
           if (text.isNotEmpty)
             _TappableRow(
-              icon: Icons.format_quote_outlined,
               text: text,
               onTap: () => _open(context),
             )
