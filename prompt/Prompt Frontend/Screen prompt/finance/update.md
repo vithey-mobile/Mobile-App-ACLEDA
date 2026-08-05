@@ -1,8 +1,8 @@
-﻿# Finance Module — As-Built Spec (ayheng)
+# Finance Module — As-Built Spec (ayheng)
 
-> **Status:** Implemented in `vithey_app/lib/modules/finance/` and `student_verification/` on branch `ayheng`.  
-> This file is the **source of truth** for current Finance / Verification / Transaction behavior.  
-> Keep `v0/` as archive. Prefer `v1/` prompts + this file over outdated UI briefs.
+> **Status:** Implemented in `vithey_app/lib/modules/finance/` and `student_verification/` on branch `ayheng`.
+> This file is the **source of truth** for current Finance / Verification / Transaction behavior.
+> Prompts live in this folder (flat — no version subfolders).
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Screen | Prompt | Module |
 |--------|--------|--------|
-| Student Verification Form | `v1/01.verify_from-v1.md` | `student_verification/` |
-| Verification Status | `v1/02.pending_verify-v1.md` | `student_verification/` |
-| Finance Home | `v1/03.finance_home-v1.md` | `finance/` |
-| Invoice / Transaction detail | `v1/04.detail_invoice-v1.md` | `invoice_preview_sheet.dart` |
+| Student Verification Form | `01.verify_from.md` | `student_verification/` |
+| Verification Status | `02.pending_verify.md` | `student_verification/` |
+| Finance Home | `03.finance_home.md` | `finance/` |
+| Invoice / Transaction detail | `04.detail_invoice.md` | `invoice_preview_sheet.dart` |
 
 ---
 
@@ -49,13 +49,13 @@
 
 ### Money model (list)
 
-```dart
+`dart
 class PaymentSummary {
   final Money amount;      // TOTAL charged (list + dashboard aggregates)
   final Money? baseAmount; // base before fees (invoice rebuild)
   // ...
 }
-```
+`
 
 Mock fee rule (`FinanceFixtures`):
 
@@ -69,7 +69,7 @@ Invoice detail still shows authoritative breakdown: Base, Processing Fee, Late C
 
 ## Invoice detail — as built
 
-**File:** `invoice_preview_sheet.dart`  
+**File:** `invoice_preview_sheet.dart`
 **Visual:** `screen image/finance/Transaction.png`
 
 | Spec | Value |
@@ -95,7 +95,7 @@ Invoice detail still shows authoritative breakdown: Base, Processing Fee, Late C
 
 ## Key Flutter paths
 
-```text
+`text
 lib/modules/finance/
   finance_screen.dart
   finance_controller.dart
@@ -114,7 +114,7 @@ lib/data/
   models/payment_invoice_model.dart
   repositories/finance_repository.dart
   repositories/student_verification_repository.dart  # FinanceNavigation
-```
+`
 
 ---
 

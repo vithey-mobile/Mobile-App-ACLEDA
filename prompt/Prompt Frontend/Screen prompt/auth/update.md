@@ -1,4 +1,4 @@
-﻿# Startup Background Redesign — As-Built (ayheng)
+# Startup Background Redesign — As-Built (ayheng)
 
 ## Objective
 
@@ -21,14 +21,14 @@ Screens:
 
 # Background Structure
 
-```text
+`text
 ┌──────────────────────────────────────────┐
 │              TEAL BACKGROUND             │
 │         App Logo / Illustrations         │
 │~~~~~~~~~~~~ Morphing White Sheet ~~~~~~~~│
 │            Screen Content                │
 └──────────────────────────────────────────┘
-```
+`
 
 - Teal fills the screen.
 - White Sheet rises from the bottom, full width, no side/bottom margins.
@@ -79,14 +79,14 @@ Do **not** use bare `Image.asset(AppAssets.logoApp)` without `AppLogo`.
 
 # Key paths
 
-```text
+`text
 lib/core/widgets/app_logo.dart
 lib/modules/auth/widgets/auth_wave_header.dart
 lib/modules/auth/login_screen.dart
 lib/modules/select_language/select_language_screen.dart
 lib/modules/splash/splash_screen.dart
 lib/modules/startup/widgets/startup_app_bar.dart
-```
+`
 
 ---
 

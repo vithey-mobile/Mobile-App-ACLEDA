@@ -2,7 +2,7 @@
 
 > **Status:** Implemented in `vithey_app/lib/modules/profile/` on branch `ayheng`.  
 > This file is the **source of truth** for current profile/edit-skills behavior.  
-> Keep `v0/` as archive. Update `v1/` prompts when this file changes.
+> Prompts live in this folder (flat — no version subfolders).
 
 ---
 
@@ -30,7 +30,7 @@
 | Teal cover | `#99E3DF` plane + `#016560` decor icons |
 | Wave | Low → high → low boundary |
 | Avatar | Overlaps wave; half on boundary |
-| Under avatar | Name, bio, equal-column stats (Likes · Followers · Following) |
+| Under avatar | Name, bio, equal-column stats (Likes Â· Followers Â· Following) |
 | Owner CTAs | Edit Profile Info / Verify Student / outlined Share |
 | Visitor CTAs | Follow / Message / Share (via `ProfileActionRow`) |
 
@@ -62,7 +62,7 @@ All tab bodies use **20px** left/right padding.
 | Color | `colorValue` if set; else palette by name hash |
 | Edit | Display-only on About; edit via Edit Profile Info |
 
-```dart
+`dart
 class ProfileSkill {
   final String name;
   final int proficiency; // 0–100; system-owned after create
@@ -70,7 +70,7 @@ class ProfileSkill {
   final String? iconKey;
   final String? iconPath;
 }
-```
+`
 
 ---
 
@@ -78,21 +78,21 @@ class ProfileSkill {
 
 **Files:** `edit_profile_screen.dart`, `edit_profile_bottom_sheet.dart`, `profile_section_sheets.dart`
 
-```
-┌─────────────────────────────────────┐
-│ ←  Edit personal info               │
-├─────────────────────────────────────┤
-│ Skills                              │  Leading ⊕ Add Skill circle + rings
-│ Bio                                 │  Title only — no Add, no icon
-│ Personal details               Add  │
-│ Work                           Add  │
-│ Education                      Add  │
-│ Links                          Add  │
-│ Contact info                   Add  │
-├─────────────────────────────────────┤
-│ [ Save ]              [ Cancel ]    │
-└─────────────────────────────────────┘
-```
+`
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ â†  Edit personal info               â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Skills                              â”‚  Leading âŠ• Add Skill circle + rings
+â”‚ Bio                                 â”‚  Title only — no Add, no icon
+â”‚ Personal details               Add  â”‚
+â”‚ Work                           Add  â”‚
+â”‚ Education                      Add  â”‚
+â”‚ Links                          Add  â”‚
+â”‚ Contact info                   Add  â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ [ Save ]              [ Cancel ]    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+`
 
 | Spec | Value |
 |------|-------|
@@ -112,7 +112,7 @@ class ProfileSkill {
 - First item: `ProfileAddSkillCircle` (“Add Skill”).
 - Tap ring → Edit skill sheet.
 - **Add / edit / remove skill persists immediately** via `persistSkills()` (repository + own ProfileController sync). About updates without waiting for footer Save.
-- Footer Save still persists the full draft (bio, personal, work, … + skills).
+- Footer Save still persists the full draft (bio, personal, work, ... + skills).
 
 ### Remove on edit sheets
 
@@ -129,17 +129,17 @@ When editing existing content, title trailing **Remove** + destructive confirm (
 
 ## Skill selection flow (as built)
 
-```text
+`text
 Select skill (L1) — startupSkills + Other
-    │
-    ├─ Coding ──► Select category (Frontend | Backend | Other)
-    │                 │
-    │                 ├─ Frontend / Backend ──► tech list (≥20) + Other
-    │                 └─ Other ──► custom name (+ optional icon/image)
-    │
-    ├─ Other top-level ──► custom name (+ optional icon/image)
-    └─ Other categories ──► save category label + iconKey
-```
+    â”‚
+    â”œâ”€ Coding â”€â”€â–º Select category (Frontend | Backend | Other)
+    â”‚                 â”‚
+    â”‚                 â”œâ”€ Frontend / Backend â”€â”€â–º tech list (â‰¥20) + Other
+    â”‚                 â””â”€ Other â”€â”€â–º custom name (+ optional icon/image)
+    â”‚
+    â”œâ”€ Other top-level â”€â”€â–º custom name (+ optional icon/image)
+    â””â”€ Other categories â”€â”€â–º save category label + iconKey
+`
 
 ### Catalog
 
@@ -147,8 +147,8 @@ Select skill (L1) — startupSkills + Other
 |--------|-----------------|
 | Top-level | `startupSkills` + Other → `topLevelSkillCatalog` |
 | Coding categories | `codingCategories` |
-| Frontend techs | `codingFrontendSkills` (Flutter, Dart, … Expo, Other) |
-| Backend techs | `codingBackendSkills` (Java, Spring Boot, … Kubernetes, Other) |
+| Frontend techs | `codingFrontendSkills` (Flutter, Dart, ... Expo, Other) |
+| Backend techs | `codingBackendSkills` (Java, Spring Boot, ... Kubernetes, Other) |
 | Icon picker grid | `pickableSkillIcons` (Material + catalog logos) |
 | Resolver | `findCatalogSkill` / `SkillIcon` |
 
@@ -183,7 +183,7 @@ Tech logos: official Devicon PNGs via URL (`iconUrl`), cached. Category skills u
 
 ## Data / API notes
 
-- Mock: `ProfileRepository.updateProfile(skills: …)` updates in-memory store.
+- Mock: `ProfileRepository.updateProfile(skills: ...)` updates in-memory store.
 - API patch must include `skills` JSON array (`toJson` / `fromJson` with `iconKey`, `iconPath`, `colorValue`).
 - `UserProfileModel.fromJson` parses `skills`.
 
@@ -191,7 +191,7 @@ Tech logos: official Devicon PNGs via URL (`iconUrl`), cached. Category skills u
 
 ## Key Flutter paths
 
-```text
+`text
 lib/modules/profile/
   profile_screen.dart
   profile_controller.dart
@@ -209,7 +209,7 @@ lib/data/models/
   profile_skill_catalog.dart
   startup_profile_draft.dart
 lib/core/widgets/app_logo.dart       # always white circle
-```
+`
 
 ---
 

@@ -134,7 +134,7 @@ Avoid extra elements that are not visible in the reference: no tab bar, no app b
 
 Use the existing project structure and core components:
 
-```text
+`text
 lib/modules/onboarding/
   onboarding_screen.dart
   onboarding_controller.dart
@@ -151,7 +151,7 @@ assets/images/onboarding/
   onboarding_1.png
   onboarding_2.png
   onboarding_3.png
-```
+`
 
 - Reuse the auth-style wave approach where practical (`CustomPainter` / `ClipPath`), but keep onboarding widgets in `lib/modules/onboarding/`.
 - Use `CustomButton` from `core/widgets/custom_button.dart` for the primary CTA when it can match the teal pill style.
@@ -198,7 +198,7 @@ None. Onboarding is local-only.
 ## Dependencies
 
 - `00-foundation-prompt.md`
-- `01-splash-prompt.md` / `01-splash-prompt-version-2.md`
+- `01-splash-prompt.md` / `01-splash-prompt.md`
 - `03-auth-prompt.md`
 
 ## Output
