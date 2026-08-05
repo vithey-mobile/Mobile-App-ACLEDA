@@ -1,60 +1,128 @@
-# Finance Screen UI Update
+﻿# Finance Module — As-Built Spec (ayheng)
 
-## Objective
-
-Update the **Finance Screen** UI.
-
-Follow the same workflow used for previous UI updates:
-
-- Create a **v0** folder containing the original implementation.
-- Create a **v1** folder containing the redesigned implementation.
-- Move the related files into the appropriate folders.
-- Keep the existing functionality unless explicitly stated otherwise.
+> **Status:** Implemented in `vithey_app/lib/modules/finance/` and `student_verification/` on branch `ayheng`.  
+> This file is the **source of truth** for current Finance / Verification / Transaction behavior.  
+> Keep `v0/` as archive. Prefer `v1/` prompts + this file over outdated UI briefs.
 
 ---
 
-# Balance Card Redesign
+## Scope
 
-## Remove Existing Content
-
-Remove the current balance card design.
-
----
-
-## New Balance Card
-
-Update the balance card with the following layout:
-
-- Replace the current content with the new design.
-- Add a **wallet icon** on the **right side** of the card.
-- Move the **"Due In"** information below the **Balance**.
-- Add a **"Pay Now"** button at the bottom of the card.
+| Screen | Prompt | Module |
+|--------|--------|--------|
+| Student Verification Form | `v1/01.verify_from-v1.md` | `student_verification/` |
+| Verification Status | `v1/02.pending_verify-v1.md` | `student_verification/` |
+| Finance Home | `v1/03.finance_home-v1.md` | `finance/` |
+| Invoice / Transaction detail | `v1/04.detail_invoice-v1.md` | `invoice_preview_sheet.dart` |
 
 ---
 
-# Total Paycheck Section
+## Access gate (unchanged)
 
-Below the balance card:
-
-- Add a new **Total Paycheck** section.
-- Follow the provided UI design.
-
----
-
-# Transaction List
-
-Update the transaction items:
-
-- Remove the filled background behind the transaction icon.
-- Remove the filled background behind the transaction status.
-- Keep the remaining transaction layout unchanged unless required by the new design.
+1. Not verified → Verification Form or Status (by state).
+2. Verified student → Finance Home.
+3. Finance entry: `FinanceNavigation.openFinanceEntry` (home app bar / media header).
 
 ---
 
-# Notes
+## Finance Home — as built
 
-- Preserve all existing business logic.
-- Reuse existing widgets where possible.
-- Avoid duplicate implementations.
-- Focus only on UI updates.
-- Keep the code clean and maintainable.
+**File:** `finance_screen.dart`
+
+| Spec | Value |
+|------|-------|
+| Content padding | `EdgeInsets.fromLTRB(20, 8, 20, 0)` — **20px** left/right |
+| App bar | `FinanceAppBar` — title **Finance** |
+| Balance card | Outstanding amount, Due pill under amount, wallet asset right, **Pay Now** full width |
+| Total Paycheck | Strip under card (`FinanceTotalPaycheck`) |
+| Recent Transaction | Header + See All / See Less; scrollable list |
+
+### Transaction row
+
+| Spec | Value |
+|------|-------|
+| Widget | `PaymentReceiptTile` |
+| Amount shown | **Total** = base + processing fee + late charges (not base alone) |
+| Status | Colored text only (Paid / Pending / Overdue) — no filled status chip |
+| Icon | Status glyph without filled plate |
+| Tap | Opens invoice preview for that `paymentId` |
+
+### Money model (list)
+
+```dart
+class PaymentSummary {
+  final Money amount;      // TOTAL charged (list + dashboard aggregates)
+  final Money? baseAmount; // base before fees (invoice rebuild)
+  // ...
+}
+```
+
+Mock fee rule (`FinanceFixtures`):
+
+- Processing fee = **2%** of base (rounded).
+- Late charge = **1500** minor units when status is overdue.
+- `amount` / dashboard totals use `base + processing + late`.
+
+Invoice detail still shows authoritative breakdown: Base, Processing Fee, Late Charge, **Total Due**.
+
+---
+
+## Invoice detail — as built
+
+**File:** `invoice_preview_sheet.dart`  
+**Visual:** `screen image/finance/Transaction.png`
+
+| Spec | Value |
+|------|-------|
+| Sheet padding | **20px** left/right |
+| Header | Fee name + invoice reference |
+| Status panel | STATE tint + DATE |
+| Breakdown | Base Amount, Processing Fee, Late Charge |
+| Total | **Total Due** = `invoice.total` (matches list total) |
+| Actions | Download PDF Invoice, Report an Issue |
+
+---
+
+## Verification — as built
+
+| Spec | Value |
+|------|-------|
+| Form padding | `fromLTRB(20, …)` |
+| Status padding | `fromLTRB(20, …)` |
+| Upload | Student ID box + upload icon asset |
+
+---
+
+## Key Flutter paths
+
+```text
+lib/modules/finance/
+  finance_screen.dart
+  finance_controller.dart
+  widgets/
+    finance_balance_card.dart
+    finance_total_paycheck.dart
+    payment_receipts_section.dart
+    payment_receipt_tile.dart
+    invoice_preview_sheet.dart
+lib/modules/student_verification/
+  student_verification_screen.dart
+  verification_status_screen.dart
+lib/data/
+  fixtures/finance_fixtures.dart
+  models/finance_dashboard_model.dart
+  models/payment_invoice_model.dart
+  repositories/finance_repository.dart
+  repositories/student_verification_repository.dart  # FinanceNavigation
+```
+
+---
+
+## Acceptance (as built)
+
+- [x] Finance content padding 20 left/right
+- [x] Balance card + Total Paycheck + See All/Less transactions
+- [x] Transaction list amount = total including processing fee (and late when overdue)
+- [x] Invoice breakdown + Total Due consistent with list totals
+- [x] Verification form/status use 20px horizontal padding
+- [x] Unverified users gated away from Finance Home

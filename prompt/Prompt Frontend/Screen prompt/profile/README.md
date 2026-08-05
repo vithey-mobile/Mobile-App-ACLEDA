@@ -10,7 +10,7 @@ Complete specification for the **user profile module** matching `Prompt Frontend
 | --- | --- |
 | `v0/` | Archive — original profile prompts |
 | `v1/` | **Current implemented UI** (`*-v1.md`) |
-| Root | `update.md` (edit-profile bottom-sheet brief — applied in v1 edit flow), this README |
+| Root | [`update.md`](update.md) — **as-built ayheng profile/skills/cover/tabs** (source of truth), this README |
 
 Implement and maintain **`v1/` only**.
 
@@ -18,11 +18,11 @@ Implement and maintain **`v1/` only**.
 
 Deliver a production-quality profile experience:
 
-- **Wavy teal cover header** with decorative tech icons
-- Large overlapping circular avatar
+- **Cover redesign** (`ProfileCoverRedesign`) — teal + wave + overlapping avatar
 - Stats row: **Likes · Followers · Following**
 - Owner vs visitor action buttons
-- **5 scrollable tabs:** About, Videos, Posters, Jobs, Applied Jobs
+- **5 scrollable tabs** with **20px** horizontal padding: About, Videos, Posters, Jobs, Applied Jobs
+- Skills rings with **~30% logo watermarks**; Coding drill-down in edit
 - Bottom navigation with Profile tab active (via MainShell)
 - Job owner flows: applicants list, CV preview, accept/reject
 
@@ -91,21 +91,26 @@ lib/modules/profile/
   applicant_detail_screen.dart
   cv_screens.dart
   widgets/
-    profile_wavy_header.dart
+    profile_cover_redesign.dart   # active cover
+    profile_wavy_header.dart      # backup
     profile_tabs.dart
+    profile_skills.dart
+    skill_icon.dart
+    profile_section_sheets.dart
     profile_video_card.dart
     ...
 ```
 
 ## Acceptance checklist (v1 release)
 
-- [x] Wavy teal header + avatar + stats
+- [x] Cover redesign + avatar + stats
 - [x] Owner / visitor actions
-- [x] 5 scrollable tabs; Applied Jobs hidden for visitors
-- [x] About / Videos / Posters / Jobs / Applied Jobs UIs
-- [x] Edit profile info (v1 bottom-sheet Add / edit)
+- [x] 5 scrollable tabs @ 20px padding; Applied Jobs bordered cards
+- [x] About skills with watermark logos
+- [x] Edit profile: Coding skills, system %, immediate skill persist, Remove sheets
 - [x] Applicant list / detail / CV preview routes
 - [x] Wired into MainShell Profile tab
+- [x] AppLogo white circle (shared)
 
 ## Output
 

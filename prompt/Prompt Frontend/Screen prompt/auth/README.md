@@ -10,9 +10,9 @@ Use this folder as the single source of truth for app entry, authentication, reg
 | --- | --- |
 | `v0/` | Original prompts (archive — do not implement from these) |
 | `v1/` | **Current implemented UI** (`*-v1.md`) |
-| Root | `update.md` (auth background history), `WAVE_SHAPES.md`, `Sample-for-Onboarding.md`, this README |
+| Root | [`update.md`](update.md) — as-built teal/white sheet + **AppLogo always white circle**, `WAVE_SHAPES.md`, `Sample-for-Onboarding.md`, this README |
 
-`update.md` documents the auth wave-background work that is **already implemented**. Treat it as reference, not a new build task.
+`update.md` documents auth background + logo chrome **already implemented**. Treat it as reference, not a new build task.
 
 ## Current prompts (v1) — implement / maintain these
 

@@ -1,281 +1,227 @@
-# Profile Skills - Coding Category Enhancement
+# Profile Module — As-Built Spec (ayheng)
 
-## Objective
-
-Enhance the **Skills** section by providing a more detailed skill selection flow for the **Coding** category while keeping the existing design and interaction consistent with the rest of the application.
-
----
-
-# Scope
-
-Update only the **Skills** section.
-
-Do not modify the business logic outside of the Skills feature.
+> **Status:** Implemented in `vithey_app/lib/modules/profile/` on branch `ayheng`.  
+> This file is the **source of truth** for current profile/edit-skills behavior.  
+> Keep `v0/` as archive. Update `v1/` prompts when this file changes.
 
 ---
 
-# Coding Skill Selection Flow
+## Scope (ayheng ownership)
 
-Currently, users can directly select **Coding** as a skill.
+| Area | Status |
+|------|--------|
+| Profile home cover redesign | Implemented — `ProfileCoverRedesign` |
+| About / Videos / Posters / Jobs / Applied Jobs | Implemented — **20px** horizontal padding |
+| Edit personal info (sheets + Remove) | Implemented |
+| Skills: Coding drill-down, icons, watermark rings | Implemented |
+| Skills: system-owned %, immediate persist | Implemented |
+| Bio: no Add, no leading icon | Implemented |
+| App logo white circle (shared) | Implemented — `AppLogo` |
 
-Update the behavior so that selecting **Coding** opens additional selections.
+---
 
-The flow should be:
+## Profile home cover
+
+**Active widget:** `profile_cover_redesign.dart` (wired from `profile_screen.dart`).  
+**Backup (inactive):** `profile_wavy_header.dart`.
+
+| Spec | Value |
+|------|-------|
+| Teal cover | `#99E3DF` plane + `#016560` decor icons |
+| Wave | Low → high → low boundary |
+| Avatar | Overlaps wave; half on boundary |
+| Under avatar | Name, bio, equal-column stats (Likes · Followers · Following) |
+| Owner CTAs | Edit Profile Info / Verify Student / outlined Share |
+| Visitor CTAs | Follow / Message / Share (via `ProfileActionRow`) |
+
+---
+
+## Profile tabs — padding & chrome
+
+All tab bodies use **20px** left/right padding.
+
+| Tab | List padding | Notes |
+|-----|--------------|-------|
+| About | `fromLTRB(20, 16, 20, 100)` | Skills row + `ProfileAboutDetails` |
+| Videos | `fromLTRB(20, 0, 20, 100)` | |
+| Posters | `fromLTRB(20, 0, 20, 100)` | `PosterPostCard` margin **vertical only** (no extra horizontal) |
+| Jobs | `fromLTRB(20, 0, 20, 100)` | |
+| Applied Jobs | `fromLTRB(20, 8, 20, 100)` | Each row in bordered `Card` (radius 12) |
+
+---
+
+## About — Skills display
+
+| Spec | Value |
+|------|-------|
+| Widget | `ProfileSkillsRow` / `ProfileSkillRing` |
+| Ring | Progress = `proficiency` 0–100; size ~80 |
+| Center | Bold `%` text |
+| Watermark | Technology / category logo at **~30% opacity** behind `%` (`SkillIcon`) |
+| Label | Skill name under ring (max 2 lines) |
+| Color | `colorValue` if set; else palette by name hash |
+| Edit | Display-only on About; edit via Edit Profile Info |
+
+```dart
+class ProfileSkill {
+  final String name;
+  final int proficiency; // 0–100; system-owned after create
+  final int? colorValue;
+  final String? iconKey;
+  final String? iconPath;
+}
+```
+
+---
+
+## Edit personal info — layout
+
+**Files:** `edit_profile_screen.dart`, `edit_profile_bottom_sheet.dart`, `profile_section_sheets.dart`
+
+```
+┌─────────────────────────────────────┐
+│ ←  Edit personal info               │
+├─────────────────────────────────────┤
+│ Skills                              │  Leading ⊕ Add Skill circle + rings
+│ Bio                                 │  Title only — no Add, no icon
+│ Personal details               Add  │
+│ Work                           Add  │
+│ Education                      Add  │
+│ Links                          Add  │
+│ Contact info                   Add  │
+├─────────────────────────────────────┤
+│ [ Save ]              [ Cancel ]    │
+└─────────────────────────────────────┘
+```
+
+| Spec | Value |
+|------|-------|
+| Content padding | `fromLTRB(20, 8, 20, 24)` |
+| Footer padding | `fromLTRB(20, 12, 20, 12)` |
+| Sheet result | `ProfileSheetResult.saved(T)` / `.deleted()` |
+
+### Bio
+
+- No **Add** header button; no leading quote icon.
+- Empty: tappable “No bio yet”.
+- Filled: tappable text row.
+- Edit sheet may show **Remove** → clears bio on confirm (saved with footer Save).
+
+### Skills list
+
+- First item: `ProfileAddSkillCircle` (“Add Skill”).
+- Tap ring → Edit skill sheet.
+- **Add / edit / remove skill persists immediately** via `persistSkills()` (repository + own ProfileController sync). About updates without waiting for footer Save.
+- Footer Save still persists the full draft (bio, personal, work, … + skills).
+
+### Remove on edit sheets
+
+When editing existing content, title trailing **Remove** + destructive confirm (same pattern as logout):
+
+| Section | On confirm |
+|---------|------------|
+| Skill | Remove from list + persist |
+| Bio | Clear local bio |
+| Personal details | Clear location / gender / DOB |
+| Work / Education / Links / Contact | Remove that list entry |
+
+---
+
+## Skill selection flow (as built)
 
 ```text
-Coding
+Select skill (L1) — startupSkills + Other
     │
-    ▼
-Select Category
+    ├─ Coding ──► Select category (Frontend | Backend | Other)
+    │                 │
+    │                 ├─ Frontend / Backend ──► tech list (≥20) + Other
+    │                 └─ Other ──► custom name (+ optional icon/image)
     │
-    ├── Frontend
-    ├── Backend
-    └── Other
-
-Frontend / Backend
-    │
-    ▼
-Select Specific Skill
+    ├─ Other top-level ──► custom name (+ optional icon/image)
+    └─ Other categories ──► save category label + iconKey
 ```
 
----
+### Catalog
 
-# Step 1 - Select Category
+| Source | Path / constant |
+|--------|-----------------|
+| Top-level | `startupSkills` + Other → `topLevelSkillCatalog` |
+| Coding categories | `codingCategories` |
+| Frontend techs | `codingFrontendSkills` (Flutter, Dart, … Expo, Other) |
+| Backend techs | `codingBackendSkills` (Java, Spring Boot, … Kubernetes, Other) |
+| Icon picker grid | `pickableSkillIcons` (Material + catalog logos) |
+| Resolver | `findCatalogSkill` / `SkillIcon` |
 
-When the user selects **Coding**, display a second selection screen or bottom sheet.
+Tech logos: official Devicon PNGs via URL (`iconUrl`), cached. Category skills use Material icons.
 
-Display the following categories:
+### Other (custom) skill fields
 
-- Frontend
-- Backend
-- Other
+| Field | Required | Notes |
+|-------|----------|-------|
+| Skill name | Yes | |
+| Choose icon | No | Full-height icon grid |
+| Choose image | No | Gallery; optional |
+| Remove | — | Clears custom icon/image |
 
-The UI should follow the same design as the existing skill selection.
+### Color
 
----
+- Palette swatches + rainbow custom → HSV/HEX sheet.
+- Stored as `colorValue` (ARGB); null = auto palette.
 
-# Step 2 - Select Specific Skill
+### Skill level (system-owned)
 
-After selecting **Frontend** or **Backend**, display a list of related technologies.
-
-Provide **at least 20 skills** for each category.
-
-The final option in every list must always be:
-
-- Other
-
-Selecting **Other** allows users to create their own custom skill.
-
----
-
-# Frontend Skills
-
-Include at least the following technologies:
-
-- Flutter
-- Dart
-- HTML
-- CSS
-- JavaScript
-- TypeScript
-- React
-- React Native
-- Next.js
-- Vue.js
-- Nuxt.js
-- Angular
-- Svelte
-- Tailwind CSS
-- Bootstrap
-- Material UI
-- jQuery
-- Sass (SCSS)
-- Less
-- Alpine.js
-- Ionic
-- Electron
-- Expo
-- Other
-
-You may include additional frontend technologies if appropriate.
+| Spec | Value |
+|------|-------|
+| UI | Ring preview + bar (slider) |
+| Interaction | **Disabled** (`onChanged: null`) — user cannot edit |
+| Preset chips | **Removed** (no 25/50/75/100) |
+| Helper | “Set automatically by the system” |
+| New skill default | **0%** |
+| Existing skill | Shows current `proficiency` from profile |
 
 ---
 
-# Backend Skills
+## Data / API notes
 
-Include at least the following technologies:
-
-- Java
-- Spring Boot
-- Kotlin
-- C#
-- ASP.NET
-- PHP
-- Laravel
-- CodeIgniter
-- Node.js
-- Express.js
-- NestJS
-- Python
-- Django
-- Flask
-- FastAPI
-- Ruby on Rails
-- Go
-- Rust
-- C++
-- MySQL
-- PostgreSQL
-- MongoDB
-- Redis
-- Firebase
-- GraphQL
-- Docker
-- Kubernetes
-- Other
-
-You may include additional backend technologies if appropriate.
+- Mock: `ProfileRepository.updateProfile(skills: …)` updates in-memory store.
+- API patch must include `skills` JSON array (`toJson` / `fromJson` with `iconKey`, `iconPath`, `colorValue`).
+- `UserProfileModel.fromJson` parses `skills`.
 
 ---
 
-# Other Option
-
-When the user selects **Other**, display a form to create a custom skill.
-
-Fields:
-
-- Skill Name (Required)
-- Skill Icon/Image (Optional)
-
-Requirements:
-
-- Users may leave the image empty.
-- If no image is provided, display the default skill icon.
-- The custom skill should behave the same as predefined skills.
-
----
-
-# Skill Icons
-
-Each predefined coding technology should have its own official icon or logo.
-
-Examples:
-
-- Flutter
-- Dart
-- Java
-- Spring Boot
-- HTML
-- CSS
-- JavaScript
-- React
-- Vue
-- Angular
-- Node.js
-- Docker
-- Kubernetes
-- Laravel
-- Django
-- MongoDB
-- MySQL
-- PostgreSQL
-- Firebase
-- etc.
-
-## Requirements
-
-Find and use the most recognizable official logo or icon for each technology.
-
-Do not reuse a generic coding icon.
-
-Each technology should display its own corresponding logo.
-
----
-
-# Skill Circle Design
-
-The existing skill circle design should remain unchanged.
-
-Only update the content inside the circle.
-
-Requirements:
-
-- Keep the existing circle size.
-- Place the technology logo or icon inside the circle.
-- Display the logo as a background watermark with approximately **30% opacity**.
-- Keep the skill text readable above the background image.
-- Use consistent alignment and scaling for every technology.
-
-Example:
+## Key Flutter paths
 
 ```text
-┌──────────────┐
-│              │
-│     70%      │
-│              │
-│  (Logo 30%)  │
-│              │
-└──────────────┘
+lib/modules/profile/
+  profile_screen.dart
+  profile_controller.dart
+  edit_profile_screen.dart
+  widgets/
+    profile_cover_redesign.dart      # active cover
+    profile_wavy_header.dart         # backup
+    profile_tabs.dart
+    profile_skills.dart
+    skill_icon.dart
+    profile_section_sheets.dart
+    edit_profile_bottom_sheet.dart
+lib/data/models/
+  user_profile_model.dart            # ProfileSkill
+  profile_skill_catalog.dart
+  startup_profile_draft.dart
+lib/core/widgets/app_logo.dart       # always white circle
 ```
 
 ---
 
-# Other Skill Categories
+## Acceptance (as built)
 
-The same enhancement should also apply to the remaining skill categories.
-
-Requirements:
-
-- Display an appropriate icon or image for each category.
-- Keep the same UI design used by the Coding category.
-- Maintain consistent sizing, spacing, and opacity.
-
-Examples:
-
-- Design
-- UI/UX
-- Networking
-- Cybersecurity
-- AI
-- Data Science
-- Cloud Computing
-- Mobile Development
-- DevOps
-- Project Management
-- Marketing
-- Business
-- Photography
-- Video Editing
-- Writing
-- Language
-- Music
-- Sports
-- Others
-
-Use icons or images that clearly represent each category.
-
----
-
-# Design Requirements
-
-- Follow the existing Skills UI.
-- Maintain the current spacing, typography, and layout.
-- Keep the interaction consistent with other skill selections.
-- Use the existing bottom sheet or selection UI where applicable.
-- Support both Light Mode and Dark Mode.
-
----
-
-# Implementation Notes
-
-- Preserve all existing business logic.
-- Update only the skill selection flow and UI.
-- Reuse existing widgets where possible.
-- Avoid duplicate implementations.
-- Organize the skill data into reusable models or constants.
-- Make it easy to add new categories or technologies in the future.
-- Ensure the "Other" option is always the last item in every selection list.
-
-```
-
-```
+- [x] Cover redesign active; wavy header retained as backup
+- [x] All profile tabs 20px horizontal padding; Applied Jobs bordered; Posters no double inset
+- [x] Coding → Frontend/Backend/Other → tech (+ Other custom)
+- [x] Logos as ~30% watermark in skill rings
+- [x] Choose Icon + Choose Image for Other
+- [x] Skill % display-only; new skills start at 0%
+- [x] Skills persist immediately to About
+- [x] Bio without Add / without icon
+- [x] Remove on edit sheets with confirm
+- [x] AppLogo always white circular background

@@ -1,182 +1,97 @@
-# Startup Background Redesign
+﻿# Startup Background Redesign — As-Built (ayheng)
 
 ## Objective
 
-Redesign the background for the startup screens to create a consistent and modern visual identity.
+Startup / auth screens share a teal + morphing white sheet background. Business logic is unchanged.
 
-This update focuses **only on the background design**.
-
-The business logic, navigation, and screen functionality must remain unchanged.
+> Implemented. This file documents **as-built** UI rules for auth-related chrome owned on `ayheng`.
 
 ---
 
 # Scope
 
-Update the following screens:
+Screens:
 
 - Language
 - Onboarding
-- Authentication
-  - Sign In
-  - Sign Up
-  - Forgot Password
-  - Reset Password
-  - Verification
-  - Other Auth-related screens
-
----
-
-# Design Goal
-
-All startup screens should share the same background design system.
-
-The design consists of only two visual elements:
-
-1. **Teal Background**
-2. **White Sheet**
-
-The White Sheet includes:
-
-- White layer
-- White 50% opacity layer
-
-Treat both white layers as one single design element.
+- Authentication (Sign In / Sign Up / Forgot / Reset / Verification / Google auth)
+- Splash / Startup skill steps (where AppLogo appears)
 
 ---
 
 # Background Structure
 
-Every startup screen should follow this hierarchy.
-
 ```text
 ┌──────────────────────────────────────────┐
-│                                          │
 │              TEAL BACKGROUND             │
-│                                          │
-│         App Logo / Decoration            │
-│                                          │
-│                                          │
+│         App Logo / Illustrations         │
 │~~~~~~~~~~~~ Morphing White Sheet ~~~~~~~~│
-│                                          │
-│                                          │
 │            Screen Content                │
-│                                          │
-│                                          │
 └──────────────────────────────────────────┘
 ```
 
-The teal background always fills the entire screen.
-
-The White Sheet always rises from the bottom of the screen.
-
-The White Sheet spans the full width of the screen.
-
-There should be:
-
-- No left margin
-- No right margin
-- No bottom margin
-
-Only the top edge of the White Sheet changes shape.
+- Teal fills the screen.
+- White Sheet rises from the bottom, full width, no side/bottom margins.
+- White + White 50% opacity layers act as one sheet element.
+- Sheet wave morphs per screen; content lives inside the sheet.
 
 ---
 
-# White Sheet Morphing
+# App Logo (as built — required)
 
-The White Sheet should morph based on the current screen.
+**Everywhere** the Vithey app logo is shown, use `AppLogo`:
 
-Different screens have different:
+| Spec | Value |
+|------|-------|
+| Widget | `lib/core/widgets/app_logo.dart` |
+| Background | **Always** a **white** circular container (`Colors.white`) |
+| Dark mode | Still white (not `scheme.surface`) |
+| Asset | `assets/images/brand/app_logo.png` |
+| API | `AppLogo(size: …)`; `onWhiteCircle` kept for compatibility but ignored |
 
-- Content height
-- Wave shape
-- Curve angle
-- Curve depth
-- Sheet height
+Used on: splash, select language, auth headers, Google auth, startup app bar, home app bar, About settings header, chatbot sources, etc.
 
-Although the shape changes, it should always feel like the same White Sheet evolving throughout the startup flow.
-
----
-
-# Content Placement
-
-The content belongs inside the White Sheet.
-
-Depending on the current implementation, some content may need to be moved into the White Sheet.
-
-Examples include:
-
-- Titles
-- Descriptions
-- Form fields
-- Buttons
-- Language selector
-- Onboarding information
-
-Only move content when necessary to match the new background design.
-
-Do not redesign or modify the content itself.
+Do **not** use bare `Image.asset(AppAssets.logoApp)` without `AppLogo`.
 
 ---
 
-# What To Update
+# What To Update / Preserve
 
-## Update
+## Update (UI only)
 
-- Redesign the startup background.
-- Introduce the new White Sheet design.
-- Add the White 50% layer behind the White Sheet.
-- Update the wave shape for each screen.
-- Make the White Sheet morph naturally across different screens.
-- Reposition content only if necessary so it sits inside the White Sheet.
+- Teal + White Sheet background system
+- Wave shapes per screen
+- AppLogo white circle everywhere
 
----
+## Do NOT change
 
-## Do NOT Update
-
-Do **not** change:
-
-- Business logic
-- Navigation
-- Screen flow
-- Authentication logic
-- Form validation
-- Controllers
-- Services
-- Models
-- Existing functionality
-- Content
-- Text
-- Icons
-- Buttons
-- User interactions
-
-The only exception is moving existing content into the White Sheet if required by the new layout.
+- Auth business logic, navigation, validation, controllers, services, models
 
 ---
 
 # Design Requirements
 
-- Teal always fills the entire screen.
-- White Sheet always comes from the bottom.
-- White Sheet always spans the full width.
-- White Sheet has no side or bottom margins.
-- White Sheet contains the page content.
-- White and White 50% behave as one design element.
-- Each screen has a unique wave shape.
-- The startup flow should feel like one continuous design system.
-- Support both Light Mode and Dark Mode.
+- Teal full bleed; White Sheet full width from bottom
+- Support light and dark mode (logo circle stays white)
+- Reuse shared widgets (`AppLogo`, wave/sheet helpers)
 
 ---
 
-# Implementation Notes
+# Key paths
 
-- Preserve all existing business logic.
-- Update only the UI background and layout.
-- Reuse existing widgets whenever possible.
-- Avoid duplicate implementations.
-- Keep the code clean and maintainable.
-- If the current content placement conflicts with the new background, move the existing content into the White Sheet without changing its functionality or behavior.
-
+```text
+lib/core/widgets/app_logo.dart
+lib/modules/auth/widgets/auth_wave_header.dart
+lib/modules/auth/login_screen.dart
+lib/modules/select_language/select_language_screen.dart
+lib/modules/splash/splash_screen.dart
+lib/modules/startup/widgets/startup_app_bar.dart
 ```
 
-```
+---
+
+# Acceptance
+
+- [x] Startup screens use teal + morphing white sheet
+- [x] App logo always on white circular background
+- [x] Auth logic unchanged
