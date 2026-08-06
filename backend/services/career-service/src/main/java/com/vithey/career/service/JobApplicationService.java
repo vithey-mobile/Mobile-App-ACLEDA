@@ -75,7 +75,6 @@ public class JobApplicationService {
     return responseBuilder.build(saved);
   }
 
-  @Transactional(readOnly = true)
   public ApiResponseWrapper<List<JobApplicationResponse>> listApplications(
       UUID currentUserId,
       UUID jobPostId,

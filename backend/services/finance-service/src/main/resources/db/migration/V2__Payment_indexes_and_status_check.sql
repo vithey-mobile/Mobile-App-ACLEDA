@@ -12,6 +12,3 @@ DROP INDEX IF EXISTS idx_payments_due_date;
 ALTER TABLE payments
     ADD CONSTRAINT chk_payments_status
     CHECK (status IN ('UNPAID', 'PAID', 'OVERDUE'));
-
-CREATE INDEX idx_fees_category_id
-    ON fees (category_id);

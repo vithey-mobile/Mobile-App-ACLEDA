@@ -62,7 +62,6 @@ public class ConversationService {
     this.chatEventPublisher = chatEventPublisher;
   }
 
-  @Transactional(readOnly = true)
   public ApiResponseWrapper<List<ConversationResponse>> listConversations(UUID userId, int page, int limit) {
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);

@@ -11,7 +11,6 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FeedService {
@@ -33,7 +32,6 @@ public class FeedService {
     this.postEnrichmentService = postEnrichmentService;
   }
 
-  @Transactional(readOnly = true)
   public ApiResponseWrapper<List<PostResponse>> getFeed(UUID viewerId, int page, int limit) {
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
