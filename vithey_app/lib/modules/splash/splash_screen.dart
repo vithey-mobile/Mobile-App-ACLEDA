@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/select_language/select_language_preview.dart';
 import 'package:aub_connect_app/modules/splash/splash_controller.dart';
@@ -15,11 +16,12 @@ class SplashScreen extends GetView<SplashController> {
     // Ensure controller starts the intro timeline.
     controller;
     final screenH = MediaQuery.sizeOf(context).height;
+    final baseColor = context.appColors.cardSurface;
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: AppColors.authHeaderTeal,
+        backgroundColor: baseColor,
         body: Obx(() {
           final showUnderlay = controller.showLanguageUnderlay.value;
           final rise = controller.handoffProgress.value;

@@ -193,26 +193,6 @@ class SelectLanguagePreview extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: SafeArea(
-              child: Opacity(
-                opacity: contentT,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Skip',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

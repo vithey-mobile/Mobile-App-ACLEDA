@@ -2,10 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 /// Splash-only backdrop.
-/// White base → white-50% drops first → teal drops on top (same motion, slight delay).
-/// Teal always finishes as a full-screen solid fill.
+/// Sheet base → white-50% drops first → teal drops on top.
+///
+/// Teal fill is always [authHeaderTeal] (same as onboarding / auth), light and dark.
+/// Base + wash follow sheet tokens so the lead layer stays theme-aware.
 class SplashBackground extends StatelessWidget {
   const SplashBackground({
     super.key,
@@ -21,14 +24,19 @@ class SplashBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseWhite = isDark ? AppColors.darkBackground : Colors.white;
+    final baseColor = context.appColors.cardSurface;
+    // Same brand teal as onboarding / auth / select language — both themes.
+    const tealColor = AppColors.authHeaderTeal;
+    // White-50% lead = teal @ 50% on the sheet base (light or dark).
+    final washColor = AppColors.waveRearOn(baseColor);
+
     return CustomPaint(
       painter: _SplashFillPainter(
-        isDark: isDark,
         washFill: washFill.clamp(0.0, 1.0),
         tealFill: tealFill.clamp(0.0, 1.0),
-        baseWhite: baseWhite,
+        baseColor: baseColor,
+        washColor: washColor,
+        tealColor: tealColor,
       ),
       size: Size.infinite,
     );
@@ -37,42 +45,38 @@ class SplashBackground extends StatelessWidget {
 
 class _SplashFillPainter extends CustomPainter {
   const _SplashFillPainter({
-    required this.isDark,
     required this.washFill,
     required this.tealFill,
-    required this.baseWhite,
+    required this.baseColor,
+    required this.washColor,
+    required this.tealColor,
   });
 
-  final bool isDark;
   final double washFill;
   final double tealFill;
-  final Color baseWhite;
-
-  static const _baseTeal = AppColors.authHeaderTeal;
-  static const _white = Color(0xFFFFFFFF);
-
-  Color get _tealSolid => isDark ? AppColors.darkBackground : _baseTeal;
+  final Color baseColor;
+  final Color washColor;
+  final Color tealColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1) Full white background first.
-    canvas.drawRect(Offset.zero & size, Paint()..color = baseWhite);
+    // 1) Sheet base first (white in light, darkSurface in dark).
+    canvas.drawRect(Offset.zero & size, Paint()..color = baseColor);
 
-    // 2) White-50% drops first (same drop shape as teal).
+    // 2) White-50% / light rear drops first.
     if (washFill > 0.001 && tealFill < 1.0) {
-      final wash = _white.withValues(alpha: isDark ? 0.22 : 0.50);
       _paintDropLayer(
         canvas,
         size,
         progress: washFill,
-        color: wash,
+        color: washColor,
         phase: 0.35,
       );
     }
 
-    // 3) Teal on top — solid full screen once complete (no clip = no gap).
+    // 3) Brand teal on top — solid full screen once complete.
     if (tealFill >= 0.999) {
-      _paintSolidTeal(canvas, size);
+      canvas.drawRect(Offset.zero & size, Paint()..color = tealColor);
       return;
     }
 
@@ -81,27 +85,8 @@ class _SplashFillPainter extends CustomPainter {
         canvas,
         size,
         progress: tealFill,
-        color: _tealSolid,
+        color: tealColor,
         phase: 0.0,
-      );
-      if (isDark) {
-        _paintDropLayer(
-          canvas,
-          size,
-          progress: tealFill,
-          color: _baseTeal.withValues(alpha: 0.40),
-          phase: 0.0,
-        );
-      }
-    }
-  }
-
-  void _paintSolidTeal(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = _tealSolid);
-    if (isDark) {
-      canvas.drawRect(
-        Offset.zero & size,
-        Paint()..color = _baseTeal.withValues(alpha: 0.40),
       );
     }
   }
@@ -133,14 +118,10 @@ class _SplashFillPainter extends CustomPainter {
     double progress, {
     required double phase,
   }) {
-    // Slight overshoot so the leading edge clears the physical bottom.
     final baseY = math.min(h, h * progress + h * 0.04);
 
-    // Single smooth wave across the width (one crest + one trough feel).
-    // Low frequency + cubic segments = soft water wave, not zigzags.
     final amp = h * 0.045;
     Offset point(double t) {
-      // t: 0 at right → 1 at left (path builds right → left).
       final x = w * (1.0 - t);
       final wave = math.sin(t * math.pi + phase) * amp +
           math.sin(t * math.pi * 0.5 + phase * 0.6) * amp * 0.35;
@@ -148,7 +129,6 @@ class _SplashFillPainter extends CustomPainter {
       return Offset(x, y);
     }
 
-    // Keyframes along the wave for Catmull-Rom → cubic.
     final pts = <Offset>[
       for (var i = 0; i <= 6; i++) point(i / 6),
     ];
@@ -180,9 +160,10 @@ class _SplashFillPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SplashFillPainter oldDelegate) {
-    return oldDelegate.isDark != isDark ||
-        oldDelegate.washFill != washFill ||
+    return oldDelegate.washFill != washFill ||
         oldDelegate.tealFill != tealFill ||
-        oldDelegate.baseWhite != baseWhite;
+        oldDelegate.baseColor != baseColor ||
+        oldDelegate.washColor != washColor ||
+        oldDelegate.tealColor != tealColor;
   }
 }

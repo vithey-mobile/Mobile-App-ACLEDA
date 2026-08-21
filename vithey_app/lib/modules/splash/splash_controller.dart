@@ -24,7 +24,7 @@ class SplashController extends GetxController with GetTickerProviderStateMixin {
   static const whiteHoldDuration = Duration(seconds: 1);
   static const fillDuration = Duration(milliseconds: 1400);
   /// White-50% starts first; teal follows after this delay (same drop curve).
-  static const tealDropDelay = Duration(milliseconds: 220);
+  static const tealDropDelay = Duration(milliseconds: 320);
   static const brandInDuration = Duration(milliseconds: 700);
   static const brandOutDuration = Duration(milliseconds: 450);
   static const brandHoldDuration = Duration(seconds: 1);

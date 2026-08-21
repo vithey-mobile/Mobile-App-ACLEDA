@@ -43,8 +43,8 @@ Use a `Stack` so the background layers stay fixed behind the changing content.
 
 Implemented in `OnboardingBackground` (`CustomPainter`). Three layers, back → front:
 
-1. **White** — full-screen base  
-2. **Light teal** — rear wave (`AppColors.authWaveRear` ≈ `#6AD6D2`)  
+1. **White** — full-screen base
+2. **Light teal** — rear wave (`AppColors.authWaveRear` ≈ `#6AD6D2`)
 3. **Teal** — front wave (`AppColors.authHeaderTeal` ≈ `#2FC5C1`)
 
 Each wave edge is a smooth Catmull-Rom → cubic path through width/height keyframes. Teal and light teal use **separate X keyframes** (staggered bends).
@@ -53,32 +53,32 @@ Each wave edge is a smooth Catmull-Rom → cubic path through width/height keyfr
 
 **Teal** — `_tealX` / `_tealY`:
 
-| Width | Y (fraction of screen height) | Behavior |
-| ----- | ----------------------------- | -------- |
-| `0%` | `0.510` | Start; small gap vs light teal |
-| `20%` | `0.528` | Dip lower |
-| `40%` | `0.485` | Rise / expanded peak |
-| `50%` | `0.485` | **Hold up** (same as 40%) |
-| `80%` | `0.525` | Fall / close bend (dipped a bit) |
-| `100%` | `0.460` | Rise up |
+| Width  | Y (fraction of screen height) | Behavior                         |
+| ------ | ----------------------------- | -------------------------------- |
+| `0%`   | `0.510`                       | Start; small gap vs light teal   |
+| `20%`  | `0.528`                       | Dip lower                        |
+| `40%`  | `0.485`                       | Rise / expanded peak             |
+| `50%`  | `0.485`                       | **Hold up** (same as 40%)        |
+| `80%`  | `0.525`                       | Fall / close bend (dipped a bit) |
+| `100%` | `0.460`                       | Rise up                          |
 
 **Light teal** — `_lightX` / `_lightY`:
 
-| Width | Y (fraction of screen height) | Behavior |
-| ----- | ----------------------------- | -------- |
-| `0%` | `0.535` | Start; small gap |
-| `20%` | `0.575` | Mid gap + dip |
-| `40%` | `0.570` | Expanded gap |
-| `60%` | `0.535` | Close bend starts; **hold through 75%** |
-| `75%` | `0.535` | Still held close/up |
-| `95%` | `0.580` | Lowest point |
-| `100%` | `0.580` | **Flat / stable** (no rise) |
+| Width  | Y (fraction of screen height) | Behavior                                |
+| ------ | ----------------------------- | --------------------------------------- |
+| `0%`   | `0.535`                       | Start; small gap                        |
+| `20%`  | `0.575`                       | Mid gap + dip                           |
+| `40%`  | `0.570`                       | Expanded gap                            |
+| `60%`  | `0.535`                       | Close bend starts; **hold through 75%** |
+| `75%`  | `0.535`                       | Still held close/up                     |
+| `95%`  | `0.580`                       | Lowest point                            |
+| `100%` | `0.580`                       | **Flat / stable** (no rise)             |
 
 **Gap rule:** max separation between the two edges ≈ **10% of screen height** at expanded points; small-gap points stay tighter.
 
 Do **not** put this painter inside the `PageView`.
 
-> **Reuse for Auth (later):** this wave background (colors + wavy keyframe style) is the **shared Vithey entry-screen look**. Auth should use the same or a scaled variant. Documented also in `Prompt Frontend/COMMON_CONTEXT.md` → *Shared teal wave background*. Canonical code: `onboarding_background.dart`.
+> **Reuse for Auth (later):** this wave background (colors + wavy keyframe style) is the **shared Vithey entry-screen look**. Auth should use the same or a scaled variant. Documented also in `Prompt Frontend/COMMON_CONTEXT.md` → _Shared teal wave background_. Canonical code: `onboarding_background.dart`.
 
 ### Changing content (moves on swipe / Next)
 
@@ -119,24 +119,24 @@ Scaffold (white)
 
 ### Slide content (from `OnboardingController`)
 
-| Page | Title | Subtitle | Illustration |
-| ---- | ----- | -------- | ------------ |
-| 1 | Connect with Your Campus Community | Discover posts, connect with friends, and stay updated. | `assets/images/onboarding/onboarding_1.png` |
-| 2 | Jobs & Career Growth | Discover job posts, apply with your CV, and connect with opportunities on campus. | `assets/images/onboarding/onboarding_2.png` |
-| 3 | Finance, Chat & AI Support | Track tuition payments, chat privately, and get AI help for study and career. | `assets/images/onboarding/onboarding_3.png` |
+| Page | Title                              | Subtitle                                                                          | Illustration                                |
+| ---- | ---------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1    | Connect with Your Campus Community | Discover posts, connect with friends, and stay updated.                           | `assets/images/onboarding/onboarding_1.png` |
+| 2    | Jobs & Career Growth               | Discover job posts, apply with your CV, and connect with opportunities on campus. | `assets/images/onboarding/onboarding_2.png` |
+| 3    | Finance, Chat & AI Support         | Track tuition payments, chat privately, and get AI help for study and career.     | `assets/images/onboarding/onboarding_3.png` |
 
 ## Visual style
 
-| Token | Direction |
-| ----- | --------- |
-| Page background | White |
-| Front / top teal | `AppColors.authHeaderTeal` ≈ `#2FC5C1` |
-| Rear / light teal | `AppColors.authWaveRear` ≈ `#6AD6D2` |
+| Token                       | Direction                                                     |
+| --------------------------- | ------------------------------------------------------------- |
+| Page background             | White                                                         |
+| Front / top teal            | `AppColors.authHeaderTeal` ≈ `#2FC5C1`                        |
+| Rear / light teal           | `AppColors.authWaveRear` ≈ `#6AD6D2`                          |
 | Primary button / active dot | `AppColors.primary` / onboarding dots ≈ `#08B9B3` / `#00BFA5` |
-| Heading | `AppColors.onboardingTitle` |
-| Subtitle/body | `AppColors.onboardingBody` |
-| Skip text | White |
-| Illustration | Image only — no card / fill background |
+| Heading                     | `AppColors.onboardingTitle`                                   |
+| Subtitle/body               | `AppColors.onboardingBody`                                    |
+| Skip text                   | White                                                         |
+| Illustration                | Image only — no card / fill background                        |
 
 Avoid: tab bar, app bar, back button, email/password fields, Google button, Sign Up/Sign In footer, half-circle header edge, per-page background rebuild.
 
@@ -170,18 +170,18 @@ Avoid: tab bar, app bar, back button, email/password fields, Google button, Sign
 
 `text
 lib/modules/onboarding/
-  onboarding_screen.dart
-  onboarding_controller.dart
-  onboarding_binding.dart
-  widgets/
-    onboarding_background.dart       # FIXED wave painter (teal + light teal keyframes)
-    onboarding_top_section.dart      # illustration only
-    onboarding_bottom_section.dart   # title/description + OnboardingBottomChrome (dots/CTA)
+onboarding_screen.dart
+onboarding_controller.dart
+onboarding_binding.dart
+widgets/
+onboarding_background.dart # FIXED wave painter (teal + light teal keyframes)
+onboarding_top_section.dart # illustration only
+onboarding_bottom_section.dart # title/description + OnboardingBottomChrome (dots/CTA)
 
 assets/images/onboarding/
-  onboarding_1.png
-  onboarding_2.png
-  onboarding_3.png
+onboarding_1.png
+onboarding_2.png
+onboarding_3.png
 `
 
 - Business logic stays in `OnboardingController`.
@@ -202,13 +202,13 @@ None. Onboarding is local-only.
 
 ## Navigation
 
-| From | Action | To |
-| ---- | ------ | -- |
-| Splash | `onboarding_completed == false` (or force-show flag) | Onboarding |
-| Onboarding | Tap **Skip** | Login |
-| Onboarding | Tap **Next** (pages 1–2) | Next onboarding page |
-| Onboarding | Tap **Get Started** (page 3) | Login |
-| Splash | `onboarding_completed == true` and logged out | Login |
+| From       | Action                                               | To                   |
+| ---------- | ---------------------------------------------------- | -------------------- |
+| Splash     | `onboarding_completed == false` (or force-show flag) | Onboarding           |
+| Onboarding | Tap **Skip**                                         | Login                |
+| Onboarding | Tap **Next** (pages 1–2)                             | Next onboarding page |
+| Onboarding | Tap **Get Started** (page 3)                         | Login                |
+| Splash     | `onboarding_completed == true` and logged out        | Login                |
 
 ## Testing and acceptance criteria
 

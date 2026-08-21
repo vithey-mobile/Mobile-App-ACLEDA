@@ -58,11 +58,6 @@ class SelectLanguageController extends GetxController {
 
   Future<void> next() => _goNext(selected.value);
 
-  Future<void> skip() {
-    selected.value = AppLanguageOption.en;
-    return _goNext(AppLanguageOption.en);
-  }
-
   Future<void> _goNext(AppLanguageOption option) async {
     if (isBusy.value) return;
     isBusy.value = true;

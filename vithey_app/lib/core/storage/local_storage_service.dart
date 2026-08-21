@@ -52,7 +52,7 @@ class LocalStorageService {
     await prefs.setString(_languageKey, value);
   }
 
-  /// True after the user has completed Select Language (Apply or Skip).
+  /// True after the user has completed Select Language.
   Future<bool> isLanguageSelected() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_languageSelectedKey) ?? false;
