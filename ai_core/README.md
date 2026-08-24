@@ -65,6 +65,26 @@ Public models: `ExtractedActivity`, `GeneratedCV`, `RawPost`.
 Errors: all custom exceptions inherit from `VitheyAIError`
 (`AIClientError`, `AIResponseValidationError`, `EmptyInputError`).
 
+## CLI
+
+Single entry point for developers who don't want to import the package. No
+imports needed — the AI internals stay hidden.
+
+```bash
+# extract one activity from raw post text
+python main.py extract --content "We built a recycling pickup app at RUPP" --source-id post_123
+
+# generate a CV from already-extracted activities (JSON array file)
+python main.py generate --activities activities.json --target-role "Software Engineer Intern"
+
+# generate a CV straight from raw posts (JSON array file)
+python main.py generate --posts posts.json --language en
+```
+
+Output is clean JSON on stdout (easy to pipe), errors go to stderr with a
+non-zero exit code. The API key is read automatically from `.env`; pass
+`--api-key` to override for a single call.
+
 ## Development
 
 ```bash
@@ -76,6 +96,7 @@ pytest
 
 ```
 ai_core/
+├── main.py            # CLI entry point (python main.py ...)
 ├── vithey_ai/          # only service.py and __init__.py are public
 │   ├── config.py        # API key, model, temperature, timeouts
 │   ├── schemas.py       # Pydantic data models
