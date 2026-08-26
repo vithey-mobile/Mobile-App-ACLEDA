@@ -4,11 +4,19 @@ import pytest
 
 import main
 from vithey_ai.config import Config
-from vithey_ai.schemas import ExtractedActivity, GeneratedCV
+from vithey_ai.schemas import (
+    CVQualityReport,
+    ExtractedActivity,
+    RawPost,
+    StandardCV,
+    UserProfile,
+)
 
 
 class FakeVitheyAI:
     """Fake facade so CLI tests never hit the network."""
+
+    calls = []
 
     def __init__(self, api_key=None):
         self.api_key = api_key
@@ -21,11 +29,32 @@ class FakeVitheyAI:
             source_id=source_id,
         )
 
-    def generate_cv(self, activities, target_role="", language="en"):
-        return GeneratedCV(summary="Generated summary", sections=[])
+    def quality_report(self, cv):
+        return CVQualityReport(score=80, grade="good")
 
-    def build_cv_from_raw_posts(self, posts, target_role="", language="en"):
-        return GeneratedCV(summary="Generated summary", sections=[])
+    def generate_cv(self, activities, profile=None, target_role="", job_description="", language="en"):
+        return StandardCV(summary="Generated summary")
+
+    def build_cv_from_raw_posts(
+        self,
+        posts,
+        profile=None,
+        target_role="",
+        job_description="",
+        language="en",
+        on_error="skip",
+    ):
+        FakeVitheyAI.calls.append(
+            {
+                "posts": posts,
+                "profile": profile,
+                "target_role": target_role,
+                "job_description": job_description,
+                "language": language,
+                "on_error": on_error,
+            }
+        )
+        return StandardCV(summary="Generated summary")
 
 
 @pytest.fixture(autouse=True)
@@ -65,12 +94,14 @@ def test_generate_from_activities(tmp_path, capsys):
             str(activities_file),
             "--target-role",
             "Software Engineer Intern",
+            "--with-quality",
         ]
     )
 
     assert rc == 0
     data = json.loads(capsys.readouterr().out)
-    assert data["summary"] == "Generated summary"
+    assert data["cv"]["summary"] == "Generated summary"
+    assert data["quality"]["score"] == 80
 
 
 def test_generate_from_raw_posts(tmp_path, capsys):
@@ -84,7 +115,48 @@ def test_generate_from_raw_posts(tmp_path, capsys):
 
     assert rc == 0
     data = json.loads(capsys.readouterr().out)
-    assert data["summary"] == "Generated summary"
+    assert data["cv"]["summary"] == "Generated summary"
+
+
+def test_generate_with_profile_and_job(tmp_path, capsys):
+    posts_file = tmp_path / "posts.json"
+    posts_file.write_text(
+        json.dumps([{"source_id": "post_1", "content": "Built a smart campus app."}]),
+        encoding="utf-8",
+    )
+    profile_file = tmp_path / "profile.json"
+    profile_file.write_text(
+        json.dumps({"full_name": "Sok Dara", "email": "dara@example.com"}),
+        encoding="utf-8",
+    )
+    job_file = tmp_path / "job.txt"
+    job_file.write_text("Flutter intern role.", encoding="utf-8")
+
+    FakeVitheyAI.calls.clear()
+    rc = main.main(
+        [
+            "generate",
+            "--posts",
+            str(posts_file),
+            "--profile",
+            str(profile_file),
+            "--job-file",
+            str(job_file),
+            "--on-error",
+            "fail",
+        ]
+    )
+
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["cv"]["summary"] == "Generated summary"
+
+    call = FakeVitheyAI.calls[0]
+    assert isinstance(call["posts"][0], RawPost)
+    assert isinstance(call["profile"], UserProfile)
+    assert call["profile"].full_name == "Sok Dara"
+    assert call["job_description"] == "Flutter intern role."
+    assert call["on_error"] == "fail"
 
 
 def test_invalid_json_file_is_reported(capsys, tmp_path):
@@ -105,8 +177,6 @@ def test_missing_activities_file_is_reported(capsys, tmp_path):
 
 
 def test_missing_api_key_returns_error(capsys, monkeypatch):
-    # Use the REAL facade here (override the autouse fake) and force it to
-    # see no API key -> helpful error, not a crash.
     from vithey_ai import VitheyAI as RealVitheyAI
 
     monkeypatch.setattr(Config, "DEEPSEEK_API_KEY", "")

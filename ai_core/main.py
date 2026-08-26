@@ -3,8 +3,9 @@
 Lets you test and use the Vithey AI core without importing anything:
 
     python main.py extract --content "..." --source-id post_123
-    python main.py generate --activities activities.json --target-role "Software Engineer Intern"
-    python main.py generate --posts posts.json --language en
+    python main.py generate --posts posts.json --profile profile.json --target-role "Software Engineer Intern"
+    python main.py generate --activities activities.json --job-file job.txt
+    python main.py serve --port 8100
 
 The API key is read automatically from .env (see .env.example).
 All output is clean JSON on stdout; errors go to stderr.
@@ -15,7 +16,7 @@ import json
 import sys
 from pathlib import Path
 
-from vithey_ai import ExtractedActivity, RawPost, VitheyAI
+from vithey_ai import ExtractedActivity, RawPost, UserProfile, VitheyAI
 from vithey_ai.errors import VitheyAIError
 
 
@@ -25,6 +26,10 @@ def _read_json_array(path: str) -> list:
     if not isinstance(data, list):
         raise ValueError(f"Expected a JSON array in '{path}', got {type(data).__name__}.")
     return data
+
+
+def _read_text(path: str) -> str:
+    return Path(path).read_text(encoding="utf-8")
 
 
 def cmd_extract(args: argparse.Namespace) -> int:
@@ -40,12 +45,25 @@ def cmd_extract(args: argparse.Namespace) -> int:
 
 def cmd_generate(args: argparse.Namespace) -> int:
     ai = VitheyAI(api_key=args.api_key)
+
+    profile = None
+    if args.profile:
+        profile_data = json.loads(_read_text(args.profile))
+        profile = UserProfile(**profile_data)
+
+    job_description = args.job_description or (
+        _read_text(args.job_file) if args.job_file else ""
+    )
+
     if args.posts:
         posts = [RawPost(**item) for item in _read_json_array(args.posts)]
         cv = ai.build_cv_from_raw_posts(
             posts=posts,
+            profile=profile,
             target_role=args.target_role,
+            job_description=job_description,
             language=args.language,
+            on_error=args.on_error,
         )
     else:
         activities = [
@@ -53,10 +71,33 @@ def cmd_generate(args: argparse.Namespace) -> int:
         ]
         cv = ai.generate_cv(
             activities=activities,
+            profile=profile,
             target_role=args.target_role,
+            job_description=job_description,
             language=args.language,
         )
-    print(json.dumps(cv.model_dump(), ensure_ascii=False, indent=2))
+
+    output = {"cv": cv.model_dump()}
+    if args.with_quality:
+        output["quality"] = ai.quality_report(cv).model_dump()
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+    return 0
+
+
+def cmd_serve(args: argparse.Namespace) -> int:
+    try:
+        import uvicorn
+    except ImportError:
+        print(
+            "Error: the HTTP server needs the 'server' extra: "
+            'pip install -e ".[server]"',
+            file=sys.stderr,
+        )
+        return 1
+
+    from vithey_ai.api.app import create_app
+
+    uvicorn.run(create_app(), host=args.host, port=args.port)
     return 0
 
 
@@ -65,7 +106,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="vithey-ai",
         description=(
             "Vithey AI core CLI: extract structured activities from posts "
-            "and generate professional CVs."
+            "and generate standard professional CVs."
         ),
     )
     parser.add_argument(
@@ -89,7 +130,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- generate ----------------------------------------------------------
     generate = subparsers.add_parser(
-        "generate", help="Generate a professional CV from extracted activities or raw posts."
+        "generate",
+        help="Generate a standard CV from extracted activities or raw posts.",
     )
     inputs = generate.add_mutually_exclusive_group(required=True)
     inputs.add_argument(
@@ -100,13 +142,37 @@ def build_parser() -> argparse.ArgumentParser:
         "--posts",
         help="Path to a JSON file: array of raw posts (source_id, content, optional source_type).",
     )
+    generate.add_argument("--profile", help="Path to profile JSON (UserProfile shape).")
+    generate.add_argument("--target-role", default="", help="Target role for the CV.")
     generate.add_argument(
-        "--target-role", default="", help="Target role for the CV."
+        "--job-description", default="", help="Job ad text to tailor the CV towards."
+    )
+    generate.add_argument(
+        "--job-file", help="Path to a plain-text file containing the job description."
     )
     generate.add_argument(
         "--language", default="en", help="CV language: 'en' or 'km' (default: en)."
     )
+    generate.add_argument(
+        "--on-error",
+        choices=["skip", "fail"],
+        default="skip",
+        help="Skip failed post extraction (default) or abort on first failure.",
+    )
+    generate.add_argument(
+        "--with-quality",
+        action="store_true",
+        help="Include the deterministic quality report next to the CV.",
+    )
     generate.set_defaults(func=cmd_generate)
+
+    # --- serve ---------------------------------------------------------------
+    serve = subparsers.add_parser(
+        "serve", help="Serve the core over HTTP (FastAPI + uvicorn)."
+    )
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8100)
+    serve.set_defaults(func=cmd_serve)
 
     return parser
 
