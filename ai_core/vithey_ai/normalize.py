@@ -120,6 +120,29 @@ def _fallback_bullets(*values: Any, max_words: int = 25) -> List[str]:
     return bullets
 
 
+# Keyword fallbacks: any heading CONTAINING these maps onto the bucket.
+_HEADING_KEYWORDS = [
+    ("experience", ("experience", "employment", "work history", "career", "internship", "where i worked", "professional background")),
+    ("education", ("education", "academic")),
+    ("projects", ("project",)),
+    ("skills", ("skill",)),
+    ("certifications", ("certificat",)),
+    ("languages", ("language",)),
+    ("achievements", ("achiev", "award", "honor")),
+    ("volunteer", ("volunteer", "community service")),
+]
+
+
+def _map_heading(heading: str) -> Optional[str]:
+    h = heading.strip().lower()
+    if h in _HEADING_MAP:
+        return _HEADING_MAP[h]
+    for target, keywords in _HEADING_KEYWORDS:
+        if any(kw in h for kw in keywords):
+            return target
+    return None
+
+
 def _date_sort_key(date_str: Optional[str]) -> str:
     """Best-effort descending sort key from partial dates ('2024-06', '2024')."""
     if not date_str:
@@ -328,7 +351,7 @@ def _legacy_sections(data: dict, allowed_evidence: set) -> dict:
     for section in _as_list(data.get("sections")):
         sd = _as_dict(section)
         heading = (_clean(sd.get("heading")) or "").lower()
-        target = _HEADING_MAP.get(heading)
+        target = _map_heading(heading)
         if not target:
             logger.info("Dropping unknown legacy CV section heading '%s'", heading)
             continue
@@ -464,6 +487,11 @@ def normalize_cv(
     cv.education.extend(e for e in ai_education if e.degree.lower() not in seen_degrees)
 
     cv.skills = _build_skill_groups(data.get("skills"), profile)
+    cv.languages = [
+        item
+        for item in (_build_language(r) for r in _as_list(data.get("languages")))
+        if item
+    ]
 
     # --- ordering (most recent first where dates exist) ---------------------------
     cv.experience.sort(key=lambda e: _date_sort_key(e.start_date or e.period), reverse=True)

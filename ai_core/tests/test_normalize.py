@@ -57,6 +57,23 @@ def test_unknown_headings_are_dropped_in_legacy_shape():
     assert len(cv.projects) == 1
 
 
+def test_unusual_but_reasonable_headings_are_understood():
+    legacy = {
+        "summary": "Summary that is long enough to survive the fallback check.",
+        "sections": [
+            {"heading": "My Cool Projects", "items": [{"title": "App X"}]},
+            {"heading": "Where I Worked", "items": [{"title": "Intern", "bullet": "did stuff"}]},
+            {"heading": "Certificates Earned", "items": [{"name": "AWS CCP"}]},
+        ],
+    }
+
+    cv = normalize_cv(legacy, make_activities(), None, "", "", "en", "m")
+
+    assert [p.name for p in cv.projects] == ["App X"]
+    assert [e.title for e in cv.experience] == ["Intern"]
+    assert [c.name for c in cv.certifications] == ["AWS CCP"]
+
+
 def test_evidence_filtered_to_known_source_ids():
     data = {
         "summary": "Experienced builder with shipped projects.",
@@ -106,6 +123,24 @@ def test_profile_skills_added_as_additional_group():
     categories = {g.category: g.skills for g in cv.skills}
     assert categories["Technical"] == ["Flutter"]
     assert "Public Speaking" in categories["Additional"]
+
+
+def test_languages_section_is_populated():
+    data = {
+        "summary": "Summary long enough to bypass the deterministic fallback path.",
+        "languages": [
+            {"name": "Khmer", "proficiency": "Native"},
+            {"name": "English", "proficiency": "Professional"},
+            {"name": "", "proficiency": None},  # dropped
+        ],
+    }
+
+    cv = normalize_cv(data, make_activities(), None, "", "", "en", "m")
+
+    assert [(l.name, l.proficiency) for l in cv.languages] == [
+        ("Khmer", "Native"),
+        ("English", "Professional"),
+    ]
 
 
 def test_meta_records_tailoring_and_counts():
