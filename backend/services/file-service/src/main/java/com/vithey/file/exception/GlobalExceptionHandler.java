@@ -6,8 +6,12 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,7 +30,11 @@ public class GlobalExceptionHandler {
         .map(error -> new FieldErrorBody(error.getField(), error.getDefaultMessage()))
         .toList();
     return ResponseEntity.badRequest()
-        .body(ApiResponseWrapper.error(ErrorCode.VALIDATION_ERROR.name(), ErrorCode.VALIDATION_ERROR.defaultMessage(), details));
+        .body(ApiResponseWrapper.error(
+            ErrorCode.VALIDATION_ERROR.name(),
+            ErrorCode.VALIDATION_ERROR.defaultMessage(),
+            details
+        ));
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
@@ -35,6 +43,48 @@ public class GlobalExceptionHandler {
         .map(error -> new FieldErrorBody(error.getPropertyPath().toString(), error.getMessage()))
         .toList();
     return ResponseEntity.badRequest()
-        .body(ApiResponseWrapper.error(ErrorCode.VALIDATION_ERROR.name(), ErrorCode.VALIDATION_ERROR.defaultMessage(), details));
+        .body(ApiResponseWrapper.error(
+            ErrorCode.VALIDATION_ERROR.name(),
+            ErrorCode.VALIDATION_ERROR.defaultMessage(),
+            details
+        ));
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  ResponseEntity<ApiResponseWrapper<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+    String field = exception.getName() == null ? "parameter" : exception.getName();
+    String message = "Invalid value for " + field;
+    return ResponseEntity.badRequest()
+        .body(ApiResponseWrapper.error(
+            ErrorCode.VALIDATION_ERROR.name(),
+            ErrorCode.VALIDATION_ERROR.defaultMessage(),
+            List.of(new FieldErrorBody(field, message))
+        ));
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  ResponseEntity<ApiResponseWrapper<Void>> handleMissingParameter(MissingServletRequestParameterException exception) {
+    return ResponseEntity.badRequest()
+        .body(ApiResponseWrapper.error(
+            ErrorCode.VALIDATION_ERROR.name(),
+            ErrorCode.VALIDATION_ERROR.defaultMessage(),
+            List.of(new FieldErrorBody(exception.getParameterName(), "Required parameter is missing"))
+        ));
+  }
+
+  @ExceptionHandler(MissingServletRequestPartException.class)
+  ResponseEntity<ApiResponseWrapper<Void>> handleMissingPart(MissingServletRequestPartException exception) {
+    return ResponseEntity.badRequest()
+        .body(ApiResponseWrapper.error(
+            ErrorCode.VALIDATION_ERROR.name(),
+            ErrorCode.VALIDATION_ERROR.defaultMessage(),
+            List.of(new FieldErrorBody(exception.getRequestPartName(), "Required part is missing"))
+        ));
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  ResponseEntity<ApiResponseWrapper<Void>> handleMaxUploadSize(MaxUploadSizeExceededException exception) {
+    return ResponseEntity.badRequest()
+        .body(ApiResponseWrapper.error(ErrorCode.FILE_TOO_LARGE.name(), ErrorCode.FILE_TOO_LARGE.defaultMessage()));
   }
 }

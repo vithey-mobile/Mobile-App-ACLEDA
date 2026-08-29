@@ -55,7 +55,16 @@ public class FileValidationService {
     if (!StringUtils.hasText(originalName)) {
       return "upload.bin";
     }
-    String sanitized = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+    String baseName = originalName.replace('\\', '/');
+    int slash = baseName.lastIndexOf('/');
+    if (slash >= 0) {
+      baseName = baseName.substring(slash + 1);
+    }
+    String sanitized = baseName.replaceAll("[^a-zA-Z0-9._-]", "_");
+    sanitized = sanitized.replace("..", "_");
+    if (!StringUtils.hasText(sanitized) || sanitized.equals(".") || sanitized.equals("_")) {
+      return "upload.bin";
+    }
     return sanitized.length() > 200 ? sanitized.substring(0, 200) : sanitized;
   }
 }

@@ -1,5 +1,8 @@
 package com.vithey.file.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vithey.file.exception.ErrorCode;
+import com.vithey.file.util.ApiResponseWrapper;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,9 +22,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtProvider jwtProvider;
+  private final ObjectMapper objectMapper;
 
-  public JwtAuthenticationFilter(JwtProvider jwtProvider) {
+  public JwtAuthenticationFilter(JwtProvider jwtProvider, ObjectMapper objectMapper) {
     this.jwtProvider = jwtProvider;
+    this.objectMapper = objectMapper;
+  }
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    return path.startsWith("/actuator")
+        || path.startsWith("/swagger-ui")
+        || path.startsWith("/v3/api-docs")
+        || path.equals("/error");
   }
 
   @Override
@@ -39,11 +54,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             new UsernamePasswordAuthenticationToken(currentUser, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
-      filterChain.doFilter(request, response);
     } catch (JwtException | IllegalArgumentException exception) {
       SecurityContextHolder.clearContext();
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      writeUnauthorized(response);
+      return;
     }
+
+    filterChain.doFilter(request, response);
+  }
+
+  private void writeUnauthorized(HttpServletResponse response) throws IOException {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    objectMapper.writeValue(
+        response.getOutputStream(),
+        ApiResponseWrapper.error(ErrorCode.UNAUTHORIZED.name(), ErrorCode.UNAUTHORIZED.defaultMessage())
+    );
   }
 
   private CurrentUser resolveCurrentUser(HttpServletRequest request) {

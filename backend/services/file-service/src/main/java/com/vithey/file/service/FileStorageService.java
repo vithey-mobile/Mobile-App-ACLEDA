@@ -4,7 +4,6 @@ import com.vithey.file.entity.FileMetadata;
 import com.vithey.file.entity.StoredFileType;
 import com.vithey.file.exception.ApiException;
 import com.vithey.file.exception.ErrorCode;
-import com.vithey.file.repository.FileMetadataRepository;
 import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
@@ -12,31 +11,36 @@ import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileStorageService {
 
-  private final MinioClient minioClient;
-  private final FileMetadataRepository fileMetadataRepository;
+  private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
+
+  private final MinioClient minioStorageClient;
+  private final MinioClient minioPresignClient;
+  private final FileMetadataPersistence fileMetadataPersistence;
   private final FileValidationService fileValidationService;
 
   public FileStorageService(
-      MinioClient minioClient,
-      FileMetadataRepository fileMetadataRepository,
+      @Qualifier("minioStorageClient") MinioClient minioStorageClient,
+      @Qualifier("minioPresignClient") MinioClient minioPresignClient,
+      FileMetadataPersistence fileMetadataPersistence,
       FileValidationService fileValidationService
   ) {
-    this.minioClient = minioClient;
-    this.fileMetadataRepository = fileMetadataRepository;
+    this.minioStorageClient = minioStorageClient;
+    this.minioPresignClient = minioPresignClient;
+    this.fileMetadataPersistence = fileMetadataPersistence;
     this.fileValidationService = fileValidationService;
   }
 
-  @Transactional
   public FileMetadata upload(MultipartFile file, StoredFileType fileType, UUID ownerUserId) {
     if (file == null || file.isEmpty()) {
       throw new ApiException(ErrorCode.VALIDATION_ERROR, "File is required");
@@ -51,7 +55,7 @@ public class FileStorageService {
     String objectKey = ownerUserId + "/" + fileId + "/" + safeFileName;
 
     try (InputStream inputStream = file.getInputStream()) {
-      minioClient.putObject(
+      minioStorageClient.putObject(
           PutObjectArgs.builder()
               .bucket(fileType.bucket())
               .object(objectKey)
@@ -63,27 +67,29 @@ public class FileStorageService {
       throw new ApiException(ErrorCode.INTERNAL_ERROR, "Unable to upload file");
     }
 
-    FileMetadata metadata = new FileMetadata();
-    metadata.setId(fileId);
-    metadata.setOwnerUserId(ownerUserId);
-    metadata.setFileName(safeFileName);
-    metadata.setFileType(fileType);
-    metadata.setMimeType(mimeType);
-    metadata.setSizeBytes(sizeBytes);
-    metadata.setBucket(fileType.bucket());
-    metadata.setObjectKey(objectKey);
-    return fileMetadataRepository.save(metadata);
+    try {
+      return fileMetadataPersistence.saveNew(
+          fileId,
+          ownerUserId,
+          safeFileName,
+          fileType,
+          mimeType,
+          sizeBytes,
+          objectKey
+      );
+    } catch (RuntimeException exception) {
+      deleteObjectQuietly(fileType.bucket(), objectKey);
+      throw exception;
+    }
   }
 
-  @Transactional(readOnly = true)
   public FileMetadata requireActiveMetadata(UUID fileId) {
-    return fileMetadataRepository.findByIdAndDeletedAtIsNull(fileId)
-        .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    return fileMetadataPersistence.requireActiveMetadata(fileId);
   }
 
   public String createPresignedUrl(FileMetadata metadata) {
     try {
-      return minioClient.getPresignedObjectUrl(
+      return minioPresignClient.getPresignedObjectUrl(
           GetPresignedObjectUrlArgs.builder()
               .method(Method.GET)
               .bucket(metadata.getBucket())
@@ -92,13 +98,14 @@ public class FileStorageService {
               .build()
       );
     } catch (Exception exception) {
+      log.error("Failed to create MinIO presigned URL for object {}", metadata.getObjectKey(), exception);
       throw new ApiException(ErrorCode.INTERNAL_ERROR, "Unable to create file URL");
     }
   }
 
   public InputStream openDownloadStream(FileMetadata metadata) {
     try {
-      return minioClient.getObject(
+      return minioStorageClient.getObject(
           GetObjectArgs.builder()
               .bucket(metadata.getBucket())
               .object(metadata.getObjectKey())
@@ -109,15 +116,10 @@ public class FileStorageService {
     }
   }
 
-  @Transactional
   public void deleteOwnedFile(UUID fileId, UUID ownerUserId) {
-    FileMetadata metadata = requireActiveMetadata(fileId);
-    if (!metadata.getOwnerUserId().equals(ownerUserId)) {
-      throw new ApiException(ErrorCode.FORBIDDEN);
-    }
-
+    FileMetadata metadata = fileMetadataPersistence.softDeleteOwned(fileId, ownerUserId);
     try {
-      minioClient.removeObject(
+      minioStorageClient.removeObject(
           RemoveObjectArgs.builder()
               .bucket(metadata.getBucket())
               .object(metadata.getObjectKey())
@@ -126,8 +128,18 @@ public class FileStorageService {
     } catch (Exception exception) {
       throw new ApiException(ErrorCode.INTERNAL_ERROR, "Unable to delete file from storage");
     }
+  }
 
-    metadata.setDeletedAt(OffsetDateTime.now());
-    fileMetadataRepository.save(metadata);
+  private void deleteObjectQuietly(String bucket, String objectKey) {
+    try {
+      minioStorageClient.removeObject(
+          RemoveObjectArgs.builder()
+              .bucket(bucket)
+              .object(objectKey)
+              .build()
+      );
+    } catch (Exception ignored) {
+      // Best-effort cleanup of orphaned MinIO object after metadata save failure.
+    }
   }
 }
