@@ -10,9 +10,8 @@ class VerificationInfoCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appColors.inputFill,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.appColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

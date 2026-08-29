@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/modules/finance/widgets/payment_receipt_tile.dart';
@@ -13,6 +14,8 @@ class PaymentReceiptsSection extends StatelessWidget {
     required this.onToggleShowAll,
     required this.onPaymentTap,
     this.onRefresh,
+    this.searchQuery = '',
+    this.isSearching = false,
   });
 
   final List<PaymentSummary> payments;
@@ -20,21 +23,39 @@ class PaymentReceiptsSection extends StatelessWidget {
   final VoidCallback onToggleShowAll;
   final ValueChanged<String> onPaymentTap;
   final Future<void> Function()? onRefresh;
+  final String searchQuery;
+  final bool isSearching;
 
   @override
   Widget build(BuildContext context) {
-    final list = ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 24),
-      itemCount: payments.length,
-      itemBuilder: (_, index) {
-        final payment = payments[index];
-        return PaymentReceiptTile(
-          payment: payment,
-          onTap: () => onPaymentTap(payment.id),
-        );
-      },
-    );
+    final listContent = payments.isEmpty
+        ? ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(top: 32, bottom: 24),
+            children: [
+              Center(
+                child: Text(
+                  isSearching
+                      ? AppStrings.financeSearchEmpty
+                      : 'No transactions yet',
+                  style: TextStyle(color: context.appColors.muted),
+                ),
+              ),
+            ],
+          )
+        : ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 24),
+            itemCount: payments.length,
+            itemBuilder: (_, index) {
+              final payment = payments[index];
+              return PaymentReceiptTile(
+                payment: payment,
+                searchQuery: searchQuery,
+                onTap: () => onPaymentTap(payment.id),
+              );
+            },
+          );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -42,7 +63,7 @@ class PaymentReceiptsSection extends StatelessWidget {
         Row(
           children: [
             Text(
-              'Recent Transaction',
+              isSearching ? 'Search Results' : 'Recent Transaction',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -50,26 +71,27 @@ class PaymentReceiptsSection extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            TextButton(
-              onPressed: onToggleShowAll,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: const Size(44, 44),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            if (!isSearching)
+              TextButton(
+                onPressed: onToggleShowAll,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(44, 44),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  showAll ? 'See Less' : 'See All',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
-              child: Text(
-                showAll ? 'See Less' : 'See All',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 12),
         Expanded(
           child: onRefresh == null
-              ? list
-              : RefreshIndicator(onRefresh: onRefresh!, child: list),
+              ? listContent
+              : RefreshIndicator(onRefresh: onRefresh!, child: listContent),
         ),
       ],
     );

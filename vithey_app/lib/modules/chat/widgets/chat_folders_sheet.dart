@@ -8,6 +8,68 @@ import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:get/get.dart';
 
+/// Folder tab context menu: add chats or remove folder.
+Future<void> showFolderTabMenu(BuildContext context, ChatFolder folder) async {
+  final controller = Get.find<ChatListController>();
+  final colors = context.appColors;
+  final box = context.findRenderObject() as RenderBox?;
+  if (box == null) return;
+
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final position = box.localToGlobal(Offset.zero, ancestor: overlay);
+
+  final value = await showMenu<String>(
+    context: context,
+    color: colors.cardSurface,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    position: RelativeRect.fromLTRB(
+      position.dx,
+      position.dy + box.size.height + 4,
+      position.dx + box.size.width,
+      position.dy + box.size.height + 4,
+    ),
+    items: [
+      PopupMenuItem(
+        value: 'add',
+        child: Row(
+          children: [
+            const Icon(Icons.add, size: 20, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                AppStrings.chatAddChats,
+                style: TextStyle(color: colors.heading),
+              ),
+            ),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: 'remove',
+        child: Row(
+          children: [
+            const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                AppStrings.chatRemoveFolder,
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  if (!context.mounted) return;
+  if (value == 'add') {
+    await showAddChatsToFolderSheet(context, folder);
+  } else if (value == 'remove') {
+    await controller.deleteFolder(folder.id);
+  }
+}
+
 Future<void> showManageFoldersSheet(BuildContext context) {
   final controller = Get.find<ChatListController>();
   return showModalBottomSheet<void>(
@@ -49,7 +111,10 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => showCreateFolderDialog(ctx),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      controller.startCreatingFolder();
+                    },
                     child: const Text(AppStrings.chatNewFolder),
                   ),
                   IconButton(
@@ -148,20 +213,12 @@ Future<void> showManageFoldersSheet(BuildContext context) {
   );
 }
 
-/// Dialog to create a folder by name.
-Future<ChatFolder?> showCreateFolderDialog(BuildContext context) async {
-  final controller = Get.find<ChatListController>();
-  final name = await _promptFolderName(
-    context,
-    title: AppStrings.chatNewFolder,
-  );
-  if (name == null || name.isEmpty) return null;
-  final folder = await controller.createFolder(name);
-  if (folder != null) controller.selectFolder(folder.id);
-  return folder;
+/// Starts inline folder creation in the folder bar.
+void startInlineFolderCreation(BuildContext context) {
+  Get.find<ChatListController>().startCreatingFolder();
 }
 
-/// Pick chats to add into [folder] (long-press folder).
+/// Pick chats to add into [folder].
 Future<void> showAddChatsToFolderSheet(
   BuildContext context,
   ChatFolder folder,
@@ -175,64 +232,59 @@ Future<void> showAddChatsToFolderSheet(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (ctx) {
-      return _AddChatsToFolderSheet(
-        folder: folder,
-        controller: controller,
-        selectedIds: selectedIds,
+      return DraggableScrollableSheet(
+        initialChildSize: 0.52,
+        minChildSize: 0.35,
+        maxChildSize: 1.0,
+        expand: false,
+        builder: (context, scrollController) {
+          return _AddChatsToFolderSheet(
+            folder: folder,
+            controller: controller,
+            selectedIds: selectedIds,
+            scrollController: scrollController,
+          );
+        },
       );
     },
   );
 }
 
-class _AddChatsToFolderSheet extends StatefulWidget {
+class _AddChatsToFolderSheet extends StatelessWidget {
   const _AddChatsToFolderSheet({
     required this.folder,
     required this.controller,
     required this.selectedIds,
+    required this.scrollController,
   });
 
   final ChatFolder folder;
   final ChatListController controller;
   final RxSet<String> selectedIds;
-
-  @override
-  State<_AddChatsToFolderSheet> createState() => _AddChatsToFolderSheetState();
-}
-
-class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
-  bool _fullScreen = false;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final height = _fullScreen ? screenHeight : screenHeight * 0.72;
-    final topRadius = _fullScreen ? 0.0 : 20.0;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-      height: height,
+    return Container(
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(topRadius)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
-          if (!_fullScreen) ...[
-            const SizedBox(height: 10),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.muted.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(99),
-              ),
+          const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: colors.muted.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(99),
             ),
-          ] else
-            SizedBox(height: MediaQuery.paddingOf(context).top > 0 ? 4 : 10),
+          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 4, 8),
+            padding: const EdgeInsets.fromLTRB(16, 10, 8, 8),
             child: Row(
               children: [
                 Expanded(
@@ -240,20 +292,20 @@ class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
                     AppStrings.chatAddChatsToFolder,
                     style: TextStyle(
                       color: colors.heading,
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 Obx(() {
-                  final count = widget.selectedIds.length;
+                  final count = selectedIds.length;
                   return TextButton(
                     onPressed: count == 0
                         ? null
                         : () async {
-                            for (final id in widget.selectedIds.toList()) {
-                              await widget.controller.addConversationToFolder(
-                                widget.folder.id,
+                            for (final id in selectedIds.toList()) {
+                              await controller.addConversationToFolder(
+                                folder.id,
                                 id,
                               );
                             }
@@ -262,16 +314,6 @@ class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
                     child: Text(count == 0 ? 'Add' : 'Add ($count)'),
                   );
                 }),
-                IconButton(
-                  tooltip: _fullScreen ? 'Exit full screen' : 'Full screen',
-                  onPressed: () => setState(() => _fullScreen = !_fullScreen),
-                  icon: Icon(
-                    _fullScreen
-                        ? Icons.fullscreen_exit_rounded
-                        : Icons.fullscreen_rounded,
-                    color: colors.muted,
-                  ),
-                ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: Icon(Icons.close_rounded, color: colors.muted),
@@ -282,11 +324,11 @@ class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
           Divider(height: 1, color: colors.border),
           Expanded(
             child: Obx(() {
-              final latest = widget.controller.customFolders
-                  .firstWhereOrNull((f) => f.id == widget.folder.id);
+              final latest = controller.customFolders
+                  .firstWhereOrNull((f) => f.id == folder.id);
               final existing = latest?.conversationIds.toSet() ??
-                  widget.folder.conversationIds.toSet();
-              final chats = widget.controller.conversations
+                  folder.conversationIds.toSet();
+              final chats = controller.conversations
                   .where((c) => !existing.contains(c.id))
                   .toList();
 
@@ -300,6 +342,7 @@ class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
               }
 
               return ListView.separated(
+                controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
                 itemCount: chats.length,
                 separatorBuilder: (_, __) => Divider(
@@ -309,14 +352,14 @@ class _AddChatsToFolderSheetState extends State<_AddChatsToFolderSheet> {
                 itemBuilder: (_, index) {
                   final chat = chats[index];
                   return Obx(() {
-                    final checked = widget.selectedIds.contains(chat.id);
+                    final checked = selectedIds.contains(chat.id);
                     return CheckboxListTile(
                       value: checked,
                       onChanged: (value) {
                         if (value == true) {
-                          widget.selectedIds.add(chat.id);
+                          selectedIds.add(chat.id);
                         } else {
-                          widget.selectedIds.remove(chat.id);
+                          selectedIds.remove(chat.id);
                         }
                       },
                       secondary: UserAvatar(
@@ -439,7 +482,7 @@ Future<void> showMoveToFolderSheet(
                 TextButton(
                   onPressed: () {
                     Navigator.of(ctx).pop();
-                    showCreateFolderDialog(context);
+                    controller.startCreatingFolder();
                   },
                   child: const Text(AppStrings.chatNewFolder),
                 ),

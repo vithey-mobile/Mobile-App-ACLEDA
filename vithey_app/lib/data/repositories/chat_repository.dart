@@ -551,4 +551,53 @@ class ChatRepository {
         lowerUrl.contains('youtube.com') ||
         lowerUrl.contains('youtu.be');
   }
+
+  /// Latest matching message snippet per conversation for chat list search.
+  Future<Map<String, String>> searchMessageSnippets(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return {};
+
+    List<ChatMessage> matches;
+    if (useMockApi) {
+      await _ensureMockSeed();
+      matches = <ChatMessage>[];
+      for (final messages in _mockMessages.values) {
+        matches.addAll(
+          messages.where((m) => !m.isDeleted && _textMatches(m.text, q)),
+        );
+      }
+    } else {
+      final local = await _isar.searchMessagesByText(q);
+      matches = local.map(ChatIsarMapper.fromLocalMessage).toList();
+    }
+
+    matches.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final snippets = <String, String>{};
+    for (final message in matches) {
+      snippets.putIfAbsent(
+        message.conversationId,
+        () => _messageSearchSnippet(message.text, q),
+      );
+    }
+    return snippets;
+  }
+
+  bool _textMatches(String text, String query) {
+    return text.toLowerCase().contains(query.toLowerCase());
+  }
+
+  String _messageSearchSnippet(String text, String query) {
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final index = lowerText.indexOf(lowerQuery);
+    if (index < 0) return text;
+
+    const window = 28;
+    final start = (index - window).clamp(0, text.length);
+    final end = (index + lowerQuery.length + window).clamp(0, text.length);
+    var snippet = text.substring(start, end).trim();
+    if (start > 0) snippet = '…$snippet';
+    if (end < text.length) snippet = '$snippet…';
+    return snippet;
+  }
 }

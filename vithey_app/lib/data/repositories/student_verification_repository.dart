@@ -89,35 +89,19 @@ class StudentVerificationRepository {
 
   Future<void> clearStoredDocument() => _localStorage.clearVerificationDocument();
 
-  /// Mock: after pending review delay —
-  /// document present → verified success; no document → rejected (fail).
+  /// Mock: after pending review delay — always approve (dev-friendly).
   Future<StudentVerificationModel> resolveMockPendingOutcome() async {
     final current = await _readMockVerification();
     if (current.status != VerificationStatus.pending) return current;
 
-    final hasDocument = current.documentFileName != null &&
-        current.documentFileName!.trim().isNotEmpty;
-
-    if (hasDocument) {
-      await _localStorage.saveVerificationStatus('verified');
-      final verified = current.copyWith(
-        status: VerificationStatus.verified,
-        verifiedAt: DateTime.now(),
-        canResubmit: false,
-      );
-      _publishVerified(VerificationStatus.verified);
-      return verified;
-    }
-
-    await _localStorage.saveVerificationStatus('rejected');
-    final rejected = current.copyWith(
-      status: VerificationStatus.rejected,
-      rejectionReason:
-          'Verification failed. Please upload your student document and try again.',
-      canResubmit: true,
+    await _localStorage.saveVerificationStatus('verified');
+    final verified = current.copyWith(
+      status: VerificationStatus.verified,
+      verifiedAt: DateTime.now(),
+      canResubmit: false,
     );
-    _publishVerified(VerificationStatus.rejected);
-    return rejected;
+    _publishVerified(VerificationStatus.verified);
+    return verified;
   }
 
   Future<StudentVerificationModel> refreshForMockApproval() =>

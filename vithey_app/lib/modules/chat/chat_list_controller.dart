@@ -30,20 +30,24 @@ class ChatListController extends GetxController {
   final hasError = false.obs;
   final errorMessage = ''.obs;
   final searchQuery = ''.obs;
+  final isSearchActive = false.obs;
+  final messageSearchSnippets = <String, String>{}.obs;
   /// True when contacts header is collapsed (scrolled) — used to hide folder border.
   final headerCollapsed = false.obs;
+
+  /// Inline folder name entry in the folder bar (no dialog).
+  final isCreatingFolder = false.obs;
 
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
 
   StreamSubscription<List<ConversationModel>>? _conversationSub;
+  Timer? _searchDebounce;
 
   @override
   void onInit() {
     super.onInit();
-    searchController.addListener(() {
-      searchQuery.value = searchController.text;
-    });
+    searchController.addListener(_onSearchChanged);
     _conversationSub =
         _chatRepository.watchConversations().listen(conversations.assignAll);
     _chatRepository.connectRealtime();
@@ -105,9 +109,85 @@ class ChatListController extends GetxController {
     selectedFolderId.value = folderId;
   }
 
+  void startCreatingFolder() {
+    isCreatingFolder.value = true;
+  }
+
+  void cancelCreatingFolder() {
+    isCreatingFolder.value = false;
+  }
+
   void clearSearch() {
     searchController.clear();
     searchQuery.value = '';
+    messageSearchSnippets.clear();
+  }
+
+  void _onSearchChanged() {
+    searchQuery.value = searchController.text;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 220), () {
+      _refreshMessageSearch();
+    });
+  }
+
+  Future<void> _refreshMessageSearch() async {
+    final query = searchQuery.value.trim();
+    if (query.isEmpty) {
+      messageSearchSnippets.clear();
+      return;
+    }
+    final snippets = await _chatRepository.searchMessageSnippets(query);
+    if (searchQuery.value.trim() != query) return;
+    messageSearchSnippets.assignAll(snippets);
+  }
+
+  bool conversationMatchesSearch(ConversationModel conversation, String query) {
+    if (query.isEmpty) return true;
+    final lower = query.toLowerCase();
+    if (conversation.participant.fullName.toLowerCase().contains(lower)) {
+      return true;
+    }
+    if (conversation.lastMessagePreview.toLowerCase().contains(lower)) {
+      return true;
+    }
+    return messageSearchSnippets.containsKey(conversation.id);
+  }
+
+  String? searchSubtitleFor(ConversationModel conversation) {
+    final query = searchQuery.value.trim();
+    if (query.isEmpty) return null;
+
+    final snippet = messageSearchSnippets[conversation.id];
+    if (snippet != null &&
+        !conversation.lastMessagePreview.toLowerCase().contains(query.toLowerCase())) {
+      return snippet;
+    }
+    return null;
+  }
+
+  void openSearch() {
+    isSearchActive.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isSearchActive.value) {
+        searchFocusNode.requestFocus();
+        _refreshMessageSearch();
+      }
+    });
+  }
+
+  void closeSearch() {
+    isSearchActive.value = false;
+    clearSearch();
+    searchFocusNode.unfocus();
+  }
+
+  void toggleSearch() {
+    if (isSearchActive.value) {
+      closeSearch();
+    } else {
+      openSearch();
+    }
   }
 
   List<ConversationModel> get filteredConversations {
@@ -127,7 +207,7 @@ class ChatListController extends GetxController {
     final query = searchQuery.value.trim().toLowerCase();
     if (query.isNotEmpty) {
       list = list
-          .where((c) => c.participant.fullName.toLowerCase().contains(query))
+          .where((c) => conversationMatchesSearch(c, query))
           .toList();
     }
     return list;
@@ -271,6 +351,7 @@ class ChatListController extends GetxController {
 
   @override
   void onClose() {
+    _searchDebounce?.cancel();
     _conversationSub?.cancel();
     searchController.dispose();
     searchFocusNode.dispose();

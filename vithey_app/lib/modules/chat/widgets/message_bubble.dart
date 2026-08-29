@@ -39,19 +39,29 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwn = message.isOwn;
     final maxWidth = MediaQuery.sizeOf(context).width * 0.78;
-    final bubbleColor = isOwn ? AppColors.primary : context.appColors.cardSurface;
+    final incomingBubbleColor = const Color(0xFFF1F3F5);
+    final bubbleColor =
+        isOwn ? AppColors.primary : incomingBubbleColor;
     final textColor = isOwn ? Colors.white : context.appColors.heading;
-    final displayText = message.isDeleted ? 'This message was deleted' : message.text;
-    final timeColor = isOwn ? Colors.white.withValues(alpha: 0.75) : context.appColors.muted;
+    final displayText =
+        message.isDeleted ? 'This message was deleted' : message.text;
+    final timeColor =
+        isOwn ? Colors.white.withValues(alpha: 0.75) : context.appColors.muted;
+    final timeLabel = _formatBubbleTime(message.createdAt);
 
     return Padding(
       padding: EdgeInsets.only(bottom: showSeenLabel ? 4 : 8),
       child: Row(
-        mainAxisAlignment: isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isOwn && showAvatar)
-            UserAvatar(name: participantName, imageUrl: participantAvatarUrl, radius: 16)
+            UserAvatar(
+              name: participantName,
+              imageUrl: participantAvatarUrl,
+              radius: 16,
+            )
           else if (!isOwn)
             const SizedBox(width: 32),
           if (!isOwn) const SizedBox(width: 6),
@@ -60,31 +70,9 @@ class MessageBubble extends StatelessWidget {
             child: GestureDetector(
               onLongPress: message.isDeleted ? null : onLongPress,
               child: Column(
-                crossAxisAlignment: isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  if (message.replyToPreview != null && message.replyToPreview!.isNotEmpty)
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isOwn ? Colors.white.withValues(alpha: 0.15) : context.appColors.inputFill,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border(
-                          left: BorderSide(color: isOwn ? Colors.white70 : AppColors.primary, width: 3),
-                        ),
-                      ),
-                      child: Text(
-                        message.replyToPreview!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isOwn ? Colors.white70 : context.appColors.muted,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
                   if (!message.isDeleted && message.attachments.isNotEmpty) ...[
                     Wrap(
                       spacing: 6,
@@ -103,66 +91,55 @@ class MessageBubble extends StatelessWidget {
                     if (displayText.trim().isNotEmpty) const SizedBox(height: 6),
                   ],
                   if (message.isDeleted || displayText.trim().isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-                      decoration: BoxDecoration(
-                        color: message.isDeleted
-                            ? bubbleColor.withValues(alpha: 0.7)
-                            : bubbleColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: const Radius.circular(16),
-                          bottomLeft: Radius.circular(isOwn ? 16 : 4),
-                          bottomRight: Radius.circular(isOwn ? 4 : 16),
-                        ),
-                        border: isOwn
-                            ? null
-                            : Border.all(color: context.appColors.border),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              displayText,
-                              style: TextStyle(
-                                color: message.isDeleted
-                                    ? textColor.withValues(alpha: 0.7)
-                                    : textColor,
-                                fontSize: 15,
-                                height: 1.4,
-                                fontStyle: message.isDeleted
-                                    ? FontStyle.italic
-                                    : FontStyle.normal,
-                              ),
-                            ),
+                    IntrinsicWidth(
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 10, 6),
+                        decoration: BoxDecoration(
+                          color: message.isDeleted
+                              ? bubbleColor.withValues(alpha: 0.7)
+                              : bubbleColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(18),
+                            topRight: const Radius.circular(18),
+                            bottomLeft: Radius.circular(isOwn ? 18 : 4),
+                            bottomRight: Radius.circular(isOwn ? 4 : 18),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _formatBubbleTime(message.createdAt),
-                                style:
-                                    TextStyle(fontSize: 11, color: timeColor),
-                              ),
-                              if (message.isFailed) ...[
-                                const SizedBox(width: 6),
-                                GestureDetector(
-                                  onTap: onRetry,
-                                  child: const Text(
-                                    'Retry',
-                                    style: TextStyle(
-                                      color: AppColors.error,
-                                      fontSize: 11,
-                                    ),
+                          boxShadow: isOwn
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 1),
                                   ),
+                                ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (message.replyToPreview != null &&
+                                message.replyToPreview!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: _ReplyPreview(
+                                  preview: message.replyToPreview!,
+                                  isOwn: isOwn,
                                 ),
-                              ],
-                            ],
-                          ),
-                        ],
+                              ),
+                            _TelegramBubbleBody(
+                              text: displayText,
+                              timeLabel: timeLabel,
+                              textColor: message.isDeleted
+                                  ? textColor.withValues(alpha: 0.7)
+                                  : textColor,
+                              timeColor: timeColor,
+                              isDeleted: message.isDeleted,
+                              isFailed: message.isFailed,
+                              onRetry: onRetry,
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   else if (message.attachments.isNotEmpty)
@@ -172,7 +149,7 @@ class MessageBubble extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _formatBubbleTime(message.createdAt),
+                            timeLabel,
                             style: TextStyle(
                               fontSize: 11,
                               color: context.appColors.muted,
@@ -233,12 +210,17 @@ class MessageBubble extends StatelessWidget {
                       }).toList(),
                     ),
                   ],
-                  if (showSeenLabel && isOwn && message.status == MessageDeliveryStatus.read)
+                  if (showSeenLabel &&
+                      isOwn &&
+                      message.status == MessageDeliveryStatus.read)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, right: 4),
                       child: Text(
                         AppStrings.chatSeen,
-                        style: TextStyle(fontSize: 11, color: context.appColors.muted),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.appColors.muted,
+                        ),
                       ),
                     ),
                 ],
@@ -246,6 +228,113 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Telegram-style text + inline timestamp that wraps on the last line.
+class _TelegramBubbleBody extends StatelessWidget {
+  const _TelegramBubbleBody({
+    required this.text,
+    required this.timeLabel,
+    required this.textColor,
+    required this.timeColor,
+    required this.isDeleted,
+    required this.isFailed,
+    this.onRetry,
+  });
+
+  final String text;
+  final String timeLabel;
+  final Color textColor;
+  final Color timeColor;
+  final bool isDeleted;
+  final bool isFailed;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: 0,
+      runSpacing: 2,
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 15,
+            height: 1.35,
+            fontStyle: isDeleted ? FontStyle.italic : FontStyle.normal,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: Text(
+                timeLabel,
+                style: TextStyle(fontSize: 11, color: timeColor),
+              ),
+            ),
+            if (isFailed) ...[
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: onRetry,
+                child: const Text(
+                  'Retry',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ReplyPreview extends StatelessWidget {
+  const _ReplyPreview({
+    required this.preview,
+    required this.isOwn,
+  });
+
+  final String preview;
+  final bool isOwn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isOwn
+            ? Colors.white.withValues(alpha: 0.15)
+            : context.appColors.inputFill,
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          left: BorderSide(
+            color: isOwn ? Colors.white70 : AppColors.primary,
+            width: 3,
+          ),
+        ),
+      ),
+      child: Text(
+        preview,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 12,
+          color: isOwn ? Colors.white70 : context.appColors.muted,
+          fontStyle: FontStyle.italic,
+        ),
       ),
     );
   }

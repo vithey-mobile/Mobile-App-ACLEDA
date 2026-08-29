@@ -20,6 +20,9 @@ class SearchScreen extends GetView<SearchController> {
         onChanged: controller.onQueryChanged,
         onClear: controller.clearQuery,
         onSubmitted: controller.submitSearch,
+        hintText: controller.pickUserForChat
+            ? AppStrings.pickUserToChat
+            : 'Search',
       ),
       body: Obx(() {
         if (controller.showRecent) {

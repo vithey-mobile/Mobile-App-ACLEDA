@@ -327,15 +327,17 @@ class ChatQuickActionsRow extends StatelessWidget {
   const ChatQuickActionsRow({
     super.key,
     required this.onProfile,
-    this.onCall,
-    this.onVideo,
-    this.onMute,
+    required this.onCall,
+    required this.onVideo,
+    required this.onMute,
+    this.isMuted = false,
   });
 
   final VoidCallback onProfile;
-  final VoidCallback? onCall;
-  final VoidCallback? onVideo;
-  final VoidCallback? onMute;
+  final VoidCallback onCall;
+  final VoidCallback onVideo;
+  final VoidCallback onMute;
+  final bool isMuted;
 
   @override
   Widget build(BuildContext context) {
@@ -351,19 +353,29 @@ class ChatQuickActionsRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _ActionItem(icon: Icons.person_outline, label: AppStrings.chatProfileAction, onTap: onProfile),
-          if (onCall != null)
-            _ActionItem(icon: Icons.call_outlined, label: AppStrings.chatCallAction, onTap: onCall!)
-          else
-            _ActionItem(icon: Icons.call_outlined, label: AppStrings.chatCallAction, onTap: null),
-          if (onVideo != null)
-            _ActionItem(icon: Icons.videocam_outlined, label: AppStrings.chatVideoAction, onTap: onVideo!)
-          else
-            _ActionItem(icon: Icons.videocam_outlined, label: AppStrings.chatVideoAction, onTap: null),
-          if (onMute != null)
-            _ActionItem(icon: Icons.mic_off_outlined, label: AppStrings.chatMuteAction, onTap: onMute!)
-          else
-            _ActionItem(icon: Icons.mic_off_outlined, label: AppStrings.chatMuteAction, onTap: null),
+          _ActionItem(
+            icon: Icons.person_outline,
+            label: AppStrings.chatProfileAction,
+            onTap: onProfile,
+          ),
+          _ActionItem(
+            icon: Icons.call_outlined,
+            label: AppStrings.chatCallAction,
+            onTap: onCall,
+          ),
+          _ActionItem(
+            icon: Icons.videocam_outlined,
+            label: AppStrings.chatVideoAction,
+            onTap: onVideo,
+          ),
+          _ActionItem(
+            icon: isMuted
+                ? Icons.notifications_off_outlined
+                : Icons.notifications_outlined,
+            label: isMuted ? AppStrings.chatUnmuteAction : AppStrings.chatMuteAction,
+            onTap: onMute,
+            highlighted: isMuted,
+          ),
         ],
       ),
     );
@@ -371,33 +383,41 @@ class ChatQuickActionsRow extends StatelessWidget {
 }
 
 class _ActionItem extends StatelessWidget {
-  const _ActionItem({required this.icon, required this.label, this.onTap});
+  const _ActionItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.highlighted = false,
+  });
 
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: onTap == null ? 0.4 : 1,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Column(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primary),
+    final iconColor = highlighted ? AppColors.error : AppColors.primary;
+    final bgColor = highlighted
+        ? AppColors.error.withValues(alpha: 0.12)
+        : AppColors.primary.withValues(alpha: 0.12);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: bgColor,
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 6),
-            Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
-          ],
-        ),
+            child: Icon(icon, color: iconColor),
+          ),
+          const SizedBox(height: 6),
+          Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+        ],
       ),
     );
   }

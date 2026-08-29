@@ -6,7 +6,6 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/chat/chat_detail_controller.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_composer.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_detail_header.dart';
-import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
 import 'package:aub_connect_app/modules/chat/widgets/jump_to_latest_chip.dart';
 import 'package:aub_connect_app/modules/chat/widgets/message_bubble.dart';
@@ -19,46 +18,27 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.appColors.inputFill,
+      backgroundColor: context.appColors.cardSurface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Obx(
           () => ChatDetailHeader(
             participant: controller.participant.value,
             isTyping: controller.isTyping.value,
-            onBack: Get.back,
+            isSearchActive: controller.isThreadSearchActive.value,
+            searchController: controller.threadSearchController,
+            searchFocusNode: controller.threadSearchFocusNode,
+            hasSearchQuery: controller.threadSearchQuery.value.isNotEmpty,
+            onBack: controller.handleHeaderBack,
             onProfileTap: controller.openParticipantProfile,
-            onSearch: controller.openThreadSearch,
+            onToggleSearch: controller.toggleThreadSearch,
+            onClearSearch: controller.clearThreadSearch,
             onMenu: controller.handleHeaderMenu,
           ),
         ),
       ),
       body: Column(
         children: [
-          Obx(() {
-            if (!controller.hasThreadSearch) return const SizedBox.shrink();
-            return Material(
-              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.35),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${AppStrings.chatThreadSearchHint}: ${controller.threadSearchQuery.value}',
-                        style: TextStyle(fontSize: 13, color: context.appColors.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: controller.clearThreadSearch,
-                      child: const Text(AppStrings.clearSearch),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
           Expanded(
             child: Stack(
               children: [
@@ -143,6 +123,7 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
               onAddAttachment: controller.openAttachmentMenu,
               onRemoveAttachment: controller.removePendingAttachment,
               showEmojiPanel: controller.showEmojiPanel.value,
+              onEmojiSelected: controller.insertEmoji,
               onToggleEmoji: () {
                 FocusManager.instance.primaryFocus?.unfocus();
                 controller.toggleEmojiPanel();
@@ -150,14 +131,6 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
               onFocusText: controller.hideEmojiPanel,
             ),
           ),
-          Obx(() {
-            if (!controller.showEmojiPanel.value) {
-              return const SizedBox.shrink();
-            }
-            return ChatEmojiPanel(
-              onEmojiSelected: controller.insertEmoji,
-            );
-          }),
         ],
       ),
     );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -9,6 +11,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onChanged,
     required this.onClear,
     required this.onSubmitted,
+    this.hintText = 'Search',
   });
 
   final TextEditingController controller;
@@ -16,6 +19,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
   final VoidCallback onSubmitted;
+  final String hintText;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -26,7 +30,9 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: colors.bodyBackground,
+      scrolledUnderElevation: 0,
+      backgroundColor: colors.cardSurface,
+      foregroundColor: colors.heading,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => Navigator.of(context).maybePop(),
@@ -34,12 +40,12 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       titleSpacing: 0,
       title: Padding(
-        padding: const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.only(right: 12),
         child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
           builder: (context, value, _) {
             return Semantics(
-              label: 'Search',
+              label: hintText,
               child: TextField(
                 controller: controller,
                 focusNode: focusNode,
@@ -47,33 +53,56 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
                 textInputAction: TextInputAction.search,
                 onChanged: onChanged,
                 onSubmitted: (_) => onSubmitted(),
-                style: TextStyle(color: colors.heading, fontSize: 16),
+                style: TextStyle(
+                  color: colors.heading,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
                 decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle: TextStyle(color: colors.muted),
+                  hintText: hintText,
+                  hintStyle: TextStyle(
+                    color: colors.muted,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   filled: true,
                   fillColor: colors.inputFill,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: BorderSide.none,
-                  ),
-                  prefixIcon: Icon(Icons.search, color: colors.muted, size: 22),
+                  prefixIcon:
+                      Icon(Icons.search_rounded, color: colors.muted, size: 20),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
-                          icon:
-                              Icon(Icons.close, color: colors.muted, size: 20),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: colors.muted,
+                            size: 18,
+                          ),
                           onPressed: onClear,
-                          tooltip: 'Clear search',
+                          tooltip: AppStrings.clearSearch,
                         )
                       : null,
-                  isDense: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(99),
+                    borderSide: BorderSide(color: colors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(99),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.4,
+                    ),
+                  ),
                 ),
               ),
             );
           },
         ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: colors.border),
       ),
     );
   }

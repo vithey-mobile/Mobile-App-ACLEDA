@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
@@ -96,7 +95,7 @@ class _ChatListHeaderDelegate extends SliverPersistentHeaderDelegate {
                             ? null
                             : () => controller.openContactChat(stack.first),
                         inboxCount: controller.messageRequests.length,
-                        onSearch: () => Get.toNamed(AppRoutes.search),
+                        chatController: controller,
                         onInbox: () => showMessageRequestsSheet(context),
                       );
                     }),
@@ -141,7 +140,7 @@ class _ChatToolbar extends StatelessWidget {
     required this.t,
     required this.stackContacts,
     required this.inboxCount,
-    required this.onSearch,
+    required this.chatController,
     required this.onInbox,
     this.onStackTap,
   });
@@ -151,114 +150,188 @@ class _ChatToolbar extends StatelessWidget {
   final double t;
   final List<ChatParticipant> stackContacts;
   final int inboxCount;
-  final VoidCallback onSearch;
+  final ChatListController chatController;
   final VoidCallback onInbox;
   final VoidCallback? onStackTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 4, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                Opacity(
-                  opacity: expandT,
-                  child: IgnorePointer(
-                    ignoring: t > 0.5,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: colors.heading,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Opacity(
-                  opacity: t,
-                  child: IgnorePointer(
-                    ignoring: t < 0.5,
-                    child: Row(
+    return Obx(() {
+      final isSearchActive = chatController.isSearchActive.value;
+      final hasQuery = chatController.searchQuery.value.isNotEmpty;
+
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 4, 0),
+        child: Row(
+          children: [
+            Expanded(
+              child: isSearchActive
+                  ? _ChatSearchField(
+                      controller: chatController.searchController,
+                      focusNode: chatController.searchFocusNode,
+                      hasQuery: hasQuery,
+                      onClear: chatController.clearSearch,
+                    )
+                  : Stack(
+                      alignment: Alignment.centerLeft,
                       children: [
-                        if (stackContacts.isNotEmpty) ...[
-                          _OverlappingContactStack(
-                            contacts: stackContacts,
-                            onTap: onStackTap ?? () {},
+                        Opacity(
+                          opacity: expandT,
+                          child: IgnorePointer(
+                            ignoring: t > 0.5,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Text(
+                                title,
+                                style: TextStyle(
+                                  color: colors.heading,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 10),
-                        ],
-                        Flexible(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.heading,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                        ),
+                        Opacity(
+                          opacity: t,
+                          child: IgnorePointer(
+                            ignoring: t < 0.5,
+                            child: Row(
+                              children: [
+                                if (stackContacts.isNotEmpty) ...[
+                                  _OverlappingContactStack(
+                                    contacts: stackContacts,
+                                    onTap: onStackTap ?? () {},
+                                  ),
+                                  const SizedBox(width: 10),
+                                ],
+                                Flexible(
+                                  child: Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: colors.heading,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
             ),
-          ),
-          HomeAppBarAction(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: onSearch,
-            tooltip: AppStrings.chatSearchHint,
-          ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              HomeAppBarAction(
-                icon: const Icon(Icons.mark_email_unread_outlined),
-                onPressed: onInbox,
-                tooltip: AppStrings.chatMessageRequests,
+            HomeAppBarAction(
+              icon: Icon(
+                isSearchActive ? Icons.close_rounded : Icons.search_rounded,
               ),
-              if (inboxCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      inboxCount > 9 ? '9+' : '$inboxCount',
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        height: 1,
+              onPressed: chatController.toggleSearch,
+              tooltip: AppStrings.chatSearchHint,
+            ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                HomeAppBarAction(
+                  icon: const Icon(Icons.mark_email_unread_outlined),
+                  onPressed: onInbox,
+                  tooltip: AppStrings.chatMessageRequests,
+                ),
+                if (inboxCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        inboxCount > 9 ? '9+' : '$inboxCount',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          height: 1,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
+            const SizedBox(width: 2),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _ChatSearchField extends StatelessWidget {
+  const _ChatSearchField({
+    required this.controller,
+    required this.focusNode,
+    required this.hasQuery,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool hasQuery;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 4),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        textInputAction: TextInputAction.search,
+        style: TextStyle(
+          color: colors.heading,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: AppStrings.chatSearchHint,
+          hintStyle: TextStyle(
+            color: colors.muted,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(width: 2),
-        ],
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          filled: true,
+          fillColor: colors.inputFill,
+          prefixIcon: Icon(Icons.search_rounded, color: colors.muted, size: 20),
+          suffixIcon: hasQuery
+              ? IconButton(
+                  icon: Icon(Icons.close_rounded, color: colors.muted, size: 18),
+                  onPressed: onClear,
+                  tooltip: AppStrings.clearSearch,
+                )
+              : null,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(99),
+            borderSide: BorderSide(color: colors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(99),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+          ),
+        ),
       ),
     );
   }

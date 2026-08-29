@@ -11,19 +11,23 @@ import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/chat_shared_content_model.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
+import 'package:aub_connect_app/core/storage/local_storage_service.dart';
+import 'package:aub_connect_app/modules/chat/widgets/chat_call_sheet.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_shared_content.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatProfileController extends GetxController {
-  ChatProfileController(this._chatRepository);
+  ChatProfileController(this._chatRepository, this._localStorage);
 
   final ChatRepository _chatRepository;
+  final LocalStorageService _localStorage;
 
   final participant = Rxn<ChatParticipant>();
   final sharedContent = Rxn<ChatSharedContent>();
   final isLoading = true.obs;
   final isSharedLoading = false.obs;
   final selectedTab = 0.obs;
+  final isNotificationsMuted = false.obs;
 
   String? _conversationId;
   String? _participantId;
@@ -36,6 +40,14 @@ class ChatProfileController extends GetxController {
     _participantId = args.participantId;
     _loadProfile();
     _loadSharedContent();
+    _loadMuteState();
+  }
+
+  Future<void> _loadMuteState() async {
+    final conversationId = _conversationId;
+    if (conversationId == null) return;
+    isNotificationsMuted.value =
+        await _localStorage.isConversationMuted(conversationId);
   }
 
   Future<void> _loadSharedContent() async {
@@ -67,6 +79,34 @@ class ChatProfileController extends GetxController {
   }
 
   void openMessage() => Get.back();
+
+  void startVoiceCall() {
+    final p = participant.value;
+    final ctx = Get.context;
+    if (p == null || ctx == null) return;
+    showChatCallSheet(context: ctx, participant: p, isVideo: false);
+  }
+
+  void startVideoCall() {
+    final p = participant.value;
+    final ctx = Get.context;
+    if (p == null || ctx == null) return;
+    showChatCallSheet(context: ctx, participant: p, isVideo: true);
+  }
+
+  Future<void> toggleMuteNotifications() async {
+    final conversationId = _conversationId;
+    if (conversationId == null) return;
+    final next = !isNotificationsMuted.value;
+    await _localStorage.setConversationMuted(conversationId, next);
+    isNotificationsMuted.value = next;
+    Get.snackbar(
+      AppStrings.appName,
+      next
+          ? AppStrings.chatNotificationsMuted
+          : AppStrings.chatNotificationsUnmuted,
+    );
+  }
 
   Future<void> blockUser() async {
     if (_conversationId == null) return;
@@ -197,6 +237,10 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
             const SizedBox(height: 20),
             ChatQuickActionsRow(
               onProfile: controller.openFullProfile,
+              onCall: controller.startVoiceCall,
+              onVideo: controller.startVideoCall,
+              onMute: controller.toggleMuteNotifications,
+              isMuted: controller.isNotificationsMuted.value,
             ),
             const SizedBox(height: 16),
             ChatContactInfoCard(phone: p.phone, bio: p.bio),

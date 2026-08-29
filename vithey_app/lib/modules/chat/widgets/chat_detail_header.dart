@@ -10,64 +10,59 @@ class ChatDetailHeader extends StatelessWidget {
     super.key,
     required this.participant,
     required this.isTyping,
+    required this.isSearchActive,
+    required this.searchController,
+    required this.searchFocusNode,
+    required this.hasSearchQuery,
     required this.onBack,
     required this.onProfileTap,
-    required this.onSearch,
+    required this.onToggleSearch,
+    required this.onClearSearch,
     required this.onMenu,
   });
 
   final ChatParticipant? participant;
   final bool isTyping;
+  final bool isSearchActive;
+  final TextEditingController searchController;
+  final FocusNode searchFocusNode;
+  final bool hasSearchQuery;
   final VoidCallback onBack;
   final VoidCallback onProfileTap;
-  final VoidCallback onSearch;
+  final VoidCallback onToggleSearch;
+  final VoidCallback onClearSearch;
   final ValueChanged<String> onMenu;
 
   @override
   Widget build(BuildContext context) {
-    final p = participant;
+    final colors = context.appColors;
+
     return AppBar(
       elevation: 0,
-      backgroundColor: context.appColors.cardSurface,
-      foregroundColor: context.appColors.heading,
-      leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
-      title: p == null
-          ? const Text('Chat')
-          : InkWell(
-              onTap: onProfileTap,
-              child: Row(
-                children: [
-                  UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          p.fullName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          isTyping
-                              ? AppStrings.chatTyping
-                              : (p.isOnline ? AppStrings.chatActiveNow : ''),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isTyping || p.isOnline
-                                ? AppColors.primary
-                                : context.appColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      backgroundColor: colors.cardSurface,
+      foregroundColor: colors.heading,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: onBack,
+      ),
+      title: isSearchActive
+          ? _ThreadSearchField(
+              controller: searchController,
+              focusNode: searchFocusNode,
+              hasQuery: hasSearchQuery,
+              onClear: onClearSearch,
+            )
+          : _HeaderTitle(
+              participant: participant,
+              isTyping: isTyping,
+              onProfileTap: onProfileTap,
             ),
       actions: [
-        IconButton(icon: const Icon(Icons.search_outlined), onPressed: onSearch),
+        IconButton(
+          icon: Icon(isSearchActive ? Icons.close_rounded : Icons.search_outlined),
+          onPressed: onToggleSearch,
+          tooltip: AppStrings.chatThreadSearchHint,
+        ),
         PopupMenuButton<String>(
           onSelected: onMenu,
           itemBuilder: (_) => const [
@@ -79,7 +74,117 @@ class ChatDetailHeader extends StatelessWidget {
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Divider(height: 1, color: context.appColors.border),
+        child: Divider(height: 1, color: colors.border),
+      ),
+    );
+  }
+}
+
+class _HeaderTitle extends StatelessWidget {
+  const _HeaderTitle({
+    required this.participant,
+    required this.isTyping,
+    required this.onProfileTap,
+  });
+
+  final ChatParticipant? participant;
+  final bool isTyping;
+  final VoidCallback onProfileTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = participant;
+    if (p == null) return const Text('Chat');
+
+    return InkWell(
+      onTap: onProfileTap,
+      child: Row(
+        children: [
+          UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.fullName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  isTyping
+                      ? AppStrings.chatTyping
+                      : (p.isOnline ? AppStrings.chatActiveNow : ''),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isTyping || p.isOnline
+                        ? AppColors.primary
+                        : context.appColors.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThreadSearchField extends StatelessWidget {
+  const _ThreadSearchField({
+    required this.controller,
+    required this.focusNode,
+    required this.hasQuery,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool hasQuery;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      textInputAction: TextInputAction.search,
+      style: TextStyle(
+        color: colors.heading,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        hintText: AppStrings.chatThreadSearchHint,
+        hintStyle: TextStyle(
+          color: colors.muted,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        filled: true,
+        fillColor: colors.inputFill,
+        prefixIcon: Icon(Icons.search_rounded, color: colors.muted, size: 20),
+        suffixIcon: hasQuery
+            ? IconButton(
+                icon: Icon(Icons.close_rounded, color: colors.muted, size: 18),
+                onPressed: onClear,
+                tooltip: AppStrings.clearSearch,
+              )
+            : null,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(99),
+          borderSide: BorderSide(color: colors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(99),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        ),
       ),
     );
   }

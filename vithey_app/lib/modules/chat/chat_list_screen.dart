@@ -29,6 +29,8 @@ class ChatListScreen extends GetView<ChatListController> {
           final conversations = controller.conversations.toList();
           // Register reactive deps used by filteredConversations.
           controller.searchQuery.value;
+          controller.isSearchActive.value;
+          controller.messageSearchSnippets.length;
           controller.selectedFolderId.value;
           controller.customFolders.length;
 
@@ -55,11 +57,17 @@ class ChatListScreen extends GetView<ChatListController> {
                 const ChatListFlexibleHeader(),
                 const ChatFolderTabs(),
                 if (chats.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyStateWidget(
-                      title: AppStrings.chatNoMessages,
-                      subtitle: AppStrings.chatNoMessagesSubtitle,
+                      title: controller.isSearchActive.value &&
+                              controller.searchQuery.value.trim().isNotEmpty
+                          ? AppStrings.chatSearchEmpty
+                          : AppStrings.chatNoMessages,
+                      subtitle: controller.isSearchActive.value &&
+                              controller.searchQuery.value.trim().isNotEmpty
+                          ? AppStrings.chatSearchHint
+                          : AppStrings.chatNoMessagesSubtitle,
                     ),
                   )
                 else
@@ -69,8 +77,12 @@ class ChatListScreen extends GetView<ChatListController> {
                       itemCount: chats.length,
                       itemBuilder: (_, index) {
                         final conversation = chats[index];
+                        final query = controller.searchQuery.value;
                         return ConversationListTile(
                           conversation: conversation,
+                          searchQuery: query,
+                          searchSubtitle:
+                              controller.searchSubtitleFor(conversation),
                           onTap: () =>
                               controller.openConversation(conversation.id),
                           onLongPress: () => showMoveToFolderSheet(

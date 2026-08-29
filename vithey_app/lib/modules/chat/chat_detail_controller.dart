@@ -12,9 +12,9 @@ import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
-import 'package:aub_connect_app/modules/chat/widgets/chat_thread_search_sheet.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
+import 'package:aub_connect_app/modules/chat/widgets/delete_message_dialog.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ChatDetailController extends GetxController {
@@ -30,6 +30,9 @@ class ChatDetailController extends GetxController {
   final showJumpToLatest = false.obs;
   final replyToMessage = Rxn<ChatMessage>();
   final threadSearchQuery = ''.obs;
+  final isThreadSearchActive = false.obs;
+  final threadSearchController = TextEditingController();
+  final threadSearchFocusNode = FocusNode();
   final pendingAttachments = <ChatAttachment>[].obs;
   final messageController = TextEditingController();
   final scrollController = ScrollController();
@@ -50,6 +53,9 @@ class ChatDetailController extends GetxController {
     _conversationId = args.conversationId;
     _chatRepository.setActiveConversation(_conversationId);
     scrollController.addListener(_onScroll);
+    threadSearchController.addListener(() {
+      threadSearchQuery.value = threadSearchController.text;
+    });
     _messageSub = _chatRepository
         .watchMessages(_conversationId!)
         .listen(_onMessagesUpdated);
@@ -214,14 +220,40 @@ class ChatDetailController extends GetxController {
   }
 
   void openThreadSearch() {
-    showChatThreadSearchSheet(
-      initialQuery: threadSearchQuery.value,
-      onQueryChanged: (value) => threadSearchQuery.value = value,
-      onClear: clearThreadSearch,
-    );
+    isThreadSearchActive.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isThreadSearchActive.value) {
+        threadSearchFocusNode.requestFocus();
+      }
+    });
   }
 
-  void clearThreadSearch() => threadSearchQuery.value = '';
+  void closeThreadSearch() {
+    isThreadSearchActive.value = false;
+    clearThreadSearch();
+    threadSearchFocusNode.unfocus();
+  }
+
+  void toggleThreadSearch() {
+    if (isThreadSearchActive.value) {
+      closeThreadSearch();
+    } else {
+      openThreadSearch();
+    }
+  }
+
+  void handleHeaderBack() {
+    if (isThreadSearchActive.value) {
+      closeThreadSearch();
+      return;
+    }
+    Get.back();
+  }
+
+  void clearThreadSearch() {
+    threadSearchController.clear();
+    threadSearchQuery.value = '';
+  }
 
   Future<void> openAttachmentMenu() async {
     if (isSending.value) return;
@@ -470,16 +502,7 @@ class ChatDetailController extends GetxController {
   }
 
   Future<void> deleteMessage(ChatMessage message) async {
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Delete message?'),
-        content: const shad.Text('This message will be removed for you.'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Delete')),
-        ],
-      ),
-    );
+    final confirmed = await DeleteMessageDialog.show();
     if (confirmed != true) return;
     await _chatRepository.deleteMessage(message.id);
   }
@@ -664,6 +687,8 @@ class ChatDetailController extends GetxController {
     _messageSub?.cancel();
     _conversationSub?.cancel();
     messageController.dispose();
+    threadSearchController.dispose();
+    threadSearchFocusNode.dispose();
     scrollController.dispose();
     super.onClose();
   }

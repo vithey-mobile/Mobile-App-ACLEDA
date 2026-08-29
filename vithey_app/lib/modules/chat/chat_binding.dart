@@ -27,6 +27,11 @@ class ChatDetailBinding extends Bindings {
 class ChatProfileBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => ChatProfileController(Get.find<ChatRepository>()));
+    Get.lazyPut(
+      () => ChatProfileController(
+        Get.find<ChatRepository>(),
+        Get.find<LocalStorageService>(),
+      ),
+    );
   }
 }

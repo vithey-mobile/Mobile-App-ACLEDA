@@ -164,60 +164,28 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
                     label: 'Student ID',
                     hint: 'Enter your Student ID',
                     prefixIcon: Icons.person_outline,
-                    fillColor: Colors.white,
                     textInputAction: TextInputAction.next,
                     validator: controller.validateStudentId,
                   ),
                   const SizedBox(height: 16),
-                  Obx(() {
-                    final hasDocument =
-                        controller.selectedDocumentName.value != null;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomTextField(
-                          controller: controller.emailController,
-                          label: 'Student Email',
-                          hint: 'your.email@university.edu',
-                          prefixIcon: Icons.mail_outline,
-                          keyboardType: TextInputType.emailAddress,
-                          fillColor: Colors.white,
-                          textInputAction: hasDocument
-                              ? TextInputAction.done
-                              : TextInputAction.next,
-                          validator: controller.validateEmail,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Use your official university email address.',
-                          style: TextStyle(
-                            color: context.appColors.muted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                  Obx(() {
-                    // Screen 2 (after upload): hide password field.
-                    if (controller.selectedDocumentName.value != null) {
-                      return const SizedBox.shrink();
-                    }
-                    return Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: controller.passwordController,
-                          label: 'Password',
-                          hint: 'Enter your password',
-                          prefixIcon: Icons.lock_outline,
-                          obscureText: true,
-                          fillColor: Colors.white,
-                          textInputAction: TextInputAction.done,
-                        ),
-                      ],
-                    );
-                  }),
+                  CustomTextField(
+                    controller: controller.emailController,
+                    label: 'Student Email',
+                    hint: 'your.email@university',
+                    prefixIcon: Icons.mail_outline,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    validator: controller.validateEmail,
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: controller.passwordController,
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    prefixIcon: Icons.lock_outline,
+                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                  ),
                   const SizedBox(height: 20),
                   Obx(
                     () => StudentIdUploadBox(

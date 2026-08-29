@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
@@ -23,6 +24,10 @@ class FinanceController extends GetxController {
   final showAll = false.obs;
   final currentTab = 1.obs;
 
+  final isSearchActive = false.obs;
+  final searchQuery = ''.obs;
+  final searchController = TextEditingController();
+  final searchFocusNode = FocusNode();
   @override
   void onInit() {
     super.onInit();
@@ -67,13 +72,62 @@ class FinanceController extends GetxController {
 
   void toggleShowAll() => showAll.value = !showAll.value;
 
-  List<PaymentSummary> get visiblePayments {
-    final items = List<PaymentSummary>.from(dashboard.value?.payments ?? [])
+  void onSearchChanged(String value) => searchQuery.value = value;
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
+  }
+
+  void openSearch() {
+    isSearchActive.value = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isSearchActive.value) searchFocusNode.requestFocus();
+    });
+  }
+
+  void closeSearch() {
+    isSearchActive.value = false;
+    clearSearch();
+    searchFocusNode.unfocus();
+  }
+
+  void toggleSearch() {
+    if (isSearchActive.value) {
+      closeSearch();
+    } else {
+      openSearch();
+    }
+  }
+
+  List<PaymentSummary> get _sortedPayments {
+    return List<PaymentSummary>.from(dashboard.value?.payments ?? [])
       ..sort((a, b) => b.sortDate.compareTo(a.sortDate));
+  }
+
+  List<PaymentSummary> get visiblePayments {
+    final query = searchQuery.value.trim().toLowerCase();
+    var items = _sortedPayments;
+
+    if (query.isNotEmpty) {
+      items = items
+          .where((p) => p.feeName.toLowerCase().contains(query))
+          .toList();
+      return items;
+    }
+
     if (showAll.value) return items;
     return items.take(4).toList();
   }
 
+  bool get isFilteringTransactions => searchQuery.value.trim().isNotEmpty;
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    searchFocusNode.dispose();
+    super.onClose();
+  }
   Future<void> openPaymentDetail(String paymentId) async {
     try {
       final invoice = await _financeRepository.getPaymentInvoice(paymentId);

@@ -127,7 +127,16 @@ class AppStrings {
   static const chatCallAction = 'Call';
   static const chatVideoAction = 'Video';
   static const chatMuteAction = 'Mute';
-  static const chatSearchHint = 'Search chats';
+  static const chatUnmuteAction = 'Unmute';
+  static const chatCalling = 'Calling…';
+  static const chatVideoCalling = 'Video calling…';
+  static const chatEndCall = 'End call';
+  static const chatNotificationsMuted = 'Notifications muted for this chat';
+  static const chatNotificationsUnmuted = 'Notifications unmuted for this chat';
+  static const chatSearchHint = 'Search chats and messages';
+  static const chatSearchEmpty = 'No chats or messages found';
+  static const financeSearchHint = 'Search transactions';
+  static const financeSearchEmpty = 'No transactions found';
   static const chatFolderAll = 'All';
   static const chatFolderUnread = 'Unread';
   static const chatFolders = 'Folders';
@@ -135,9 +144,14 @@ class AppStrings {
   static const chatNewFolder = 'New folder';
   static const chatRenameFolder = 'Rename folder';
   static const chatDeleteFolder = 'Delete folder';
+  static const chatRemoveFolder = 'Remove folder';
   static const chatFolderNameHint = 'Folder name';
   static const chatMoveToFolder = 'Move to folder';
   static const chatRemoveFromFolder = 'Remove from folder';
   static const chatAddChatsToFolder = 'Add chats to folder';
+  static const chatAddChats = 'Add chats';
   static const chatNoChatsToAdd = 'No more chats to add';
+  static const deleteMessageTitle = 'Delete message?';
+  static const deleteMessageBody = 'This message will be removed for you.';
+  static const delete = 'Delete';
 }

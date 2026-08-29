@@ -27,7 +27,7 @@ class VerificationStatusController extends GetxController {
 
   Timer? _pollTimer;
 
-  /// Mock: pending resolves after 3s — document → success, else → fail.
+  /// Mock: pending resolves after 3s — always approved.
   static const _mockPendingDelay = Duration(seconds: 3);
 
   @override

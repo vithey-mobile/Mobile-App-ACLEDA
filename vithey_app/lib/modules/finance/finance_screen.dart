@@ -12,8 +12,6 @@ import 'package:aub_connect_app/modules/finance/widgets/payment_receipts_section
 class FinanceScreen extends GetView<FinanceController> {
   const FinanceScreen({super.key});
 
-  static const _morphDuration = Duration(milliseconds: 420);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,48 +29,24 @@ class FinanceScreen extends GetView<FinanceController> {
           final data = controller.dashboard.value;
           if (data == null) return const LoadingWidget();
 
-          final showAll = controller.showAll.value;
-
           return Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Cards stay above the list; only the transaction list scrolls.
-                TweenAnimationBuilder<double>(
-                  duration: _morphDuration,
-                  curve: Curves.easeInOutCubic,
-                  tween: Tween<double>(end: showAll ? 0.0 : 1.0),
-                  builder: (context, t, child) {
-                    final factor = t.clamp(0.0, 1.0);
-                    return ClipRect(
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        heightFactor: factor,
-                        child: Opacity(
-                          opacity: Curves.easeOut.transform(factor),
-                          child: child,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FinanceBalanceCard(
-                        dashboard: data,
-                        onPayNow: controller.payNow,
-                      ),
-                      const SizedBox(height: 12),
-                      FinanceTotalPaycheck(amount: data.totalPaycheck),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
+                FinanceBalanceCard(
+                  dashboard: data,
+                  onPayNow: controller.payNow,
                 ),
+                const SizedBox(height: 12),
+                FinanceTotalPaycheck(amount: data.totalPaycheck),
+                const SizedBox(height: 20),
                 Expanded(
                   child: PaymentReceiptsSection(
                     payments: controller.visiblePayments,
-                    showAll: showAll,
+                    showAll: controller.showAll.value,
+                    isSearching: controller.isFilteringTransactions,
+                    searchQuery: controller.searchQuery.value,
                     onToggleShowAll: controller.toggleShowAll,
                     onPaymentTap: controller.openPaymentDetail,
                     onRefresh: controller.refreshFinance,

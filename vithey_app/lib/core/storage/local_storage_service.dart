@@ -21,6 +21,28 @@ class LocalStorageService {
   static const _notificationsAnnouncementsKey = 'notifications_announcements';
   static const _notificationsAppUpdatesKey = 'notifications_app_updates';
   static const _chatFoldersKey = 'chat_folders_json';
+  static const _mutedConversationsKey = 'muted_chat_conversations';
+
+  Future<Set<String>> readMutedConversationIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_mutedConversationsKey)?.toSet() ?? {};
+  }
+
+  Future<bool> isConversationMuted(String conversationId) async {
+    final ids = await readMutedConversationIds();
+    return ids.contains(conversationId);
+  }
+
+  Future<void> setConversationMuted(String conversationId, bool muted) async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = await readMutedConversationIds();
+    if (muted) {
+      ids.add(conversationId);
+    } else {
+      ids.remove(conversationId);
+    }
+    await prefs.setStringList(_mutedConversationsKey, ids.toList());
+  }
 
   Future<String?> readChatFoldersJson() async {
     final prefs = await SharedPreferences.getInstance();

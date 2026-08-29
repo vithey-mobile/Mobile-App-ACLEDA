@@ -27,7 +27,7 @@ class ChatEmojiPanel extends StatelessWidget {
   const ChatEmojiPanel({
     super.key,
     required this.onEmojiSelected,
-    this.height = 220,
+    this.height = 240,
   });
 
   final ValueChanged<String> onEmojiSelected;
@@ -35,14 +35,17 @@ class ChatEmojiPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       height: height,
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
+        color: colors.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.appColors.border),
+        border: Border.all(color: colors.border),
       ),
+      clipBehavior: Clip.antiAlias,
       child: GridView.builder(
         padding: const EdgeInsets.all(10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -57,7 +60,7 @@ class ChatEmojiPanel extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             onTap: () => onEmojiSelected(emoji),
             child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+              child: Text(emoji, style: const TextStyle(fontSize: 26)),
             ),
           );
         },

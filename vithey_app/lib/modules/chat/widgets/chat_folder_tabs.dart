@@ -8,21 +8,56 @@ import 'package:aub_connect_app/modules/chat/widgets/chat_folders_sheet.dart';
 import 'package:get/get.dart';
 
 /// Pinned Telegram-style folder navigation bar with bordered capsule track.
-class ChatFolderTabs extends StatelessWidget {
+class ChatFolderTabs extends StatefulWidget {
   const ChatFolderTabs({super.key});
 
   static const double height = 44;
 
   @override
+  State<ChatFolderTabs> createState() => _ChatFolderTabsState();
+}
+
+class _ChatFolderTabsState extends State<ChatFolderTabs> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToEnd() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SliverPersistentHeader(
       pinned: true,
-      delegate: _ChatFolderTabsDelegate(),
+      delegate: _ChatFolderTabsDelegate(
+        scrollController: _scrollController,
+        onStartCreatingFolder: _scrollToEnd,
+      ),
     );
   }
 }
 
 class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
+  _ChatFolderTabsDelegate({
+    required this.scrollController,
+    required this.onStartCreatingFolder,
+  });
+
+  final ScrollController scrollController;
+  final VoidCallback onStartCreatingFolder;
+
   @override
   double get maxExtent => ChatFolderTabs.height;
 
@@ -65,6 +100,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
         final selected = controller.selectedFolderId.value;
         final conversationCount = controller.conversations.length;
         final folders = controller.customFolders.toList();
+        final isCreating = controller.isCreatingFolder.value;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -84,6 +120,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(99),
               child: ListView(
+                controller: scrollController,
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 3,
@@ -97,7 +134,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                     inactiveLabel: inactiveLabel,
                     badgeBg: badgeBg,
                     badgeFg: badgeFg,
-                    onTap: () => controller.selectFolder(ChatFolderIds.all),
+                    onTap: (_) => controller.selectFolder(ChatFolderIds.all),
                   ),
                   _FolderNavTab(
                     label: AppStrings.chatFolderUnread,
@@ -106,7 +143,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                     inactiveLabel: inactiveLabel,
                     badgeBg: badgeBg,
                     badgeFg: badgeFg,
-                    onTap: () =>
+                    onTap: (_) =>
                         controller.selectFolder(ChatFolderIds.unread),
                   ),
                   ...folders.map(
@@ -117,22 +154,146 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                       inactiveLabel: inactiveLabel,
                       badgeBg: badgeBg,
                       badgeFg: badgeFg,
-                      onTap: () => controller.selectFolder(folder.id),
-                      onLongPress: () =>
-                          showAddChatsToFolderSheet(context, folder),
+                      onTap: (_) => controller.selectFolder(folder.id),
+                      onShowMenu: (tabContext) =>
+                          showFolderTabMenu(tabContext, folder),
                     ),
                   ),
-                  _ManageFolderNavTab(
-                    onTap: () => showCreateFolderDialog(context),
-                    onLongPress: () => showManageFoldersSheet(context),
-                    color: inactiveLabel,
-                  ),
+                  if (isCreating)
+                    _InlineCreateFolderField(
+                      inactiveLabel: inactiveLabel,
+                      onCancel: controller.cancelCreatingFolder,
+                      onSave: (name) async {
+                        final folder = await controller.createFolder(name);
+                        controller.cancelCreatingFolder();
+                        if (folder != null) {
+                          controller.selectFolder(folder.id);
+                        }
+                      },
+                    )
+                  else
+                    _ManageFolderNavTab(
+                      onTap: () {
+                        controller.startCreatingFolder();
+                        onStartCreatingFolder();
+                      },
+                      color: inactiveLabel,
+                    ),
                 ],
               ),
             ),
           ),
         );
       }),
+    );
+  }
+}
+
+class _InlineCreateFolderField extends StatefulWidget {
+  const _InlineCreateFolderField({
+    required this.inactiveLabel,
+    required this.onCancel,
+    required this.onSave,
+  });
+
+  final Color inactiveLabel;
+  final VoidCallback onCancel;
+  final Future<void> Function(String name) onSave;
+
+  @override
+  State<_InlineCreateFolderField> createState() =>
+      _InlineCreateFolderFieldState();
+}
+
+class _InlineCreateFolderFieldState extends State<_InlineCreateFolderField> {
+  final _textController = TextEditingController();
+  final _focusNode = FocusNode();
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_handleFocusChange);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  void _handleFocusChange() {
+    if (_focusNode.hasFocus || _saving || !mounted) return;
+    final name = _textController.text.trim();
+    if (name.isEmpty) {
+      widget.onCancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
+    _textController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_saving) return;
+    final name = _textController.text.trim();
+    if (name.isEmpty) {
+      widget.onCancel();
+      return;
+    }
+    setState(() => _saving = true);
+    await widget.onSave(name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      child: SizedBox(
+        width: 132,
+        height: 28,
+        child: TextField(
+          controller: _textController,
+          focusNode: _focusNode,
+          enabled: !_saving,
+          textCapitalization: TextCapitalization.words,
+          textInputAction: TextInputAction.done,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: widget.inactiveLabel,
+          ),
+          decoration: InputDecoration(
+            hintText: AppStrings.chatFolderNameHint,
+            hintStyle: TextStyle(
+              color: widget.inactiveLabel.withValues(alpha: 0.65),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            isDense: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            filled: true,
+            fillColor: Colors.white,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(99),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.4,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(99),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.6,
+              ),
+            ),
+          ),
+          onSubmitted: (_) => _submit(),
+        ),
+      ),
     );
   }
 }
@@ -146,7 +307,7 @@ class _FolderNavTab extends StatelessWidget {
     required this.badgeBg,
     required this.badgeFg,
     required this.onTap,
-    this.onLongPress,
+    this.onShowMenu,
   });
 
   final String label;
@@ -155,63 +316,74 @@ class _FolderNavTab extends StatelessWidget {
   final Color inactiveLabel;
   final Color badgeBg;
   final Color badgeFg;
-  final VoidCallback onTap;
-  final VoidCallback? onLongPress;
+  final void Function(BuildContext tabContext) onTap;
+  final void Function(BuildContext tabContext)? onShowMenu;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Material(
-        color: selected
-            ? AppColors.primary.withValues(alpha: 0.20)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(99),
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(99),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: selected ? AppColors.primaryLight : inactiveLabel,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Container(
-                  height: 16,
-                  constraints: const BoxConstraints(minWidth: 18),
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.primaryLight
-                        : badgeBg,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$count',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: badgeFg,
-                      height: 1,
+    return Builder(
+      builder: (tabContext) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: GestureDetector(
+            onDoubleTap: onShowMenu != null
+                ? () => onShowMenu!(tabContext)
+                : null,
+            child: Material(
+              color: selected
+                  ? AppColors.primary.withValues(alpha: 0.20)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(99),
+              child: InkWell(
+                onTap: () => onTap(tabContext),
+                onLongPress: onShowMenu != null
+                    ? () => onShowMenu!(tabContext)
+                    : null,
+                borderRadius: BorderRadius.circular(99),
+                child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: selected ? AppColors.primaryLight : inactiveLabel,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        height: 1.1,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 5),
+                    Container(
+                      height: 16,
+                      constraints: const BoxConstraints(minWidth: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primaryLight
+                            : badgeBg,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: badgeFg,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        );
+      },
     );
   }
 }
@@ -220,11 +392,9 @@ class _ManageFolderNavTab extends StatelessWidget {
   const _ManageFolderNavTab({
     required this.onTap,
     required this.color,
-    this.onLongPress,
   });
 
   final VoidCallback onTap;
-  final VoidCallback? onLongPress;
   final Color color;
 
   @override
@@ -233,7 +403,6 @@ class _ManageFolderNavTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: InkWell(
         onTap: onTap,
-        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(99),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -136,4 +136,14 @@ class IsarService {
   Future<LocalConversation?> getConversationById(String conversationId) async {
     return isar.localConversations.filter().conversationIdEqualTo(conversationId).findFirst();
   }
+
+  Future<List<LocalChatMessage>> searchMessagesByText(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+    return isar.localChatMessages
+        .filter()
+        .isDeletedEqualTo(false)
+        .textContains(trimmed, caseSensitive: false)
+        .findAll();
+  }
 }
