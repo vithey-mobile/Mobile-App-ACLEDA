@@ -69,21 +69,32 @@ class MapScreen extends GetView<MapController> {
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               suffixIcon: Obx(() {
+                                List<Widget> icons = [];
+                                
                                 if (controller.isSearching.value) {
-                                  return const Padding(
+                                  icons.add(const Padding(
                                     padding: EdgeInsets.all(12.0),
                                     child: SizedBox(
                                       width: 20, height: 20,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.teal)
                                     )
-                                  );
+                                  ));
                                 } else if (controller.searchQuery.value.isNotEmpty) {
-                                  return IconButton(
+                                  icons.add(IconButton(
                                     icon: const Icon(Icons.clear, color: Colors.grey),
                                     onPressed: controller.clearSearch,
-                                  );
+                                  ));
                                 }
-                                return const SizedBox.shrink();
+                                
+                                icons.add(IconButton(
+                                  icon: const Icon(Icons.tune, color: Colors.teal),
+                                  onPressed: controller.openFilterModal,
+                                ));
+
+                                return Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: icons,
+                                );
                               }),
                             ),
                           ),
