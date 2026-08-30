@@ -46,4 +46,6 @@ class AppRoutes {
   static const settingsChangePassword = '/settings/security/change-password';
   static const settingsHelpCenter = '/settings/help-center';
   static const settingsAbout = '/settings/about';
+  static const map = '/map';
+  static const addPlace = '/add-place';
 }

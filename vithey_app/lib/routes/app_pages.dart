@@ -66,7 +66,10 @@ import 'package:aub_connect_app/modules/student_verification/student_verificatio
 import 'package:aub_connect_app/modules/student_verification/verification_status_screen.dart';
 import 'package:aub_connect_app/modules/startup/startup_binding.dart';
 import 'package:aub_connect_app/modules/startup/startup_screen.dart';
-
+import 'package:aub_connect_app/modules/map/map_binding.dart';
+import 'package:aub_connect_app/modules/map/map_screen.dart';
+import 'package:aub_connect_app/modules/add_place/add_place_binding.dart';
+import 'package:aub_connect_app/modules/add_place/add_place_screen.dart';
 class SplashBinding extends Bindings {
   @override
   void dependencies() {
@@ -316,6 +319,16 @@ class AppPages {
       name: AppRoutes.settingsAbout,
       page: () => const AboutScreen(),
       binding: AboutBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.map,
+      page: () => const MapScreen(),
+      binding: MapBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addPlace,
+      page: () => const AddPlaceScreen(),
+      binding: AddPlaceBinding(),
     ),
   ];
 }

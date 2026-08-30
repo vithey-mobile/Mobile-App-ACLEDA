@@ -103,6 +103,17 @@ class MainShellScreen extends GetView<MainShellController> {
           onTap: controller.selectTab,
         ),
       ),
+      floatingActionButton: Obx(() {
+        if (controller.currentIndex.value == MainTabNavigation.home) {
+          return FloatingActionButton(
+            heroTag: 'shellMapBtn',
+            backgroundColor: const Color(0xFF00BFA5), // Teal
+            onPressed: () => Get.toNamed(AppRoutes.map),
+            child: const Icon(Icons.map, color: Colors.white),
+          );
+        }
+        return const SizedBox.shrink();
+      }),
     );
   }
 }
