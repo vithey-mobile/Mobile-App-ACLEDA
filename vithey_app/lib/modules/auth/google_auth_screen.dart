@@ -196,7 +196,7 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                                     style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 16,
-                                      color: Colors.white,
+                                      color: AppColors.accentLight,
                                     ),
                                   ),
                                 ),
@@ -377,7 +377,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                                 : controller.completeGoogleAuth,
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.accentLight,
                               disabledBackgroundColor:
                                   AppColors.primary.withValues(alpha: 0.45),
                               elevation: 0,
@@ -391,7 +391,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                                     height: 22,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: AppColors.accentLight,
                                     ),
                                   )
                                 : Text(

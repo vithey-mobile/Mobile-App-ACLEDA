@@ -92,7 +92,7 @@ class EditProfileController extends GetxController {
     }
   }
 
-  /// Persist skills immediately so About / profile stay in sync without
+  /// Persist skills immediately so All tab / profile stay in sync without
   /// relying only on the footer Save button.
   Future<void> persistSkills() async {
     try {

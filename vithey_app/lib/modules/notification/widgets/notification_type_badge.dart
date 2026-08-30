@@ -32,7 +32,7 @@ class NotificationTypeBadge extends StatelessWidget {
       NotificationType.paymentDue || NotificationType.paymentOverdue => const Color(0xFFFFC107),
       NotificationType.aiAssistantResponse => const Color(0xFF9C27B0),
       NotificationType.studentVerification => AppColors.primary,
-      NotificationType.system => AppColors.authMuted,
+      NotificationType.system => AppColors.bodyLight,
     };
   }
 

@@ -77,7 +77,7 @@ class _OnboardingWavePainter extends CustomPainter {
     if (authMorph >= 0.999) {
       canvas.drawRect(
         Offset.zero & size,
-        Paint()..color = AppColors.authHeaderTeal,
+        Paint()..color = AppColors.primaryLight,
       );
       return;
     }
@@ -96,7 +96,7 @@ class _OnboardingWavePainter extends CustomPainter {
     }
     canvas.drawPath(
       _layerPath(size, _tealX, _tealY, tealHeightFactor, authMorph),
-      Paint()..color = AppColors.authHeaderTeal,
+      Paint()..color = AppColors.primaryLight,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/onboarding/onboarding_controller.dart';
@@ -94,7 +95,7 @@ class OnboardingScreen extends StatelessWidget {
                             TextButton(
                               onPressed: busy ? null : controller.back,
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.accentLight,
                                 minimumSize: const Size(44, 44),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -104,7 +105,7 @@ class OnboardingScreen extends StatelessWidget {
                               child: const Text(
                                 AppStrings.back,
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.accentLight,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -114,7 +115,7 @@ class OnboardingScreen extends StatelessWidget {
                             TextButton(
                               onPressed: busy ? null : controller.skip,
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.accentLight,
                                 minimumSize: const Size(44, 44),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -124,7 +125,7 @@ class OnboardingScreen extends StatelessWidget {
                               child: const Text(
                                 'Skip',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.accentLight,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),

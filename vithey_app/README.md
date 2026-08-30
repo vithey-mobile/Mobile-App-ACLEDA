@@ -138,7 +138,7 @@ lib/
 2. ✅ Auth flow (`auth/01-splash` → `09-startup-3`)
 3. ✅ Media feed — Home, poster/video/job cards, comments, share, create post
 4. ✅ Post detail — full post, comments, @mentions, video player, Apply CV
-5. ✅ Profile — shell, About/Posters/Videos/Jobs tabs, applicants, CV preview
+5. ✅ Profile — shell, All/Reels/Posters/Jobs tabs, applicants, CV preview
 6. ✅ Upload CV — job context, file picker, saved CV, submit pipeline
 7. ✅ Finance — verification form/status, Finance Home, invoice preview
 8. ✅ Chat — conversation list, message thread, participant profile

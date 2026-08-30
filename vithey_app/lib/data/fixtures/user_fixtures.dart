@@ -13,18 +13,24 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 /// Logged-in user = Poster (HR) demo. `author-1` = Applier (Student) demo.
 /// Same screens for everyone; Jobs vs Applied Jobs content follows usage.
 abstract final class UserFixtures {
-  /// Mock IT skills for About tab (replace with API later).
+  /// Mock IT skills for Khorn Molika (User 1 — own profile All tab).
   static const mockItSkills = <ProfileSkill>[
     ProfileSkill(name: 'Flutter', proficiency: 75, iconKey: 'flutter'),
+    ProfileSkill(name: 'HTML', proficiency: 50, iconKey: 'html'),
+    ProfileSkill(name: 'Spring Boot', proficiency: 60, iconKey: 'spring'),
+    ProfileSkill(name: 'React', proficiency: 80, iconKey: 'react'),
     ProfileSkill(name: 'Dart', proficiency: 70, iconKey: 'dart'),
     ProfileSkill(name: 'Java', proficiency: 65, iconKey: 'java'),
-    ProfileSkill(name: 'Spring Boot', proficiency: 60, iconKey: 'spring'),
-    ProfileSkill(name: 'REST API', proficiency: 80, iconKey: 'rest_api'),
     ProfileSkill(name: 'PostgreSQL', proficiency: 55, iconKey: 'postgresql'),
     ProfileSkill(name: 'Docker', proficiency: 50, iconKey: 'docker'),
-    ProfileSkill(name: 'Kubernetes', proficiency: 40, iconKey: 'kubernetes'),
-    ProfileSkill(name: 'Git', proficiency: 85, iconKey: 'git'),
-    ProfileSkill(name: 'UI/UX Design', proficiency: 60, iconKey: 'ui_ux'),
+  ];
+
+  /// Mock skills for Heng Liza (User 2 — view profile All tab).
+  static const lizaMockSkills = <ProfileSkill>[
+    ProfileSkill(name: 'Flutter', proficiency: 75, iconKey: 'flutter'),
+    ProfileSkill(name: 'HTML', proficiency: 50, iconKey: 'html'),
+    ProfileSkill(name: 'Spring Boot', proficiency: 60, iconKey: 'spring'),
+    ProfileSkill(name: 'React', proficiency: 80, iconKey: 'react'),
   ];
 
   static const currentUserAuthor = PostAuthor(
@@ -144,17 +150,57 @@ abstract final class UserFixtures {
         id: MockIds.author1,
         fullName: 'Heng Liza',
         bio: 'Main character of my life is no one else but me.',
-        university: 'American University of Phnom Penh',
-        major: 'Web Development',
-        graduationYear: 2025,
+        university: 'ACLEDA University of Business',
+        major: 'Computer Science',
+        graduationYear: 2027,
+        telegramLink: 'https://t.me/hengliza',
+        facebookLink: 'https://facebook.com/hengliza',
         followerCount: 8000,
         followingCount: 1000,
         likeCount: 10000,
         postCount: 24,
         location: 'Pur Senchey, Phnom Penh',
+        gender: 'Female',
         dateOfBirth: DateTime(2005, 9, 1),
-        workplace: 'Global Tech Solutions',
-        skills: List<ProfileSkill>.of(mockItSkills),
+        workplace: 'Koala Coffee',
+        workEntries: const [
+          ProfileWorkEntry(
+            position: 'Barista & Social Media',
+            workplace: 'Koala Coffee',
+          ),
+        ],
+        education: const [
+          'Champuvorn High School',
+          'ACLEDA University of Business',
+          'Institute of Science and Technology Advanced',
+        ],
+        educationEntries: const [
+          ProfileEducationEntry(school: 'Champuvorn High School'),
+          ProfileEducationEntry(
+            school: 'ACLEDA University of Business',
+            major: 'Computer Science',
+          ),
+          ProfileEducationEntry(
+            school: 'Institute of Science and Technology Advanced',
+          ),
+        ],
+        linkEntries: const [
+          ProfileLinkEntry(
+            platform: 'Website',
+            url: 'https://www.hengliza.com',
+          ),
+        ],
+        contactEntries: const [
+          ProfileContactEntry(
+            phone: '012 345 678',
+            email: 'hengliza81@gmail.com',
+          ),
+        ],
+        portfolioUrl: 'https://www.hengliza.com',
+        phone: '012 345 678',
+        email: 'hengliza81@gmail.com',
+        isStudentVerified: false,
+        skills: List<ProfileSkill>.of(lizaMockSkills),
       ),
       MockIds.author2: const UserProfileModel(
         id: MockIds.author2,

@@ -7,7 +7,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// Splash-only backdrop.
 /// Sheet base → white-50% drops first → teal drops on top.
 ///
-/// Teal fill is always [authHeaderTeal] (same as onboarding / auth), light and dark.
+/// Teal fill is always [AppColors.primaryLight] (same as onboarding / auth), light and dark.
 /// Base + wash follow sheet tokens so the lead layer stays theme-aware.
 class SplashBackground extends StatelessWidget {
   const SplashBackground({
@@ -26,7 +26,7 @@ class SplashBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final baseColor = context.appColors.cardSurface;
     // Same brand teal as onboarding / auth / select language — both themes.
-    const tealColor = AppColors.authHeaderTeal;
+    const tealColor = AppColors.primaryLight;
     // White-50% lead = teal @ 50% on the sheet base (light or dark).
     final washColor = AppColors.waveRearOn(baseColor);
 

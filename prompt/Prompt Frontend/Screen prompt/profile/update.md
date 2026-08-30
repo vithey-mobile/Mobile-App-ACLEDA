@@ -11,7 +11,7 @@
 | Area | Status |
 |------|--------|
 | Profile home cover redesign | Implemented — `ProfileCoverRedesign` |
-| About / Videos / Posters / Jobs / Applied Jobs | Implemented — **20px** horizontal padding |
+| All / Reels / Posters / Jobs / Applied Jobs | Implemented — **20px** horizontal padding |
 | Edit personal info (sheets + Remove) | Implemented |
 | Skills: Coding drill-down, icons, watermark rings | Implemented |
 | Skills: system-owned %, immediate persist | Implemented |
@@ -42,15 +42,15 @@ All tab bodies use **20px** left/right padding.
 
 | Tab | List padding | Notes |
 |-----|--------------|-------|
-| About | `fromLTRB(20, 16, 20, 100)` | Skills row + `ProfileAboutDetails` |
-| Videos | `fromLTRB(20, 0, 20, 100)` | |
+| All | `fromLTRB(20, 16, 20, 100)` | Skills row + `ProfileAllDetails` |
+| Reels | `fromLTRB(20, 16, 20, 100)` | `ProfileReelsTab` / `ProfileReelsCard` |
 | Posters | `fromLTRB(20, 0, 20, 100)` | `PosterPostCard` margin **vertical only** (no extra horizontal) |
 | Jobs | `fromLTRB(20, 0, 20, 100)` | |
 | Applied Jobs | `fromLTRB(20, 8, 20, 100)` | Each row in bordered `Card` (radius 12) |
 
 ---
 
-## About — Skills display
+## All — Skills display
 
 | Spec | Value |
 |------|-------|
@@ -60,7 +60,7 @@ All tab bodies use **20px** left/right padding.
 | Watermark | Technology / category logo at **~30% opacity** behind `%` (`SkillIcon`) |
 | Label | Skill name under ring (max 2 lines) |
 | Color | `colorValue` if set; else palette by name hash |
-| Edit | Display-only on About; edit via Edit Profile Info |
+| Edit | Display-only on All; edit via Edit Profile Info |
 
 `dart
 class ProfileSkill {
@@ -111,7 +111,7 @@ class ProfileSkill {
 
 - First item: `ProfileAddSkillCircle` (“Add Skill”).
 - Tap ring → Edit skill sheet.
-- **Add / edit / remove skill persists immediately** via `persistSkills()` (repository + own ProfileController sync). About updates without waiting for footer Save.
+- **Add / edit / remove skill persists immediately** via `persistSkills()` (repository + own ProfileController sync). All tab updates without waiting for footer Save.
 - Footer Save still persists the full draft (bio, personal, work, ... + skills).
 
 ### Remove on edit sheets
@@ -197,8 +197,11 @@ lib/modules/profile/
   profile_controller.dart
   edit_profile_screen.dart
   widgets/
-    profile_cover_redesign.dart      # active cover
-    profile_wavy_header.dart         # backup
+    profile_cover_redesign.dart    # active cover
+    profile_wavy_header.dart       # backup
+    profile_all.dart               # ProfileAllTab + ProfileAllDetails
+    profile_reels.dart             # ProfileReelsTab
+    profile_reels_card.dart       # Reels cards
     profile_tabs.dart
     profile_skills.dart
     skill_icon.dart
@@ -221,7 +224,7 @@ lib/core/widgets/app_logo.dart       # always white circle
 - [x] Logos as ~30% watermark in skill rings
 - [x] Choose Icon + Choose Image for Other
 - [x] Skill % display-only; new skills start at 0%
-- [x] Skills persist immediately to About
+- [x] Skills persist immediately to All tab
 - [x] Bio without Add / without icon
 - [x] Remove on edit sheets with confirm
 - [x] AppLogo always white circular background

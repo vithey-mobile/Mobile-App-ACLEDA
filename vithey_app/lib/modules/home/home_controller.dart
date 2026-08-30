@@ -7,7 +7,7 @@ import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_mutation_result.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
-import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
@@ -375,10 +375,7 @@ class HomeController extends GetxController {
   void setActiveVideo(String? postId) => activeVideoId.value = postId;
 
   void openAuthorProfile(String authorId) {
-    Get.toNamed(
-      AppRoutes.profile,
-      arguments: ProfileArgs(userId: authorId),
-    );
+    openUserProfile(authorId);
   }
 
   void onTabSelected(int index) {

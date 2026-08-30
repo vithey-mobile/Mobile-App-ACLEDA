@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/onboarding/widgets/onboarding_background.dart';
+import 'package:aub_connect_app/modules/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/select_language/select_language_controller.dart';
 
 /// Select Language — UI only; preference saved for future i18n.
@@ -45,7 +45,6 @@ class SelectLanguageScreen extends StatelessWidget {
     final heading = context.appColors.heading;
     final secondary = _secondary(context);
     final border = context.appColors.border;
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final reveal = contentReveal.clamp(0.0, 1.0);
     final contentT = Curves.easeOutCubic.transform(reveal);
 
@@ -72,36 +71,37 @@ class SelectLanguageScreen extends StatelessWidget {
                 offset: Offset(0, (1.0 - contentT) * 48),
                 child: IgnorePointer(
                   ignoring: !interactive || busy,
-                  child: Column(
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const Expanded(
-                        flex: 34,
-                        child: SafeArea(
-                          bottom: false,
-                          child: Center(
-                            child: AppLogo(size: 100, onWhiteCircle: true),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 66,
-                        child: SafeArea(
-                          top: false,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(
-                              20,
-                              0,
-                              20,
-                              16 + bottomInset,
+                      Column(
+                        children: [
+                          const Expanded(
+                            flex: 34,
+                            child: SafeArea(
+                              bottom: false,
+                              child: Center(
+                                child: AppLogo(size: 100, onWhiteCircle: true),
+                              ),
                             ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: Align(
-                                    alignment: const Alignment(0, 0.35),
-                                    child: SingleChildScrollView(
-                                      physics: const BouncingScrollPhysics(),
-                                      child: ConstrainedBox(
+                          ),
+                          Expanded(
+                            flex: 66,
+                            child: SafeArea(
+                              top: false,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 112),
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    24,
+                                    8,
+                                    24,
+                                    8,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Spacer(flex: 5),
+                                      ConstrainedBox(
                                         constraints: const BoxConstraints(
                                           maxWidth: 420,
                                         ),
@@ -112,12 +112,13 @@ class SelectLanguageScreen extends StatelessWidget {
                                               'Select Language',
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
-                                                fontSize: 24,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                                 color: heading,
+                                                height: 1.25,
                                               ),
                                             ),
-                                            const SizedBox(height: 10),
+                                            const SizedBox(height: 12),
                                             Text(
                                               'Choose your preferred language for the app.',
                                               textAlign: TextAlign.center,
@@ -183,57 +184,23 @@ class SelectLanguageScreen extends StatelessWidget {
                                           ],
                                         ),
                                       ),
-                                    ),
+                                      const Spacer(flex: 2),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 36),
-                                const _IntroDots(
-                                  activeIndex: 0,
-                                  count: introDotCount,
-                                ),
-                                const SizedBox(height: 24),
-                                ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 420),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      onPressed: busy ? null : controller.next,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primary,
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(28),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.arrow_forward, size: 18),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            AppStrings.next,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
+                        ],
+                      ),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: OnboardingBottomChrome(
+                          currentPage: 0,
+                          totalPages: introDotCount,
+                          onNext: controller.next,
                         ),
                       ),
                     ],
@@ -310,32 +277,6 @@ class _LanguageRow extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _IntroDots extends StatelessWidget {
-  const _IntroDots({required this.activeIndex, required this.count});
-
-  final int activeIndex;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(count, (i) {
-        final active = i == activeIndex;
-        return Container(
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: active ? AppColors.primary : context.appColors.border,
-          ),
-        );
-      }),
     );
   }
 }

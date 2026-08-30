@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/skill_assets.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
-
-/// Devicon PNG base (official tech logos).
-const _devicon =
-    'https://raw.githubusercontent.com/devicons/devicon/master/icons';
-
-String _dev(String path) => '$_devicon/$path';
 
 /// A selectable skill leaf or category entry with optional logo / icon.
 class CatalogSkill {
@@ -19,7 +14,7 @@ class CatalogSkill {
   final String id;
   final String label;
 
-  /// Remote official logo URL (devicon).
+  /// Legacy remote logo URL (unused for bundled skill assets).
   final String? iconUrl;
 
   /// Fallback / category Material icon.
@@ -33,261 +28,38 @@ const codingCategories = [
   CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
 ];
 
+CatalogSkill _assetSkill(String id, String label, {IconData? icon}) =>
+    CatalogSkill(id: id, label: label, icon: icon);
+
 final codingFrontendSkills = <CatalogSkill>[
-  CatalogSkill(
-    id: 'flutter',
-    label: 'Flutter',
-    iconUrl: _dev('flutter/flutter-original.png'),
-  ),
-  CatalogSkill(
-    id: 'dart',
-    label: 'Dart',
-    iconUrl: _dev('dart/dart-original.png'),
-  ),
-  CatalogSkill(
-    id: 'html',
-    label: 'HTML',
-    iconUrl: _dev('html5/html5-original.png'),
-  ),
-  CatalogSkill(
-    id: 'css',
-    label: 'CSS',
-    iconUrl: _dev('css3/css3-original.png'),
-  ),
-  CatalogSkill(
-    id: 'javascript',
-    label: 'JavaScript',
-    iconUrl: _dev('javascript/javascript-original.png'),
-  ),
-  CatalogSkill(
-    id: 'typescript',
-    label: 'TypeScript',
-    iconUrl: _dev('typescript/typescript-original.png'),
-  ),
-  CatalogSkill(
-    id: 'react',
-    label: 'React',
-    iconUrl: _dev('react/react-original.png'),
-  ),
-  CatalogSkill(
-    id: 'react_native',
-    label: 'React Native',
-    iconUrl: _dev('react/react-original.png'),
-  ),
-  CatalogSkill(
-    id: 'nextjs',
-    label: 'Next.js',
-    iconUrl: _dev('nextjs/nextjs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'vuejs',
-    label: 'Vue.js',
-    iconUrl: _dev('vuejs/vuejs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'nuxtjs',
-    label: 'Nuxt.js',
-    iconUrl: _dev('nuxtjs/nuxtjs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'angular',
-    label: 'Angular',
-    iconUrl: _dev('angularjs/angularjs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'svelte',
-    label: 'Svelte',
-    iconUrl: _dev('svelte/svelte-original.png'),
-  ),
-  CatalogSkill(
-    id: 'tailwindcss',
-    label: 'Tailwind CSS',
-    iconUrl: _dev('tailwindcss/tailwindcss-original.png'),
-  ),
-  CatalogSkill(
-    id: 'bootstrap',
-    label: 'Bootstrap',
-    iconUrl: _dev('bootstrap/bootstrap-original.png'),
-  ),
-  CatalogSkill(
-    id: 'materialui',
-    label: 'Material UI',
-    iconUrl: _dev('materialui/materialui-original.png'),
-  ),
-  CatalogSkill(
-    id: 'jquery',
-    label: 'jQuery',
-    iconUrl: _dev('jquery/jquery-original.png'),
-  ),
-  CatalogSkill(
-    id: 'sass',
-    label: 'Sass (SCSS)',
-    iconUrl: _dev('sass/sass-original.png'),
-  ),
-  CatalogSkill(
-    id: 'less',
-    label: 'Less',
-    iconUrl: _dev('less/less-plain-wordmark.png'),
-  ),
-  CatalogSkill(
-    id: 'alpinejs',
-    label: 'Alpine.js',
-    iconUrl: _dev('alpinejs/alpinejs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'ionic',
-    label: 'Ionic',
-    iconUrl: _dev('ionic/ionic-original.png'),
-  ),
-  CatalogSkill(
-    id: 'electron',
-    label: 'Electron',
-    iconUrl: _dev('electron/electron-original.png'),
-  ),
-  CatalogSkill(
-    id: 'expo',
-    label: 'Expo',
-    iconUrl: _dev('react/react-original.png'),
-  ),
+  _assetSkill('flutter', 'Flutter'),
+  _assetSkill('html', 'HTML'),
+  _assetSkill('css', 'CSS'),
+  _assetSkill('javascript', 'JavaScript'),
+  _assetSkill('react', 'React'),
+  _assetSkill('nextjs', 'Next.js'),
+  _assetSkill('vuejs', 'Vue.js'),
+  _assetSkill('angular', 'Angular'),
+  _assetSkill('dart', 'Dart'),
   const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
 ];
 
 final codingBackendSkills = <CatalogSkill>[
-  CatalogSkill(
-    id: 'java',
-    label: 'Java',
-    iconUrl: _dev('java/java-original.png'),
-  ),
-  CatalogSkill(
-    id: 'spring',
-    label: 'Spring Boot',
-    iconUrl: _dev('spring/spring-original.png'),
-  ),
-  CatalogSkill(
-    id: 'kotlin',
-    label: 'Kotlin',
-    iconUrl: _dev('kotlin/kotlin-original.png'),
-  ),
-  CatalogSkill(
-    id: 'csharp',
-    label: 'C#',
-    iconUrl: _dev('csharp/csharp-original.png'),
-  ),
-  CatalogSkill(
-    id: 'dotnet',
-    label: 'ASP.NET',
-    iconUrl: _dev('dotnetcore/dotnetcore-original.png'),
-  ),
-  CatalogSkill(
-    id: 'php',
-    label: 'PHP',
-    iconUrl: _dev('php/php-original.png'),
-  ),
-  CatalogSkill(
-    id: 'laravel',
-    label: 'Laravel',
-    iconUrl: _dev('laravel/laravel-original.png'),
-  ),
-  CatalogSkill(
-    id: 'codeigniter',
-    label: 'CodeIgniter',
-    iconUrl: _dev('codeigniter/codeigniter-plain.png'),
-  ),
-  CatalogSkill(
-    id: 'nodejs',
-    label: 'Node.js',
-    iconUrl: _dev('nodejs/nodejs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'express',
-    label: 'Express.js',
-    iconUrl: _dev('express/express-original.png'),
-  ),
-  CatalogSkill(
-    id: 'nestjs',
-    label: 'NestJS',
-    iconUrl: _dev('nestjs/nestjs-original.png'),
-  ),
-  CatalogSkill(
-    id: 'python',
-    label: 'Python',
-    iconUrl: _dev('python/python-original.png'),
-  ),
-  CatalogSkill(
-    id: 'django',
-    label: 'Django',
-    iconUrl: _dev('django/django-plain.png'),
-  ),
-  CatalogSkill(
-    id: 'flask',
-    label: 'Flask',
-    iconUrl: _dev('flask/flask-original.png'),
-  ),
-  CatalogSkill(
-    id: 'fastapi',
-    label: 'FastAPI',
-    iconUrl: _dev('fastapi/fastapi-original.png'),
-  ),
-  CatalogSkill(
-    id: 'rails',
-    label: 'Ruby on Rails',
-    iconUrl: _dev('rails/rails-original-wordmark.png'),
-  ),
-  CatalogSkill(
-    id: 'go',
-    label: 'Go',
-    iconUrl: _dev('go/go-original.png'),
-  ),
-  CatalogSkill(
-    id: 'rust',
-    label: 'Rust',
-    iconUrl: _dev('rust/rust-original.png'),
-  ),
-  CatalogSkill(
-    id: 'cplusplus',
-    label: 'C++',
-    iconUrl: _dev('cplusplus/cplusplus-original.png'),
-  ),
-  CatalogSkill(
-    id: 'mysql',
-    label: 'MySQL',
-    iconUrl: _dev('mysql/mysql-original.png'),
-  ),
-  CatalogSkill(
-    id: 'postgresql',
-    label: 'PostgreSQL',
-    iconUrl: _dev('postgresql/postgresql-original.png'),
-  ),
-  CatalogSkill(
-    id: 'mongodb',
-    label: 'MongoDB',
-    iconUrl: _dev('mongodb/mongodb-original.png'),
-  ),
-  CatalogSkill(
-    id: 'redis',
-    label: 'Redis',
-    iconUrl: _dev('redis/redis-original.png'),
-  ),
-  CatalogSkill(
-    id: 'firebase',
-    label: 'Firebase',
-    iconUrl: _dev('firebase/firebase-plain.png'),
-  ),
-  CatalogSkill(
-    id: 'graphql',
-    label: 'GraphQL',
-    iconUrl: _dev('graphql/graphql-plain.png'),
-  ),
-  CatalogSkill(
-    id: 'docker',
-    label: 'Docker',
-    iconUrl: _dev('docker/docker-original.png'),
-  ),
-  CatalogSkill(
-    id: 'kubernetes',
-    label: 'Kubernetes',
-    iconUrl: _dev('kubernetes/kubernetes-plain.png'),
-  ),
+  _assetSkill('java', 'Java'),
+  _assetSkill('spring', 'Spring Boot'),
+  _assetSkill('kotlin', 'Kotlin'),
+  _assetSkill('csharp', 'C#'),
+  _assetSkill('php', 'PHP'),
+  _assetSkill('laravel', 'Laravel'),
+  _assetSkill('nodejs', 'Node.js'),
+  _assetSkill('python', 'Python'),
+  _assetSkill('django', 'Django'),
+  _assetSkill('cplusplus', 'C++'),
+  _assetSkill('mysql', 'MySQL'),
+  _assetSkill('postgresql', 'PostgreSQL'),
+  _assetSkill('mongodb', 'MongoDB'),
+  _assetSkill('firebase', 'Firebase'),
+  _assetSkill('docker', 'Docker'),
   const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
 ];
 
@@ -302,28 +74,13 @@ List<CatalogSkill> get topLevelSkillCatalog => [
       const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
     ];
 
-final _extraKnownSkills = <CatalogSkill>[
-  CatalogSkill(
-    id: 'git',
-    label: 'Git',
-    iconUrl: _dev('git/git-original.png'),
-  ),
-  const CatalogSkill(
-    id: 'rest_api',
-    label: 'REST API',
-    icon: Icons.api_outlined,
-  ),
-];
-
 /// All known catalog entries for icon lookup by label / id.
 List<CatalogSkill> get allCatalogSkills => [
-      ...topLevelSkillCatalog.where((s) => s.id != 'other'),
       ...codingFrontendSkills.where((s) => s.id != 'other'),
       ...codingBackendSkills.where((s) => s.id != 'other'),
-      ..._extraKnownSkills,
     ];
 
-/// Extra Material icons available in the “Choose Icon” picker.
+/// Extra Material icons available in the “Choose Icon” picker (custom skills).
 const pickableMaterialIcons = <CatalogSkill>[
   CatalogSkill(id: 'icon_star', label: 'Star', icon: Icons.star_outline),
   CatalogSkill(id: 'icon_favorite', label: 'Favorite', icon: Icons.favorite_border),
@@ -375,9 +132,13 @@ const pickableMaterialIcons = <CatalogSkill>[
 List<CatalogSkill> get pickableSkillIcons {
   final seen = <String>{};
   final out = <CatalogSkill>[];
-  for (final s in [...pickableMaterialIcons, ...allCatalogSkills]) {
+  for (final s in allCatalogSkills) {
+    if (!SkillAssets.hasAsset(iconKey: s.id, label: s.label)) continue;
     if (!seen.add(s.id)) continue;
-    if (s.icon == null && (s.iconUrl == null || s.iconUrl!.isEmpty)) continue;
+    out.add(s);
+  }
+  for (final s in pickableMaterialIcons) {
+    if (!seen.add(s.id)) continue;
     out.add(s);
   }
   return out;

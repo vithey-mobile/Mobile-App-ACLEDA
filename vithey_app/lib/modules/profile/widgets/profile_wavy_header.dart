@@ -54,7 +54,7 @@ class ProfileWavyHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = Theme.of(context).scaffoldBackgroundColor;
     return Color.alphaBlend(
-      AppColors.authHeaderTeal.withValues(alpha: isDark ? 0.38 : 0.55),
+      AppColors.primaryLight.withValues(alpha: isDark ? 0.38 : 0.55),
       base,
     );
   }

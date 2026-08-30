@@ -10,22 +10,30 @@ import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
-import 'package:aub_connect_app/data/repositories/chat_repository.dart';
-import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
-import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/modules/create_post/models/create_post_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_all_posts_mixin.dart';
+import 'package:aub_connect_app/modules/profile/profile_tabs_host.dart';
 
+/// Own profile only (Khorn Molika / logged-in user) — main Profile tab.
 class ProfileController extends GetxController
-    with GetSingleTickerProviderStateMixin {
-  ProfileController(this._profileRepository, this._jobApplicationRepository);
+    with GetSingleTickerProviderStateMixin, ProfileAllPostsMixin
+    implements ProfileTabsHost {
+  ProfileController(this._profileRepository);
 
   final ProfileRepository _profileRepository;
-  final JobApplicationRepository _jobApplicationRepository;
 
+  @override
+  ProfileRepository get profileRepository => _profileRepository;
+
+  @override
+  String get profileUserId => _userId;
+
+  @override
   late TabController tabController;
+  @override
   final profile = Rxn<UserProfileModel>();
   final isLoading = true.obs;
   final hasError = false.obs;
@@ -34,33 +42,33 @@ class ProfileController extends GetxController
   final appliedJobsLoading = false.obs;
   bool _appliedJobsLoaded = false;
 
+  @override
   final tabPosts = <PostType, RxList<FeedPost>>{
     PostType.poster: <FeedPost>[].obs,
     PostType.video: <FeedPost>[].obs,
     PostType.job: <FeedPost>[].obs,
   };
 
+  @override
   final tabLoading = <PostType, RxBool>{
     PostType.poster: false.obs,
     PostType.video: false.obs,
     PostType.job: false.obs,
   };
 
+  @override
   final tabLoaded = <PostType, bool>{};
 
-  String? _userId;
+  late final String _userId;
 
-  bool get isOwnProfile => _userId == ProfileRepository.currentUserId;
-
-  int get tabCount => isOwnProfile ? 5 : 4;
+  @override
+  bool get isOwnProfile => true;
 
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments;
-    _userId =
-        args is ProfileArgs ? args.userId : ProfileRepository.currentUserId;
-    tabController = TabController(length: tabCount, vsync: this);
+    _userId = ProfileRepository.currentUserId;
+    tabController = TabController(length: 5, vsync: this);
     tabController.addListener(_onTabChanged);
     loadProfile();
   }
@@ -68,7 +76,7 @@ class ProfileController extends GetxController
   void _onTabChanged() {
     if (tabController.indexIsChanging) return;
     final index = tabController.index;
-    if (isOwnProfile && index == 4) {
+    if (index == 4) {
       _ensureAppliedJobsLoaded();
       return;
     }
@@ -86,15 +94,11 @@ class ProfileController extends GetxController
   }
 
   Future<void> loadProfile() async {
-    if (_userId == null) return;
     isLoading.value = true;
     hasError.value = false;
     try {
-      var loaded = await _profileRepository.getProfile(_userId!);
-      loaded = loaded.copyWith(
-          isFollowing: _profileRepository.isFollowing(loaded.id));
-      profile.value = loaded;
-      _ensureTabLoaded(PostType.video);
+      profile.value = await _profileRepository.getProfile(_userId);
+      await ensureAllPostsLoaded();
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
@@ -103,40 +107,23 @@ class ProfileController extends GetxController
     }
   }
 
-  /// Soft reload used after Edit Profile — updates About/header without full-screen spinner.
   Future<void> refreshProfile() async {
-    if (_userId == null) return;
     try {
-      var loaded = await _profileRepository.getProfile(_userId!);
-      loaded = loaded.copyWith(isFollowing: _profileRepository.isFollowing(loaded.id));
-      profile.value = loaded;
+      profile.value = await _profileRepository.getProfile(_userId);
     } catch (_) {
       await loadProfile();
     }
   }
 
   Future<void> _ensureTabLoaded(PostType type) async {
-    if (_userId == null || tabLoaded[type] == true || tabLoading[type]!.value) {
-      return;
-    }
+    if (tabLoaded[type] == true || tabLoading[type]!.value) return;
     tabLoading[type]!.value = true;
     try {
-      var result = await _profileRepository.getUserPosts(
-          userId: _userId!, type: type, page: 1);
-      if (type == PostType.job && !isOwnProfile) {
-        try {
-          final appliedIds =
-              await _jobApplicationRepository.getAppliedJobPostIds();
-          result = result
-              .map(
-                (post) => appliedIds.contains(post.id)
-                    ? post.copyWith(
-                        applicationState: JobApplicationState.applied)
-                    : post,
-              )
-              .toList();
-        } catch (_) {}
-      }
+      final result = await _profileRepository.getUserPosts(
+        userId: _userId,
+        type: type,
+        page: 1,
+      );
       tabPosts[type]!.assignAll(result);
       tabLoaded[type] = true;
     } catch (e) {
@@ -147,7 +134,7 @@ class ProfileController extends GetxController
   }
 
   Future<void> _ensureAppliedJobsLoaded() async {
-    if (!isOwnProfile || _appliedJobsLoaded || appliedJobsLoading.value) return;
+    if (_appliedJobsLoaded || appliedJobsLoading.value) return;
     appliedJobsLoading.value = true;
     try {
       appliedJobs.assignAll(await _profileRepository.getMyAppliedJobs());
@@ -162,42 +149,9 @@ class ProfileController extends GetxController
   String _labelForType(PostType type) {
     return switch (type) {
       PostType.poster => 'posters',
-      PostType.video => 'videos',
+      PostType.video => 'reels',
       PostType.job => 'jobs',
     };
-  }
-
-  Future<void> toggleFollow() async {
-    final current = profile.value;
-    if (current == null || isOwnProfile) return;
-
-    final following = !current.isFollowing;
-    profile.value = current.copyWith(
-      isFollowing: following,
-      followerCount:
-          (current.followerCount + (following ? 1 : -1)).clamp(0, 999999999),
-    );
-
-    try {
-      await _profileRepository.toggleFollow(current.id);
-    } catch (_) {
-      profile.value = current;
-      Get.snackbar(AppStrings.appName, 'Could not update follow');
-    }
-  }
-
-  Future<void> startMessage() async {
-    final current = profile.value;
-    if (current == null || isOwnProfile) return;
-    try {
-      final chatRepo = Get.find<ChatRepository>();
-      final conversationId =
-          await chatRepo.findOrCreateConversation(current.id);
-      Get.toNamed(AppRoutes.chatDetail,
-          arguments: ChatDetailArgs(conversationId: conversationId));
-    } catch (_) {
-      Get.snackbar(AppStrings.appName, 'Could not open chat');
-    }
   }
 
   void shareProfile() {
@@ -213,7 +167,6 @@ class ProfileController extends GetxController
     }
   }
 
-  /// Opens form when not verified; opens status to review after success.
   void openVerifyStudent() {
     final verified =
         Get.find<StudentVerificationRepository>().isVerified.value;
@@ -226,6 +179,7 @@ class ProfileController extends GetxController
 
   void openPreviewOwnCv() => Get.toNamed(AppRoutes.previewOwnCv);
 
+  @override
   void openPost(String postId) {
     Get.toNamed(AppRoutes.postDetail, arguments: postId)?.then((result) {
       if (result is PostMutationResult) {
@@ -238,8 +192,9 @@ class ProfileController extends GetxController
     });
   }
 
+  @override
   void editPost(FeedPost post) {
-    if (!isOwnProfile || !post.isOwnPost) return;
+    if (!post.isOwnPost) return;
     Get.toNamed(
       AppRoutes.createPost,
       arguments: CreatePostArgs(editingPost: post),
@@ -248,8 +203,9 @@ class ProfileController extends GetxController
     });
   }
 
+  @override
   Future<void> deletePost(BuildContext context, FeedPost post) async {
-    if (!isOwnProfile || !post.isOwnPost) return;
+    if (!post.isOwnPost) return;
     final confirmed = await showConfirmDialog(
       context: context,
       title: 'Delete post?',
@@ -275,6 +231,7 @@ class ProfileController extends GetxController
     if (index >= 0) posts[index] = updated;
   }
 
+  @override
   void openJobApplicants(FeedPost jobPost) {
     Get.toNamed(
       AppRoutes.jobApplicants,
@@ -285,14 +242,17 @@ class ProfileController extends GetxController
     );
   }
 
+  @override
   void editJobPost(FeedPost jobPost) {
     Get.snackbar(AppStrings.appName, 'Edit job coming soon');
   }
 
+  @override
   void deleteJobPost(FeedPost jobPost) {
     Get.defaultDialog(
       title: 'Delete job?',
-      middleText: 'Remove “${jobPost.jobMeta.title ?? 'this job'}” from your posts?',
+      middleText:
+          'Remove “${jobPost.jobMeta.title ?? 'this job'}” from your posts?',
       textCancel: 'Cancel',
       textConfirm: 'Delete',
       confirmTextColor: Colors.white,
@@ -304,6 +264,7 @@ class ProfileController extends GetxController
     );
   }
 
+  @override
   void applyToJob(String jobPostId) {
     Get.toNamed(
       AppRoutes.applyCv,

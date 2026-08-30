@@ -6,7 +6,7 @@ import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
-import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
@@ -179,7 +179,7 @@ class SearchController extends GetxController {
     }
     await _repository.addRecentUser(item.toSearchResult());
     await _loadRecents();
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: userId));
+    openUserProfile(userId);
   }
 
   Future<void> toggleRecentPin(SearchRecentItem item) async {
@@ -199,7 +199,7 @@ class SearchController extends GetxController {
     }
     await _repository.addRecentUser(user);
     await _loadRecents();
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: user.userId));
+    openUserProfile(user.userId);
   }
 
   void openPost(String postId) {

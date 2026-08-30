@@ -25,12 +25,12 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color dangerSurface;
 
   static const light = AppSemanticColors(
-    bodyBackground: AppColors.lightBackground,
-    cardSurface: AppColors.lightSurface,
-    heading: AppColors.authHeading,
-    muted: AppColors.authMuted,
-    inputFill: AppColors.authInputFill,
-    border: AppColors.authBorder,
+    bodyBackground: AppColors.accentLight,
+    cardSurface: AppColors.accentLight,
+    heading: AppColors.titleLight,
+    muted: AppColors.bodyLight,
+    inputFill: AppColors.inputFillLight,
+    border: AppColors.borderLight,
     subtleShadow: Color(0x0A000000),
     dangerSurface: Color(0xFFFFEBEE),
   );
@@ -38,10 +38,10 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   static const dark = AppSemanticColors(
     bodyBackground: AppColors.darkBackground,
     cardSurface: AppColors.darkSurface,
-    heading: AppColors.darkText,
-    muted: Color(0xFF9E9EB0),
-    inputFill: Color(0xFF2A2A3A),
-    border: Color(0xFF3A3A4E),
+    heading: AppColors.titleDark,
+    muted: AppColors.bodyDark,
+    inputFill: AppColors.inputFillDark,
+    border: AppColors.borderDark,
     subtleShadow: Color(0x33000000),
     dangerSurface: Color(0xFF3D2024),
   );

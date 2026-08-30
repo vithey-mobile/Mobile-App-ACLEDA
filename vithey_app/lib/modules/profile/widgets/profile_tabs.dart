@@ -9,65 +9,58 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/home/widgets/poster_post_card.dart';
+import 'package:aub_connect_app/modules/profile/profile_tabs_host.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
+import 'package:aub_connect_app/modules/profile/profile_view_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_job_card.dart';
-import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
-import 'package:aub_connect_app/modules/profile/widgets/profile_video_card.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 
-class ProfileAboutTab extends StatelessWidget {
-  const ProfileAboutTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<ProfileController>();
-    return Obx(() {
-      final profile = controller.profile.value;
-      if (profile == null) return const LoadingWidget();
-      return ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-        children: [
-          ProfileSkillsRow(skills: profile.skills),
-          if (profile.skills.isNotEmpty) const SizedBox(height: 20),
-          ProfileAboutDetails(
-            profile: profile,
-            isOwnProfile: controller.isOwnProfile,
-          ),
-        ],
-      );
-    });
-  }
-}
-
 class ProfilePostersTab extends StatelessWidget {
-  const ProfilePostersTab({super.key});
+  const ProfilePostersTab({super.key, this.host});
+
+  final ProfileTabsHost? host;
 
   @override
   Widget build(BuildContext context) =>
-      const _ProfilePostsTab(type: PostType.poster);
-}
-
-class ProfileVideosTab extends StatelessWidget {
-  const ProfileVideosTab({super.key});
-
-  @override
-  Widget build(BuildContext context) =>
-      const _ProfilePostsTab(type: PostType.video);
+      _ProfilePostsTab(type: PostType.poster, host: host);
 }
 
 class ProfileJobsTab extends StatelessWidget {
-  const ProfileJobsTab({super.key});
+  const ProfileJobsTab({super.key, this.host});
+
+  final ProfileTabsHost? host;
 
   @override
   Widget build(BuildContext context) =>
-      const _ProfilePostsTab(type: PostType.job);
+      _ProfilePostsTab(type: PostType.job, host: host);
 }
 
 class ProfileAppliedJobsTab extends StatelessWidget {
-  const ProfileAppliedJobsTab({super.key});
+  const ProfileAppliedJobsTab({super.key, this.viewController});
+
+  /// When set, shows applied jobs for a visitor profile (e.g. Heng Liza).
+  final ProfileViewController? viewController;
 
   @override
   Widget build(BuildContext context) {
+    if (viewController != null) {
+      return Obx(() {
+        final controller = viewController!;
+        if (controller.appliedJobsLoading.value &&
+            controller.appliedJobs.isEmpty) {
+          return const LoadingWidget();
+        }
+        if (controller.appliedJobs.isEmpty) {
+          return const EmptyStateWidget(
+            icon: Icons.description_outlined,
+            title: 'No apply job history',
+            subtitle: 'No apply job history yet.',
+          );
+        }
+        return _AppliedJobsList(jobs: controller.appliedJobs);
+      });
+    }
+
     final controller = Get.find<ProfileController>();
     return Obx(() {
       if (controller.appliedJobsLoading.value &&
@@ -81,41 +74,52 @@ class ProfileAppliedJobsTab extends StatelessWidget {
           subtitle: "You don't have any apply job history.",
         );
       }
-      return ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-        itemCount: controller.appliedJobs.length,
-        itemBuilder: (context, index) {
-          final job = controller.appliedJobs[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            elevation: 0,
-            color: context.appColors.cardSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: context.appColors.border),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: ListTile(
-              title: Text(
-                job.jobTitle,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(
-                '${job.company} · ${RelativeTime.format(job.appliedAt)}',
-              ),
-              trailing: _StatusPill(status: job.status),
-              onTap: () => Get.toNamed(
-                AppRoutes.applicationStatus,
-                arguments: ApplicationStatusArgs(
-                  applicationId: job.id,
-                  jobPostId: job.jobPostId,
-                ),
-              ),
-            ),
-          );
-        },
-      );
+      return _AppliedJobsList(jobs: controller.appliedJobs);
     });
+  }
+}
+
+class _AppliedJobsList extends StatelessWidget {
+  const _AppliedJobsList({required this.jobs});
+
+  final List<AppliedJobSummary> jobs;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      itemCount: jobs.length,
+      itemBuilder: (context, index) {
+        final job = jobs[index];
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          elevation: 0,
+          color: context.appColors.cardSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: context.appColors.border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ListTile(
+            title: Text(
+              job.jobTitle,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              '${job.company} · ${RelativeTime.format(job.appliedAt)}',
+            ),
+            trailing: _StatusPill(status: job.status),
+            onTap: () => Get.toNamed(
+              AppRoutes.applicationStatus,
+              arguments: ApplicationStatusArgs(
+                applicationId: job.id,
+                jobPostId: job.jobPostId,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -146,13 +150,14 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _ProfilePostsTab extends StatelessWidget {
-  const _ProfilePostsTab({required this.type});
+  const _ProfilePostsTab({required this.type, this.host});
 
   final PostType type;
+  final ProfileTabsHost? host;
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ProfileController>();
+    final controller = resolveProfileTabsHost(host);
     return Obx(() {
       if (controller.tabLoading[type]!.value &&
           controller.tabPosts[type]!.isEmpty) {
@@ -165,22 +170,6 @@ class _ProfilePostsTab extends StatelessWidget {
           subtitle: controller.isOwnProfile
               ? 'Create your first ${_label(type)}'
               : 'No ${_label(type)} yet',
-        );
-      }
-
-      if (type == PostType.video) {
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-          itemCount: posts.length,
-          itemBuilder: (_, index) {
-            final post = posts[index];
-            return ProfileVideoCard(
-              post: post,
-              onLike: () {},
-              onComment: () => controller.openPost(post.id),
-              onShare: () {},
-            );
-          },
         );
       }
 
@@ -212,6 +201,7 @@ class _ProfilePostsTab extends StatelessWidget {
             post: post,
             // ListView already pads 20 — avoid PostCard's extra horizontal margin.
             margin: const EdgeInsets.symmetric(vertical: 5),
+            showShareAction: false,
             onLike: () {},
             onComment: () {},
             onShare: () {},
@@ -228,8 +218,8 @@ class _ProfilePostsTab extends StatelessWidget {
   String _label(PostType type) {
     return switch (type) {
       PostType.poster => 'poster',
-      PostType.video => 'video',
       PostType.job => 'job',
+      PostType.video => 'reels',
     };
   }
 }

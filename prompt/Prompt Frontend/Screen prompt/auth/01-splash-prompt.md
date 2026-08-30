@@ -104,11 +104,10 @@ Pixel-close splash matching the reference screen, using the **official logo asse
 
 | Token               | Hex       | Use               |
 | ------------------- | --------- | ----------------- |
-| `splashBaseTeal`    | `#1A9B8E` | Main background   |
-| `splashWaveDark`    | `#0D7A70` | Top-left wave     |
-| `splashWaveLight`   | `#2EC4B6` | Bottom-right wave |
-| `splashTextWhite`   | `#FFFFFF` | "Vithey" label    |
-| `splashCircleWhite` | `#FFFFFF` | Logo circle fill  |
+| `primaryLight`      | `#2FC5C1` | Teal fill / waves |
+| `primaryDark`       | `#0D7A70` | Dark teal accent  |
+| `waveRearOn()`      | blend     | Light-teal layer  |
+| `lightBackground`   | `#FFFFFF` | Splash text, logo circle |
 
 Logo colors come from **`logo_app.png`** — do not recreate gradients in code.
 
@@ -166,7 +165,7 @@ Container(
   height: circleSize,
   decoration: BoxDecoration(
     shape: BoxShape.circle,
-    color: AppColors.splashCircleWhite,
+    color: AppColors.lightBackground,
     boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4))],
   ),
   padding: EdgeInsets.all(circleSize * 0.18),

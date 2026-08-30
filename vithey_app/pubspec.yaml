@@ -37,6 +37,7 @@ dependencies:
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
   path_provider: ^2.1.4
+  mobile_scanner: ^7.4.0
 
 dev_dependencies:
   flutter_test:
@@ -54,7 +55,9 @@ flutter:
     - assets/images/locale/
     - assets/images/jobs/
     - assets/images/cv/
+    - assets/images/profile/
     - assets/icons/
+    - assets/icons/skills/
     - assets/icons/wallet_icon.png
     - assets/icons/upload_icon.png
     - .env

@@ -63,7 +63,7 @@ Scaffold
 ### Background (Auth-specific)
 
 1. **Fixed — teal only**
-   - Full-back teal (`AppColors.authHeaderTeal` â‰ˆ `#2FC5C1`).
+   - Full-back teal (`AppColors.primaryLight` ≈ `#2FC5C1`).
    - Height is **auto**: fills whatever space remains above the white sheet.
    - Rough visual guide â‰ˆ 30% when Sign In content is short; grows/shrinks as white hugs taller/shorter forms.
    - Does not move when switching Sign In â†” Sign Up.

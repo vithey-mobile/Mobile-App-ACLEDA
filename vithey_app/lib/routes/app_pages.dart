@@ -23,6 +23,9 @@ import 'package:aub_connect_app/modules/profile/edit_profile_screen.dart';
 import 'package:aub_connect_app/modules/profile/job_applicants_screen.dart';
 import 'package:aub_connect_app/modules/profile/profile_binding.dart';
 import 'package:aub_connect_app/modules/profile/profile_screen.dart';
+import 'package:aub_connect_app/modules/profile/profile_view_binding.dart';
+import 'package:aub_connect_app/modules/profile/profile_view_screen.dart';
+import 'package:aub_connect_app/modules/profile/scan_qr_screen.dart';
 import 'package:aub_connect_app/modules/onboarding/onboarding_binding.dart';
 import 'package:aub_connect_app/modules/onboarding/onboarding_screen.dart';
 import 'package:aub_connect_app/modules/select_language/select_language_binding.dart';
@@ -193,6 +196,15 @@ class AppPages {
       name: AppRoutes.profile,
       page: () => const ProfileScreen(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.profileView,
+      page: () => const ProfileViewScreen(),
+      binding: ProfileViewBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.scanQr,
+      page: () => const ScanQrScreen(),
     ),
     GetPage(
       name: AppRoutes.editProfile,
