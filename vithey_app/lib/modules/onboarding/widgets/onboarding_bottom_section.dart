@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -129,7 +130,7 @@ class _OnboardingCtaButton extends StatelessWidget {
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: primary,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.accentLight,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
@@ -140,12 +141,12 @@ class _OnboardingCtaButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.arrow_forward, size: 18, color: Colors.white),
+                const Icon(Icons.arrow_forward, size: 18, color: AppColors.accentLight),
                 const SizedBox(width: 8),
                 Text(
                   label,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.accentLight,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),

@@ -21,10 +21,12 @@ class AppRoutes {
   static const applySuccess = '/apply-cv/success';
   static const applicationStatus = '/apply-cv/status';
   static const profile = '/profile';
+  static const profileView = '/profile/view';
   static const jobApplicants = '/profile/jobs/applicants';
   static const applicantCvPreview = '/profile/applicants/cv';
   static const previewOwnCv = '/profile/cv';
   static const applicantDetail = '/profile/applicants/detail';
+  static const scanQr = '/profile/scan-qr';
   static const editProfile = '/profile/edit';
   static const studentVerification = '/student-verification';
   static const verificationStatus = '/verification-status';

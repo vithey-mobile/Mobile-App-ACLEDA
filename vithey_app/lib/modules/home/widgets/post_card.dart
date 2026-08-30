@@ -21,6 +21,7 @@ class PostCard extends StatelessWidget {
     this.onAuthorTap,
     this.caption,
     this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    this.showShareAction = true,
   });
 
   final FeedPost post;
@@ -34,6 +35,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onAuthorTap;
   final Widget? caption;
   final EdgeInsetsGeometry margin;
+  final bool showShareAction;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,7 @@ class PostCard extends StatelessWidget {
             onComment: onComment,
             onShare: onShare,
             onReact: onReact,
+            showShareAction: showShareAction,
           ),
         ],
       ),

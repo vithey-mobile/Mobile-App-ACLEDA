@@ -12,7 +12,7 @@ ThemeData buildDarkTheme() {
       primary: AppColors.primaryLight,
       secondary: AppColors.secondary,
       surface: AppColors.darkSurface,
-      onSurface: AppColors.darkText,
+      onSurface: AppColors.titleDark,
       onSurfaceVariant: semantic.muted,
       error: AppColors.error,
     ),
@@ -60,7 +60,7 @@ ThemeData buildDarkTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryLight,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.accentLight,
         minimumSize: const Size(64, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

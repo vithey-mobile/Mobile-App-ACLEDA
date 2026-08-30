@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/skill_assets.dart';
 import 'package:aub_connect_app/data/models/profile_skill_catalog.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
-/// Resolves a skill logo / category icon for pickers and ring watermarks.
+/// Resolves a skill logo for pickers and ring watermarks (local assets first).
 class SkillIcon extends StatelessWidget {
   const SkillIcon({
     super.key,
@@ -64,45 +64,40 @@ class SkillIcon extends StatelessWidget {
       }
     }
 
+    final asset = SkillAssets.assetPath(
+      iconKey: iconKey ?? skill?.iconKey ?? catalog?.id,
+      label: label ?? skill?.name ?? catalog?.label,
+    );
+    if (asset != null) {
+      return Opacity(
+        opacity: opacity,
+        child: Image.asset(
+          asset,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => _fallback(context),
+        ),
+      );
+    }
+
     final entry = catalog ??
         findCatalogSkill(
           iconKey: iconKey ?? skill?.iconKey,
           label: label ?? skill?.name,
         );
 
-    if (entry?.iconUrl != null && entry!.iconUrl!.isNotEmpty) {
-      return Opacity(
-        opacity: opacity,
-        child: CachedNetworkImage(
-          imageUrl: entry.iconUrl!,
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-          fadeInDuration: Duration.zero,
-          placeholder: (_, __) => SizedBox(width: size, height: size),
-          errorWidget: (_, __, ___) => _material(
-            context,
-            entry.icon ?? Icons.code,
-          ),
-        ),
-      );
-    }
-
     final iconData = entry?.icon ?? Icons.auto_awesome_outlined;
     return Opacity(
       opacity: opacity,
-      child: _material(context, iconData),
+      child: Icon(
+        iconData,
+        size: size,
+        color: color ?? context.appColors.muted,
+      ),
     );
   }
 
   Widget _fallback(BuildContext context) =>
-      _material(context, Icons.auto_awesome_outlined);
-
-  Widget _material(BuildContext context, IconData icon) {
-    return Icon(
-      icon,
-      size: size,
-      color: color ?? context.appColors.muted,
-    );
-  }
+      Icon(Icons.auto_awesome_outlined, size: size, color: color);
 }

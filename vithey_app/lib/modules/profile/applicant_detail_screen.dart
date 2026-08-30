@@ -9,6 +9,7 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/application_feedback_success.dart';
@@ -55,7 +56,7 @@ class ApplicantDetailController extends GetxController {
   void openApplicantProfile() {
     final current = detail.value;
     if (current == null) return;
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: current.applicantUserId));
+    openUserProfile(current.applicantUserId);
   }
 
   Future<void> accept() async {

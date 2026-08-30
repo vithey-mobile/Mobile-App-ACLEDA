@@ -4,6 +4,8 @@ import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_header.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_all.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_reels.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_tabs.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_cover_redesign.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
@@ -12,6 +14,7 @@ import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
+/// Own profile (logged-in user — Khorn Molika).
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key, this.embedded = false});
 
@@ -37,19 +40,19 @@ class ProfileScreen extends GetView<ProfileController> {
         }
 
         final tabs = <Tab>[
-          const Tab(text: 'About'),
-          const Tab(text: 'Videos'),
+          const Tab(text: 'All'),
+          const Tab(text: 'Reels'),
           const Tab(text: 'Posters'),
           const Tab(text: 'Jobs'),
-          if (controller.isOwnProfile) const Tab(text: 'Applied Jobs'),
+          const Tab(text: 'Applied Jobs'),
         ];
 
-        final tabViews = <Widget>[
-          const ProfileAboutTab(),
-          const ProfileVideosTab(),
-          const ProfilePostersTab(),
-          const ProfileJobsTab(),
-          if (controller.isOwnProfile) const ProfileAppliedJobsTab(),
+        const tabViews = <Widget>[
+          ProfileAllTab(),
+          ProfileReelsTab(),
+          ProfilePostersTab(),
+          ProfileJobsTab(),
+          ProfileAppliedJobsTab(),
         ];
 
         return NestedScrollView(
@@ -59,10 +62,9 @@ class ProfileScreen extends GetView<ProfileController> {
                 children: [
                   ProfileCoverRedesign(
                     profile: profile,
-                    showMenu: controller.isOwnProfile,
+                    showMenu: true,
                     onMenuTap: () => Get.toNamed(AppRoutes.settings),
                   ),
-                  // Identity block — tight under avatar (Own Profile Home)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                     child: Column(
@@ -98,14 +100,14 @@ class ProfileScreen extends GetView<ProfileController> {
                   ProfileStats(profile: profile),
                   Obx(
                     () => ProfileActionRow(
-                      isOwnProfile: controller.isOwnProfile,
-                      isFollowing: profile.isFollowing,
+                      isOwnProfile: true,
+                      isFollowing: false,
                       isStudentVerified:
                           Get.find<StudentVerificationRepository>()
                               .isVerified
                               .value,
-                      onFollow: controller.toggleFollow,
-                      onMessage: controller.startMessage,
+                      onFollow: () {},
+                      onMessage: () {},
                       onEditProfile: controller.openEditProfile,
                       onVerifyStudent: controller.openVerifyStudent,
                       onShare: controller.shareProfile,

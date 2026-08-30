@@ -49,6 +49,16 @@ abstract final class PostFixtures {
         mediaUrl:
             'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
       ),
+      _poster(
+        id: MockIds.post16,
+        authorId: MockIds.currentUser,
+        content:
+            'We are hiring! Join our team at Fintech Center — open roles for developers and analysts.',
+        seed: 16,
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+      ),
       _video(
         id: MockIds.post11,
         authorId: MockIds.author1,
@@ -146,6 +156,20 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
+      ),
+      _video(
+        id: MockIds.post15,
+        authorId: MockIds.author1,
+        content: 'CCNA study notes — network topology basics',
+        seed: 15,
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        mediaUrl:
+            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        commentCount: 24,
+        shareCount: 18,
+        reactionCount: 640,
       ),
       _poster(
         id: MockIds.post6,

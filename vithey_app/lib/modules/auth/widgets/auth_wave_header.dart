@@ -34,7 +34,7 @@ class _AuthWavePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = AppColors.authHeaderTeal,
+      Paint()..color = AppColors.primaryLight,
     );
 
     final rearWave = Path()
@@ -43,7 +43,10 @@ class _AuthWavePainter extends CustomPainter {
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
-    canvas.drawPath(rearWave, Paint()..color = AppColors.authWaveRear);
+    canvas.drawPath(
+      rearWave,
+      Paint()..color = AppColors.waveRearOn(AppColors.accentLight),
+    );
 
     final frontWave = Path()
       ..moveTo(0, size.height * 0.62)
@@ -51,7 +54,7 @@ class _AuthWavePainter extends CustomPainter {
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
-    canvas.drawPath(frontWave, Paint()..color = Colors.white);
+    canvas.drawPath(frontWave, Paint()..color = AppColors.accentLight);
   }
 
   @override

@@ -8,6 +8,34 @@ Coordinates are **fractions of width / height** (0–1), left → right.
 
 ---
 
+## Backup — Auth login / register (before wave update)
+
+**Saved:** 2026-08-30 · commit `4c1f151` (*update auth*)  
+**Purpose:** Restore if auth wave redesign goes wrong.
+
+| Live file | Backup (copy over live to undo) |
+|-----------|----------------------------------|
+| `vithey_app/lib/modules/auth/widgets/auth_moving_wave_sheet.dart` | `auth_moving_wave_sheet.before_wave_update.dart.bak` |
+| `vithey_app/lib/modules/auth/login_screen.dart` | `login_screen.before_wave_update.dart.bak` |
+| `vithey_app/lib/modules/auth/widgets/auth_panel_switcher.dart` | `auth_panel_switcher.before_wave_update.dart.bak` |
+| `vithey_app/lib/modules/onboarding/widgets/onboarding_background.dart` | `onboarding_background.before_auth_wave_update.dart.bak` |
+
+**Restore (PowerShell, from repo root):**
+
+```powershell
+Copy-Item "vithey_app\lib\modules\auth\widgets\auth_moving_wave_sheet.before_wave_update.dart.bak" "vithey_app\lib\modules\auth\widgets\auth_moving_wave_sheet.dart" -Force
+Copy-Item "vithey_app\lib\modules\auth\login_screen.before_wave_update.dart.bak" "vithey_app\lib\modules\auth\login_screen.dart" -Force
+Copy-Item "vithey_app\lib\modules\auth\widgets\auth_panel_switcher.before_wave_update.dart.bak" "vithey_app\lib\modules\auth\widgets\auth_panel_switcher.dart" -Force
+Copy-Item "vithey_app\lib\modules\onboarding\widgets\onboarding_background.before_auth_wave_update.dart.bak" "vithey_app\lib\modules\onboarding\widgets\onboarding_background.dart" -Force
+```
+
+**Auth Sign In / Sign Up layout (as saved):**
+- Fixed back: `OnboardingBackground` @ `onboardingFactor`, `authMorph` from controller (onboarding → solid teal)
+- Moving sheet: `AuthMovingWaveSheet` @ `waveHeightFactor: 0.10` via `AuthPanelSwitcher`
+- Wave curves: §2 below (light + white keyframes in band space)
+
+---
+
 ## 1. Select Language + Onboarding (shared painter)
 
 **Widget:** `OnboardingBackground`  
@@ -16,7 +44,7 @@ Coordinates are **fractions of width / height** (0–1), left → right.
 ### Layers (bottom → top)
 1. White / card surface (full rect)
 2. Light-teal rear wave (“white-50%”)
-3. Teal front wave (`AppColors.authHeaderTeal`)
+3. Teal front wave (`AppColors.primaryLight`)
 
 ### Height factors
 | Screen | `waveHeightFactor` | Notes |

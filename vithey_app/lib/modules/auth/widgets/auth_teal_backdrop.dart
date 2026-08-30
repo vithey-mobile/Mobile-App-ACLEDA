@@ -8,7 +8,7 @@ class AuthTealBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ColoredBox(
-      color: AppColors.authHeaderTeal,
+      color: AppColors.primaryLight,
       child: SizedBox.expand(),
     );
   }

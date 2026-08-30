@@ -16,4 +16,7 @@ class AppAssets {
 
   /// Mock Applier CV preview (Application Detail Curriculum Vitae card).
   static const applicantCvPreview = 'assets/images/cv/My_CV.png';
+
+  /// Profile QR code (own profile share sheet).
+  static const profileQrCode = 'assets/images/profile/QR Code.png';
 }

@@ -40,7 +40,7 @@ class JobApplicationRepository {
 
   static final _mockAppliedJobs = <String>{};
   static final _mockApplicationDetails = <String, ApplicationDetailModel>{};
-  static const _mockSeedVersion = 2;
+  static const _mockSeedVersion = 3;
   static int _loadedMockSeedVersion = 0;
 
   bool get useMockApi => _flags.useMockApi;

@@ -44,8 +44,8 @@ Use a `Stack` so the background layers stay fixed behind the changing content.
 Implemented in `OnboardingBackground` (`CustomPainter`). Three layers, back → front:
 
 1. **White** — full-screen base
-2. **Light teal** — rear wave (`AppColors.authWaveRear` ≈ `#6AD6D2`)
-3. **Teal** — front wave (`AppColors.authHeaderTeal` ≈ `#2FC5C1`)
+2. **Light teal** — rear wave (`AppColors.waveRearOn(cardSurface)` — `primaryLight` @ 50%)
+3. **Teal** — front wave (`AppColors.primaryLight` ≈ `#2FC5C1`)
 
 Each wave edge is a smooth Catmull-Rom → cubic path through width/height keyframes. Teal and light teal use **separate X keyframes** (staggered bends).
 
@@ -130,11 +130,11 @@ Scaffold (white)
 | Token                       | Direction                                                     |
 | --------------------------- | ------------------------------------------------------------- |
 | Page background             | White                                                         |
-| Front / top teal            | `AppColors.authHeaderTeal` ≈ `#2FC5C1`                        |
-| Rear / light teal           | `AppColors.authWaveRear` ≈ `#6AD6D2`                          |
-| Primary button / active dot | `AppColors.primary` / onboarding dots ≈ `#08B9B3` / `#00BFA5` |
-| Heading                     | `AppColors.onboardingTitle`                                   |
-| Subtitle/body               | `AppColors.onboardingBody`                                    |
+| Front / top teal            | `AppColors.primaryLight` ≈ `#2FC5C1`                        |
+| Rear / light teal           | `AppColors.waveRearOn(cardSurface)`                          |
+| Primary button / active dot | `AppColors.primary` ≈ `#08B9B3`                               |
+| Heading                     | `AppColors.titleLight` / `context.appColors.heading`         |
+| Subtitle/body               | `AppColors.bodyLight` / `context.appColors.muted`            |
 | Skip text                   | White                                                         |
 | Illustration                | Image only — no card / fill background                        |
 

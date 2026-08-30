@@ -95,7 +95,7 @@ class LoginScreen extends GetView<AuthController> {
                         child: TextButton(
                           onPressed: busy ? null : controller.goBack,
                           style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.accentLight,
                             minimumSize: const Size(44, 44),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -105,7 +105,7 @@ class LoginScreen extends GetView<AuthController> {
                           child: const Text(
                             AppStrings.back,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.accentLight,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -552,7 +552,7 @@ class _AuthPrimaryButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.accentLight,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -564,7 +564,7 @@ class _AuthPrimaryButton extends StatelessWidget {
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Colors.white,
+                  color: AppColors.accentLight,
                 ),
               )
             : Row(
@@ -572,7 +572,7 @@ class _AuthPrimaryButton extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, size: 18, color: Colors.white),
+                    Icon(icon, size: 18, color: AppColors.accentLight),
                     const SizedBox(width: 8),
                   ],
                   Text(
@@ -580,7 +580,7 @@ class _AuthPrimaryButton extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: kAuthButtonFontSize,
                       fontWeight: kAuthButtonFontWeight,
-                      color: Colors.white,
+                      color: AppColors.accentLight,
                     ),
                   ),
                 ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_qr_bottom_sheet.dart';
 import 'package:get/get.dart';
 
 /// Profile Home header redesign (`update.md` + `Profile_Background_Redesign.png`).
@@ -13,12 +14,22 @@ class ProfileCoverRedesign extends StatelessWidget {
     super.key,
     required this.profile,
     this.showMenu = true,
+    this.showBack = false,
+    this.showQrScan,
     this.onMenuTap,
+    this.onBack,
+    this.onQrScanTap,
   });
 
   final UserProfileModel profile;
   final bool showMenu;
+  final bool showBack;
+
+  /// Top-right QR scan; defaults to [showMenu] (own profile).
+  final bool? showQrScan;
   final VoidCallback? onMenuTap;
+  final VoidCallback? onBack;
+  final VoidCallback? onQrScanTap;
 
   /// Larger than v1 (r56) — focal point.
   static const avatarRadius = 66.0;
@@ -35,8 +46,8 @@ class ProfileCoverRedesign extends StatelessWidget {
   }
 
   static Color decorColor(BuildContext context) {
-    // Decor line-art.
-    return const Color(0xFF016560);
+    // Decor line-art at 40% — softer on the teal cover.
+    return const Color(0xFF016560).withValues(alpha: 0.40);
   }
 
   @override
@@ -48,7 +59,10 @@ class ProfileCoverRedesign extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
     final onCover =
-        teal.computeLuminance() > 0.45 ? const Color(0xFF1A1A2E) : Colors.white;
+        teal.computeLuminance() > 0.45
+            ? const Color(0xFF1A1A2E)
+            : Colors.white;
+    final qrVisible = showQrScan ?? showMenu;
 
     // Keep wave geometry fixed — only reposition the avatar on the boundary.
     final waveH = headerHeight * _waveHeightFactor;
@@ -112,7 +126,7 @@ class ProfileCoverRedesign extends StatelessWidget {
             ),
           ),
 
-          // 4) Settings (real control — not a decor icon)
+          // 4) Settings (own) or back (visitor)
           if (showMenu)
             Positioned(
               top: topPad + 4,
@@ -126,6 +140,41 @@ class ProfileCoverRedesign extends StatelessWidget {
                 icon: Icon(Icons.settings_outlined, color: onCover, size: 24),
                 tooltip: 'Settings',
                 onPressed: onMenuTap ?? () => Get.toNamed(AppRoutes.settings),
+              ),
+            ),
+          if (showBack)
+            Positioned(
+              top: topPad + 4,
+              left: 8,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: onCover,
+                  shadowColor: Colors.transparent,
+                ),
+                icon: Icon(Icons.arrow_back, color: onCover, size: 24),
+                tooltip: 'Back',
+                onPressed: onBack ?? () => Get.back(),
+              ),
+            ),
+          if (qrVisible)
+            Positioned(
+              top: topPad + 4,
+              right: 8,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: onCover,
+                  shadowColor: Colors.transparent,
+                ),
+                icon: Icon(Icons.qr_code_scanner, color: onCover, size: 24),
+                tooltip: 'Scan QR code',
+                onPressed: onQrScanTap ??
+                    () => showProfileQrBottomSheet(
+                          context: context,
+                          userId: profile.id,
+                          userName: profile.fullName,
+                        ),
               ),
             ),
 
@@ -285,14 +334,14 @@ class _ProfileDecorPainter extends CustomPainter {
     final h = size.height;
 
     final stroke = Paint()
-      ..color = color.withValues(alpha: 0.88)
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.4
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
     final fill = Paint()
-      ..color = color.withValues(alpha: 0.90)
+      ..color = color
       ..style = PaintingStyle.fill;
 
     // Composition from redesign mock / update.md layout example.
@@ -305,7 +354,7 @@ class _ProfileDecorPainter extends CustomPainter {
     //                              ✨
     //   ≡≡
 
-    // 5 — code: down 10
+    // 5 — code: top area
     _drawCode(canvas, Offset(w * 0.48 - 20, topPad + 38), 58, fill);
 
     // 4 — sparkle: slightly lower
@@ -321,8 +370,8 @@ class _ProfileDecorPainter extends CustomPainter {
     _drawSparkle(canvas, Offset(w - 20 - 20 + 10, h * 0.58 - 30), 40, stroke);
     // 2 — hatch: slightly lower
     _drawHatch(canvas, Offset(w * 0.05, h * 0.72), 28, stroke);
-    // 9 — hatch: left 10
-    _drawHatch(canvas, Offset(w * 0.82 + 10, h * 0.26 - 15), 28, stroke);
+    // 9 — hatch: top-right (≡ lines), move left 20
+    _drawHatch(canvas, Offset(w * 0.82 - 10, h * 0.26 - 15), 28, stroke);
   }
 
   void _drawCode(Canvas canvas, Offset c, double size, Paint paint) {

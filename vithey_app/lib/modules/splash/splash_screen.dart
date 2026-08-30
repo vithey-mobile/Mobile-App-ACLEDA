@@ -94,7 +94,7 @@ class _SplashTitle extends StatelessWidget {
     return Text(
       AppStrings.appName.split(' ').first,
       style: const TextStyle(
-        color: AppColors.splashTextWhite,
+        color: AppColors.accentLight,
         fontSize: 30,
         fontWeight: FontWeight.w600,
       ),

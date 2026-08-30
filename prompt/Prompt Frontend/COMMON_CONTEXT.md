@@ -44,8 +44,8 @@ class AppAssets {
 **Layers (back → front):**
 
 1. White page base  
-2. Light teal rear wave — `AppColors.authWaveRear` ≈ `#6AD6D2`  
-3. Teal front wave — `AppColors.authHeaderTeal` ≈ `#2FC5C1`
+2. Light teal rear wave — `AppColors.waveRearOn(cardSurface)` (`primaryLight` @ 50%)  
+3. Teal front wave — `AppColors.primaryLight` ≈ `#2FC5C1`
 
 **Wave rules:**
 
@@ -245,7 +245,7 @@ Global access:
 | 6   | Post Detail          | Full post + comments + apply              |
 | 7   | Apply CV             | Upload CV for job application             |
 | 8   | Preview CV           | View/download user CV                     |
-| 9   | Profile              | Wavy header, About/Videos/Posters/Jobs/Applied Jobs — see `Screen prompt/profile/README.md` |
+| 9   | Profile              | Wavy header, All/Reels/Posters/Jobs/Applied Jobs — see `Screen prompt/profile/README.md` |
 | 10  | Finance              | Payment history + alerts (verified only)  |
 | 11  | Student Verification | Verify AUB student → unlock finance       |
 | 12  | Chat                 | Chat list + message requests              |

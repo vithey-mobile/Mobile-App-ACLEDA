@@ -15,6 +15,7 @@ class FeedActionBar extends StatefulWidget {
     this.onRepost,
     this.alignStart = false,
     this.onDark = false,
+    this.showShareAction = true,
   });
 
   final FeedPost post;
@@ -29,6 +30,9 @@ class FeedActionBar extends StatefulWidget {
 
   /// Light icons for dark fullscreen overlays.
   final bool onDark;
+
+  /// When false, hides the trailing share (send) action — used on profile cards.
+  final bool showShareAction;
 
   @override
   State<FeedActionBar> createState() => _FeedActionBarState();
@@ -207,10 +211,11 @@ class _FeedActionBarState extends State<FeedActionBar>
                   onTap: widget.onRepost ?? widget.onShare,
                   child: Icon(Icons.repeat_rounded, size: 22, color: idle),
                 ),
-                _IconAction(
-                  onTap: widget.onShare,
-                  child: Icon(Icons.send_outlined, size: 22, color: idle),
-                ),
+                if (widget.showShareAction)
+                  _IconAction(
+                    onTap: widget.onShare,
+                    child: Icon(Icons.send_outlined, size: 22, color: idle),
+                  ),
               ],
             ),
           ),

@@ -18,6 +18,7 @@ Future<void> showMediaFullscreen(
   VoidCallback? onShare,
   VoidCallback? onFollow,
   VoidCallback? onAuthorTap,
+  bool showShareAction = true,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -33,6 +34,7 @@ Future<void> showMediaFullscreen(
         onShare: onShare,
         onFollow: onFollow,
         onAuthorTap: onAuthorTap,
+        showShareAction: showShareAction,
       ),
     ),
   );
@@ -47,6 +49,7 @@ class MediaFullscreenViewer extends StatefulWidget {
     this.onShare,
     this.onFollow,
     this.onAuthorTap,
+    this.showShareAction = true,
   });
 
   final FeedPost post;
@@ -55,6 +58,7 @@ class MediaFullscreenViewer extends StatefulWidget {
   final VoidCallback? onShare;
   final VoidCallback? onFollow;
   final VoidCallback? onAuthorTap;
+  final bool showShareAction;
 
   @override
   State<MediaFullscreenViewer> createState() => _MediaFullscreenViewerState();
@@ -251,11 +255,13 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                   label: _post.shareCount > 0 ? '${_post.shareCount}' : '',
                   onTap: _onShare,
                 ),
-                const SizedBox(height: 18),
-                _SideAction(
-                  icon: Icons.send_rounded,
-                  onTap: _onShare,
-                ),
+                if (widget.showShareAction) ...[
+                  const SizedBox(height: 18),
+                  _SideAction(
+                    icon: Icons.send_rounded,
+                    onTap: _onShare,
+                  ),
+                ],
               ],
             ),
           ),

@@ -11,38 +11,38 @@ ThemeData buildLightTheme() {
       brightness: Brightness.light,
       primary: AppColors.primary,
       secondary: AppColors.secondary,
-      surface: AppColors.lightSurface,
-      onSurface: AppColors.authHeading,
-      onSurfaceVariant: AppColors.authMuted,
+      surface: AppColors.accentLight,
+      onSurface: AppColors.titleLight,
+      onSurfaceVariant: AppColors.bodyLight,
       error: AppColors.error,
     ),
-    scaffoldBackgroundColor: AppColors.lightSurface,
-    canvasColor: AppColors.lightSurface,
-    cardColor: AppColors.lightSurface,
-    dividerColor: AppColors.authBorder,
+    scaffoldBackgroundColor: AppColors.accentLight,
+    canvasColor: AppColors.accentLight,
+    cardColor: AppColors.accentLight,
+    dividerColor: AppColors.borderLight,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.lightSurface,
+      backgroundColor: AppColors.accentLight,
       foregroundColor: AppColors.lightText,
       elevation: 0,
       centerTitle: true,
       surfaceTintColor: Colors.transparent,
     ),
     bottomAppBarTheme: const BottomAppBarThemeData(
-      color: AppColors.lightSurface,
+      color: AppColors.accentLight,
       surfaceTintColor: Colors.transparent,
       elevation: 8,
     ),
     cardTheme: CardThemeData(
-      color: AppColors.lightSurface,
+      color: AppColors.accentLight,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.authBorder),
+        side: const BorderSide(color: AppColors.borderLight),
       ),
     ),
-    dividerTheme: const DividerThemeData(color: AppColors.authBorder, thickness: 1),
+    dividerTheme: const DividerThemeData(color: AppColors.borderLight, thickness: 1),
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppColors.lightSurface,
+      backgroundColor: AppColors.accentLight,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -50,14 +50,14 @@ ThemeData buildLightTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: semantic.inputFill,
-      hintStyle: const TextStyle(color: AppColors.authMuted),
+      hintStyle: const TextStyle(color: AppColors.bodyLight),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.authBorder),
+        borderSide: const BorderSide(color: AppColors.borderLight),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.authBorder),
+        borderSide: const BorderSide(color: AppColors.borderLight),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -67,7 +67,7 @@ ThemeData buildLightTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.accentLight,
         minimumSize: const Size(64, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

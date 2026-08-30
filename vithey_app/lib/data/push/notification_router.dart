@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/services/notification_service.dart';
 import 'package:aub_connect_app/modules/apply_cv/models/application_status_args.dart';
 import 'package:aub_connect_app/modules/notification/utils/notification_display_text.dart';
@@ -71,7 +72,7 @@ class NotificationRouter {
       case NotificationType.newFollower:
         final userId = dest.userId ?? dest.referenceId;
         if (userId != null && userId.isNotEmpty) {
-          Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: userId));
+          openUserProfile(userId);
         }
         break;
       case NotificationType.jobApplicationReceived:

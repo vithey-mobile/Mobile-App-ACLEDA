@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
-import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
@@ -87,7 +87,7 @@ class SearchSeeAllController extends GetxController {
 
   Future<void> openPerson(UserSearchResult user) async {
     await _repository.addRecentUser(user);
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: user.userId));
+    openUserProfile(user.userId);
   }
 
   void openPost(String postId) => Get.toNamed(AppRoutes.postDetail, arguments: postId);

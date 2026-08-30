@@ -19,14 +19,14 @@ class SplashBrandTitle extends StatelessWidget {
               height: 14,
               child: CircularProgressIndicator(
                 strokeWidth: 1.6,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.splashTextWhite),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentLight),
               ),
             ),
             const SizedBox(width: 6),
             Text(
               AppStrings.loading,
               style: TextStyle(
-                color: AppColors.splashTextWhite.withOpacity(0.9),
+                color: AppColors.accentLight.withValues(alpha: 0.9),
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.4,
@@ -38,7 +38,7 @@ class SplashBrandTitle extends StatelessWidget {
         Text(
           AppStrings.appName.split(' ').first,
           style: const TextStyle(
-            color: AppColors.splashTextWhite,
+            color: AppColors.accentLight,
             fontSize: 30,
             fontWeight: FontWeight.w600,
           ),

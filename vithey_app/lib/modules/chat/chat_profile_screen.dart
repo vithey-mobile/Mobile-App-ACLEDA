@@ -9,7 +9,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/chat_shared_content_model.dart';
-import 'package:aub_connect_app/data/models/profile_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_call_sheet.dart';
@@ -75,7 +75,7 @@ class ChatProfileController extends GetxController {
   void openFullProfile() {
     final id = _participantId;
     if (id == null) return;
-    Get.toNamed(AppRoutes.profile, arguments: ProfileArgs(userId: id));
+    openUserProfile(id);
   }
 
   void openMessage() => Get.back();

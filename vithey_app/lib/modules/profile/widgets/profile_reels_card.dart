@@ -6,8 +6,8 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
 import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 
-class ProfileVideoCard extends StatelessWidget {
-  const ProfileVideoCard({
+class ProfileReelsCard extends StatelessWidget {
+  const ProfileReelsCard({
     super.key,
     required this.post,
     required this.onLike,
@@ -46,6 +46,7 @@ class ProfileVideoCard extends StatelessWidget {
               onLike: onLike,
               onComment: onComment,
               onShare: onShare,
+              showShareAction: false,
             ),
             child: AspectRatio(
               aspectRatio: 16 / 9,
@@ -118,6 +119,7 @@ class ProfileVideoCard extends StatelessWidget {
             onComment: onComment,
             onShare: onShare,
             alignStart: true,
+            showShareAction: false,
           ),
         ],
       ),

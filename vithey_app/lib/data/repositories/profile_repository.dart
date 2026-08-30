@@ -89,6 +89,17 @@ class ProfileRepository {
     return _jobApplicationRepository.getMyAppliedJobs();
   }
 
+  Future<List<AppliedJobSummary>> getUserAppliedJobs(String userId) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      return ApplicationFixtures.appliedJobsFor(userId);
+    }
+    if (userId == currentUserId) {
+      return getMyAppliedJobs();
+    }
+    return const [];
+  }
+
   Future<UserProfileModel> updateProfile({
     String? fullName,
     String? bio,

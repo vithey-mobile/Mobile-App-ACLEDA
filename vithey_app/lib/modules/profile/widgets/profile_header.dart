@@ -98,8 +98,62 @@ class ProfileActionRow extends StatelessWidget {
   final VoidCallback onVerifyStudent;
   final VoidCallback onShare;
 
-  static const _buttonHeight = 40.0;
-  static const _radius = 10.0;
+  static const _buttonPadding =
+      EdgeInsets.symmetric(horizontal: 20, vertical: 10);
+  static const _shareButtonPadding =
+      EdgeInsets.symmetric(horizontal: 20, vertical: 10);
+  static const _buttonGap = 16.0;
+  static const _radius = 8.0;
+  static const _labelStyle = TextStyle(
+    fontWeight: FontWeight.w600,
+    fontSize: 13,
+    height: 1.1,
+  );
+
+  ButtonStyle _filledStyle(Color background, Color foreground) {
+    return FilledButton.styleFrom(
+      backgroundColor: background,
+      foregroundColor: foreground,
+      elevation: 0,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      minimumSize: Size.zero,
+      padding: _buttonPadding,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+    );
+  }
+
+  ButtonStyle _outlinedStyle({
+    required Color foreground,
+    required Color border,
+    Color? background,
+  }) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: foreground,
+      backgroundColor: background,
+      side: BorderSide(color: border),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      minimumSize: Size.zero,
+      padding: _buttonPadding,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+    );
+  }
+
+  ButtonStyle _shareStyle(Color primary) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: primary,
+      side: BorderSide(color: primary),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      minimumSize: Size.zero,
+      padding: _shareButtonPadding,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,152 +161,59 @@ class ProfileActionRow extends StatelessWidget {
     final primary = Theme.of(context).colorScheme.primary;
     final onPrimary = Theme.of(context).colorScheme.onPrimary;
     final border = context.appColors.border;
+    final sheet = Theme.of(context).scaffoldBackgroundColor;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.all(10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (isOwnProfile) ...[
-            Expanded(
-              flex: 5,
-              child: SizedBox(
-                height: _buttonHeight,
-                child: FilledButton.icon(
-                  onPressed: onEditProfile,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: onPrimary,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(_radius),
-                    ),
-                  ),
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  label: const Text(
-                    'Edit Profile Info',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
+        if (isOwnProfile) ...[
+          FilledButton(
+            onPressed: onEditProfile,
+            style: _filledStyle(primary, onPrimary),
+            child: const Text('Edit Profile', style: _labelStyle),
+          ),
+          const SizedBox(width: _buttonGap),
+          OutlinedButton(
+            onPressed: onVerifyStudent,
+            style: _outlinedStyle(
+              foreground: heading,
+              border: border,
+              background: sheet,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 4,
-              child: SizedBox(
-                height: _buttonHeight,
-                child: OutlinedButton(
-                  onPressed: onVerifyStudent,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: heading,
-                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                    side: BorderSide(color: border),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(_radius),
-                    ),
-                  ),
-                  child: Text(
-                    isStudentVerified ? 'Review Verify' : 'Verify Student',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ] else ...[
-            Expanded(
-              child: SizedBox(
-                height: _buttonHeight,
-                child: isFollowing
-                    ? OutlinedButton(
-                        onPressed: onFollow,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: primary,
-                          side: BorderSide(color: primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(_radius),
-                          ),
-                        ),
-                        child: const Text(
-                          'Following',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      )
-                    : FilledButton(
-                        onPressed: onFollow,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(_radius),
-                          ),
-                        ),
-                        child: const Text(
-                          'Follow',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: _buttonHeight,
-                child: OutlinedButton(
-                  onPressed: onMessage,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: primary,
-                    side: BorderSide(color: primary),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(_radius),
-                    ),
-                  ),
-                  child: const Text(
-                    'Message',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(width: 8),
-          SizedBox(
-            width: _buttonHeight,
-            height: _buttonHeight,
-            child: OutlinedButton(
-              onPressed: onShare,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: primary,
-                side: BorderSide(color: primary),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(_radius),
-                ),
-              ),
-              child: const Icon(Icons.ios_share, size: 20),
+            child: Text(
+              isStudentVerified ? 'Review' : 'Verify',
+              style: _labelStyle,
             ),
           ),
+        ] else ...[
+          if (isFollowing)
+            OutlinedButton(
+              onPressed: onFollow,
+              style: _outlinedStyle(foreground: primary, border: primary),
+              child: const Text('Unfollow', style: _labelStyle),
+            )
+          else
+            FilledButton(
+              onPressed: onFollow,
+              style: _filledStyle(primary, onPrimary),
+              child: const Text('Follow', style: _labelStyle),
+            ),
+          const SizedBox(width: _buttonGap),
+          OutlinedButton(
+            onPressed: onMessage,
+            style: _outlinedStyle(foreground: primary, border: primary),
+            child: const Text('Message', style: _labelStyle),
+          ),
         ],
+        const SizedBox(width: _buttonGap),
+        OutlinedButton(
+          onPressed: onShare,
+          style: _shareStyle(primary),
+          child: const Icon(Icons.ios_share, size: 18),
+        ),
+      ],
       ),
     );
   }
