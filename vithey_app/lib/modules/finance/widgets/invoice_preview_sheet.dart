@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
+import 'package:aub_connect_app/data/models/payment_args.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
+import 'package:aub_connect_app/modules/finance/widgets/bank_select_sheet.dart';
 import 'package:aub_connect_app/modules/finance/widgets/finance_status_colors.dart';
 
 class InvoicePreviewSheet {
@@ -48,6 +51,19 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
 
   void _reportIssue() {
     Get.snackbar(AppStrings.appName, 'Report an issue is coming soon');
+  }
+
+  void _payWithAcleda() {
+    Get.back();
+    Get.toNamed(
+      AppRoutes.financePayment,
+      arguments: PaymentArgs(invoice: widget.invoice, method: PaymentMethodType.acleda),
+    );
+  }
+
+  void _payWithAnotherBank() {
+    Get.back();
+    BankSelectSheet.show(invoice: widget.invoice);
   }
 
   @override
@@ -219,18 +235,32 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
                 ],
               ),
               const SizedBox(height: 22),
-              _InvoiceActionButton(
-                label: 'Download PDF Invoice',
-                icon: Icons.download_outlined,
-                isLoading: _downloading,
-                onPressed: _download,
-              ),
-              const SizedBox(height: 10),
-              _InvoiceActionButton(
-                label: 'Report an Issue',
-                icon: Icons.help_outline,
-                onPressed: _reportIssue,
-              ),
+              if (invoice.status == PaymentStatus.paid) ...[
+                _InvoiceActionButton(
+                  label: 'Download PDF Invoice',
+                  icon: Icons.download_outlined,
+                  isLoading: _downloading,
+                  onPressed: _download,
+                ),
+                const SizedBox(height: 10),
+                _InvoiceActionButton(
+                  label: 'Report an Issue',
+                  icon: Icons.help_outline,
+                  onPressed: _reportIssue,
+                ),
+              ] else ...[
+                _InvoiceActionButton(
+                  label: 'Pay Now With Acleda',
+                  icon: Icons.account_balance_wallet_outlined,
+                  onPressed: _payWithAcleda,
+                ),
+                const SizedBox(height: 10),
+                _InvoiceActionButton(
+                  label: 'Pay Now With Another Bank',
+                  icon: Icons.account_balance_outlined,
+                  onPressed: _payWithAnotherBank,
+                ),
+              ],
             ],
           ),
         ),

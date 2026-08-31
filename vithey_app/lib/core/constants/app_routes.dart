@@ -29,6 +29,7 @@ class AppRoutes {
   static const studentVerification = '/student-verification';
   static const verificationStatus = '/verification-status';
   static const finance = '/finance';
+  static const financePayment = '/finance/pay';
   static const chat = '/chat';
   static const chatDetail = '/chat/detail';
   static const chatProfile = '/chat/profile';
