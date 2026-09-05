@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:flutter/material.dart';
 
 class PasswordRequirementCard extends StatelessWidget {
   const PasswordRequirementCard({super.key, required this.requirements});
@@ -9,19 +10,18 @@ class PasswordRequirementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.appColors.border),
-      ),
+    return VitheyCard(
+      bordered: true,
+      elevated: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Requirements',
-            style: TextStyle(fontWeight: FontWeight.bold, color: context.appColors.heading),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: context.appColors.heading,
+            ),
           ),
           const SizedBox(height: 12),
           for (final entry in requirements.entries)

@@ -7,6 +7,11 @@ public record ChatResponse(
     UUID sessionId,
     String reply,
     AiTopic topic,
-    UUID messageId
+    UUID messageId,
+    UUID requestId
 ) {
+
+  public ChatResponse(UUID sessionId, String reply, AiTopic topic, UUID messageId) {
+    this(sessionId, reply, topic, messageId, null);
+  }
 }

@@ -114,6 +114,8 @@ Pagination: `page` default `1` (1-based, clamped), `limit` default `20` max `50`
 |--------|------|------|
 | GET | `/api/v1/posts/{postId}/comments` | 200 |
 | POST | `/api/v1/posts/{postId}/comments` | 201 |
+| PATCH | `/api/v1/posts/{postId}/comments/{commentId}` | 200 — author only, body `{ "text": "..." }` |
+| DELETE | `/api/v1/posts/{postId}/comments/{commentId}` | 204 (author only) |
 
 ```json
 { "text": "Great post!", "mention_user_ids": ["uuid"] }
@@ -147,6 +149,8 @@ Pagination: `page` default `1` (1-based, clamped), `limit` default `20` max `50`
 | Follow | Reject self-follow; skip insert if pair exists → publish `follow.created` on new edge |
 | Create post | Validate `media_file_id` via FileServiceClient for VIDEO/POSTER (type must match) |
 | Soft delete | Owner only; set `deleted_at` |
+| Edit comment | Author only; updates `text`, returns enriched `CommentResponse` |
+| Delete comment | Author only; deletes mentions then comment row; no event published |
 | Feign | Forward JWT / gateway user headers |
 | Events | JSON RabbitMQ payloads; publish failures logged, do not mask as 401 |
 
@@ -162,7 +166,9 @@ Pagination: `page` default `1` (1-based, clamped), `limit` default `20` max `50`
 | Invalid or missing media file | `INVALID_FILE` | 400 |
 | Missing/invalid JWT | `UNAUTHORIZED` | 401 |
 | Not post owner on delete | `FORBIDDEN` | 403 |
+| Not comment author on edit/delete | `FORBIDDEN` | 403 |
 | Post not found / deleted | `NOT_FOUND` | 404 |
+| Comment not found on edit/delete | `NOT_FOUND` | 404 |
 | Follow self | `BUSINESS_RULE_VIOLATION` | 422 |
 | Unexpected / Feign failure | `INTERNAL_ERROR` | 500 |
 
@@ -170,6 +176,7 @@ Pagination: `page` default `1` (1-based, clamped), `limit` default `20` max `50`
 
 - `FollowServiceTest` — self-follow rejection
 - `PostServiceTest` — media/job validation, JOB create + event, mismatched media type
+- `CommentServiceTest` — delete own comment, delete other's → 403, missing → 404, edit own comment, edit other's → 403
 
 ## Local testing
 

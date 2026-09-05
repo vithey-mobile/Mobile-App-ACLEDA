@@ -15,7 +15,8 @@ import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
 import 'package:aub_connect_app/modules/chat/widgets/delete_message_dialog.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/report_reason_dialog.dart';
 
 class ChatDetailController extends GetxController {
   ChatDetailController(this._chatRepository);
@@ -630,24 +631,9 @@ class ChatDetailController extends GetxController {
   Future<void> reportUser() async {
     final current = participant.value;
     if (current == null) return;
-    final reasonController = TextEditingController();
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Report user'),
-        content: shad.TextField(
-          controller: reasonController,
-          hintText: 'Reason for report',
-          maxLines: 3,
-        ),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Report')),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await _chatRepository.reportUser(current.id, reasonController.text.trim());
-    reasonController.dispose();
+    final reason = await showReportReasonDialog(title: 'Report user');
+    if (reason == null || reason.isEmpty) return;
+    await _chatRepository.reportUser(current.id, reason);
     Get.snackbar(AppStrings.appName, 'Report submitted');
   }
 
@@ -665,15 +651,11 @@ class ChatDetailController extends GetxController {
 
   Future<void> blockConversation() async {
     if (_conversationId == null) return;
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Block this user?'),
-        content: const shad.Text('You will no longer receive messages from this person.'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Block')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Block this user?',
+      message: 'You will no longer receive messages from this person.',
+      confirmLabel: 'Block',
     );
     if (confirmed != true) return;
     await _chatRepository.blockConversation(_conversationId!);

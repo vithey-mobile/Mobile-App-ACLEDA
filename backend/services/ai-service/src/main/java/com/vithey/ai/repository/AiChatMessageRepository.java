@@ -2,6 +2,7 @@ package com.vithey.ai.repository;
 
 import com.vithey.ai.entity.AiChatMessage;
 import com.vithey.ai.entity.AiMessageRole;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -15,5 +16,11 @@ public interface AiChatMessageRepository extends JpaRepository<AiChatMessage, UU
   Optional<AiChatMessage> findFirstBySessionIdAndRoleOrderByCreatedAtDesc(
       UUID sessionId,
       AiMessageRole role
+  );
+
+  Optional<AiChatMessage> findFirstBySessionIdAndRoleAndCreatedAtBeforeOrderByCreatedAtDesc(
+      UUID sessionId,
+      AiMessageRole role,
+      Instant createdAt
   );
 }

@@ -5,6 +5,8 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
@@ -14,7 +16,6 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/application_feedback_success.dart';
 import 'package:aub_connect_app/modules/profile/widgets/experience_timeline.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ApplicantDetailController extends GetxController {
   ApplicantDetailController(this._repository);
@@ -63,15 +64,11 @@ class ApplicantDetailController extends GetxController {
     final current = detail.value;
     if (current == null || isActionLoading.value) return;
 
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Accept applicant?'),
-        content: const shad.Text('This applicant will be notified of your decision.'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Accept')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Accept applicant?',
+      message: 'This applicant will be notified of your decision.',
+      confirmLabel: 'Accept',
     );
     if (confirmed != true) return;
 
@@ -89,15 +86,12 @@ class ApplicantDetailController extends GetxController {
     final current = detail.value;
     if (current == null || isActionLoading.value) return;
 
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Reject applicant?'),
-        content: const shad.Text('This applicant will be notified of your decision.'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.destructive(onPressed: () => Get.back(result: true), child: const shad.Text('Reject')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Reject applicant?',
+      message: 'This applicant will be notified of your decision.',
+      confirmLabel: 'Reject',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
 
@@ -202,9 +196,9 @@ class ApplicantDetailScreen extends GetView<ApplicantDetailController> {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            shad.Button.primary(
+                            CustomButton(
+                              label: 'View Profile',
                               onPressed: controller.openApplicantProfile,
-                              child: const shad.Text('View Profile'),
                             ),
                           ],
                         ),
@@ -520,8 +514,6 @@ class _OwnerActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final acceptEnabled = !isLoading && status != ApplicationStatus.accepted;
     final rejectEnabled = !isLoading && status != ApplicationStatus.rejected;
-    // Same teal as View Profile (`shad.Button.primary` → colorScheme.primary).
-    final primary = Theme.of(context).colorScheme.primary;
 
     return SafeArea(
       top: false,
@@ -534,35 +526,17 @@ class _OwnerActionBar extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: FilledButton(
+              child: CustomButton(
+                label: 'Accept',
                 onPressed: acceptEnabled ? onAccept : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: primary,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: primary.withValues(alpha: 0.45),
-                  disabledForegroundColor: Colors.white.withValues(alpha: 0.8),
-                  surfaceTintColor: Colors.transparent,
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text(
-                  'Accept',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
+              child: CustomButton(
+                label: 'Reject',
+                variant: CustomButtonVariant.outline,
                 onPressed: rejectEnabled ? onReject : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.error,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.error.withValues(alpha: 0.4),
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],

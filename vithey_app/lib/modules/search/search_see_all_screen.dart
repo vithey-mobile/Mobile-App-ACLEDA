@@ -18,7 +18,8 @@ class SearchSeeAllBinding extends Bindings {
   @override
   void dependencies() {
     final args = Get.arguments as SearchSeeAllArgs;
-    Get.lazyPut(() => SearchSeeAllController(Get.find<SearchRepository>(), args));
+    Get.lazyPut(
+        () => SearchSeeAllController(Get.find<SearchRepository>(), args));
   }
 }
 
@@ -40,7 +41,8 @@ class SearchSeeAllScreen extends GetView<SearchSeeAllController> {
           return const LoadingWidget();
         }
         if (controller.hasError.value) {
-          return AppErrorWidget(message: 'Search failed', onRetry: controller.loadFirstPage);
+          return AppErrorWidget(
+              message: 'Search failed', onRetry: controller.loadFirstPage);
         }
 
         if (controller.isPeople) {
@@ -49,13 +51,15 @@ class SearchSeeAllScreen extends GetView<SearchSeeAllController> {
           }
           return NotificationListener<ScrollNotification>(
             onNotification: (notification) {
-              if (notification.metrics.pixels >= notification.metrics.maxScrollExtent - 120) {
+              if (notification.metrics.pixels >=
+                  notification.metrics.maxScrollExtent - 120) {
                 controller.loadMore();
               }
               return false;
             },
             child: ListView.builder(
-              itemCount: controller.people.length + (controller.isLoadingMore.value ? 1 : 0),
+              itemCount: controller.people.length +
+                  (controller.isLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= controller.people.length) {
                   return const ShimmerListTile();
@@ -78,13 +82,15 @@ class SearchSeeAllScreen extends GetView<SearchSeeAllController> {
 
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {
-            if (notification.metrics.pixels >= notification.metrics.maxScrollExtent - 120) {
+            if (notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 120) {
               controller.loadMore();
             }
             return false;
           },
           child: ListView.builder(
-            itemCount: controller.posts.length + (controller.isLoadingMore.value ? 1 : 0),
+            itemCount: controller.posts.length +
+                (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= controller.posts.length) {
                 return const ShimmerListTile();

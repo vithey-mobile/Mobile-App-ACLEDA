@@ -19,6 +19,9 @@ Screen prompts are organized under `Screen prompt/`. Where `v0/` + `v1/` exist, 
 
 This project uses a **Shadcn Flutter–style design system**: screens must be composed using shared components + theme tokens.
 
+**Standardization plan:** [`SHADCN_STANDARD_PLAN.md`](SHADCN_STANDARD_PLAN.md)  
+**GLM prompts (6 chats, in order):** [`run-shadcn-standard/README.md`](run-shadcn-standard/README.md)
+
 - Shared components: `vithey_app/lib/core/widgets/`
 - Theme + semantic tokens: `vithey_app/lib/core/theme/` (especially `app_semantic_colors.dart`)
 

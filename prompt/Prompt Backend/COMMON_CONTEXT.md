@@ -26,6 +26,7 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 | Notification Service | `notification_db` | In-app + FCM push notifications |
 | AI Service | `ai_db` | CV/job/interview/finance AI chat (**Python FastAPI**) |
 | File Service | — (MinIO) | Upload/download media, CV, avatar |
+| Map Service | `map_db` | Nearby shop/place search (Google Places), filters, favorites |
 
 ## Infrastructure
 | Component | Technology | Purpose |

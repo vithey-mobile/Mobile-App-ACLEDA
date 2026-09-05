@@ -22,7 +22,11 @@ public record ApiResponseWrapper<T>(T data, Meta meta, ErrorBody error) {
     return new ApiResponseWrapper<>(null, null, new ErrorBody(code, message, details));
   }
 
-  public record Meta(int page, int limit, long total, int totalPages) {
+  public record Meta(int page, int limit, long total, int totalPages, Long unreadTotal) {
+
+    public Meta(int page, int limit, long total, int totalPages) {
+      this(page, limit, total, totalPages, null);
+    }
   }
 
   public record ErrorBody(String code, String message, List<FieldErrorBody> details) {

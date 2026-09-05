@@ -120,7 +120,10 @@ services/auth-service/
 |--------|------|-------------|------|
 | POST | `/api/v1/auth/logout` | Revoke refresh token | 204 |
 | GET | `/api/v1/auth/me` | Auth info for current user | 200 |
+| PATCH | `/api/v1/auth/me/password` | `{ "current_password", "new_password" }` | 200 |
 | POST | `/api/v1/students/verify` | AUB student verification | 200 |
+
+**Change password:** BCrypt-verify `current_password`; hash and store `new_password`. Wrong current → `401 INVALID_CREDENTIALS`. Weak new password → `400 VALIDATION_ERROR`. Flutter: `PATCH /auth/me/password`.
 
 **Student verify:**
 ```json
@@ -136,6 +139,7 @@ services/auth-service/
 | Login | Find by email/phone → BCrypt verify → issue tokens |
 | Refresh | Validate refresh hash → rotate (revoke old, issue new) |
 | Logout | Revoke caller's refresh token |
+| Change password | Verify current BCrypt hash → persist new hash |
 | Student verify | Validate AUB email domain → update role → publish `student.verified` |
 
 ## JWT claims

@@ -20,4 +20,4 @@ Single sources of truth used by all prompt layers. **Do not copy these tables in
 
 | Human | AI session |
 | --- | --- |
-| `Project Overview.txt` | `MASTER_AI_PROMPT.md` |
+| `Project Overview.txt` + `Prompt Backend/LEARNING.md` | `Prompt Backend/MASTER_AI_PROMPT.md` |

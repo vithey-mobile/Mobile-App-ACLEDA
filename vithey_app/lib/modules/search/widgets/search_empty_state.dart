@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 
 class SearchEmptyState extends StatelessWidget {
   const SearchEmptyState({super.key, required this.query});
@@ -8,34 +8,10 @@ class SearchEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_off, size: 56, color: colors.muted.withValues(alpha: 0.6)),
-            const SizedBox(height: 16),
-            Text(
-              'No results for "$query"',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: colors.heading,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try different keywords or check spelling',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: colors.muted),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateWidget(
+      title: 'No results for "$query"',
+      subtitle: 'Try different keywords or check spelling',
+      icon: Icons.search_off,
     );
   }
 }

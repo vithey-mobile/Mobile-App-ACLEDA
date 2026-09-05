@@ -24,6 +24,7 @@ Use this folder for one backend service's Docker Compose and GitHub Actions CI.
 | Chat Service | `chat-service/DEVOPS_PROMPT.md` |
 | Notification Service | `notification-service/DEVOPS_PROMPT.md` |
 | AI Service | `ai-service/DEVOPS_PROMPT.md` |
+| Map Service | `map-service/DEVOPS_PROMPT.md` |
 
 ## Output pattern
 

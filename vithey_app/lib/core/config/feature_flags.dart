@@ -12,27 +12,41 @@ class FeatureFlags {
   static bool _isTrue(String? value) => value?.toLowerCase() == 'true';
 
   /// Global API mock fallback when individual module flags are unset.
-  bool get useMockApi => !_isFalse(dotenv.env['USE_MOCK_API']);
+  /// Always off in production builds.
+  bool get useMockApi =>
+      !isProduction && !_isFalse(dotenv.env['USE_MOCK_API']);
 
-  bool get useMockAuth => _isTrue(dotenv.env['USE_MOCK_AUTH']);
+  bool get useMockAuth =>
+      !isProduction && _isTrue(dotenv.env['USE_MOCK_AUTH']);
 
   bool get useMockAi {
+    if (isProduction) return false;
     final mockAi = dotenv.env['USE_MOCK_AI'];
     if (mockAi != null) return !_isFalse(mockAi);
     return useMockApi;
   }
 
   bool get useMockSearch {
+    if (isProduction) return false;
     final mockSearch = dotenv.env['USE_MOCK_SEARCH'];
     if (mockSearch != null) return !_isFalse(mockSearch);
     return useMockApi;
   }
 
   bool get useMockChat =>
-      _isTrue(dotenv.env['USE_MOCK_CHAT']) || useMockApi;
+      !isProduction &&
+      (_isTrue(dotenv.env['USE_MOCK_CHAT']) || useMockApi);
 
   bool get useMockNotifications =>
-      _isTrue(dotenv.env['USE_MOCK_NOTIFICATIONS']) || useMockApi;
+      !isProduction &&
+      (_isTrue(dotenv.env['USE_MOCK_NOTIFICATIONS']) || useMockApi);
+
+  bool get useMockMap {
+    if (isProduction) return false;
+    final mockMap = dotenv.env['USE_MOCK_MAP'];
+    if (mockMap != null) return !_isFalse(mockMap);
+    return useMockApi;
+  }
 
   bool get enableGoogleAuth => _isTrue(dotenv.env['ENABLE_GOOGLE_AUTH']);
 

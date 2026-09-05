@@ -21,29 +21,23 @@ class ChangePasswordScreen extends GetView<ChangePasswordController> {
             const SizedBox(height: 8),
             const PasswordHeader(),
             const SizedBox(height: 24),
-            Obx(() => PasswordInputField(
-                  label: 'Current Password',
-                  placeholder: 'Enter current password',
-                  controller: controller.currentPassword,
-                  visible: controller.showCurrent.value,
-                  onToggleVisibility: controller.showCurrent.toggle,
-                )),
+            PasswordInputField(
+              label: 'Current Password',
+              placeholder: 'Enter current password',
+              controller: controller.currentPassword,
+            ),
             const SizedBox(height: 12),
-            Obx(() => PasswordInputField(
-                  label: 'New Password',
-                  placeholder: 'Enter new password',
-                  controller: controller.newPassword,
-                  visible: controller.showNew.value,
-                  onToggleVisibility: controller.showNew.toggle,
-                )),
+            PasswordInputField(
+              label: 'New Password',
+              placeholder: 'Enter new password',
+              controller: controller.newPassword,
+            ),
             const SizedBox(height: 12),
-            Obx(() => PasswordInputField(
-                  label: 'Confirm New Password',
-                  placeholder: 'Repeat new password',
-                  controller: controller.confirmPassword,
-                  visible: controller.showConfirm.value,
-                  onToggleVisibility: controller.showConfirm.toggle,
-                )),
+            PasswordInputField(
+              label: 'Confirm New Password',
+              placeholder: 'Repeat new password',
+              controller: controller.confirmPassword,
+            ),
             const SizedBox(height: 20),
             PasswordRequirementCard(
               requirements: {

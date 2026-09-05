@@ -105,8 +105,8 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
         builder: (context, constraints) {
           final height = constraints.maxHeight;
           // How much of the media strip is still visible under current height.
-          final mediaVisible =
-              (height - minExtent).clamp(0.0, HomeFlexibleHeader.mediaRowHeight);
+          final mediaVisible = (height - minExtent)
+              .clamp(0.0, HomeFlexibleHeader.mediaRowHeight);
 
           return ClipRect(
             child: SizedBox(
@@ -264,6 +264,11 @@ class _Toolbar extends StatelessWidget {
             icon: const Icon(Icons.search),
             onPressed: () => Get.toNamed(AppRoutes.search),
             tooltip: 'Search',
+          ),
+          HomeAppBarAction(
+            icon: const Icon(Icons.map_outlined),
+            onPressed: () => Get.toNamed(AppRoutes.map),
+            tooltip: 'Map',
           ),
           HomeAppBarAction(
             icon: const Icon(Icons.chat_bubble_outline_rounded),

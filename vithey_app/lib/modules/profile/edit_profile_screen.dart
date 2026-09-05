@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
@@ -185,12 +186,6 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cancelFill =
-        isDark ? const Color(0xFF3A3A4E) : const Color(0xFFE8E8EC);
-
     return SafeArea(
       top: false,
       child: Container(
@@ -202,67 +197,18 @@ class _Footer extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: SizedBox(
-                height: 48,
-                child: FilledButton(
-                  onPressed: isSaving ? null : onSave,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: onPrimary,
-                    disabledBackgroundColor: primary.withValues(alpha: 0.45),
-                    elevation: 0,
-                    alignment: Alignment.center,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isSaving
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: onPrimary,
-                          ),
-                        )
-                      : Text(
-                          'Save',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: onPrimary,
-                          ),
-                        ),
-                ),
+              child: CustomButton(
+                label: 'Save',
+                isLoading: isSaving,
+                onPressed: isSaving ? null : onSave,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: SizedBox(
-                height: 48,
-                child: FilledButton(
-                  onPressed: isSaving ? null : onCancel,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: cancelFill,
-                    foregroundColor: context.appColors.heading,
-                    elevation: 0,
-                    alignment: Alignment.center,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: context.appColors.border),
-                    ),
-                  ),
-                  child: Text(
-                    'Cancel',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: context.appColors.heading,
-                    ),
-                  ),
-                ),
+              child: CustomButton(
+                label: 'Cancel',
+                variant: CustomButtonVariant.outline,
+                onPressed: isSaving ? null : onCancel,
               ),
             ),
           ],

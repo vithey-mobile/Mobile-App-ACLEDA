@@ -2,6 +2,7 @@ package com.vithey.career.controller;
 
 import com.vithey.career.dto.request.ApplyJobRequest;
 import com.vithey.career.dto.request.UpdateApplicationStatusRequest;
+import com.vithey.career.dto.response.CvPreviewResponse;
 import com.vithey.career.dto.response.JobApplicationResponse;
 import com.vithey.career.security.CurrentUserProvider;
 import com.vithey.career.service.JobApplicationService;
@@ -63,6 +64,16 @@ public class JobApplicationController {
     UUID currentUserId = currentUserProvider.requireCurrentUser().userId();
     return ResponseEntity.ok(ApiResponseWrapper.success(
         jobApplicationService.getApplication(applicationId, currentUserId)
+    ));
+  }
+
+  @GetMapping("/{applicationId}/cv-preview")
+  ResponseEntity<ApiResponseWrapper<CvPreviewResponse>> getCvPreview(
+      @PathVariable UUID applicationId
+  ) {
+    UUID currentUserId = currentUserProvider.requireCurrentUser().userId();
+    return ResponseEntity.ok(ApiResponseWrapper.success(
+        jobApplicationService.getCvPreview(applicationId, currentUserId)
     ));
   }
 

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:flutter/material.dart';
 
 class DataProtectionCard extends StatelessWidget {
   const DataProtectionCard({super.key, required this.onLearnMore});
@@ -10,19 +11,7 @@ class DataProtectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = context.scheme.primary;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: context.appColors.subtleShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return VitheyCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -33,7 +22,7 @@ class DataProtectionCard extends StatelessWidget {
               Text(
                 'Data Protection',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 16,
                   color: context.appColors.heading,
                 ),

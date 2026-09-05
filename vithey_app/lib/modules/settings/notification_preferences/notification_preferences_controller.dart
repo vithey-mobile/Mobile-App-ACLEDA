@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/settings_models.dart';
 import 'package:aub_connect_app/data/push/fcm_service.dart';
 import 'package:aub_connect_app/data/repositories/settings_repository.dart';
@@ -110,9 +110,11 @@ class NotificationPreferencesController extends GetxController {
       Get.snackbar(
         'Notifications are disabled',
         'Enable notification permission in system settings.',
-        mainButton: TextButton(
+        // GetX types SnackbarController.mainButton as TextButton?;
+        // VitheyTextLink extends TextButton so it satisfies the type.
+        mainButton: VitheyTextLink(
+          label: 'Open settings',
           onPressed: openAppSettings,
-          child: const Text('Open settings'),
         ),
       );
     } else {

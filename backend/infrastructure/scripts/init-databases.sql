@@ -7,3 +7,4 @@ CREATE DATABASE finance_db;
 CREATE DATABASE chat_db;
 CREATE DATABASE notification_db;
 CREATE DATABASE ai_db;
+CREATE DATABASE map_db;

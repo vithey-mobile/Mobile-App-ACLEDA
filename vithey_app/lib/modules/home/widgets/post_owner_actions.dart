@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 
 class PostOwnerActions extends StatelessWidget {
   const PostOwnerActions({
@@ -23,40 +22,24 @@ class PostOwnerActions extends StatelessWidget {
   }
 
   Future<void> _showActions(BuildContext context) async {
-    final action = await showModalBottomSheet<_PostOwnerAction>(
+    final action = await showVitheyActionSheet<_PostOwnerAction>(
       context: context,
-      backgroundColor: context.appColors.cardSurface,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (context) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit_outlined),
-                title: const Text('Edit post'),
-                subtitle: const Text('Update text, media, or job details'),
-                onTap: () => Navigator.pop(context, _PostOwnerAction.edit),
-              ),
-              ListTile(
-                leading:
-                    const Icon(Icons.delete_outline, color: AppColors.error),
-                title: const Text(
-                  'Delete post',
-                  style: TextStyle(color: AppColors.error),
-                ),
-                subtitle: const Text('Permanently remove this post'),
-                onTap: () => Navigator.pop(context, _PostOwnerAction.delete),
-              ),
-            ],
-          ),
+      title: 'Post actions',
+      actions: [
+        VitheyActionSheetAction(
+          value: _PostOwnerAction.edit,
+          label: 'Edit post',
+          subtitle: 'Update text, media, or job details',
+          icon: Icons.edit_outlined,
         ),
-      ),
+        VitheyActionSheetAction(
+          value: _PostOwnerAction.delete,
+          label: 'Delete post',
+          subtitle: 'Permanently remove this post',
+          icon: Icons.delete_outline,
+          destructive: true,
+        ),
+      ],
     );
     if (action == _PostOwnerAction.edit) onEdit();
     if (action == _PostOwnerAction.delete) onDelete();

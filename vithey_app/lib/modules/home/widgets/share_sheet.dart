@@ -6,6 +6,7 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+/// Share options sheet (kit chrome on a module-owned flow).
 class ShareSheet extends StatefulWidget {
   const ShareSheet({
     super.key,
@@ -54,9 +55,9 @@ class _ShareSheetState extends State<ShareSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.appColors.cardSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -115,7 +116,8 @@ class _ShareOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: selected ? AppColors.primary : context.appColors.border),
+          border: Border.all(
+              color: selected ? AppColors.primary : context.appColors.border),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -126,7 +128,11 @@ class _ShareOption extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(title)),
-            if (loading) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+            if (loading)
+              const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2)),
           ],
         ),
       ),

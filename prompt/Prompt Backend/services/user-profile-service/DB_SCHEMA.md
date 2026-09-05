@@ -5,7 +5,11 @@ Database: `user_db`
 Flyway migrations:
 
 - `src/main/resources/db/migration/V1__init_profile_schema.sql`
-- `src/main/resources/db/migration/V2__Enable_pg_trgm_and_full_name_gin_index.sql`
+- `src/main/resources/db/migration/V2__profile_extended_fields.sql`
+- `src/main/resources/db/migration/V3__Enable_pg_trgm_and_full_name_gin_index.sql`
+
+Note: V1 already contains the graduation year / language / theme check
+constraints, so no separate constraints migration exists.
 
 ## Tables
 

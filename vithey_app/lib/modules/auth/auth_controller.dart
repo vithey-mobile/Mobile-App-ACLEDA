@@ -8,10 +8,11 @@ import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
-import 'package:aub_connect_app/modules/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/onboarding/onboarding_controller.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
 import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register }
@@ -251,19 +252,16 @@ class AuthController extends GetxController {
 
   /// Success dialog only (3s). Caller fades then navigates to Screen 2.
   Future<void> promptGoogleAccountAdded() async {
-    Get.dialog<void>(
-      barrierDismissible: false,
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'New account added successfully.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
+    final context = Get.overlayContext;
+    if (context != null) {
+      showConfirmDialog(
+        context: context,
+        title: 'Success',
+        message: 'New account added successfully.',
+        confirmLabel: AppStrings.confirm,
+        barrierDismissible: false,
+      );
+    }
     await Future<void>.delayed(const Duration(seconds: 3));
     if (Get.isDialogOpen ?? false) {
       Get.back<void>();

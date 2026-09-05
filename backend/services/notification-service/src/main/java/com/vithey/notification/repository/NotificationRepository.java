@@ -1,6 +1,7 @@
 package com.vithey.notification.repository;
 
 import com.vithey.notification.entity.Notification;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,9 +14,19 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
   Page<Notification> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
+  @Query("SELECT n FROM Notification n WHERE n.userId = :userId "
+      + "AND (:isRead IS NULL OR n.read = :isRead) ORDER BY n.createdAt DESC")
+  Page<Notification> findByUserIdFilteringRead(
+      @Param("userId") UUID userId,
+      @Param("isRead") Boolean isRead,
+      Pageable pageable);
+
   long countByUserIdAndReadFalse(UUID userId);
 
+  boolean existsByUserIdAndDedupeKey(UUID userId, String dedupeKey);
+
   @Modifying
-  @Query("UPDATE Notification n SET n.read = true WHERE n.userId = :userId AND n.read = false")
-  int markAllRead(@Param("userId") UUID userId);
+  @Query("UPDATE Notification n SET n.read = true, n.readAt = :now "
+      + "WHERE n.userId = :userId AND n.read = false")
+  int markAllRead(@Param("userId") UUID userId, @Param("now") OffsetDateTime now);
 }

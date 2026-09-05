@@ -1,5 +1,6 @@
 package com.vithey.notification.controller;
 
+import com.vithey.notification.dto.response.MarkAllReadResponse;
 import com.vithey.notification.dto.response.NotificationResponse;
 import com.vithey.notification.dto.response.UnreadCountResponse;
 import com.vithey.notification.security.CurrentUserProvider;
@@ -8,6 +9,7 @@ import com.vithey.notification.util.ApiResponseWrapper;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,10 +35,11 @@ public class NotificationController {
   @GetMapping
   ResponseEntity<ApiResponseWrapper<List<NotificationResponse>>> listNotifications(
       @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "20") int limit
+      @RequestParam(defaultValue = "20") int limit,
+      @RequestParam(required = false) Boolean isRead
   ) {
     UUID userId = currentUserProvider.requireCurrentUser().userId();
-    return ResponseEntity.ok(notificationService.listNotifications(userId, page, limit));
+    return ResponseEntity.ok(notificationService.listNotifications(userId, page, limit, isRead));
   }
 
   @GetMapping("/unread-count")
@@ -46,15 +49,22 @@ public class NotificationController {
   }
 
   @PatchMapping("/read-all")
-  ResponseEntity<ApiResponseWrapper<Void>> markAllRead() {
+  ResponseEntity<ApiResponseWrapper<MarkAllReadResponse>> markAllRead() {
     UUID userId = currentUserProvider.requireCurrentUser().userId();
-    notificationService.markAllRead(userId);
-    return ResponseEntity.ok(ApiResponseWrapper.success(null));
+    long updated = notificationService.markAllRead(userId);
+    return ResponseEntity.ok(ApiResponseWrapper.success(new MarkAllReadResponse(updated)));
   }
 
   @PatchMapping("/{notificationId}/read")
   ResponseEntity<ApiResponseWrapper<NotificationResponse>> markRead(@PathVariable UUID notificationId) {
     UUID userId = currentUserProvider.requireCurrentUser().userId();
     return ResponseEntity.ok(ApiResponseWrapper.success(notificationService.markRead(notificationId, userId)));
+  }
+
+  @DeleteMapping("/{notificationId}")
+  ResponseEntity<Void> delete(@PathVariable UUID notificationId) {
+    UUID userId = currentUserProvider.requireCurrentUser().userId();
+    notificationService.delete(notificationId, userId);
+    return ResponseEntity.noContent().build();
   }
 }

@@ -4,9 +4,13 @@ import com.vithey.career.client.ContentServiceClient;
 import com.vithey.career.client.FileServiceClient;
 import com.vithey.career.client.UserProfileClient;
 import com.vithey.career.dto.response.ApplicantSummaryResponse;
+import com.vithey.career.dto.response.CvPreviewResponse;
+import com.vithey.career.dto.response.FileMetadataResponse;
 import com.vithey.career.dto.response.JobApplicationResponse;
 import com.vithey.career.dto.response.PostSummaryResponse;
 import com.vithey.career.entity.JobApplication;
+import com.vithey.career.exception.ApiException;
+import com.vithey.career.exception.ErrorCode;
 import com.vithey.career.mapper.JobApplicationMapper;
 import feign.FeignException;
 import java.util.UUID;
@@ -54,6 +58,32 @@ public class JobApplicationResponseBuilder {
         base.decidedAt(),
         base.reviewerNote()
     );
+  }
+
+  /**
+   * Builds the CV preview payload for an application. Resolves the download URL
+   * and file name via file-service. Throws 404 if the CV file is gone.
+   */
+  public CvPreviewResponse buildCvPreview(JobApplication application) {
+    FileMetadataResponse file = requireCvFile(application.getCvFileId());
+    return new CvPreviewResponse(
+        application.getId(),
+        application.getCvFileId(),
+        file.fileName(),
+        file.url()
+    );
+  }
+
+  private FileMetadataResponse requireCvFile(UUID cvFileId) {
+    try {
+      var response = fileServiceClient.getFile(cvFileId);
+      if (response != null && response.data() != null) {
+        return response.data();
+      }
+    } catch (FeignException.NotFound exception) {
+      throw new ApiException(ErrorCode.NOT_FOUND, "CV file not found");
+    }
+    throw new ApiException(ErrorCode.NOT_FOUND, "CV file not found");
   }
 
   private ApplicantSummaryResponse resolveApplicant(UUID applicantId) {

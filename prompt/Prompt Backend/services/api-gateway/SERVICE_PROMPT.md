@@ -70,14 +70,19 @@ services/api-gateway/
 | 0 | `/api/v1/users/*/follow`, `*/followers`, `*/following` | `lb://content-service` |
 | 0 | `/api/v1/files/**` | `lb://file-service` |
 | 0 | `/api/v1/posts/**`, `/comments/**`, `/reactions/**`, `/follows/**` | `lb://content-service` |
-| 0 | `/api/v1/jobs/**`, `/job-applications/**` | `lb://career-service` |
+| 0 | `/api/v1/users/*/posts` | `lb://content-service` |
+| 0 | `/api/v1/job-applications/**` | `lb://career-service` |
+| 0 | `/api/v1/places/**` | `lb://map-service` |
 | 0 | `/api/v1/fees/**`, `/payments/**` | `lb://finance-service` |
 | 0 | `/api/v1/students/verify` | `lb://auth-service` |
 | 0 | `/api/v1/conversations/**`, `/messages/**`, `/message-requests/**` | `lb://chat-service` |
+| 0 | `/api/v1/users/*/report` | `lb://chat-service` |
 | 0 | `/ws/**` | `lb:ws://chat-service` (WebSocket upgrade → chat STOMP `/ws/chat`) |
 | 0 | `/api/v1/notifications/**` | `lb://notification-service` |
 | 0 | `/api/v1/ai/**` | `lb://ai-service` |
 | 1 | `/api/v1/users/**` | `lb://user-profile-service` |
+
+Do not route `/api/v1/jobs/**` — job posts live on content-service.
 
 Strip prefix: **0** (full path forwarded).
 

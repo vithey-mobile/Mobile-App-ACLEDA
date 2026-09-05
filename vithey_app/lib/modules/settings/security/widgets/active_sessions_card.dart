@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:flutter/material.dart';
 
 class ActiveSessionsCard extends StatelessWidget {
   const ActiveSessionsCard({super.key});
@@ -8,19 +9,7 @@ class ActiveSessionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = context.scheme.primary;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: context.appColors.subtleShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return VitheyCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -31,7 +20,7 @@ class ActiveSessionsCard extends StatelessWidget {
               Text(
                 'Active Sessions',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 16,
                   color: context.appColors.heading,
                 ),
@@ -58,13 +47,17 @@ class ActiveSessionsCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Last active: Just now',
-                      style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.appColors.muted,
+                      ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),

@@ -8,12 +8,12 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_mutation_result.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
+import 'package:aub_connect_app/modules/jobs/models/apply_cv_args.dart';
+import 'package:aub_connect_app/modules/jobs/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
-import 'package:aub_connect_app/modules/create_post/models/create_post_args.dart';
+import 'package:aub_connect_app/modules/home/create_post/models/create_post_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_all_posts_mixin.dart';
 import 'package:aub_connect_app/modules/profile/profile_tabs_host.dart';
 
@@ -244,7 +244,7 @@ class ProfileController extends GetxController
 
   @override
   void editJobPost(FeedPost jobPost) {
-    Get.snackbar(AppStrings.appName, 'Edit job coming soon');
+    // Intentionally no-op — edit UI is not shipped yet.
   }
 
   @override

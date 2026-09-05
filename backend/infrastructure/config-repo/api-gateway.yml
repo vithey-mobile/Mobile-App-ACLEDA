@@ -138,6 +138,18 @@ spring:
                 redis-rate-limiter.burstCapacity: ${vithey.gateway.rate-limit.burst-capacity:100}
                 redis-rate-limiter.requestedTokens: ${vithey.gateway.rate-limit.requested-tokens:1}
                 key-resolver: "#{@rateLimitKeyResolver}"
+        - id: map-service
+          order: 0
+          uri: lb://map-service
+          predicates:
+            - Path=/api/v1/places/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${vithey.gateway.rate-limit.places-replenish-rate:30}
+                redis-rate-limiter.burstCapacity: ${vithey.gateway.rate-limit.places-burst-capacity:60}
+                redis-rate-limiter.requested-tokens: ${vithey.gateway.rate-limit.requested-tokens:1}
+                key-resolver: "#{@rateLimitKeyResolver}"
         - id: user-profile-service
           order: 1
           uri: lb://user-profile-service

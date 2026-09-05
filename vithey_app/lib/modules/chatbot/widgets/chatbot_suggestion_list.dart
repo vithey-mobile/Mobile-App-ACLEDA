@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
 class ChatbotSuggestionItem {
   const ChatbotSuggestionItem({required this.icon, required this.text});
@@ -43,34 +43,13 @@ class ChatbotSuggestionList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: items
             .map(
-              (item) => InkWell(
-                onTap: () => onPromptTap(item.text),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Row(
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 22,
-                        color: context.appColors.muted,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          item.text,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                            color: context.appColors.heading
-                                .withValues(alpha: 0.75),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: CustomButton(
+                  label: item.text,
+                  icon: item.icon,
+                  variant: CustomButtonVariant.outline,
+                  onPressed: () => onPromptTap(item.text),
                 ),
               ),
             )

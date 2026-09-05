@@ -67,6 +67,7 @@ class AppAssets {
 8. **Notifications** — likes, comments, mentions, follows, chat, payments, jobs
 9. **Global Search** — Facebook-style search with recent users, grouped results (people, posts, jobs, videos)
 10. **Settings** — account, privacy, theme, language, logout
+11. **Map / nearby shops** — Google Maps + location icon to set search center; filters; favorites (`map-service`)
 
 ## Mandatory Tech Stack
 
@@ -102,10 +103,11 @@ class AppAssets {
 
 ## UI component system
 
-- **Primary:** `shadcn_flutter` widgets (`Button`, `TextField`, `AlertDialog`, `Switch`, `Card`, etc.)
-- **Adapters:** `lib/core/widgets/custom_button.dart`, `custom_text_field.dart`, `confirm_dialog.dart` wrap Shadcn for common patterns
+- **Primary:** `lib/core/widgets/` kit (`CustomButton`, `VitheyField`, `VitheyCard`, `VitheySwitch`, `VitheySearchPill`, `showConfirmDialog`, `VitheyActionSheet`, etc.) — see `COMPONENT_KIT.md` for the full table
+- **Layering:** `shadcn_flutter` is wrapped **only** inside `lib/core/widgets/`. Feature screens import `core/widgets/widgets.dart`; **never** import `shadcn_flutter` directly
 - **Theme:** `GetMaterialApp` + `shad.Theme` injected via `builder` in `lib/app.dart`; color schemes use `ColorSchemes.lightSlate` / `darkSlate`
-- **Do not** use raw Material `ElevatedButton`, `TextButton`, `OutlinedButton`, `AlertDialog`, or `TextFormField` in feature code — use Shadcn or core adapters instead
+- **Do not** use raw Material `ElevatedButton`, `TextButton`, `OutlinedButton`, `FilledButton`, `AlertDialog`, `TextFormField`, or `SwitchListTile` as primary controls in feature code — use the kit instead
+- **Documented exceptions:** `Get.snackbar(mainButton:)` is typed `TextButton?` by GetX, so those two call sites (`map_controller.dart`, `notification_preferences_controller.dart`) keep a `TextButton` — or pass `VitheyTextLink` (a `TextButton` subclass)
 
 **Vithey AI (new design):** full spec in `Screen prompt/chatbot/README.md` — suggestion chips above composer, chevron new-chat, simplified history drawer with trash, logo+dots thinking row, `flutter_markdown`, streaming-ready repository.
 
@@ -167,15 +169,12 @@ modules/<feature>/
 The frontend UI must follow a **single design system** and avoid building random one-off widgets.
 
 **Use these first (already in the codebase):**
-- `lib/core/widgets/` reusable components (buttons, text fields, loaders, empty/error states, dialogs, etc.)
+- `lib/core/widgets/widgets.dart` — import this barrel; every screen composes the kit from it. **Never import `shadcn_flutter` in `lib/modules/`** — only `lib/core/widgets/` may wrap it
 - `lib/core/theme/app_semantic_colors.dart` semantic colors (`context.appColors.*`) for theme-aware surfaces/text/borders
 
 **Do not:**
-- Hardcode `Colors.white`/`Colors.black`/random `Color(0x...)` in screens
+- Hardcode `Colors.white`/`Colors.black`/random `Color(0x...)` in screens, or use `Colors.teal` / `0xFF00BFA5` — brand teal is `AppColors.primary` (`#03B4AC`)
 - Recreate “new button styles” per feature screen
-
-**Optional (only if present in `pubspec.yaml`):**
-- `shadcn_ui` or `shadcn_flutter` widgets. If you use them, keep the same architecture: screens compose widgets; controllers handle state; repositories/services call APIs.
 
 ### 4. Required core reusable widgets (build in foundation)
 

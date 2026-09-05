@@ -52,4 +52,12 @@ class ApiEndpoints {
   static String fileDownload(String id) => '/files/$id/download';
   static String jobApplicationCvPreview(String applicationId) =>
       '/job-applications/$applicationId/cv-preview';
+
+  static const placesNearby = '/places/nearby';
+  static const placesSearch = '/places/search';
+  static const placesAutocomplete = '/places/autocomplete';
+  static String placeById(String id) => '/places/$id';
+  static const placesFavorites = '/places/favorites';
+  static String placeFavoriteById(String id) => '/places/favorites/$id';
+  static const placesHistory = '/places/history';
 }

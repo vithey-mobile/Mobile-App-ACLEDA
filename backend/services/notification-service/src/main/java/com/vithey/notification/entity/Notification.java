@@ -7,7 +7,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,4 +47,26 @@ public class Notification {
 
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;
+
+  @Column(name = "read_at")
+  private OffsetDateTime readAt;
+
+  @Column(length = 64)
+  private String event;
+
+  @Column(name = "actor_id")
+  private UUID actorId;
+
+  @Column(name = "actor_name", length = 120)
+  private String actorName;
+
+  @Column(name = "actor_avatar_url")
+  private String actorAvatarUrl;
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "destination")
+  private Map<String, Object> destination;
+
+  @Column(name = "dedupe_key", length = 180)
+  private String dedupeKey;
 }

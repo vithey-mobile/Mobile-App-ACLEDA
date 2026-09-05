@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/application_status_args.dart';
+import 'package:aub_connect_app/modules/jobs/models/application_status_args.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
@@ -185,7 +185,7 @@ class _ProfilePostsTab extends StatelessWidget {
               onOpenApplicants: () => controller.openJobApplicants(post),
               onApply: () => controller.applyToJob(post.id),
               onOpenPost: () => controller.openPost(post.id),
-              onEdit: () => controller.editJobPost(post),
+              onEdit: null, // Edit job not available yet — hide action
               onDelete: () => controller.deleteJobPost(post),
             );
           },

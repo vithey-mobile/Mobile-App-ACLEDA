@@ -36,7 +36,8 @@ class SearchVideoTile extends StatelessWidget {
                     height: 48,
                     color: colors.inputFill,
                     child: video.thumbnailUrl != null
-                        ? CachedNetworkImage(imageUrl: video.thumbnailUrl!, fit: BoxFit.cover)
+                        ? CachedNetworkImage(
+                            imageUrl: video.thumbnailUrl!, fit: BoxFit.cover)
                         : Icon(Icons.videocam_outlined, color: colors.muted),
                   ),
                 ),
@@ -47,7 +48,8 @@ class SearchVideoTile extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.55),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 18),
+                  child: const Icon(Icons.play_arrow,
+                      color: Colors.white, size: 18),
                 ),
               ],
             ),

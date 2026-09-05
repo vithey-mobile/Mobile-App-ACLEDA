@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_dialog.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/chat_folder.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
@@ -110,12 +114,15 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                       ),
                     ),
                   ),
-                  TextButton(
+                  VitheyTextLink(
+                    label: AppStrings.chatNewFolder,
+                    color: colors.heading,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                     onPressed: () {
                       Navigator.of(ctx).pop();
                       controller.startCreatingFolder();
                     },
-                    child: const Text(AppStrings.chatNewFolder),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(ctx).pop(),
@@ -299,7 +306,8 @@ class _AddChatsToFolderSheet extends StatelessWidget {
                 ),
                 Obx(() {
                   final count = selectedIds.length;
-                  return TextButton(
+                  return CustomButton(
+                    label: count == 0 ? 'Add' : 'Add ($count)',
                     onPressed: count == 0
                         ? null
                         : () async {
@@ -311,7 +319,7 @@ class _AddChatsToFolderSheet extends StatelessWidget {
                             }
                             if (context.mounted) Navigator.of(context).pop();
                           },
-                    child: Text(count == 0 ? 'Add' : 'Add ($count)'),
+                    variant: CustomButtonVariant.ghost,
                   );
                 }),
                 IconButton(
@@ -459,32 +467,38 @@ Future<void> showMoveToFolderSheet(
                       ),
                       title: Text(folder.name),
                       trailing: inFolder
-                          ? TextButton(
+                          ? VitheyTextLink(
+                              label: AppStrings.chatRemoveFromFolder,
+                              color: AppColors.primary,
+                              fontSize: 14,
                               onPressed: () async {
                                 await controller.removeConversationFromFolder(
                                   folder.id,
                                   conversation.id,
                                 );
                               },
-                              child: const Text(AppStrings.chatRemoveFromFolder),
                             )
-                          : TextButton(
+                          : VitheyTextLink(
+                              label: 'Add',
+                              color: AppColors.primary,
+                              fontSize: 14,
                               onPressed: () async {
                                 await controller.addConversationToFolder(
                                   folder.id,
                                   conversation.id,
                                 );
                               },
-                              child: const Text('Add'),
                             ),
                     );
                   }),
-                TextButton(
+                VitheyTextLink(
+                  label: AppStrings.chatNewFolder,
+                  color: AppColors.primary,
+                  fontSize: 15,
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     controller.startCreatingFolder();
                   },
-                  child: const Text(AppStrings.chatNewFolder),
                 ),
               ],
             );
@@ -514,37 +528,54 @@ Future<String?> _promptFolderName(
   required String title,
   String? initial,
 }) {
-  final colors = context.appColors;
   final textController = TextEditingController(text: initial ?? '');
-  return showDialog<String>(
+  return showVitheyDialog<String>(
     context: context,
-    builder: (ctx) {
-      return AlertDialog(
-        backgroundColor: colors.cardSurface,
-        title: Text(title, style: TextStyle(color: colors.heading)),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            hintText: AppStrings.chatFolderNameHint,
-            hintStyle: TextStyle(color: colors.muted),
-          ),
-          onSubmitted: (value) => Navigator.of(ctx).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(ctx).pop(textController.text.trim()),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Save'),
-          ),
-        ],
-      );
-    },
+    child: Builder(
+      builder: (ctx) {
+        final colors = ctx.appColors;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.heading,
+              ),
+            ),
+            const SizedBox(height: 16),
+            VitheyField(
+              controller: textController,
+              hint: AppStrings.chatFolderNameHint,
+              autofocus: true,
+              onSubmitted: (value) => Navigator.of(ctx).pop(value.trim()),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    label: 'Cancel',
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    variant: CustomButtonVariant.ghost,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomButton(
+                    label: 'Save',
+                    onPressed: () =>
+                        Navigator.of(ctx).pop(textController.text.trim()),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
   );
 }

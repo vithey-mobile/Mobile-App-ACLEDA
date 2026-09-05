@@ -4,8 +4,8 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/data/services/job_application_service.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/application_detail_model.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
+import 'package:aub_connect_app/modules/jobs/models/application_detail_model.dart';
+import 'package:aub_connect_app/modules/jobs/models/apply_cv_result.dart';
 
 enum JobEligibility {
   eligible,

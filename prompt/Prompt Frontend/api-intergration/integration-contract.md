@@ -93,14 +93,16 @@ Spring Cloud Gateway must evaluate **specific routes before wildcards** to avoid
 | 0 | `/api/v1/comments/**` | content-service |
 | 0 | `/api/v1/reactions/**` | content-service |
 | 0 | `/api/v1/follows/**` | content-service |
-| 0 | `/api/v1/jobs/**` | career-service |
 | 0 | `/api/v1/job-applications/**` | career-service |
+| 0 | `/api/v1/places/**` | map-service |
 | 0 | `/api/v1/fees/**` | finance-service |
 | 0 | `/api/v1/payments/**` | finance-service |
 | 0 | `/api/v1/students/verify` | auth-service |
 | 0 | `/api/v1/conversations/**` | chat-service |
 | 0 | `/api/v1/messages/**` | chat-service |
 | 0 | `/api/v1/message-requests/**` | chat-service |
+| 0 | `/api/v1/users/*/posts` | content-service |
+| 0 | `/api/v1/users/*/report` | chat-service |
 | 0 | `/api/v1/notifications/**` | notification-service |
 | 0 | `/api/v1/ai/**` | ai-service |
 | 1 | `/api/v1/users/**` | user-profile-service |
@@ -116,7 +118,7 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 | Auth | auth | `POST /auth/register`, `POST /auth/login` |
 | Home | content | `GET /posts`, `POST /posts/{id}/reactions`, `POST /users/{id}/follow` |
 | Create Post | file, content | `POST /files/upload`, `POST /posts` |
-| Post Detail | content | `GET /posts/{id}`, `GET/POST /posts/{id}/comments`, reactions, follow |
+| Post Detail | content | `GET /posts/{id}`, `GET/POST /posts/{id}/comments`, `DELETE /posts/{id}/comments/{commentId}`, reactions, follow |
 | Apply CV | file, career | `POST /files/upload` (type=CV), `POST /job-applications` |
 | Preview CV | career, file | `GET /users/me/cv`, `GET /files/{id}/download` |
 | Profile | user-profile, content | `GET /users/{id}`, user posts via content |
@@ -124,11 +126,12 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 | Student Verification | auth | `POST /students/verify` |
 | Chat | chat | `GET /conversations`, `GET /message-requests`, `POST /conversations/{id}/accept` — see `Screen prompt/chat/README.md` |
 | Chat Detail | chat | `GET/POST /conversations/{id}/messages`, `PATCH /messages/{id}/read`, STOMP `/ws` — see `Screen prompt/chat/05.chat_api_realtime.md` |
-| AI Chatbot | ai | `POST /ai/chat`, `GET /ai/sessions`, `GET /ai/sessions/{id}/messages`, `DELETE /ai/sessions/{id}` — see `Screen prompt/chatbot/05.chatbot_api_streaming.md` for streaming/regenerate |
-| Notification | notification | `GET /notifications`, `PATCH /notifications/{id}/read` |
+| AI Chatbot | ai | `POST /ai/chat`, `POST /ai/chat/stream`, `POST /ai/messages/{id}/regenerate`, `DELETE /ai/chat/requests/{id}`, `GET /ai/sessions`, `GET /ai/sessions/{id}/messages`, `DELETE /ai/sessions/{id}` — see `Screen prompt/chatbot/05.chatbot_api_streaming.md` |
+| Notification | notification | `GET /notifications?is_read=`, `GET /notifications/unread-count`, `PATCH /notifications/{id}/read`, `PATCH /notifications/read-all`, `DELETE /notifications/{id}`, `POST /notifications/devices` |
 | Search | user-profile, content | `GET /users/search?search=&page=&limit=`, `GET /posts?search=&type=&page=&limit=` — see `Screen prompt/search/README.md` |
-| Settings | user-profile, auth | `GET/PATCH /users/me/settings`, `POST /auth/logout` |
-| Applicant CV Preview | career, file | `GET /job-applications?job_post_id=`, `GET /files/{id}/download` |
+| Settings | user-profile, auth | `GET/PATCH /users/me/settings`, `PATCH /auth/me/password`, `POST /auth/logout` |
+| Applicant CV Preview | career, file | `GET /job-applications?job_post_id=`, `GET /job-applications/{id}/cv-preview`, `GET /files/{id}/download` |
+| Map | map-service | `GET /places/nearby`, `GET /places/search`, `GET /places/autocomplete`, `GET /places/{id}`, `GET/POST /places/favorites`, `DELETE /places/favorites/{id}`, `GET/DELETE /places/history` — see `Prompt Backend/services/map-service/API_ENDPOINTS.md` |
 
 ## Cross-service flows
 
@@ -144,6 +147,13 @@ Public (no JWT): `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/re
 2. `PUT /users/me/cv` (career-service) — optional default CV
 3. `POST /job-applications` with `{ job_post_id, cv_file_id }`
 4. Career publishes `job.application.submitted` → Notification
+
+### Map nearby shops
+
+1. Flutter gets GPS or a picked search center (`lat` / `lng`)
+2. `GET /places/nearby` (and `/search`, `/autocomplete`) on **map-service** — server calls Google Places; app never sees `GOOGLE_PLACES_API_KEY`
+3. Markers + list use the same `places[]` payload
+4. Pin tap → `GET /places/{id}`; heart → `/places/favorites`
 
 ### Student → Finance gate
 
@@ -207,7 +217,7 @@ Full spec: `Screen prompt/notification/README.md` → `03` (FCM) + `05` (backend
 
 - [ ] `api_endpoints.dart` matches this contract
 - [ ] Dio interceptor: attach Bearer, refresh on 401 once, then logout
-- [ ] Repositories per domain (auth, post, profile, cv, finance, chat, chatbot, notification, search)
+- [ ] Repositories per domain (auth, post, profile, cv, finance, chat, chatbot, notification, search, **places**)
 - [ ] `USE_MOCK_AUTH` / mock repos for UI-only dev; swap to real repos when gateway is up
 - [ ] Multipart upload via `UploadService` for files
 - [ ] Pagination: pass `page`, `limit`; read `meta.total_pages` in controllers
@@ -224,9 +234,12 @@ Full spec: `Screen prompt/notification/README.md` → `03` (FCM) + `05` (backend
 
 | Gap | Resolution |
 |-----|------------|
-| No app code yet | Run prompts in order in `Prompt Frontend/02-ai-implementation-guide.md` |
+| **map-service Java** | Run `Prompt Backend/run-complete/01-create-map-service.md` — prompts exist, no `backend/services/map-service/` yet |
+| Flutter Map still uses Photon | After map-service exists, run frontend `run-glm-flash/02-map-google-location.md` |
+| Auth / comments / notifications / CV preview / AI extras | Run `Prompt Backend/run-complete/02-upgrade-existing-services.md` |
+| Gateway + DevOps + Postman sync | Run `Prompt Backend/run-complete/03-wire-gateway-contract-devops.md` |
 | WebSocket URL | `wss://{API_HOST}/ws` — STOMP via `web_socket_channel`; see `Screen prompt/chat/05.chat_api_realtime.md` |
-| Isar chat cache | `Screen prompt/chat/04.chat_isar_offline.md` |
-| FCM chat deep link | `Screen prompt/chat/05.chat_api_realtime.md` |
 | FCM | Requires Firebase project + `google-services.json` / `GoogleService-Info.plist` |
-| AI provider | Python `ai-service`: set `AI_PROVIDER=openai|gemini` and `AI_API_KEY` in env (not Java) |
+| Google sign-in | Flutter coming soon — **do not** implement OAuth on backend yet |
+| Startup skills/interests | Local Flutter only — **do not** invent a backend API |
+| AI provider | Java stub now; optional Python: `Prompt Backend/services/ai-service/INTEGRATION.md` |

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/payment_args.dart';
@@ -60,24 +61,9 @@ class _CollectingView extends GetView<PaymentController> {
             const SizedBox(height: 24),
             if (isAcleda) const _AcledaQrPanel() else const _BankTransferPanel(),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton(
-                onPressed: controller.confirmPayment,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  isAcleda ? "I've Completed the Payment" : "I've Made the Transfer",
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-              ),
+            CustomButton(
+              label: isAcleda ? "I've Completed the Payment" : "I've Made the Transfer",
+              onPressed: controller.confirmPayment,
             ),
             const SizedBox(height: 12),
             Text(
@@ -344,24 +330,9 @@ class _SuccessView extends GetView<PaymentController> {
               style: TextStyle(color: colors.muted, fontSize: 13),
             ),
             const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton(
-                onPressed: controller.backToFinance,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Back to Finance',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-              ),
+            CustomButton(
+              label: 'Back to Finance',
+              onPressed: controller.backToFinance,
             ),
           ],
         ),

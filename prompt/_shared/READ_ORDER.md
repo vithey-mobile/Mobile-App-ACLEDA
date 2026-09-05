@@ -4,10 +4,11 @@ Standard file read order. Service kickoffs should link here — do not invent sh
 
 ## Any AI session
 
-1. `MASTER_AI_PROMPT.md` (or layer kickoff)
-2. `Prompt Frontend/api-intergration/integration-contract.md` — API contract (binding)
-3. Layer `COMMON_CONTEXT.md`
-4. The `TASK:` prompt file
+1. `Prompt Backend/MASTER_AI_PROMPT.md` (or layer kickoff)
+2. `Prompt Backend/LEARNING.md` when new to the backend
+3. `Prompt Frontend/api-intergration/integration-contract.md` — API contract (binding)
+4. Layer `COMMON_CONTEXT.md`
+5. The `TASK:` prompt file
 
 ## Backend — one service
 

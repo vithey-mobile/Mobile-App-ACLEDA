@@ -21,6 +21,7 @@ Frontend contract source: `Prompt Frontend/api-intergration/api-overview.md`
 | --- | --- | --- | --- |
 | POST | `/auth/logout` | Revoke caller refresh token | `204` |
 | GET | `/auth/me` | Current auth identity and roles | `200`, auth user summary |
+| PATCH | `/auth/me/password` | Change password (`current_password`, `new_password`) | `200`, success message |
 | POST | `/students/verify` | Verify AUB student status | `200`, updated role/status |
 
 ## Request examples

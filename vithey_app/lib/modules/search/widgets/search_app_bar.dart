@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SearchAppBar({
@@ -46,55 +45,14 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
           builder: (context, value, _) {
             return Semantics(
               label: hintText,
-              child: TextField(
+              child: VitheySearchPill(
                 controller: controller,
                 focusNode: focusNode,
                 autofocus: true,
-                textInputAction: TextInputAction.search,
+                hintText: hintText,
                 onChanged: onChanged,
                 onSubmitted: (_) => onSubmitted(),
-                style: TextStyle(
-                  color: colors.heading,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: TextStyle(
-                    color: colors.muted,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  filled: true,
-                  fillColor: colors.inputFill,
-                  prefixIcon:
-                      Icon(Icons.search_rounded, color: colors.muted, size: 20),
-                  suffixIcon: value.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: colors.muted,
-                            size: 18,
-                          ),
-                          onPressed: onClear,
-                          tooltip: AppStrings.clearSearch,
-                        )
-                      : null,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(99),
-                    borderSide: BorderSide(color: colors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(99),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.4,
-                    ),
-                  ),
-                ),
+                onClear: value.text.isNotEmpty ? onClear : null,
               ),
             );
           },

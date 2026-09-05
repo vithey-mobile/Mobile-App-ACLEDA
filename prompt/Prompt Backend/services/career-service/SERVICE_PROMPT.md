@@ -48,6 +48,7 @@ services/career-service/
 | GET | `/api/v1/job-applications` | my applications, paginated | 200 |
 | GET | `/api/v1/job-applications?job_post_id={id}` | applicants — **poster only** | 200 |
 | GET | `/api/v1/job-applications/{id}` | detail | 200 |
+| GET | `/api/v1/job-applications/{id}/cv-preview` | `{ download_url }` — applicant or poster | 200 |
 | PATCH | `/api/v1/job-applications/{id}/status` | `{ "status": "REVIEWED" }` — poster | 200 |
 | GET | `/api/v1/users/me/cv` | current user CV metadata | 200 |
 | PUT | `/api/v1/users/me/cv` | `{ "cv_file_id": "uuid" }` | 200 |
@@ -74,6 +75,7 @@ services/career-service/
 | Apply | Verify job via ContentServiceClient → verify CV via FileServiceClient → save → publish `job.application.submitted` |
 | List applicants | ContentServiceClient confirms caller is job post author |
 | Status update | Poster only → publish `job.application.status_changed` |
+| CV preview | Ownership check (applicant or poster) → FileServiceClient resolves `download_url` + `cv_file_name` |
 | Set CV | Validate file type CV → upsert UserCv |
 
 ## Events published

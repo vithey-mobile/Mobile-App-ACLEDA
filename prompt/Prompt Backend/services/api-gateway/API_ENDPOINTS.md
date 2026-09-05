@@ -38,13 +38,18 @@ These bypass JWT validation:
 | 0 | `/api/v1/users/*/follow`, `/api/v1/users/*/followers`, `/api/v1/users/*/following` | `lb://content-service` |
 | 0 | `/api/v1/files/**` | `lb://file-service` |
 | 0 | `/api/v1/posts/**` | `lb://content-service` |
+| 0 | `/api/v1/users/*/posts` | `lb://content-service` |
 | 0 | `/api/v1/job-applications/**` | `lb://career-service` |
+| 0 | `/api/v1/places/**` | `lb://map-service` |
 | 0 | `/api/v1/fees/**`, `/api/v1/payments/**` | `lb://finance-service` |
 | 0 | `/api/v1/conversations/**`, `/api/v1/messages/**`, `/api/v1/message-requests/**` | `lb://chat-service` |
+| 0 | `/api/v1/users/*/report` | `lb://chat-service` |
 | 0 | `/ws/**` | `lb:ws://chat-service` (WebSocket STOMP) |
 | 0 | `/api/v1/notifications/**` | `lb://notification-service` |
 | 0 | `/api/v1/ai/**` | `lb://ai-service` |
 | 1 | `/api/v1/users/**` | `lb://user-profile-service` |
+
+Job *listings* are `GET /api/v1/posts?type=JOB` on content-service. Do **not** route `/api/v1/jobs/**` to career-service.
 
 ## WebSocket (proxied)
 

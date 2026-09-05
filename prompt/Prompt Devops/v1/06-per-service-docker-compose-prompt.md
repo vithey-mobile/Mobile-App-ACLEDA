@@ -72,6 +72,7 @@ networks:
 | `chat-service` | chat-service + chat-postgres | redis, rabbitmq, eureka-server, config-server |
 | `notification-service` | notification-service + notification-postgres | rabbitmq, eureka-server, config-server |
 | `ai-service` | ai-service + ai-postgres | redis, eureka-server, config-server |
+| `map-service` | map-service + map-postgres | redis, eureka-server, config-server |
 
 ## Database Rule
 
@@ -87,6 +88,7 @@ finance-service -> finance_db
 chat-service -> chat_db
 notification-service -> notification_db
 ai-service -> ai_db
+map-service -> map_db
 ```
 
 ## Verification

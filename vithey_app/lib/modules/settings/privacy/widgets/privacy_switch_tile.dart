@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 
 class PrivacySwitchTile extends StatelessWidget {
   const PrivacySwitchTile({
@@ -49,7 +49,7 @@ class PrivacySwitchTile extends StatelessWidget {
                 ],
               ),
             ),
-            shad.Switch(value: value, onChanged: (v) => onChanged(v)),
+            VitheySwitch(value: value, onChanged: (v) => onChanged(v)),
           ],
         ),
       ),

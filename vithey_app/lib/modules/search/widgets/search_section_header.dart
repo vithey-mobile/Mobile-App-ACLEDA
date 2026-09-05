@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 
 class SearchSectionHeader extends StatelessWidget {
   const SearchSectionHeader({
@@ -31,9 +32,12 @@ class SearchSectionHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (showSeeAll)
-            TextButton(
+            VitheyTextLink(
+              label: 'See all',
               onPressed: onSeeAll,
-              child: Text('See all', style: TextStyle(color: colors.muted)),
+              color: colors.muted,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
         ],
       ),

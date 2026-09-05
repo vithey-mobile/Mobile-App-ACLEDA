@@ -3,7 +3,7 @@ import 'package:aub_connect_app/data/fixtures/mock_clock.dart';
 import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/application_detail_model.dart';
+import 'package:aub_connect_app/modules/jobs/models/application_detail_model.dart';
 
 /// Mock job-application usage (no role picker — usage-shaped):
 /// - Logged-in user (Khorn Molika) = **Poster (HR)**: owns JOB posts; **no** Applied Jobs.

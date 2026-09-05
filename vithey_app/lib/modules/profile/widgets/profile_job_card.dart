@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 
 class ProfileJobCard extends StatelessWidget {
@@ -205,15 +206,16 @@ class ProfileJobCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      TextButton(
-                        onPressed: onOpenApplicants,
-                        style: TextButton.styleFrom(
-                          foregroundColor: context.appColors.muted,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      GestureDetector(
+                        onTap: onOpenApplicants,
+                        behavior: HitTestBehavior.opaque,
+                        child: Text(
+                          'View List >',
+                          style: TextStyle(
+                            color: context.appColors.muted,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        child: const Text('View List >'),
                       ),
                     ],
                   )
@@ -229,9 +231,9 @@ class ProfileJobCard extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           )
-                        : TextButton(
+                        : CustomButton(
+                            label: 'Apply',
                             onPressed: onApply,
-                            child: const Text('Apply'),
                           ),
                   ),
           ),

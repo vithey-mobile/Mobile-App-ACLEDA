@@ -42,7 +42,8 @@ class VitheyApp extends StatelessWidget {
         return shad.Theme(
           data: shad.ThemeData(
             colorScheme: shadColorScheme,
-            radius: 0.6,
+            // ~20–24px corners on primary/destructive buttons (radiusXl).
+            radius: 1.0,
           ),
           child: ConnectivityWrapper(child: child ?? const SizedBox.shrink()),
         );

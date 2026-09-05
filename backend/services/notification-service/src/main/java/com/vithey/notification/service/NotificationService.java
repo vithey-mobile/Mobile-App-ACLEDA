@@ -12,6 +12,7 @@ import com.vithey.notification.util.ApiResponseWrapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,19 +39,24 @@ public class NotificationService {
   }
 
   @Transactional(readOnly = true)
-  public ApiResponseWrapper<List<NotificationResponse>> listNotifications(UUID userId, int page, int limit) {
+  public ApiResponseWrapper<List<NotificationResponse>> listNotifications(
+      UUID userId, int page, int limit, Boolean isRead
+  ) {
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
 
-    Page<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    Page<Notification> notifications =
+        notificationRepository.findByUserIdFilteringRead(userId, isRead, pageable);
     List<NotificationResponse> content = notifications.getContent().stream()
         .map(notificationMapper::toResponse)
         .toList();
 
+    long unreadTotal = notificationRepository.countByUserIdAndReadFalse(userId);
     return ApiResponseWrapper.paginated(
         content,
-        new ApiResponseWrapper.Meta(safePage, safeLimit, notifications.getTotalElements(), notifications.getTotalPages())
+        new ApiResponseWrapper.Meta(
+            safePage, safeLimit, notifications.getTotalElements(), notifications.getTotalPages(), unreadTotal)
     );
   }
 
@@ -64,25 +70,48 @@ public class NotificationService {
     Notification notification = notificationRepository.findById(notificationId)
         .filter(value -> value.getUserId().equals(userId))
         .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-    notification.setRead(true);
-    return notificationMapper.toResponse(notificationRepository.save(notification));
+    if (!notification.isRead()) {
+      notification.setRead(true);
+      notification.setReadAt(OffsetDateTime.now(ZoneOffset.UTC));
+      notification = notificationRepository.save(notification);
+    }
+    return notificationMapper.toResponse(notification);
   }
 
   @Transactional
-  public void markAllRead(UUID userId) {
-    notificationRepository.markAllRead(userId);
+  public long markAllRead(UUID userId) {
+    return notificationRepository.markAllRead(userId, OffsetDateTime.now(ZoneOffset.UTC));
   }
 
+  @Transactional
+  public void delete(UUID notificationId, UUID userId) {
+    Notification notification = notificationRepository.findById(notificationId)
+        .filter(value -> value.getUserId().equals(userId))
+        .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    notificationRepository.delete(notification);
+  }
+
+  /**
+   * Persists an event-driven notification (idempotent by dedupe key) and pushes FCM.
+   * Returns {@code null} when skipped (self-action or duplicate dedupe key).
+   */
   @Transactional
   public NotificationResponse createAndPush(
       UUID userId,
       NotificationType type,
+      String event,
       String title,
       String body,
-      UUID referenceId,
-      String referenceType
+      UUID actorId,
+      String actorName,
+      String actorAvatarUrl,
+      Map<String, Object> destination,
+      String dedupeKey
   ) {
     if (userId == null) {
+      return null;
+    }
+    if (dedupeKey != null && notificationRepository.existsByUserIdAndDedupeKey(userId, dedupeKey)) {
       return null;
     }
 
@@ -91,16 +120,39 @@ public class NotificationService {
     notification.setId(UUID.randomUUID());
     notification.setUserId(userId);
     notification.setType(type);
+    notification.setEvent(event);
     notification.setTitle(title);
     notification.setBody(body);
-    notification.setReferenceId(referenceId);
-    notification.setReferenceType(referenceType);
+    notification.setActorId(actorId);
+    notification.setActorName(actorName);
+    notification.setActorAvatarUrl(actorAvatarUrl);
+    notification.setDestination(destination);
+    notification.setDedupeKey(dedupeKey);
+    notification.setReferenceId(destinationUuid(destination, "reference_id"));
+    notification.setReferenceType(destinationString(destination, "reference_type"));
     notification.setRead(false);
     notification.setCreatedAt(now);
 
     Notification saved = notificationRepository.save(notification);
     NotificationResponse response = notificationMapper.toResponse(saved);
-    fcmPushService.sendPush(userId, saved.getId(), type, referenceId, title, body);
+    fcmPushService.sendPush(userId, saved);
     return response;
+  }
+
+  private UUID destinationUuid(Map<String, Object> destination, String key) {
+    String value = destinationString(destination, key);
+    try {
+      return value == null ? null : UUID.fromString(value);
+    } catch (IllegalArgumentException exception) {
+      return null;
+    }
+  }
+
+  private String destinationString(Map<String, Object> destination, String key) {
+    if (destination == null) {
+      return null;
+    }
+    Object value = destination.get(key);
+    return value == null ? null : value.toString();
   }
 }

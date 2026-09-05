@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -106,10 +107,11 @@ class ContentedSliverList extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Center(
-                    child: TextButton.icon(
+                    child: CustomButton(
+                      label: 'Retry',
                       onPressed: controller.loadMore,
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Retry'),
+                      variant: CustomButtonVariant.ghost,
+                      icon: Icons.refresh_rounded,
                     ),
                   ),
                 );
@@ -149,8 +151,7 @@ class _FeedPostItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final common = (
       onLike: () => controller.toggleReaction(post.id),
-      onReact: (PostReactionType type) =>
-          controller.setReaction(post.id, type),
+      onReact: (PostReactionType type) => controller.setReaction(post.id, type),
       onComment: () => controller.openComments(post.id),
       onShare: () => controller.openShareSheet(post.id),
       onOpen: () => controller.openPost(post.id),

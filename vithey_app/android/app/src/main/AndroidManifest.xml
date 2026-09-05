@@ -9,7 +9,7 @@
         android:label="Vithey"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="${usesCleartextTraffic}">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,10 +36,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        
-        <!-- Google Maps API Key Placeholder -->
+
+        <!-- Set GOOGLE_MAPS_API_KEY in android/local.properties (gitignored) or CI env. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAD0HbYTJzDm0DTnx_HRWpNCCbeQLBRifg" />
+            android:value="${GOOGLE_MAPS_API_KEY}" />
     </application>
 </manifest>

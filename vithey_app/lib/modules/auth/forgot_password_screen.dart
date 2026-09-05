@@ -5,11 +5,12 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_moving_wave_sheet.dart';
-import 'package:aub_connect_app/modules/onboarding/widgets/onboarding_background.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
 class ForgotPasswordScreen extends GetView<AuthController> {
   const ForgotPasswordScreen({super.key});
@@ -71,24 +72,11 @@ class ForgotPasswordScreen extends GetView<AuthController> {
             top: 0,
             left: 0,
             child: SafeArea(
-              child: TextButton(
+              child: CustomButton(
+                label: AppStrings.back,
+                variant: CustomButtonVariant.ghost,
+                foregroundColor: Colors.white,
                 onPressed: _goBack,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(44, 44),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                child: const Text(
-                  AppStrings.back,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
               ),
             ),
           ),
@@ -225,46 +213,13 @@ class _AuthPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
     return SizedBox(
       width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 18),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
+      child: CustomButton(
+        label: label,
+        icon: icon,
+        isLoading: isLoading,
+        onPressed: onPressed,
       ),
     );
   }

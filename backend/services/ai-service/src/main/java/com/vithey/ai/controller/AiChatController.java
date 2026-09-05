@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/v1/ai")
@@ -40,6 +42,25 @@ public class AiChatController {
   @Operation(summary = "Send chatbot message")
   public ApiResponseWrapper<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
     return aiChatService.chat(currentUserProvider.requireCurrentUser(), request);
+  }
+
+  @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @Operation(summary = "Send chatbot message with SSE token streaming")
+  public SseEmitter chatStream(@Valid @RequestBody ChatRequest request) {
+    return aiChatService.chatStream(currentUserProvider.requireCurrentUser(), request);
+  }
+
+  @PostMapping("/messages/{messageId}/regenerate")
+  @Operation(summary = "Regenerate an assistant reply (owner-only)")
+  public ApiResponseWrapper<ChatResponse> regenerate(@PathVariable UUID messageId) {
+    return aiChatService.regenerate(currentUserProvider.requireCurrentUser(), messageId);
+  }
+
+  @DeleteMapping("/chat/requests/{requestId}")
+  @Operation(summary = "Cancel an in-flight chat generation")
+  public ResponseEntity<Void> cancelChatRequest(@PathVariable UUID requestId) {
+    aiChatService.cancelRequest(currentUserProvider.requireCurrentUser(), requestId);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @GetMapping("/sessions")

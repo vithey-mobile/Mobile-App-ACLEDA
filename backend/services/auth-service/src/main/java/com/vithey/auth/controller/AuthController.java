@@ -1,5 +1,6 @@
 package com.vithey.auth.controller;
 
+import com.vithey.auth.dto.request.ChangePasswordRequest;
 import com.vithey.auth.dto.request.ForgotPasswordRequest;
 import com.vithey.auth.dto.request.LoginRequest;
 import com.vithey.auth.dto.request.LogoutRequest;
@@ -18,9 +19,11 @@ import com.vithey.auth.util.ApiResponseWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,6 +86,16 @@ public class AuthController {
   public ResponseEntity<ApiResponseWrapper<MessageResponse>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
     authService.verifyEmail(request.token());
     return ResponseEntity.ok(ApiResponseWrapper.success(new MessageResponse("Email verified successfully.")));
+  }
+
+  @PatchMapping("/me/password")
+  @Operation(summary = "Change password", description = "Verifies the current password, then stores the new password hashed with BCrypt.")
+  public ResponseEntity<ApiResponseWrapper<MessageResponse>> changePassword(
+      @Valid @RequestBody ChangePasswordRequest request
+  ) {
+    UUID userId = currentUserProvider.requireCurrentUser().userId();
+    authService.changePassword(userId, request.currentPassword(), request.newPassword());
+    return ResponseEntity.ok(ApiResponseWrapper.success(new MessageResponse("Password changed successfully.")));
   }
 
   @PostMapping("/logout")

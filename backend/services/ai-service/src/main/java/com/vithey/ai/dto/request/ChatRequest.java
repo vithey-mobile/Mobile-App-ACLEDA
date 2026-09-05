@@ -8,6 +8,11 @@ import java.util.UUID;
 public record ChatRequest(
     @NotBlank @Size(max = 4000) String message,
     AiTopic topic,
-    UUID sessionId
+    UUID sessionId,
+    @Size(max = 100) String clientMessageId
 ) {
+
+  public ChatRequest(String message, AiTopic topic, UUID sessionId) {
+    this(message, topic, sessionId, null);
+  }
 }

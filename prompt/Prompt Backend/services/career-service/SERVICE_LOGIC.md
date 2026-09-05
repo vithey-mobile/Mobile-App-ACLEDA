@@ -15,6 +15,7 @@ Does not own post creation, physical CV files, or user profile details.
 | List my applications | Return applications where `applicant_id = X-User-Id`. |
 | List by job post | If caller owns the job post → all applicants; else → caller's own application for that job (supports `hasApplied` without 403). |
 | Status update | Poster only; update status, set timeline timestamps, optional `reviewer_note`, publish `job.application.status_changed`. |
+| CV preview | `GET /job-applications/{id}/cv-preview` — applicant or poster; resolve `download_url` via file-service. Ownership check matches list-by-job; missing application/CV → 404, stranger → 403. |
 
 ## Timeline rules
 

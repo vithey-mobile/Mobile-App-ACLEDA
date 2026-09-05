@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 
 class NotificationPreferenceTile extends StatelessWidget {
   const NotificationPreferenceTile({
@@ -63,10 +63,10 @@ class NotificationPreferenceTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  shad.Switch(
+                  VitheySwitch(
                     value: value,
                     enabled: enabled,
-                    onChanged: enabled ? onChanged : null,
+                    onChanged: onChanged,
                   ),
                 ],
               ),

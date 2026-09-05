@@ -46,7 +46,8 @@ class SearchPostTile extends StatelessWidget {
                   ),
                   if (meta != null) ...[
                     const SizedBox(height: 4),
-                    Text(meta, style: TextStyle(fontSize: 12, color: colors.muted)),
+                    Text(meta,
+                        style: TextStyle(fontSize: 12, color: colors.muted)),
                   ],
                 ],
               ),

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/application_feedback_success.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -39,21 +41,25 @@ class JobApplicantsController extends GetxController {
   }
 
   Future<void> accept(JobApplicationModel application) async {
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Accept applicant?',
+      message: 'This applicant will be notified of your decision.',
+      confirmLabel: 'Accept',
+    );
+    if (confirmed != true) return;
     await _repository.updateApplicationStatus(application.id, ApplicationStatus.accepted);
     await loadApplicants();
     _showFeedbackSuccess();
   }
 
   Future<void> reject(JobApplicationModel application) async {
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Reject applicant?'),
-        content: const shad.Text('This applicant will be notified of your decision.'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.destructive(onPressed: () => Get.back(result: true), child: const shad.Text('Reject')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Reject applicant?',
+      message: 'This applicant will be notified of your decision.',
+      confirmLabel: 'Reject',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
     await _repository.updateApplicationStatus(application.id, ApplicationStatus.rejected);
@@ -132,14 +138,11 @@ class _ApplicantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.appColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
+    return VitheyCard(
+      padding: const EdgeInsets.all(14),
+      bordered: true,
+      elevated: false,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -185,97 +188,34 @@ class _ApplicantCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _ActionButton(
+                  child: CustomButton(
                     label: 'Accept',
                     onPressed: application.status == ApplicationStatus.accepted
                         ? null
                         : onAccept,
-                    background: Theme.of(context).colorScheme.primary,
-                    foreground: Colors.white,
-                    disabledBackground: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.45),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _ActionButton(
+                  child: CustomButton(
                     label: 'Reject',
+                    variant: CustomButtonVariant.outline,
                     onPressed: application.status == ApplicationStatus.rejected
                         ? null
                         : onReject,
-                    background: const Color(0xFFE76363),
-                    foreground: Colors.white,
-                    disabledBackground:
-                        const Color(0xFFE76363).withValues(alpha: 0.4),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _ActionButton(
+                  child: CustomButton(
                     label: 'Details',
+                    variant: CustomButtonVariant.secondary,
                     onPressed: onDetails,
-                    background: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF3A3A4E)
-                        : const Color(0xFFE8E8EC),
-                    foreground: context.appColors.heading,
                   ),
                 ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.label,
-    required this.onPressed,
-    required this.background,
-    required this.foreground,
-    this.disabledBackground,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final Color background;
-  final Color foreground;
-  final Color? disabledBackground;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: background,
-          foregroundColor: foreground,
-          disabledBackgroundColor: disabledBackground ?? background.withValues(alpha: 0.4),
-          disabledForegroundColor: foreground.withValues(alpha: 0.7),
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          padding: EdgeInsets.zero,
-          alignment: Alignment.center,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: foreground,
-            height: 1.1,
-          ),
-        ),
       ),
     );
   }

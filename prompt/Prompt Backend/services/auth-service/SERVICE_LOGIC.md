@@ -16,6 +16,7 @@ It does not own public profile, avatar files, settings, posts, chat, notificatio
 | Logout | Revoke the caller refresh token or all user tokens when requested by security endpoints later. |
 | Student verification | Validate AUB email/student id, update role/status to `STUDENT`, publish `student.verified`. |
 | Forgot/reset password | Generate one-time reset token, store hashed token, reset only if token is valid and unexpired. |
+| Change password | `PATCH /auth/me/password` — verify `current_password` with BCrypt, persist hashed `new_password`. |
 
 ## Events
 

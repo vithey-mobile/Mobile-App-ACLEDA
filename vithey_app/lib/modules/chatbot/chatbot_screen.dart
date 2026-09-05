@@ -11,7 +11,7 @@ import 'package:aub_connect_app/modules/chatbot/widgets/user_message_bubble.dart
 import 'package:aub_connect_app/modules/chatbot/widgets/jump_to_latest_button.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_controller.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
-import 'package:aub_connect_app/modules/shell/main_shell_screen.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 import 'package:get/get.dart';
 
 class ChatbotScreen extends StatefulWidget {

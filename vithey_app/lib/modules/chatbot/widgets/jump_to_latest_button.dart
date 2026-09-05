@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
 class JumpToLatestButton extends StatelessWidget {
   const JumpToLatestButton({super.key, required this.onTap});
@@ -8,10 +8,11 @@ class JumpToLatestButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return shad.Button.secondary(
+    return CustomButton(
+      label: 'Jump to latest',
       onPressed: onTap,
-      leading: const Icon(Icons.arrow_downward, size: 16),
-      child: const shad.Text('Jump to latest'),
+      icon: Icons.arrow_downward,
+      variant: CustomButtonVariant.secondary,
     );
   }
 }

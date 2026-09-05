@@ -40,7 +40,8 @@ class SearchSeeAllController extends GetxController {
     posts.clear();
     try {
       if (isPeople) {
-        final result = await _repository.searchPeople(query: args.query, page: _page);
+        final result =
+            await _repository.searchPeople(query: args.query, page: _page);
         people.assignAll(result.items);
         _hasMore = result.hasMore;
       } else {
@@ -65,7 +66,8 @@ class SearchSeeAllController extends GetxController {
     try {
       final nextPage = _page + 1;
       if (isPeople) {
-        final result = await _repository.searchPeople(query: args.query, page: nextPage);
+        final result =
+            await _repository.searchPeople(query: args.query, page: nextPage);
         people.addAll(result.items);
         _hasMore = result.hasMore;
       } else {
@@ -90,14 +92,17 @@ class SearchSeeAllController extends GetxController {
     openUserProfile(user.userId);
   }
 
-  void openPost(String postId) => Get.toNamed(AppRoutes.postDetail, arguments: postId);
+  void openPost(String postId) =>
+      Get.toNamed(AppRoutes.postDetail, arguments: postId);
 
   Future<void> messagePerson(UserSearchResult user) async {
     try {
       final chatRepo = Get.find<ChatRepository>();
-      final conversationId = await chatRepo.findOrCreateConversation(user.userId);
+      final conversationId =
+          await chatRepo.findOrCreateConversation(user.userId);
       await _repository.addRecentUser(user);
-      Get.toNamed(AppRoutes.chatDetail, arguments: ChatDetailArgs(conversationId: conversationId));
+      Get.toNamed(AppRoutes.chatDetail,
+          arguments: ChatDetailArgs(conversationId: conversationId));
     } catch (_) {
       Get.snackbar(AppStrings.appName, 'Could not open chat');
     }

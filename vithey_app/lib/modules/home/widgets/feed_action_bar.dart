@@ -181,7 +181,8 @@ class _FeedActionBarState extends State<FeedActionBar>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (reacted)
-                          Text(reaction.emoji, style: const TextStyle(fontSize: 20))
+                          Text(reaction.emoji,
+                              style: const TextStyle(fontSize: 20))
                         else
                           Icon(Icons.thumb_up_outlined, size: 22, color: idle),
                         if (widget.post.reactionCount > 0) ...[

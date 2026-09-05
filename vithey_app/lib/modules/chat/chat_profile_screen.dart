@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
@@ -14,7 +13,8 @@ import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_call_sheet.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_shared_content.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/report_reason_dialog.dart';
 
 class ChatProfileController extends GetxController {
   ChatProfileController(this._chatRepository, this._localStorage);
@@ -110,14 +110,11 @@ class ChatProfileController extends GetxController {
 
   Future<void> blockUser() async {
     if (_conversationId == null) return;
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Block this user?'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Block')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Block this user?',
+      message: 'You will no longer receive messages from this person.',
+      confirmLabel: 'Block',
     );
     if (confirmed != true) return;
     await _chatRepository.blockConversation(_conversationId!);
@@ -127,24 +124,9 @@ class ChatProfileController extends GetxController {
 
   Future<void> reportUser() async {
     if (_participantId == null) return;
-    final reasonController = TextEditingController();
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Report user'),
-        content: shad.TextField(
-          controller: reasonController,
-          hintText: 'Reason for report',
-          maxLines: 3,
-        ),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Report')),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    await _chatRepository.reportUser(_participantId!, reasonController.text.trim());
-    reasonController.dispose();
+    final reason = await showReportReasonDialog(title: 'Report user');
+    if (reason == null || reason.isEmpty) return;
+    await _chatRepository.reportUser(_participantId!, reason);
     Get.snackbar(AppStrings.appName, 'Report submitted');
   }
 }

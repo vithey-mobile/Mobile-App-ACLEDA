@@ -4,9 +4,13 @@ public enum NotificationType {
   LIKE,
   COMMENT,
   MENTION,
+  POST_SHARE,
   FOLLOW,
   CHAT,
   CHAT_REQUEST,
+  JOB,
   PAYMENT,
-  JOB
+  AI,
+  SYSTEM,
+  STUDENT_VERIFICATION
 }

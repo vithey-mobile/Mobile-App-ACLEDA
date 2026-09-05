@@ -16,6 +16,8 @@ Does not own profile fields, media bytes, CV applications, or notifications.
 | Job post | Store job metadata on post columns so career-service can verify job ownership/application target. |
 | Soft delete | Owner-only; set `deleted_at` / `updated_at`. Comments/reactions remain; deleted posts return `NOT_FOUND`. |
 | Comment | Save comment, persist provided `mention_user_ids`, publish `comment.added` and `mention.created` per mention. |
+| Edit comment | Author only; `PATCH /posts/{postId}/comments/{commentId}` with `{ "text": "..." }` → updated `CommentResponse`. Not author → 403. Missing → 404. |
+| Delete comment | Author only; `DELETE /posts/{postId}/comments/{commentId}` → 204. Removes mentions + comment. Not author → 403. Missing → 404. |
 | Reaction | Toggle one reaction per user/post; publish `reaction.added` only on insert (not on remove). |
 | Follow | Reject self-follow (`422`); if already following, return success without duplicate row; else insert and publish `follow.created`. |
 
@@ -67,7 +69,9 @@ Do not reintroduce per-post N+1 count/Feign loops on list endpoints.
 | Media missing or type mismatch / file 404 | `INVALID_FILE` | 400 |
 | Missing or invalid JWT | `UNAUTHORIZED` | 401 |
 | Not post owner on delete | `FORBIDDEN` | 403 |
+| Not comment author on edit/delete | `FORBIDDEN` | 403 |
 | Post not found or soft-deleted | `NOT_FOUND` | 404 |
+| Comment not found on edit/delete | `NOT_FOUND` | 404 |
 | Self follow | `BUSINESS_RULE_VIOLATION` | 422 |
 | Unexpected / Feign 5xx | `INTERNAL_ERROR` | 500 |
 

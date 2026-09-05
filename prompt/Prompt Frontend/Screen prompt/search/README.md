@@ -148,5 +148,5 @@ Implement global search by following prompts **01 → 04** in order. One `Search
 - `Prompt Frontend/api-intergration/integration-contract.md`
 - `Screen prompt/media/01-home-prompt.md` (Home search entry)
 - `Screen prompt/chat/01.list_chat.md` (people picker overlap)
-- `Screen prompt/profile/v0/01.profile_home.md` (profile destination)
+- `Screen prompt/profile/01.profile_home.md` (profile destination)
 - `Prompt Backend/services/user-profile-service/API_ENDPOINTS.md`

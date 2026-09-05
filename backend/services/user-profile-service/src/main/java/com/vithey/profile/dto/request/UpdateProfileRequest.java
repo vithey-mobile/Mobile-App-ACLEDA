@@ -28,8 +28,8 @@ public record UpdateProfileRequest(
     @Schema(example = "https://facebook.com/jane", maxLength = 500) @Size(max = 500) String facebookLink,
     @Schema(example = "AUB", maxLength = 160) @Size(max = 160) String university,
     @Schema(example = "Computer Science", maxLength = 160) @Size(max = 160) String major,
-    @Schema(example = "2026", minimum = "1900", maximum = "2100")
-    @Min(1900) @Max(2100) Integer graduationYear,
+    @Schema(example = "2026", minimum = "1950", maximum = "2100")
+    @Min(1950) @Max(2100) Integer graduationYear,
     @Schema(example = "Phnom Penh", maxLength = 160) @Size(max = 160) String location,
     LocalDate dateOfBirth,
     @Schema(maxLength = 160) @Size(max = 160) String workplace,

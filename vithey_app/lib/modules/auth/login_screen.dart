@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
@@ -6,16 +6,17 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_panel_switcher.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
-import 'package:aub_connect_app/modules/onboarding/widgets/onboarding_background.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
 /// Auth v2 shell:
-/// - Wave → solid teal morph from Onboarding (shared painter)
+/// - Wave to solid teal morph from Onboarding (shared painter)
 /// - Light-teal wave band (~10% screen) + white body (hugs form content)
 /// - Toggle animation: sheet grows up / shrinks down to hug each form
 class LoginScreen extends GetView<AuthController> {
@@ -92,24 +93,11 @@ class LoginScreen extends GetView<AuthController> {
                       top: 0,
                       left: 0,
                       child: SafeArea(
-                        child: TextButton(
+                        child: CustomButton(
+                          label: AppStrings.back,
+                          variant: CustomButtonVariant.ghost,
+                          foregroundColor: AppColors.accentLight,
                           onPressed: busy ? null : controller.goBack,
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.accentLight,
-                            minimumSize: const Size(44, 44),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                          child: const Text(
-                            AppStrings.back,
-                            style: TextStyle(
-                              color: AppColors.accentLight,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
                         ),
                       ),
                     ),
@@ -190,25 +178,14 @@ class _SignInForm extends GetView<AuthController> {
               ),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
+                child: CustomButton(
+                  label: AppStrings.forgotPassword,
+                  variant: CustomButtonVariant.ghost,
+                  foregroundColor: context.scheme.primary,
                   onPressed: () {
                     FormErrorHost.clearAll();
                     Get.toNamed(AppRoutes.forgotPassword);
                   },
-                style: TextButton.styleFrom(
-                  foregroundColor: context.scheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  minimumSize: const Size(44, 32),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  AppStrings.forgotPassword,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: context.scheme.primary,
-                  ),
-                ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -259,25 +236,14 @@ class _SignInForm extends GetView<AuthController> {
                       color: context.appColors.muted,
                     ),
                   ),
-                  TextButton(
+                  CustomButton(
+                    label: AppStrings.signUp,
+                    variant: CustomButtonVariant.ghost,
+                    foregroundColor: context.scheme.primary,
                     onPressed: () {
                       FormErrorHost.clearAll();
                       controller.showSignUp();
                     },
-                    style: TextButton.styleFrom(
-                      foregroundColor: context.scheme.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                      minimumSize: const Size(44, 32),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      AppStrings.signUp,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: context.scheme.primary,
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -412,25 +378,14 @@ class _SignUpForm extends GetView<AuthController> {
                   color: context.appColors.muted,
                 ),
               ),
-              TextButton(
+              CustomButton(
+                label: AppStrings.signIn,
+                variant: CustomButtonVariant.ghost,
+                foregroundColor: context.scheme.primary,
                 onPressed: () {
                   FormErrorHost.clearAll();
                   controller.showSignIn();
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: context.scheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  minimumSize: const Size(44, 32),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  AppStrings.signIn,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: context.scheme.primary,
-                  ),
-                ),
               ),
             ],
           ),
@@ -544,47 +499,13 @@ class _AuthPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
     return SizedBox(
       width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: AppColors.accentLight,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: AppColors.accentLight,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 18, color: AppColors.accentLight),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: kAuthButtonFontSize,
-                      fontWeight: kAuthButtonFontWeight,
-                      color: AppColors.accentLight,
-                    ),
-                  ),
-                ],
-              ),
+      child: CustomButton(
+        label: label,
+        icon: icon,
+        isLoading: isLoading,
+        onPressed: onPressed,
       ),
     );
   }

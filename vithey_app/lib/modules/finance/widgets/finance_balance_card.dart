@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 
 /// v1 Outstanding Balance card — wallet on right, Due under amount, Pay Now CTA.
@@ -106,25 +107,10 @@ class FinanceBalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: FilledButton(
-              onPressed: onPayNow,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.primary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
-              child: const Text('Pay Now'),
-            ),
+          CustomButton(
+            label: 'Pay Now',
+            variant: CustomButtonVariant.secondary,
+            onPressed: onPayNow,
           ),
         ],
       ),

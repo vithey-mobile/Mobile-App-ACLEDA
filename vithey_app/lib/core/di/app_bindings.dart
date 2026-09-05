@@ -19,6 +19,7 @@ import 'package:aub_connect_app/data/repositories/cv_repository.dart';
 import 'package:aub_connect_app/data/repositories/finance_repository.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
+import 'package:aub_connect_app/data/repositories/place_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/search_repository.dart';
@@ -32,6 +33,7 @@ import 'package:aub_connect_app/data/services/chat_stomp_service.dart';
 import 'package:aub_connect_app/data/services/finance_service.dart';
 import 'package:aub_connect_app/data/services/job_application_service.dart';
 import 'package:aub_connect_app/data/services/notification_service.dart';
+import 'package:aub_connect_app/data/services/place_service.dart';
 import 'package:aub_connect_app/data/services/post_search_service.dart';
 import 'package:aub_connect_app/data/services/post_service.dart';
 import 'package:aub_connect_app/data/services/profile_service.dart';
@@ -170,6 +172,11 @@ class AppBindings {
         Get.find<SearchRecentStore>(),
         featureFlags,
       ),
+      permanent: true,
+    );
+    Get.put<PlaceService>(PlaceService(Get.find<ApiService>()), permanent: true);
+    Get.put<PlaceRepository>(
+      PlaceRepository(Get.find<PlaceService>(), featureFlags),
       permanent: true,
     );
 

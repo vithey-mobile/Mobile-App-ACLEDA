@@ -3,7 +3,7 @@ import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
-import 'package:aub_connect_app/modules/shell/main_shell_screen.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 
 /// Opens own profile tab or the visitor profile screen.
 void openUserProfile(String userId) {

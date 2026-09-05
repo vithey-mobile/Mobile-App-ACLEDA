@@ -18,13 +18,15 @@ class SearchHighlightText extends StatelessWidget {
   Widget build(BuildContext context) {
     final q = query.trim().toLowerCase();
     if (q.length < 2) {
-      return Text(text, style: style, maxLines: maxLines, overflow: TextOverflow.ellipsis);
+      return Text(text,
+          style: style, maxLines: maxLines, overflow: TextOverflow.ellipsis);
     }
 
     final lower = text.toLowerCase();
     final index = lower.indexOf(q);
     if (index < 0) {
-      return Text(text, style: style, maxLines: maxLines, overflow: TextOverflow.ellipsis);
+      return Text(text,
+          style: style, maxLines: maxLines, overflow: TextOverflow.ellipsis);
     }
 
     final before = text.substring(0, index);

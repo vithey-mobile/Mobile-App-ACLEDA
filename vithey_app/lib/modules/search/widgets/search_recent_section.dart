@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_recent_tile.dart';
 
@@ -63,10 +64,12 @@ class SearchRecentSection extends StatelessWidget {
               ),
               const Spacer(),
               if (onClearAll != null)
-                TextButton(
+                VitheyTextLink(
+                  label: 'Clear all',
                   onPressed: onClearAll,
-                  child:
-                      Text('Clear all', style: TextStyle(color: colors.muted)),
+                  color: colors.muted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
             ],
           ),

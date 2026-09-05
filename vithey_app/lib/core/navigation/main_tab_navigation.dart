@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/modules/shell/main_shell_screen.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 
 /// Shared indices for the floating main bottom bar.
 ///

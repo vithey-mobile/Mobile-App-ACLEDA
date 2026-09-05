@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
 class CodeBlockCard extends StatelessWidget {
   const CodeBlockCard({
@@ -35,12 +35,13 @@ class CodeBlockCard extends StatelessWidget {
               children: [
                 Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
                 const Spacer(),
-                shad.Button.ghost(
+                CustomButton(
+                  label: 'Copy',
                   onPressed: () async {
                     await Clipboard.setData(ClipboardData(text: code));
                     onCopied?.call();
                   },
-                  child: const shad.Text('Copy'),
+                  variant: CustomButtonVariant.ghost,
                 ),
               ],
             ),

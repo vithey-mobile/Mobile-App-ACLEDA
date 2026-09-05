@@ -1,5 +1,5 @@
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class PrivacySwitchCard extends StatelessWidget {
   const PrivacySwitchCard({super.key, required this.children});
@@ -8,22 +8,10 @@ class PrivacySwitchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: context.appColors.subtleShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Column(children: children),
-      ),
+    return VitheyCard(
+      padding: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
     );
   }
 }

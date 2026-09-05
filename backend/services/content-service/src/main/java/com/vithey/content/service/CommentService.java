@@ -1,6 +1,7 @@
 package com.vithey.content.service;
 
 import com.vithey.content.dto.request.CreateCommentRequest;
+import com.vithey.content.dto.request.UpdateCommentRequest;
 import com.vithey.content.dto.response.AuthorSummaryResponse;
 import com.vithey.content.dto.response.CommentResponse;
 import com.vithey.content.entity.Comment;
@@ -8,6 +9,8 @@ import com.vithey.content.entity.Mention;
 import com.vithey.content.event.payload.CommentAddedEvent;
 import com.vithey.content.event.payload.MentionCreatedEvent;
 import com.vithey.content.event.publisher.ContentEventPublisher;
+import com.vithey.content.exception.ApiException;
+import com.vithey.content.exception.ErrorCode;
 import com.vithey.content.mapper.CommentMapper;
 import com.vithey.content.repository.CommentRepository;
 import com.vithey.content.repository.MentionRepository;
@@ -121,6 +124,42 @@ public class CommentService {
     }
 
     return toResponse(saved);
+  }
+
+  @Transactional
+  public CommentResponse updateComment(
+      UUID postId,
+      UUID commentId,
+      UUID userId,
+      UpdateCommentRequest request
+  ) {
+    Comment comment = requireCommentOnPost(postId, commentId);
+    requireCommentAuthor(comment, userId);
+
+    comment.setText(request.text());
+    Comment saved = commentRepository.save(comment);
+    return toResponse(saved);
+  }
+
+  @Transactional
+  public void deleteComment(UUID postId, UUID commentId, UUID userId) {
+    Comment comment = requireCommentOnPost(postId, commentId);
+    requireCommentAuthor(comment, userId);
+
+    mentionRepository.deleteByCommentId(comment.getId());
+    commentRepository.delete(comment);
+  }
+
+  private Comment requireCommentOnPost(UUID postId, UUID commentId) {
+    postService.requireActivePost(postId);
+    return commentRepository.findByIdAndPostId(commentId, postId)
+        .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+  }
+
+  private void requireCommentAuthor(Comment comment, UUID userId) {
+    if (!comment.getAuthorId().equals(userId)) {
+      throw new ApiException(ErrorCode.FORBIDDEN);
+    }
   }
 
   private CommentResponse toResponse(Comment comment) {

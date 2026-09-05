@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Hosts per-form error visibility for [CustomTextField].
+/// Hosts per-form error visibility for [VitheyField] / [CustomTextField].
 ///
 /// - [activateFor] / [FieldErrors.activate] before `FormState.validate()`
 /// - [clearAll] / field focus clears messages and restores idle colors

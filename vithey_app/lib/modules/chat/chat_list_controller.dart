@@ -12,7 +12,7 @@ import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 
 class ChatListController extends GetxController {
   ChatListController(this._chatRepository, this._localStorage);
@@ -39,7 +39,6 @@ class ChatListController extends GetxController {
   final isCreatingFolder = false.obs;
 
   final searchController = TextEditingController();
-  final searchFocusNode = FocusNode();
 
   StreamSubscription<List<ConversationModel>>? _conversationSub;
   Timer? _searchDebounce;
@@ -170,7 +169,6 @@ class ChatListController extends GetxController {
     isSearchActive.value = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isSearchActive.value) {
-        searchFocusNode.requestFocus();
         _refreshMessageSearch();
       }
     });
@@ -179,7 +177,6 @@ class ChatListController extends GetxController {
   void closeSearch() {
     isSearchActive.value = false;
     clearSearch();
-    searchFocusNode.unfocus();
   }
 
   void toggleSearch() {
@@ -319,23 +316,12 @@ class ChatListController extends GetxController {
   }
 
   Future<void> declineRequest(MessageRequestModel request) async {
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Decline request?'),
-        content: const shad.Text(
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Decline request?',
+      message:
           'This person will not be able to message you unless they send a new request.',
-        ),
-        actions: [
-          shad.Button.ghost(
-            onPressed: () => Get.back(result: false),
-            child: const shad.Text('Cancel'),
-          ),
-          shad.Button.primary(
-            onPressed: () => Get.back(result: true),
-            child: const shad.Text('Decline'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Decline',
     );
     if (confirmed != true) return;
     await _chatRepository.declineMessageRequest(request.id);
@@ -354,7 +340,6 @@ class ChatListController extends GetxController {
     _searchDebounce?.cancel();
     _conversationSub?.cancel();
     searchController.dispose();
-    searchFocusNode.dispose();
     super.onClose();
   }
 }

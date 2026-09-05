@@ -218,7 +218,8 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                  icon:
+                      const Icon(Icons.arrow_back_rounded, color: Colors.white),
                 ),
               ),
             ),
@@ -235,18 +236,15 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                   icon: _post.userReacted
                       ? Icons.thumb_up
                       : Icons.thumb_up_outlined,
-                  label: _post.reactionCount > 0
-                      ? '${_post.reactionCount}'
-                      : '',
+                  label:
+                      _post.reactionCount > 0 ? '${_post.reactionCount}' : '',
                   active: _post.userReacted,
                   onTap: _toggleLike,
                 ),
                 const SizedBox(height: 18),
                 _SideAction(
                   icon: Icons.chat_bubble_outline_rounded,
-                  label: _post.commentCount > 0
-                      ? '${_post.commentCount}'
-                      : '',
+                  label: _post.commentCount > 0 ? '${_post.commentCount}' : '',
                   onTap: _onComment,
                 ),
                 const SizedBox(height: 18),
@@ -378,7 +376,8 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: _captionExpanded || caption.length <= 90
+                                    text: _captionExpanded ||
+                                            caption.length <= 90
                                         ? caption
                                         : '${caption.substring(0, 90).trimRight()}…',
                                   ),
@@ -464,9 +463,7 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
       return GestureDetector(
         onTap: () {
           setState(() {
-            controller.value.isPlaying
-                ? controller.pause()
-                : controller.play();
+            controller.value.isPlaying ? controller.pause() : controller.play();
           });
         },
         child: Center(

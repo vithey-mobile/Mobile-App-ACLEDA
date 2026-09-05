@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/modules/settings/help_center/help_center_controller.dart';
-import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:aub_connect_app/core/widgets/vithey_list_tile.dart';
+import 'package:aub_connect_app/modules/settings/help_center/help_center_controller.dart';
+import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class HelpCenterScreen extends GetView<HelpCenterController> {
   const HelpCenterScreen({super.key});
@@ -25,12 +26,9 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
             },
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
+          VitheyCard(
+            bordered: true,
+            elevated: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -58,15 +56,7 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
             );
           }),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.appColors.cardSurface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
-              ],
-            ),
+          VitheyCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -74,17 +64,11 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
                 const SizedBox(height: 8),
                 Text('Need more help? Reach out to our support team.', style: TextStyle(color: context.appColors.muted)),
                 const SizedBox(height: 12),
-                // Transparent Material so the tile's ink splash renders above
-                // the decorated card instead of being hidden by it.
-                Material(
-                  type: MaterialType.transparency,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.email_outlined, color: AppColors.primary),
-                    title: const Text('Email Support'),
-                    subtitle: const Text('support@vithey.app'),
-                    onTap: controller.contactSupport,
-                  ),
+                VitheyListTile(
+                  icon: Icons.email_outlined,
+                  title: 'Email Support',
+                  subtitle: 'support@vithey.app',
+                  onTap: controller.contactSupport,
                 ),
               ],
             ),
@@ -103,23 +87,12 @@ class _FaqTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.appColors.cardSurface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: VitheyListTile(
+        icon: Icons.help_outline,
+        title: title,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(Icons.help_outline, color: context.appColors.muted),
-              const SizedBox(width: 12),
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500))),
-              Icon(Icons.chevron_right, color: context.appColors.muted),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -69,6 +69,8 @@ Same `PostResponse` shape as feed. Matches text in `content`, `job_title`, `job_
 | --- | --- | --- | --- |
 | GET | `/posts/{post_id}/comments?page=&limit=` | Paginated comments (newest first) | 200 |
 | POST | `/posts/{post_id}/comments` | Add comment and optional mentions | 201 |
+| PATCH | `/posts/{post_id}/comments/{comment_id}` | Edit comment text — author only | 200 |
+| DELETE | `/posts/{post_id}/comments/{comment_id}` | Delete own comment — author only | 204 |
 
 ## Reactions
 
@@ -122,11 +124,27 @@ Same `PostResponse` shape as feed. Matches text in `content`, `job_title`, `job_
 }
 ```
 
+**Edit comment** (`PATCH /posts/{post_id}/comments/{comment_id}`):
+
+```json
+{ "text": "Great post! (edited)" }
+```
+
 ## Empty-body responses
 
 - `DELETE /posts/{post_id}` → `204`
 - `POST /users/{user_id}/follow` → `201` (no body)
+- `DELETE /posts/{post_id}/comments/{comment_id}` → `204`
 - `DELETE /users/{user_id}/follow` → `204`
+
+### Comment edit/delete rules
+
+| Rule | Behavior |
+| --- | --- |
+| Author only | `PATCH` / `DELETE` compare `X-User-Id` with `comments.author_id`; not author → `403 FORBIDDEN` |
+| Comment missing or not on post | `404 NOT_FOUND` |
+| Post soft-deleted | `404 NOT_FOUND` (same as add/list) |
+| Delete | Removes mentions then the comment row; no event published |
 
 ## Gateway notes
 

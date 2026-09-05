@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/status_badge.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/modules/finance/widgets/finance_status_colors.dart';
 
@@ -23,67 +25,50 @@ class PaymentReceiptTile extends StatelessWidget {
         ? Icons.check_circle_outline
         : Icons.schedule_outlined;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: context.appColors.cardSurface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: context.appColors.border),
+    return VitheyCard(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      borderRadius: 14,
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(statusIcon, color: statusColor, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _HighlightedText(
+                  text: payment.feeName,
+                  query: searchQuery,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: context.appColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  payment.dateLabel,
+                  style: TextStyle(color: context.appColors.muted, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-          child: Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Icon(statusIcon, color: statusColor, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _HighlightedText(
-                      text: payment.feeName,
-                      query: searchQuery,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: context.appColors.heading,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      payment.dateLabel,
-                      style: TextStyle(color: context.appColors.muted, fontSize: 12),
-                    ),
-                  ],
+              Text(
+                payment.amount.formatted,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: context.appColors.heading,
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    payment.amount.formatted,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: context.appColors.heading,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    payment.statusLabel,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 4),
+              StatusBadge(label: payment.statusLabel, color: statusColor),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

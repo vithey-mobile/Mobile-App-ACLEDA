@@ -6,6 +6,8 @@ import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -395,7 +397,8 @@ class _CommentSheetState extends State<CommentSheet> {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: '  ·  ${_compactTime(comment.createdAt)}',
+                                    text:
+                                        '  ·  ${_compactTime(comment.createdAt)}',
                                     style: TextStyle(
                                       color: colors.muted,
                                       fontWeight: FontWeight.w400,
@@ -490,13 +493,9 @@ class _CommentSheetState extends State<CommentSheet> {
                             ),
                             onPressed: () => _toggleLike(comment),
                             icon: Icon(
-                              liked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_outlined,
+                              liked ? Icons.thumb_up : Icons.thumb_up_outlined,
                               size: 18,
-                              color: liked
-                                  ? AppColors.primary
-                                  : colors.muted,
+                              color: liked ? AppColors.primary : colors.muted,
                             ),
                           ),
                           IconButton(
@@ -570,7 +569,8 @@ class _CommentSheetState extends State<CommentSheet> {
                           ),
                         ),
                       ),
-                      TextButton(
+                      VitheyTextLink(
+                        label: 'Cancel',
                         onPressed: () {
                           setState(() {
                             _replyTarget = null;
@@ -578,11 +578,9 @@ class _CommentSheetState extends State<CommentSheet> {
                           });
                           _controller.clear();
                         },
-                        style: TextButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                        child: const Text('Cancel'),
+                        color: colors.muted,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
@@ -604,96 +602,50 @@ class _CommentSheetState extends State<CommentSheet> {
                     child: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _controller,
                       builder: (context, value, _) {
-                        final lineBreaks = '\n'.allMatches(value.text).length;
-                        final estimatedLines = (lineBreaks + 1).clamp(1, maxLines);
-                        final isMulti = estimatedLines > 1 ||
-                            value.text.length > 36;
-
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 120),
-                          curve: Curves.easeOut,
-                          constraints: BoxConstraints(
-                            minHeight: fieldHeight,
-                            maxHeight: fieldHeight * maxLines,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.cardSurface,
-                            borderRadius: BorderRadius.circular(
-                              isMulti ? 18 : fieldHeight / 2,
-                            ),
-                            border: Border.all(color: colors.border),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  minLines: 1,
-                                  maxLines: maxLines,
-                                  style: TextStyle(
-                                    color: colors.heading,
-                                    fontSize: 15,
-                                    height: 1.25,
-                                  ),
-                                  cursorColor: AppColors.primary,
-                                  decoration: InputDecoration(
-                                    hintText: hint,
-                                    hintStyle: TextStyle(
-                                      color: colors.muted,
-                                      fontSize: 15,
-                                      height: 1.25,
-                                    ),
-                                    filled: false,
-                                    isDense: true,
-                                    border: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    // Symmetric padding so focused/unfocused
-                                    // single-line height stays == avatar (40).
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 10.5,
-                                    ),
-                                  ),
-                                  textInputAction: TextInputAction.newline,
-                                  keyboardType: TextInputType.multiline,
-                                ),
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: VitheyField(
+                                controller: _controller,
+                                focusNode: _focusNode,
+                                hint: hint,
+                                minLines: 1,
+                                maxLines: maxLines,
+                                keyboardType: TextInputType.multiline,
                               ),
-                              Obx(() {
-                                final canSend = value.text.trim().isNotEmpty &&
-                                    !_isSending.value;
-                                return SizedBox(
-                                  width: fieldHeight,
-                                  height: fieldHeight,
-                                  child: IconButton(
-                                    tooltip: _editingComment != null
-                                        ? 'Save'
-                                        : 'Send',
-                                    onPressed: canSend ? _send : null,
-                                    padding: EdgeInsets.zero,
-                                    icon: _isSending.value
-                                        ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.send_rounded,
-                                            size: 22,
-                                            color: canSend
-                                                ? AppColors.primary
-                                                : colors.muted
-                                                    .withValues(alpha: 0.45),
+                            ),
+                            Obx(() {
+                              final canSend = value.text.trim().isNotEmpty &&
+                                  !_isSending.value;
+                              return SizedBox(
+                                width: fieldHeight,
+                                height: fieldHeight,
+                                child: IconButton(
+                                  tooltip:
+                                      _editingComment != null ? 'Save' : 'Send',
+                                  onPressed: canSend ? _send : null,
+                                  padding: EdgeInsets.zero,
+                                  icon: _isSending.value
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
                                           ),
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
+                                        )
+                                      : Icon(
+                                          Icons.send_rounded,
+                                          size: 22,
+                                          color: canSend
+                                              ? AppColors.primary
+                                              : colors.muted
+                                                  .withValues(alpha: 0.45),
+                                        ),
+                                ),
+                              );
+                            }),
+                          ],
                         );
                       },
                     ),

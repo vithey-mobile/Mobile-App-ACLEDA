@@ -1,86 +1,65 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui' as ui;
-import 'dart:typed_data';
+
+import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/data/fixtures/place_fixtures.dart';
+import 'package:aub_connect_app/data/models/place_models.dart';
+import 'package:aub_connect_app/data/repositories/place_repository.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:aub_connect_app/core/widgets/vithey_filter_chips.dart';
+import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:dio/dio.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'map_style.dart';
-
-class PlaceSuggestion {
-  final String displayName;
-  final String name;
-  final String address;
-  final double lat;
-  final double lon;
-  final String category; // e.g. cafe, restaurant, hotel, etc.
-  PlaceSuggestion(
-      {required this.displayName,
-      required this.name,
-      required this.address,
-      required this.lat,
-      required this.lon,
-      this.category = ''});
-}
 
 class MapController extends GetxController {
-  final searchQuery = ''.obs;
-  final searchResults = <PlaceSuggestion>[].obs;
-  final isSearching = false.obs;
-  final isLocationGranted = false.obs;
-  final errorMessage = ''.obs;
-  final markers = <Marker>{}.obs;
-  final localPlaces = <PlaceSuggestion>[].obs;
+  MapController({PlaceRepository? repository})
+      : _repository = repository ?? Get.find<PlaceRepository>();
 
-  // Filter state
-  final filterCategory = 'Cafe'.obs;
-  final filterRadius = 1000.0.obs; // Default 1km
+  final PlaceRepository _repository;
+
+  final searchQuery = ''.obs;
+  final suggestions = <PlaceAutocompleteSuggestion>[].obs;
+  final places = <PlaceCard>[].obs;
+  final markers = <Marker>{}.obs;
+  final isSearching = false.obs;
+  final isLoadingPlaces = false.obs;
+  final isLocationGranted = false.obs;
+  final isFollowingGps = true.obs;
+  final showSearchThisArea = false.obs;
+  final errorMessage = ''.obs;
+  final selectedPlace = Rxn<PlaceCard>();
+  final filter = const PlaceFilter(category: 'cafe').obs;
+
+  final gpsLatLng = Rxn<LatLng>();
+  final searchCenter = LatLng(
+    PlaceFixtures.defaultLat,
+    PlaceFixtures.defaultLng,
+  ).obs;
 
   final textController = TextEditingController();
   GoogleMapController? mapController;
   Timer? _debounce;
-  final _dio = Dio(
-    BaseOptions(
-      headers: {
-        'User-Agent': 'VitheyApp/1.0 (Mobile; Android/iOS)',
-        'Accept': 'application/json',
-      },
-    ),
-  );
+  LatLng? _pendingLongPress;
+  Marker? _searchFromHereMarker;
+
+  static const _searchFromHereId = MarkerId('search_from_here');
 
   @override
   void onInit() {
     super.onInit();
+    final args = Get.arguments;
+    if (args is String && args.trim().isNotEmpty) {
+      textController.text = args.trim();
+      searchQuery.value = args.trim();
+    }
     _checkLocationPermission();
-  }
-
-  Future<void> _checkLocationPermission() async {
-    final status = await Permission.locationWhenInUse.request();
-    if (status.isGranted) {
-      isLocationGranted.value = true;
-      goToCurrentLocation();
-    }
-  }
-
-  Future<void> goToCurrentLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(position.latitude, position.longitude),
-          15.0, // zoom level
-        ),
-      );
-    } catch (e) {
-      print("Could not get current location: $e");
-    }
   }
 
   @override
@@ -90,727 +69,545 @@ class MapController extends GetxController {
     super.onClose();
   }
 
-  void onMapCreated(GoogleMapController controller, bool isDarkMode) {
-    mapController = controller;
-    if (isDarkMode) {
-      controller.setMapStyle(darkMapStyle);
+  Future<void> _checkLocationPermission() async {
+    final status = await Permission.locationWhenInUse.request();
+    if (status.isGranted) {
+      isLocationGranted.value = true;
+      await goToCurrentLocation(runNearby: true);
     } else {
-      controller.setMapStyle(null);
+      isLocationGranted.value = false;
+      await loadNearby();
     }
+  }
 
+  Future<void> onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
     if (isLocationGranted.value) {
-      goToCurrentLocation();
+      await goToCurrentLocation(runNearby: places.isEmpty);
+    } else if (places.isEmpty) {
+      await loadNearby();
+    } else {
+      _rebuildMarkers();
+    }
+  }
+
+  Future<void> goToCurrentLocation({bool runNearby = true}) async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final latLng = LatLng(position.latitude, position.longitude);
+      gpsLatLng.value = latLng;
+      searchCenter.value = latLng;
+      isFollowingGps.value = true;
+      showSearchThisArea.value = false;
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(latLng, 15),
+      );
+      if (runNearby) await loadNearby();
+    } catch (_) {
+      Get.snackbar(
+        AppStrings.appName,
+        'Could not get current location',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> onMyLocationTap() async {
+    final status = await Permission.locationWhenInUse.status;
+    if (!status.isGranted) {
+      final next = await Permission.locationWhenInUse.request();
+      if (!next.isGranted) {
+        Get.snackbar(
+          AppStrings.appName,
+          'Location permission needed. Open settings to enable.',
+          snackPosition: SnackPosition.BOTTOM,
+          // GetX types SnackbarController.mainButton as TextButton?;
+          // VitheyTextLink extends TextButton so it satisfies the type.
+          mainButton: VitheyTextLink(
+            label: 'Settings',
+            onPressed: openAppSettings,
+          ),
+        );
+        return;
+      }
+      isLocationGranted.value = true;
+    }
+    await goToCurrentLocation(runNearby: true);
+  }
+
+  Future<void> onMyLocationLongPress() async {
+    await goToCurrentLocation(runNearby: true);
+    Get.snackbar(
+      AppStrings.appName,
+      'Back to my location',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 1),
+    );
+  }
+
+  void onCameraMove(CameraPosition position) {
+    if (!isFollowingGps.value) return;
+    final center = searchCenter.value;
+    final moved = Geolocator.distanceBetween(
+          center.latitude,
+          center.longitude,
+          position.target.latitude,
+          position.target.longitude,
+        ) >
+        80;
+    if (moved) {
+      isFollowingGps.value = false;
+      showSearchThisArea.value = true;
+    }
+  }
+
+  void onCameraIdle() {
+    // no-op; Search this area is explicit
+  }
+
+  Future<void> searchThisArea() async {
+    if (mapController == null) return;
+    final bounds = await mapController!.getVisibleRegion();
+    final lat =
+        (bounds.northeast.latitude + bounds.southwest.latitude) / 2;
+    final lng =
+        (bounds.northeast.longitude + bounds.southwest.longitude) / 2;
+    await setSearchCenter(LatLng(lat, lng), fromGps: false);
+  }
+
+  Future<void> setSearchCenter(
+    LatLng center, {
+    required bool fromGps,
+    String? label,
+  }) async {
+    searchCenter.value = center;
+    isFollowingGps.value = fromGps;
+    showSearchThisArea.value = false;
+    if (!fromGps) {
+      _searchFromHereMarker = Marker(
+        markerId: _searchFromHereId,
+        position: center,
+        infoWindow: InfoWindow(title: label ?? 'Search from here'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      );
+    } else {
+      _searchFromHereMarker = null;
+    }
+    await mapController?.animateCamera(CameraUpdate.newLatLngZoom(center, 15));
+    await loadNearby();
+  }
+
+  Future<void> onMapLongPress(LatLng position) async {
+    _pendingLongPress = position;
+    final confirm = await Get.bottomSheet<bool>(
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Search around here?',
+                style: Get.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Set this pin as your search center and find nearby places.',
+              ),
+              const SizedBox(height: 16),
+              CustomButton(
+                label: 'Search around here',
+                onPressed: () => Get.back(result: true),
+              ),
+              CustomButton(
+                label: 'Cancel',
+                onPressed: () => Get.back(result: false),
+                variant: CustomButtonVariant.ghost,
+              ),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Get.theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+    );
+    if (confirm == true && _pendingLongPress != null) {
+      await setSearchCenter(_pendingLongPress!, fromGps: false);
     }
   }
 
   void onSearchChanged(String value) {
     searchQuery.value = value;
-
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-
+    _debounce?.cancel();
     if (value.trim().isEmpty) {
-      searchResults.clear();
-      errorMessage.value = ''; // also clear error
+      suggestions.clear();
+      errorMessage.value = '';
       return;
     }
-
-    // Reduced from 500ms to 250ms for faster, smoother autocomplete
     _debounce = Timer(const Duration(milliseconds: 250), () async {
-      isSearching.value = true;
-      errorMessage.value = '';
-      try {
-        final Map<String, dynamic> queryParams = {
-          'q': value.trim(),
-          'limit': 15,
-        };
-
-        // Bias search to the current map view center
-        if (mapController != null) {
-          final bounds = await mapController!.getVisibleRegion();
-          final lat =
-              (bounds.northeast.latitude + bounds.southwest.latitude) / 2;
-          final lon =
-              (bounds.northeast.longitude + bounds.southwest.longitude) / 2;
-          // Format precisely to avoid exponential notation or excessive decimals
-          queryParams['lat'] = lat.toStringAsFixed(6);
-          queryParams['lon'] = lon.toStringAsFixed(6);
-        }
-
-        final response = await _dio.get(
-          'https://photon.komoot.io/api/',
-          queryParameters: queryParams,
-          options: Options(
-            headers: {
-              'User-Agent': 'VitheyApp/1.0 (Mobile)',
-            },
-          ),
-        );
-
-        final List features = response.data['features'];
-        final apiResults = features.map((feature) {
-          final props = feature['properties'];
-          final coords = feature['geometry']['coordinates'];
-
-          // Build a highly detailed display name
-          final name = props['name'] ?? '';
-          final street = props['street'] ?? '';
-          final district = props['district'] ?? '';
-          final city = props['city'] ?? props['state'] ?? '';
-
-          List<String> parts = [];
-          if (name.toString().isNotEmpty) parts.add(name);
-          if (street.toString().isNotEmpty) parts.add(street);
-          if (district.toString().isNotEmpty) parts.add(district);
-          if (city.toString().isNotEmpty) parts.add(city);
-
-          final displayName =
-              parts.isEmpty ? 'Unknown Location' : parts.join(', ');
-
-          List<String> addrParts = [];
-          if (street.toString().isNotEmpty) addrParts.add(street);
-          if (district.toString().isNotEmpty) addrParts.add(district);
-          if (city.toString().isNotEmpty) addrParts.add(city);
-          final address =
-              addrParts.isEmpty ? 'Unknown Address' : addrParts.join(', ');
-          final finalName =
-              name.toString().isNotEmpty ? name.toString() : 'Unknown Place';
-
-          final category = props['osm_value'] ?? '';
-
-          return PlaceSuggestion(
-            displayName: displayName,
-            name: finalName,
-            address: address,
-            lat: (coords[1] as num).toDouble(),
-            lon: (coords[0] as num).toDouble(),
-            category: category,
-          );
-        }).toList();
-
-        final localMatches = localPlaces
-            .where((p) => p.displayName
-                .toLowerCase()
-                .contains(value.trim().toLowerCase()))
-            .toList();
-
-        searchResults.value = [...localMatches, ...apiResults];
-        errorMessage.value = ''; // clear error on success
-      } catch (e) {
-        if (e is DioException) {
-          final errorData = e.response?.data;
-          errorMessage.value =
-              "API Error: ${e.response?.statusCode} - $errorData";
-          print("Photon Search Error Data: $errorData");
-        } else {
-          errorMessage.value = e.toString();
-        }
-        print("Photon Search Error: $e");
-        searchResults.clear();
-      } finally {
-        isSearching.value = false;
-      }
+      await _runAutocomplete(value.trim());
     });
   }
 
-  Future<void> onSuggestionSelected(PlaceSuggestion suggestion) async {
-    searchResults.clear();
-    searchQuery.value = suggestion.displayName;
-    textController.text = suggestion.displayName;
-    FocusManager.instance.primaryFocus?.unfocus(); // dismiss keyboard
-
-    final position = LatLng(suggestion.lat, suggestion.lon);
-    final customIcon = await _createCustomMarkerIcon(suggestion.category);
-
-    // Drop a pin!
-    markers.clear();
-    markers.add(Marker(
-      markerId: const MarkerId('selected_location'),
-      position: position,
-      icon: customIcon,
-      onTap: () {
-        _showPlaceDetails(suggestion);
-      },
-    ));
-    markers.refresh(); // Force UI update
-
-    // Smoothly animate closer to the pin (Zoom 17.0 is nicer)
-    mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(position, 17.0),
-    );
-  }
-
   Future<void> onSearchSubmitted(String value) async {
-    if (searchResults.isEmpty) return;
-
-    // Show ALL results on the map!
-    markers.clear();
-    FocusManager.instance.primaryFocus?.unfocus(); // dismiss keyboard
-
-    double minLat = searchResults.first.lat;
-    double maxLat = searchResults.first.lat;
-    double minLon = searchResults.first.lon;
-    double maxLon = searchResults.first.lon;
-
-    for (var i = 0; i < searchResults.length; i++) {
-      final place = searchResults[i];
-      final position = LatLng(place.lat, place.lon);
-
-      // Update bounding box
-      if (place.lat < minLat) minLat = place.lat;
-      if (place.lat > maxLat) maxLat = place.lat;
-      if (place.lon < minLon) minLon = place.lon;
-      if (place.lon > maxLon) maxLon = place.lon;
-
-      final customIcon = await _createCustomMarkerIcon(place.category);
-
-      markers.add(Marker(
-        markerId: MarkerId('search_result_$i'),
-        position: position,
-        icon: customIcon,
-        onTap: () {
-          _showPlaceDetails(place);
-        },
-      ));
-    }
-
-    markers.refresh(); // Force UI update
-
-    // Hide the dropdown list since we are showing pins on the map
-    final currentResults = List<PlaceSuggestion>.from(searchResults);
-    searchResults.clear();
-    searchQuery.value = value;
-    textController.text = value;
-
-    // Smoothly animate camera to fit all the pins on the screen!
-    if (currentResults.length == 1) {
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(minLat, minLon), 17.0),
-      );
-    } else {
-      // Ensure min and max bounds are not identical to prevent exceptions in Google Maps SDK
-      if ((maxLat - minLat).abs() < 0.002) {
-        minLat -= 0.002;
-        maxLat += 0.002;
-      }
-      if ((maxLon - minLon).abs() < 0.002) {
-        minLon -= 0.002;
-        maxLon += 0.002;
-      }
-
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLon),
-            northeast: LatLng(maxLat, maxLon),
-          ),
-          80.0, // padding in pixels
-        ),
-      );
-    }
-  }
-
-  Future<BitmapDescriptor> _createCustomMarkerIcon(String category) async {
-    IconData iconData;
-    Color color;
-
-    switch (category.toLowerCase()) {
-      case 'cafe':
-      case 'coffee':
-      case 'tea':
-        iconData = Icons.local_cafe;
-        color = Colors.orange;
-        break;
-      case 'restaurant':
-      case 'fast_food':
-      case 'food':
-        iconData = Icons.restaurant;
-        color = Colors.amber;
-        break;
-      case 'hotel':
-      case 'motel':
-      case 'guest_house':
-        iconData = Icons.hotel;
-        color = Colors.blue;
-        break;
-      case 'bank':
-      case 'atm':
-        iconData = Icons.local_atm;
-        color = Colors.green;
-        break;
-      case 'hospital':
-      case 'pharmacy':
-      case 'clinic':
-        iconData = Icons.local_hospital;
-        color = Colors.pink;
-        break;
-      case 'supermarket':
-      case 'convenience':
-      case 'mall':
-        iconData = Icons.shopping_cart;
-        color = Colors.purple;
-        break;
-      default:
-        iconData = Icons.location_on;
-        color = Colors.red;
-        break;
-    }
-
-    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-    final Canvas canvas = Canvas(pictureRecorder);
-    const double size = 110.0;
-
-    // Draw outer circle
-    final Paint paint = Paint()..color = color;
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, paint);
-
-    // Draw white inner border
-    final Paint borderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6.0;
-    canvas.drawCircle(
-        const Offset(size / 2, size / 2), (size / 2) - 3, borderPaint);
-
-    // Draw the icon
-    TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
-    textPainter.text = TextSpan(
-      text: String.fromCharCode(iconData.codePoint),
-      style: TextStyle(
-        fontSize: size * 0.6,
-        fontFamily: iconData.fontFamily,
-        package: iconData.fontPackage,
-        color: Colors.white,
-      ),
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2),
-    );
-
-    final ui.Picture picture = pictureRecorder.endRecording();
-    final ui.Image image = await picture.toImage(size.toInt(), size.toInt());
-    final ByteData? byteData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
-    final Uint8List uint8List = byteData!.buffer.asUint8List();
-
-    return BitmapDescriptor.fromBytes(uint8List);
+    final q = value.trim();
+    if (q.length < 2) return;
+    suggestions.clear();
+    await loadSearch(q);
   }
 
   void clearSearch() {
     textController.clear();
     searchQuery.value = '';
-    searchResults.clear();
+    suggestions.clear();
     errorMessage.value = '';
-    markers.clear();
-    markers.refresh(); // Force UI update to remove the pin
   }
 
-  Future<void> openAddPlace() async {
-    print("Opening Add Place Screen...");
-    final result = await Get.toNamed(AppRoutes.addPlace);
-    print("Returned from Add Place Screen! Result: $result");
-
-    if (result != null && result is Map<String, dynamic>) {
-      print("Valid result! Adding pin...");
-      final newPlace = PlaceSuggestion(
-        displayName: result['name'],
-        name: result['name'],
-        address: 'Custom Location',
-        lat: result['lat'],
-        lon: result['lon'],
-        category: 'other',
+  Future<void> _runAutocomplete(String input) async {
+    isSearching.value = true;
+    errorMessage.value = '';
+    try {
+      final center = searchCenter.value;
+      suggestions.value = await _repository.autocomplete(
+        input: input,
+        lat: center.latitude,
+        lng: center.longitude,
       );
-      localPlaces.add(newPlace);
-      onSuggestionSelected(newPlace);
-    } else {
-      print("Result was null or invalid type.");
+    } catch (e) {
+      errorMessage.value = e.toString();
+      suggestions.clear();
+    } finally {
+      isSearching.value = false;
     }
   }
 
-  void goBack() {
-    Get.back();
+  Future<void> selectSuggestion(PlaceAutocompleteSuggestion suggestion) async {
+    suggestions.clear();
+    textController.text = suggestion.primaryText;
+    searchQuery.value = suggestion.primaryText;
+
+    double? lat = suggestion.latitude;
+    double? lng = suggestion.longitude;
+    if (lat == null || lng == null) {
+      try {
+        final detail = await _repository.detail(suggestion.googlePlaceId);
+        lat = detail.latitude;
+        lng = detail.longitude;
+      } catch (_) {
+        // fall through to text search
+      }
+    }
+
+    if (lat != null && lng != null) {
+      await setSearchCenter(
+        LatLng(lat, lng),
+        fromGps: false,
+        label: suggestion.primaryText,
+      );
+    } else {
+      await loadSearch(suggestion.primaryText);
+    }
   }
 
-  void _showPlaceDetails(PlaceSuggestion place) {
-    Get.bottomSheet(
-      Container(
-        decoration: BoxDecoration(
-          color: Theme.of(Get.context!).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Image header
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-              child: Image.network(
-                'https://loremflickr.com/600/300/${place.category.isNotEmpty ? place.category : 'city'}',
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 180,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.image_not_supported,
-                      size: 50, color: Colors.grey),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    place.name,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(Get.context!).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                  if (place.category.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      place.category.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.teal,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.location_on,
-                          size: 20, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          place.address,
-                          style: const TextStyle(
-                              fontSize: 14, color: Colors.grey, height: 1.4),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.directions, color: Colors.white),
-                      label: const Text(
-                        'Get Directions',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      onPressed: () async {
-                        final url = Uri.parse(
-                            'https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        } else {
-                          Get.snackbar(
-                              'Error', 'Could not open maps application.');
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
-    );
+  Future<void> loadNearby() async {
+    isLoadingPlaces.value = true;
+    errorMessage.value = '';
+    try {
+      final center = searchCenter.value;
+      final result = await _repository.nearby(
+        lat: center.latitude,
+        lng: center.longitude,
+        filter: filter.value,
+      );
+      places.assignAll(result.places);
+      _rebuildMarkers();
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoadingPlaces.value = false;
+    }
+  }
+
+  Future<void> loadSearch(String query) async {
+    isLoadingPlaces.value = true;
+    errorMessage.value = '';
+    try {
+      final center = searchCenter.value;
+      final result = await _repository.search(
+        query: query,
+        lat: center.latitude,
+        lng: center.longitude,
+        filter: filter.value,
+      );
+      places.assignAll(result.places);
+      _rebuildMarkers();
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoadingPlaces.value = false;
+    }
+  }
+
+  void updateFilter(PlaceFilter next) {
+    filter.value = next;
+    final q = searchQuery.value.trim();
+    if (q.length >= 2) {
+      loadSearch(q);
+    } else {
+      loadNearby();
+    }
   }
 
   void openFilterModal() {
-    FocusManager.instance.primaryFocus?.unfocus(); // Dismiss keyboard
+    final current = filter.value;
+    final category = (current.category ?? '').obs;
+    final radius = current.radiusM.toDouble().obs;
+    final openNow = (current.openNow ?? false).obs;
+    final minRating = (current.minRating ?? 0.0).obs;
 
     Get.bottomSheet(
       SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          decoration: BoxDecoration(
-            color: Theme.of(Get.context!).cardColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Obx(
+            () => Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
                 Text(
-                  'Filter Nearby Places',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(Get.context!).textTheme.bodyLarge?.color,
+                  'Filters',
+                  style: Get.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Category',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey),
-                ),
-                const SizedBox(height: 10),
-                Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        'Cafe',
-                        'Restaurant',
-                        'Hotel',
-                        'Bank',
-                        'Hospital',
-                        'Supermarket',
-                      ].map((cat) {
-                        final isSelected = filterCategory.value.toLowerCase() ==
-                            cat.toLowerCase();
-                        return ChoiceChip(
-                          label: Text(cat),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) {
-                              filterCategory.value = cat;
-                            }
-                          },
-                          selectedColor: Colors.teal.withValues(alpha: 0.2),
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.teal : null,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        );
-                      }).toList(),
-                    )),
-                const SizedBox(height: 20),
-                const Text(
-                  'Radius Distance',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey),
-                ),
-                const SizedBox(height: 10),
-                Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        {'label': '500m', 'val': 500.0},
-                        {'label': '1km', 'val': 1000.0},
-                        {'label': '3km', 'val': 3000.0},
-                        {'label': '5km', 'val': 5000.0},
-                        {'label': '10km', 'val': 10000.0},
-                      ].map((r) {
-                        final label = r['label'] as String;
-                        final val = r['val'] as double;
-                        final isSelected =
-                            (filterRadius.value - val).abs() < 1.0;
-                        return ChoiceChip(
-                          label: Text(label),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) filterRadius.value = val;
-                          },
-                          selectedColor: Colors.teal.withValues(alpha: 0.2),
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.teal : null,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        );
-                      }).toList(),
-                    )),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
+                const SizedBox(height: 12),
+                VitheyFilterChips(
+                  items: [
+                    const VitheyFilterChipItem(id: '', label: 'All'),
+                    ...PlaceCategories.all.map(
+                      (c) => VitheyFilterChipItem(
+                        id: c,
+                        label: PlaceCategories.label(c),
+                        selected: category.value == c,
+                      ),
                     ),
-                    onPressed: () {
-                      Get.back();
-                      applyFilter();
-                    },
-                    child: const Text(
-                      'Apply Filter & Search',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
+                  ],
+                  onSelected: (id) => category.value = id,
+                ),
+                const SizedBox(height: 12),
+                Text('Radius: ${radius.value.round()} m'),
+                Slider(
+                  value: radius.value,
+                  min: 500,
+                  max: 5000,
+                  divisions: 9,
+                  activeColor: AppColors.primary,
+                  onChanged: (v) => radius.value = v,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Expanded(child: Text('Open now')),
+                      VitheySwitch(
+                        value: openNow.value,
+                        onChanged: (v) => openNow.value = v,
+                      ),
+                    ],
                   ),
+                ),
+                Text('Min rating: ${minRating.value.toStringAsFixed(1)}'),
+                Slider(
+                  value: minRating.value,
+                  min: 0,
+                  max: 5,
+                  divisions: 10,
+                  activeColor: AppColors.primary,
+                  onChanged: (v) => minRating.value = v,
+                ),
+                const SizedBox(height: 8),
+                CustomButton(
+                  label: 'Apply',
+                  onPressed: () {
+                    updateFilter(
+                      PlaceFilter(
+                        category:
+                            category.value.isEmpty ? null : category.value,
+                        radiusM: radius.value.round(),
+                        openNow: openNow.value ? true : null,
+                        minRating:
+                            minRating.value <= 0 ? null : minRating.value,
+                      ),
+                    );
+                    Get.back();
+                  },
                 ),
               ],
             ),
           ),
         ),
       ),
+      backgroundColor: Get.theme.colorScheme.surface,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
     );
   }
 
-  Future<void> applyFilter() async {
-    if (filterCategory.value.isEmpty) {
-      filterCategory.value = 'Cafe';
+  void _rebuildMarkers() {
+    final next = <Marker>{};
+    if (_searchFromHereMarker != null) {
+      next.add(_searchFromHereMarker!);
     }
-
-    // Get current map center
-    double centerLat = 11.5564;
-    double centerLon = 104.9282;
-
-    if (mapController != null) {
-      try {
-        final region = await mapController!.getVisibleRegion();
-        centerLat = (region.northeast.latitude + region.southwest.latitude) / 2;
-        centerLon =
-            (region.northeast.longitude + region.southwest.longitude) / 2;
-      } catch (_) {}
-    }
-
-    // Calculate bounding box based on radius
-    final double radiusMeters = filterRadius.value;
-    final double latDelta = radiusMeters / 111320.0;
-    final double cosLat = math.cos(centerLat * math.pi / 180.0);
-    final double lonDelta = radiusMeters /
-        (40075000.0 * (cosLat.abs() < 0.0001 ? 1.0 : cosLat) / 360.0);
-
-    final double minLat = centerLat - latDelta;
-    final double maxLat = centerLat + latDelta;
-    final double minLon = centerLon - lonDelta;
-    final double maxLon = centerLon + lonDelta;
-
-    final bbox =
-        '${minLon.toStringAsFixed(6)},${minLat.toStringAsFixed(6)},${maxLon.toStringAsFixed(6)},${maxLat.toStringAsFixed(6)}';
-
-    isSearching.value = true;
-    try {
-      final Map<String, dynamic> queryParams = {
-        'q': filterCategory.value.toLowerCase(),
-        'limit': 20,
-        'lat': centerLat.toStringAsFixed(6),
-        'lon': centerLon.toStringAsFixed(6),
-        'bbox': bbox,
-      };
-
-      var response = await _dio.get(
-        'https://photon.komoot.io/api/',
-        queryParameters: queryParams,
+    for (final place in places) {
+      next.add(
+        Marker(
+          markerId: MarkerId(place.googlePlaceId),
+          position: LatLng(place.latitude, place.longitude),
+          infoWindow: InfoWindow(
+            title: place.name,
+            snippet: place.address,
+          ),
+          onTap: () => openPlaceSheet(place),
+        ),
       );
+    }
+    markers.assignAll(next);
+  }
 
-      List features = response.data['features'] ?? [];
+  Future<void> openPlaceSheet(PlaceCard place) async {
+    selectedPlace.value = place;
+    PlaceCard current = place;
+    await Get.bottomSheet(
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return VitheyCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                  Text(
+                    current.name,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  if (current.address != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      current.address!,
+                      style: TextStyle(color: Theme.of(context).hintColor),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      if (current.rating != null)
+                        Text('★ ${current.rating!.toStringAsFixed(1)}'),
+                      if (current.distanceM != null)
+                        Text('${current.distanceM} m'),
+                      if (current.category != null)
+                        Text(PlaceCategories.label(current.category!)),
+                      if (current.openNow == true)
+                        const Text(
+                          'Open now',
+                          style: TextStyle(color: AppColors.primary),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomButton(
+                          label: current.isFavorite ? 'Saved' : 'Favorite',
+                          icon: current.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          variant: CustomButtonVariant.outline,
+                          onPressed: () async {
+                            final updated =
+                                await _repository.toggleFavorite(current);
+                            current = updated;
+                            selectedPlace.value = updated;
+                            final idx = places.indexWhere(
+                              (p) =>
+                                  p.googlePlaceId == updated.googlePlaceId,
+                            );
+                            if (idx >= 0) places[idx] = updated;
+                            setModalState(() {});
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CustomButton(
+                          label: 'Directions',
+                          icon: Icons.directions,
+                          onPressed: () => openDirections(current),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+      backgroundColor: Get.theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+    );
+  }
 
-      // If strict bbox returned 0 results, fallback to location biased query without bbox
-      if (features.isEmpty) {
-        final fallbackParams = {
-          'q': filterCategory.value.toLowerCase(),
-          'limit': 20,
-          'lat': centerLat.toStringAsFixed(6),
-          'lon': centerLon.toStringAsFixed(6),
-        };
-        final fallbackResponse = await _dio.get(
-          'https://photon.komoot.io/api/',
-          queryParameters: fallbackParams,
-        );
-        features = fallbackResponse.data['features'] ?? [];
-      }
-
-      if (features.isEmpty) {
-        Get.snackbar('No Results', 'No ${filterCategory.value} found nearby.');
-        isSearching.value = false;
-        return;
-      }
-
-      final apiResults = features.map((feature) {
-        final props = feature['properties'] ?? {};
-        final coords = feature['geometry']['coordinates'];
-
-        final name = props['name'] ?? '';
-        final street = props['street'] ?? '';
-        final district = props['district'] ?? '';
-        final city = props['city'] ?? props['state'] ?? '';
-
-        List<String> parts = [];
-        if (name.toString().isNotEmpty) parts.add(name.toString());
-        if (street.toString().isNotEmpty) parts.add(street.toString());
-        if (district.toString().isNotEmpty) parts.add(district.toString());
-        if (city.toString().isNotEmpty) parts.add(city.toString());
-
-        final displayName =
-            parts.isEmpty ? 'Unknown Location' : parts.join(', ');
-
-        List<String> addrParts = [];
-        if (street.toString().isNotEmpty) addrParts.add(street.toString());
-        if (district.toString().isNotEmpty) addrParts.add(district.toString());
-        if (city.toString().isNotEmpty) addrParts.add(city.toString());
-        final address =
-            addrParts.isEmpty ? 'Unknown Address' : addrParts.join(', ');
-        final finalName =
-            name.toString().isNotEmpty ? name.toString() : 'Unknown Place';
-
-        final category =
-            props['osm_value'] ?? filterCategory.value.toLowerCase();
-
-        return PlaceSuggestion(
-          displayName: displayName,
-          name: finalName,
-          address: address,
-          lat: (coords[1] as num).toDouble(),
-          lon: (coords[0] as num).toDouble(),
-          category: category.toString(),
-        );
-      }).toList();
-
-      searchResults.value = apiResults;
-      searchQuery.value = filterCategory.value;
-      textController.text = filterCategory.value;
-
-      // Drop all pins and fit camera smoothly!
-      await onSearchSubmitted(filterCategory.value);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to load nearby places: $e',
-          snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      isSearching.value = false;
+  Future<void> openDirections(PlaceCard place) async {
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
+
+  Future<void> openAddPlace() async {
+    final result = await Get.toNamed(AppRoutes.addPlace);
+    if (result is Map) {
+      final name = result['name']?.toString() ?? 'My place';
+      final lat = (result['lat'] as num?)?.toDouble();
+      final lng = (result['lng'] as num?)?.toDouble();
+      if (lat != null && lng != null) {
+        final local = PlaceCard(
+          googlePlaceId: 'local-${DateTime.now().millisecondsSinceEpoch}',
+          name: name,
+          address: result['address']?.toString(),
+          category: result['category']?.toString() ?? 'other',
+          latitude: lat,
+          longitude: lng,
+        );
+        places.insert(0, local);
+        _rebuildMarkers();
+      }
+    }
+  }
+
+  void goBack() => Get.back();
 }

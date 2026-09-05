@@ -37,7 +37,8 @@ class SearchJobTile extends StatelessWidget {
                 height: 56,
                 color: colors.inputFill,
                 child: job.thumbnailUrl != null
-                    ? CachedNetworkImage(imageUrl: job.thumbnailUrl!, fit: BoxFit.cover)
+                    ? CachedNetworkImage(
+                        imageUrl: job.thumbnailUrl!, fit: BoxFit.cover)
                     : Icon(Icons.work_outline, color: colors.muted),
               ),
             ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 
 /// Shared Add/Edit bottom sheet chrome matching `Edited Content.png`.
 ///
@@ -182,49 +185,14 @@ class EditProfileSheetField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            required ? '$label*' : label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: context.appColors.muted,
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
-            controller: controller,
-            maxLines: maxLines,
-            keyboardType: keyboardType,
-            readOnly: readOnly,
-            onTap: onTap,
-            style: TextStyle(color: context.appColors.heading, fontSize: 15),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Theme.of(context).scaffoldBackgroundColor,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              suffixIcon: suffix,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.appColors.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: context.appColors.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: VitheyField(
+        controller: controller,
+        label: required ? '$label*' : label,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        readOnly: readOnly,
+        onTap: onTap,
+        suffix: suffix,
       ),
     );
   }
@@ -244,68 +212,22 @@ class EditProfileSheetActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cancelFill =
-        isDark ? const Color(0xFF3A3A4E) : const Color(0xFFE8E8EC);
-
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
           Expanded(
-            child: SizedBox(
-              height: 48,
-              child: FilledButton(
-                onPressed: onSubmit,
-                style: FilledButton.styleFrom(
-                  backgroundColor: primary,
-                  foregroundColor: onPrimary,
-                  elevation: 0,
-                  alignment: Alignment.center,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  submitLabel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: onPrimary,
-                  ),
-                ),
-              ),
+            child: CustomButton(
+              label: submitLabel,
+              onPressed: onSubmit,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: SizedBox(
-              height: 48,
-              child: FilledButton(
-                onPressed: onCancel,
-                style: FilledButton.styleFrom(
-                  backgroundColor: cancelFill,
-                  foregroundColor: context.appColors.heading,
-                  elevation: 0,
-                  alignment: Alignment.center,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: context.appColors.border),
-                  ),
-                ),
-                child: Text(
-                  'Cancel',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: context.appColors.heading,
-                  ),
-                ),
-              ),
+            child: CustomButton(
+              label: 'Cancel',
+              variant: CustomButtonVariant.outline,
+              onPressed: onCancel,
             ),
           ),
         ],
@@ -329,7 +251,6 @@ class ProfileSectionAddHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
     return Row(
       children: [
         Expanded(
@@ -342,17 +263,19 @@ class ProfileSectionAddHeader extends StatelessWidget {
             ),
           ),
         ),
-        TextButton(
-          onPressed: onAdd,
-          style: TextButton.styleFrom(
-            foregroundColor: primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            minimumSize: const Size(48, 36),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text(
-            'Add',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        GestureDetector(
+          onTap: onAdd,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Text(
+              'Add',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: AppColors.primary,
+              ),
+            ),
           ),
         ),
       ],

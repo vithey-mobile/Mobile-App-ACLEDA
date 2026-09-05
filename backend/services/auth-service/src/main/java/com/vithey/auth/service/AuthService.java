@@ -110,6 +110,20 @@ public class AuthService {
     tokenService.revokeRefreshToken(refreshToken);
   }
 
+  @Transactional
+  public void changePassword(UUID userId, String currentPassword, String newPassword) {
+    User user = userRepository.findById(userId)
+        .filter(candidate -> candidate.getDeletedAt() == null && candidate.isActive())
+        .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "User not found"));
+
+    if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+      throw new ApiException(ErrorCode.INVALID_CREDENTIALS);
+    }
+
+    user.setPasswordHash(passwordEncoder.encode(newPassword));
+    userRepository.save(user);
+  }
+
   @Transactional(readOnly = true)
   public UserAuthResponse getMe(UUID userId) {
     User user = userRepository.findById(userId)

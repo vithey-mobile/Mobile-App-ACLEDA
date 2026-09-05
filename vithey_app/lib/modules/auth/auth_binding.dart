@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
-import 'package:aub_connect_app/modules/onboarding/intro_morph.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
 
 class AuthBinding extends Bindings {
   @override

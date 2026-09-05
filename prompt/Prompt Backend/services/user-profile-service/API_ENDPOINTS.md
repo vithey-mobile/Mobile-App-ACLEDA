@@ -82,7 +82,8 @@ All fields optional. Unchanged values are not persisted (avoids dirty JSONB upda
 
 | Data | Owner |
 | --- | --- |
-| Login password | auth-service |
+| Login password | auth-service (`PATCH /auth/me/password`) |
+| Startup skills / interests / discovery | **Flutter local only** — do not add a backend API unless the app starts calling one |
 | CV default | career-service (`/users/me/cv`) |
 | Posts, jobs tab | content-service |
 | Likes / followers | content-service |

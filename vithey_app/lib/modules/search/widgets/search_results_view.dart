@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/data/repositories/search_repository.dart';
@@ -46,7 +50,10 @@ class SearchResultsView extends StatelessWidget {
   final bool peopleOnly;
 
   bool get _hasAny =>
-      people.isNotEmpty || posts.isNotEmpty || jobs.isNotEmpty || videos.isNotEmpty;
+      people.isNotEmpty ||
+      posts.isNotEmpty ||
+      jobs.isNotEmpty ||
+      videos.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +84,8 @@ class SearchResultsView extends StatelessWidget {
         children: [
           if (error != null) _ErrorBanner(message: error!, onRetry: onRetry),
           if (people.isNotEmpty) ...[
-            const SearchSectionHeader(title: 'People', showSeeAll: false, onSeeAll: _noop),
+            const SearchSectionHeader(
+                title: 'People', showSeeAll: false, onSeeAll: _noop),
             ...people.map(
               (person) => SearchPersonTile(
                 person: person,
@@ -95,6 +103,17 @@ class SearchResultsView extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         if (error != null) _ErrorBanner(message: error!, onRetry: onRetry),
+        if (query.trim().length >= 2)
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Color(0x1A03B4AC),
+              child: Icon(Icons.map_outlined, color: AppColors.primary),
+            ),
+            title: const Text('Places on map'),
+            subtitle: Text('Search "$query" near you'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Get.toNamed(AppRoutes.map, arguments: query.trim()),
+          ),
         if (people.isNotEmpty) ...[
           SearchSectionHeader(
             title: 'People',
@@ -165,12 +184,28 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialBanner(
-      content: Text(message),
-      leading: const Icon(Icons.error_outline),
-      actions: [
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
-      ],
+    final colors = context.appColors;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: colors.cardSurface,
+        border: Border.all(color: colors.border),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: colors.heading, fontSize: 13.5),
+            ),
+          ),
+          VitheyTextLink(label: 'Retry', onPressed: onRetry),
+        ],
+      ),
     );
   }
 }

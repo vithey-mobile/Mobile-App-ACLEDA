@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 
@@ -65,41 +66,46 @@ class ChatComposer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: colors.inputFill,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: colors.border),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (attachments.isNotEmpty)
-                                  SizedBox(
-                                    height: 72,
-                                    child: ListView.separated(
-                                      scrollDirection: Axis.horizontal,
-                                      padding: const EdgeInsets.fromLTRB(
-                                        12,
-                                        8,
-                                        12,
-                                        4,
-                                      ),
-                                      itemCount: attachments.length,
-                                      separatorBuilder: (_, __) =>
-                                          const SizedBox(width: 8),
-                                      itemBuilder: (_, index) {
-                                        final item = attachments[index];
-                                        return _AttachmentChip(
-                                          attachment: item,
-                                          onRemove: () =>
-                                              onRemoveAttachment(item),
-                                        );
-                                      },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (attachments.isNotEmpty)
+                                SizedBox(
+                                  height: 72,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.fromLTRB(
+                                      12,
+                                      8,
+                                      12,
+                                      4,
                                     ),
+                                    itemCount: attachments.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 8),
+                                    itemBuilder: (_, index) {
+                                      final item = attachments[index];
+                                      return _AttachmentChip(
+                                        attachment: item,
+                                        onRemove: () =>
+                                            onRemoveAttachment(item),
+                                      );
+                                    },
                                   ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                ),
+                              VitheyField(
+                                controller: controller,
+                                hint: AppStrings.chatComposerHint,
+                                minLines: 1,
+                                maxLines: _maxInputLines,
+                                enabled: !sending,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                onChanged: onTyping,
+                                onTap: onFocusText,
+                                filled: true,
+                                suffix: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     _ComposerIconButton(
                                       tooltip: 'Add photo, video, or file',
@@ -107,44 +113,6 @@ class ChatComposer extends StatelessWidget {
                                           sending ? null : onAddAttachment,
                                       icon: Icons.add_rounded,
                                       color: colors.heading,
-                                    ),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: controller,
-                                        minLines: 1,
-                                        maxLines: _maxInputLines,
-                                        enabled: !sending,
-                                        keyboardType: TextInputType.multiline,
-                                        textCapitalization:
-                                            TextCapitalization.sentences,
-                                        textInputAction:
-                                            TextInputAction.newline,
-                                        onChanged: onTyping,
-                                        onTap: onFocusText,
-                                        style: TextStyle(
-                                          color: colors.heading,
-                                          fontSize: 16,
-                                          height: 1.35,
-                                        ),
-                                        decoration: InputDecoration(
-                                          hintText: AppStrings.chatComposerHint,
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding:
-                                              const EdgeInsets.fromLTRB(
-                                            0,
-                                            10,
-                                            4,
-                                            10,
-                                          ),
-                                          hintStyle: TextStyle(
-                                            color: colors.muted,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
                                     ),
                                     _ComposerIconButton(
                                       tooltip: showEmojiPanel
@@ -161,8 +129,8 @@ class ChatComposer extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),

@@ -1,25 +1,25 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:flutter/material.dart';
 
 /// Shared auth CTA label style — primary and outline buttons match size/weight.
 const kAuthButtonFontSize = 16.0;
 const kAuthButtonFontWeight = FontWeight.w600;
 
+/// Google sign-in CTA (coming soon flow). Kit outline button with the
+/// Google logo as leading widget.
 class OAuthButton extends StatelessWidget {
   const OAuthButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.isLoading = false,
-    this.fontSize = kAuthButtonFontSize,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
-  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,6 @@ class OAuthButton extends StatelessWidget {
       label: label,
       onPressed: onPressed,
       isLoading: isLoading,
-      fontSize: fontSize,
       leading: Image.asset(
         AppAssets.googleIcon,
         width: 20,
@@ -46,41 +45,23 @@ class AuthOutlineButton extends StatelessWidget {
     required this.onPressed,
     this.leading,
     this.isLoading = false,
-    this.fontSize = kAuthButtonFontSize,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final Widget? leading;
   final bool isLoading;
-  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
-      child: shad.Button.outline(
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? const shad.CircularProgressIndicator()
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (leading != null) ...[
-                    leading!,
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      fontWeight: kAuthButtonFontWeight,
-                    ),
-                  ),
-                ],
-              ),
+      child: CustomButton(
+        label: label,
+        variant: CustomButtonVariant.outline,
+        leading: leading,
+        isLoading: isLoading,
+        onPressed: onPressed,
       ),
     );
   }
@@ -113,18 +94,23 @@ class SocialDivider extends StatelessWidget {
     }
     return SizedBox(
       height: height,
-      child: shad.Divider(
-        color: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: fontSize,
-            color: context.appColors.muted,
-            fontWeight: FontWeight.w500,
-            height: 1,
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: color, height: 1, thickness: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: fontSize,
+                color: context.appColors.muted,
+                fontWeight: FontWeight.w500,
+                height: 1,
+              ),
+            ),
           ),
-        ),
+          Expanded(child: Divider(color: color, height: 1, thickness: 1)),
+        ],
       ),
     );
   }

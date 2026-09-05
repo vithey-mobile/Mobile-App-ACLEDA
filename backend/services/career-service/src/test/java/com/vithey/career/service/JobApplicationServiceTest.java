@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.vithey.career.dto.request.ApplyJobRequest;
 import com.vithey.career.dto.request.UpdateApplicationStatusRequest;
+import com.vithey.career.dto.response.CvPreviewResponse;
 import com.vithey.career.dto.response.JobApplicationResponse;
 import com.vithey.career.entity.ApplicationStatus;
 import com.vithey.career.entity.JobApplication;
@@ -180,6 +183,98 @@ class JobApplicationServiceTest {
     assertEquals(ApplicationStatus.ACCEPTED, saved.getStatus());
     assertNotNull(saved.getDecidedAt());
     assertEquals("Welcome aboard", saved.getReviewerNote());
+  }
+
+  @Test
+  void getCvPreview_applicantCanPreviewOwnApplication() {
+    UUID applicantId = UUID.randomUUID();
+    UUID cvFileId = UUID.randomUUID();
+    JobApplication application = new JobApplication();
+    application.setId(UUID.randomUUID());
+    application.setJobPostId(UUID.randomUUID());
+    application.setApplicantId(applicantId);
+    application.setCvFileId(cvFileId);
+    application.setStatus(ApplicationStatus.PENDING);
+    application.setAppliedAt(OffsetDateTime.now(ZoneOffset.UTC));
+    application.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+
+    when(jobApplicationRepository.findById(application.getId())).thenReturn(Optional.of(application));
+    when(responseBuilder.buildCvPreview(application)).thenReturn(new CvPreviewResponse(
+        application.getId(), cvFileId, "resume.pdf", "https://files.example.com/cv/resume.pdf"
+    ));
+
+    CvPreviewResponse response = jobApplicationService.getCvPreview(application.getId(), applicantId);
+
+    assertEquals(application.getId(), response.applicationId());
+    assertEquals(cvFileId, response.cvFileId());
+    assertEquals("resume.pdf", response.cvFileName());
+    assertEquals("https://files.example.com/cv/resume.pdf", response.downloadUrl());
+    verify(upstreamValidationService, never()).requireJobPoster(any(), any());
+  }
+
+  @Test
+  void getCvPreview_posterCanPreviewApplicantCv() {
+    UUID posterId = UUID.randomUUID();
+    UUID jobPostId = UUID.randomUUID();
+    JobApplication application = new JobApplication();
+    application.setId(UUID.randomUUID());
+    application.setJobPostId(jobPostId);
+    application.setApplicantId(UUID.randomUUID());
+    application.setCvFileId(UUID.randomUUID());
+    application.setStatus(ApplicationStatus.PENDING);
+    application.setAppliedAt(OffsetDateTime.now(ZoneOffset.UTC));
+    application.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+
+    when(jobApplicationRepository.findById(application.getId())).thenReturn(Optional.of(application));
+    doNothing().when(upstreamValidationService).requireJobPoster(jobPostId, posterId);
+    when(responseBuilder.buildCvPreview(application)).thenReturn(new CvPreviewResponse(
+        application.getId(), application.getCvFileId(), "cv.pdf", "https://files.example.com/cv/cv.pdf"
+    ));
+
+    CvPreviewResponse response = jobApplicationService.getCvPreview(application.getId(), posterId);
+
+    assertEquals(application.getId(), response.applicationId());
+  }
+
+  @Test
+  void getCvPreview_strangerIsForbidden() {
+    UUID strangerId = UUID.randomUUID();
+    UUID jobPostId = UUID.randomUUID();
+    JobApplication application = new JobApplication();
+    application.setId(UUID.randomUUID());
+    application.setJobPostId(jobPostId);
+    application.setApplicantId(UUID.randomUUID());
+    application.setCvFileId(UUID.randomUUID());
+    application.setStatus(ApplicationStatus.PENDING);
+    application.setAppliedAt(OffsetDateTime.now(ZoneOffset.UTC));
+    application.setUpdatedAt(OffsetDateTime.now(ZoneOffset.UTC));
+
+    when(jobApplicationRepository.findById(application.getId())).thenReturn(Optional.of(application));
+    doThrow(new ApiException(ErrorCode.FORBIDDEN))
+        .when(upstreamValidationService).requireJobPoster(jobPostId, strangerId);
+
+    ApiException exception = assertThrows(
+        ApiException.class,
+        () -> jobApplicationService.getCvPreview(application.getId(), strangerId)
+    );
+
+    assertEquals(ErrorCode.FORBIDDEN, exception.getErrorCode());
+    verify(responseBuilder, never()).buildCvPreview(any());
+  }
+
+  @Test
+  void getCvPreview_missingApplicationIsNotFound() {
+    UUID applicationId = UUID.randomUUID();
+    UUID currentUserId = UUID.randomUUID();
+
+    when(jobApplicationRepository.findById(applicationId)).thenReturn(Optional.empty());
+
+    ApiException exception = assertThrows(
+        ApiException.class,
+        () -> jobApplicationService.getCvPreview(applicationId, currentUserId)
+    );
+
+    assertEquals(ErrorCode.NOT_FOUND, exception.getErrorCode());
   }
 
   private JobApplicationResponse sampleResponse(JobApplication application) {

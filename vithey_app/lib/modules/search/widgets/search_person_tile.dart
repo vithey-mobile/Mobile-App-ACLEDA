@@ -28,7 +28,8 @@ class SearchPersonTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            UserAvatar(name: person.fullName, imageUrl: person.avatarUrl, radius: 24),
+            UserAvatar(
+                name: person.fullName, imageUrl: person.avatarUrl, radius: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -54,7 +55,8 @@ class SearchPersonTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.chat_bubble_outline, color: colors.muted, size: 22),
+              icon: Icon(Icons.chat_bubble_outline,
+                  color: colors.muted, size: 22),
               onPressed: onMessage,
               tooltip: 'Message',
             ),

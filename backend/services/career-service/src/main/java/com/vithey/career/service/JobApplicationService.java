@@ -2,6 +2,7 @@ package com.vithey.career.service;
 
 import com.vithey.career.dto.request.ApplyJobRequest;
 import com.vithey.career.dto.request.UpdateApplicationStatusRequest;
+import com.vithey.career.dto.response.CvPreviewResponse;
 import com.vithey.career.dto.response.JobApplicationResponse;
 import com.vithey.career.entity.ApplicationStatus;
 import com.vithey.career.entity.JobApplication;
@@ -115,6 +116,13 @@ public class JobApplicationService {
     JobApplication application = requireApplication(applicationId);
     assertCanView(application, currentUserId);
     return responseBuilder.build(application);
+  }
+
+  @Transactional(readOnly = true)
+  public CvPreviewResponse getCvPreview(UUID applicationId, UUID currentUserId) {
+    JobApplication application = requireApplication(applicationId);
+    assertCanView(application, currentUserId);
+    return responseBuilder.buildCvPreview(application);
   }
 
   @Transactional

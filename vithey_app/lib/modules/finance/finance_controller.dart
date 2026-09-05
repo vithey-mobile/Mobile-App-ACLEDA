@@ -3,11 +3,10 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
-import 'package:aub_connect_app/modules/shell/main_shell_screen.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 import 'package:aub_connect_app/data/repositories/finance_repository.dart';
-import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/finance/widgets/invoice_preview_sheet.dart';
 

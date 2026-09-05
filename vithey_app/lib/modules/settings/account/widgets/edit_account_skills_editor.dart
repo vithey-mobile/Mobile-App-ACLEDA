@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:flutter/material.dart';
 
 class EditAccountSkillsEditor extends StatelessWidget {
   const EditAccountSkillsEditor({
@@ -59,10 +61,14 @@ class EditAccountSkillsEditor extends StatelessWidget {
               onNameChanged: (name) => onUpdate(index, name: name),
             );
           }),
-          TextButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 20),
-            label: const Text('Add Skill', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          Center(
+            child: CustomButton(
+              label: 'Add Skill',
+              icon: Icons.add_circle_outline,
+              variant: CustomButtonVariant.ghost,
+              foregroundColor: AppColors.primary,
+              onPressed: onAdd,
+            ),
           ),
         ],
       ),
@@ -127,16 +133,10 @@ class _SkillRowState extends State<_SkillRow> {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: VitheyField(
                   controller: _nameController,
+                  hint: 'Skill name',
                   onChanged: widget.onNameChanged,
-                  decoration: InputDecoration(
-                    hintText: 'Skill name',
-                    isDense: true,
-                    filled: true,
-                    fillColor: colors.cardSurface,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
                 ),
               ),
               IconButton(

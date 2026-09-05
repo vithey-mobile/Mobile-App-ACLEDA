@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/modules/finance/widgets/payment_receipt_tile.dart';
 
@@ -33,13 +34,9 @@ class PaymentReceiptsSection extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(top: 32, bottom: 24),
             children: [
-              Center(
-                child: Text(
-                  isSearching
-                      ? AppStrings.financeSearchEmpty
-                      : 'No transactions yet',
-                  style: TextStyle(color: context.appColors.muted),
-                ),
+              EmptyStateWidget(
+                title: 'No transactions yet',
+                subtitle: isSearching ? AppStrings.financeSearchEmpty : 'Your payments will appear here',
               ),
             ],
           )
@@ -72,17 +69,18 @@ class PaymentReceiptsSection extends StatelessWidget {
             ),
             const Spacer(),
             if (!isSearching)
-              TextButton(
-                onPressed: onToggleShowAll,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(44, 44),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  showAll ? 'See Less' : 'See All',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+              GestureDetector(
+                onTap: onToggleShowAll,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Text(
+                    showAll ? 'See Less' : 'See All',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
           ],

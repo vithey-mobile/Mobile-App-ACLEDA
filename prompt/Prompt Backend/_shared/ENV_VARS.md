@@ -23,6 +23,7 @@
 | `CHAT_DB_URL`, ... | chat-service |
 | `NOTIFICATION_DB_URL`, ... | notification-service |
 | `AI_DB_URL`, ... | ai-service |
+| `MAP_DB_URL`, ... | map-service |
 
 ## Infrastructure
 
@@ -54,6 +55,7 @@
 |----------|---------|---------|
 | `FCM_CREDENTIALS_PATH` | notification-service | Firebase push |
 | `OPENAI_API_KEY` | ai-service | AI provider |
+| `GOOGLE_PLACES_API_KEY` | map-service | Google Places API (New) — server-restricted key |
 | `EUREKA_CLIENT_ENABLED` | all | `false` for standalone tests |
 
 ## Config Server

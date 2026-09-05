@@ -31,8 +31,8 @@ Widget Function(BuildContext) _removeTrailing<T>({
   required String title,
   required String message,
 }) {
-  return (ctx) => TextButton(
-        onPressed: () async {
+  return (ctx) => GestureDetector(
+        onTap: () async {
           final confirmed = await showConfirmDialog(
             context: ctx,
             title: title,
@@ -43,17 +43,16 @@ Widget Function(BuildContext) _removeTrailing<T>({
           if (confirmed != true || !ctx.mounted) return;
           Navigator.pop(ctx, ProfileSheetResult<T>.deleted());
         },
-        style: TextButton.styleFrom(
-          foregroundColor: Theme.of(ctx).colorScheme.error,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          minimumSize: const Size(0, 36),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: const Text(
-          'Remove',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+        behavior: HitTestBehavior.opaque,
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Text(
+            'Remove',
+            style: TextStyle(
+              color: AppColors.error,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
           ),
         ),
       );
@@ -538,26 +537,43 @@ class _SkillFormState extends State<_SkillForm> {
                         spacing: 4,
                         runSpacing: 4,
                         children: [
-                          TextButton(
-                            onPressed: _pickCustomIconFromLibrary,
+                          GestureDetector(
+                            onTap: _pickCustomIconFromLibrary,
+                            behavior: HitTestBehavior.opaque,
                             child: Text(
                               _iconKey != null && _iconPath == null
                                   ? 'Change icon'
                                   : 'Choose icon',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          TextButton(
-                            onPressed: _pickCustomImage,
+                          GestureDetector(
+                            onTap: _pickCustomImage,
+                            behavior: HitTestBehavior.opaque,
                             child: Text(
                               _iconPath == null
                                   ? 'Choose image'
                                   : 'Change image',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           if (_iconPath != null || _iconKey != null)
-                            TextButton(
-                              onPressed: _clearCustomIcon,
-                              child: const Text('Remove'),
+                            GestureDetector(
+                              onTap: _clearCustomIcon,
+                              behavior: HitTestBehavior.opaque,
+                              child: const Text(
+                                'Remove',
+                                style: TextStyle(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                         ],
                       ),

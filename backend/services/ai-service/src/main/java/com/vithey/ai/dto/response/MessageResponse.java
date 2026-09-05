@@ -8,6 +8,7 @@ public record MessageResponse(
     UUID id,
     AiMessageRole role,
     String content,
+    String status,
     Instant createdAt
 ) {
 }

@@ -74,14 +74,8 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   const SizedBox(width: 8),
                   _CircleAction(
                     icon: Icons.search_rounded,
-                    tooltip: 'Search chats',
-                    onTap: () {
-                      Get.snackbar(
-                        'Vithey AI',
-                        'Chat search coming soon',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    tooltip: 'Search chats (coming soon)',
+                    onTap: null,
                   ),
                 ],
               ),
@@ -221,19 +215,23 @@ class _CircleAction extends StatelessWidget {
 
   final IconData icon;
   final String tooltip;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.appColors.cardSurface,
-      elevation: 1.5,
-      shadowColor: Colors.black.withValues(alpha: 0.12),
-      shape: const CircleBorder(),
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: onTap,
-        icon: Icon(icon, color: context.appColors.heading, size: 22),
+    final enabled = onTap != null;
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: Material(
+        color: context.appColors.cardSurface,
+        elevation: 1.5,
+        shadowColor: Colors.black.withValues(alpha: 0.12),
+        shape: const CircleBorder(),
+        child: IconButton(
+          tooltip: tooltip,
+          onPressed: onTap,
+          icon: Icon(icon, color: context.appColors.heading, size: 22),
+        ),
       ),
     );
   }

@@ -7,7 +7,8 @@ class HomeBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<HomeController>(
-      () => HomeController(Get.find<PostRepository>(), Get.find<JobApplicationRepository>()),
+      () => HomeController(
+          Get.find<PostRepository>(), Get.find<JobApplicationRepository>()),
       fenix: true,
     );
   }

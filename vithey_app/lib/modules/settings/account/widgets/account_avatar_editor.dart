@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 
 class AccountAvatarEditor extends StatelessWidget {
@@ -54,13 +55,12 @@ class AccountAvatarEditor extends StatelessWidget {
         if (showEditAction && onEditInfo != null) ...[
           const SizedBox(height: 12),
           Center(
-            child: TextButton.icon(
+            child: CustomButton(
+              label: 'Update Information',
+              icon: Icons.edit,
+              variant: CustomButtonVariant.ghost,
+              foregroundColor: AppColors.primary,
               onPressed: onEditInfo,
-              icon: const Icon(Icons.edit, size: 18, color: AppColors.primary),
-              label: const Text(
-                'Update Information',
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
-              ),
             ),
           ),
         ],

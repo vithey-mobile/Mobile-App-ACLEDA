@@ -8,8 +8,8 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_mutation_result.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_args.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/apply_cv_result.dart';
+import 'package:aub_connect_app/modules/jobs/models/apply_cv_args.dart';
+import 'package:aub_connect_app/modules/jobs/models/apply_cv_result.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -17,7 +17,7 @@ import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/modules/home/widgets/comment_sheet.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_media_header.dart';
 import 'package:aub_connect_app/modules/home/widgets/share_sheet.dart';
-import 'package:aub_connect_app/modules/create_post/models/create_post_args.dart';
+import 'package:aub_connect_app/modules/home/create_post/models/create_post_args.dart';
 
 class HomeController extends GetxController {
   HomeController(this._postRepository, this._jobApplicationRepository);
@@ -59,7 +59,8 @@ class HomeController extends GetxController {
     final seenAuthors = <String>{me.id};
     for (final post in posts) {
       if (post.type == PostType.job) continue;
-      final preview = post.thumbnailUrl ?? post.mediaUrl ?? post.author.avatarUrl;
+      final preview =
+          post.thumbnailUrl ?? post.mediaUrl ?? post.author.avatarUrl;
       if (preview == null || preview.isEmpty) {
         if (post.author.avatarUrl == null || post.author.avatarUrl!.isEmpty) {
           continue;
@@ -180,9 +181,8 @@ class HomeController extends GetxController {
               appliedJobIds.contains(post.id));
       return post.copyWith(
         userReacted: reacted,
-        userReaction: reacted
-            ? (post.userReaction ?? PostReactionType.like)
-            : null,
+        userReaction:
+            reacted ? (post.userReaction ?? PostReactionType.like) : null,
         isFollowingAuthor: following,
         applicationState:
             applied ? JobApplicationState.applied : post.applicationState,

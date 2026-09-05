@@ -7,8 +7,8 @@ import 'package:aub_connect_app/data/models/chat_args.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/services/notification_service.dart';
-import 'package:aub_connect_app/modules/apply_cv/models/application_status_args.dart';
-import 'package:aub_connect_app/modules/notification/utils/notification_display_text.dart';
+import 'package:aub_connect_app/modules/jobs/models/application_status_args.dart';
+import 'package:aub_connect_app/modules/home/notification/utils/notification_display_text.dart';
 
 /// Deep-link routing for in-app notifications and FCM push payloads.
 class NotificationRouter {

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_list_tile.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
+import 'package:flutter/material.dart';
 
 class LanguageOption {
   const LanguageOption({
@@ -100,41 +101,13 @@ class _LanguageOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = context.scheme.primary;
 
-    return Material(
-      color: context.appColors.cardSurface,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(Icons.language_outlined, color: primary, size: 22),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      option.label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: context.appColors.heading,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      option.subtitle,
-                      style: TextStyle(fontSize: 12, color: context.appColors.muted),
-                    ),
-                  ],
-                ),
-              ),
-              if (isSelected) Icon(Icons.check, color: primary, size: 22),
-            ],
-          ),
-        ),
-      ),
+    return VitheyListTile(
+      icon: Icons.language_outlined,
+      title: option.label,
+      subtitle: option.subtitle,
+      onTap: onTap,
+      showChevron: false,
+      trailing: isSelected ? Icon(Icons.check, color: primary, size: 22) : null,
     );
   }
 }

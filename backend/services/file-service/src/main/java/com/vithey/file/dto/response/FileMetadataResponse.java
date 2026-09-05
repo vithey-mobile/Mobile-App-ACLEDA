@@ -25,7 +25,6 @@ public record FileMetadataResponse(
     @Schema(example = "image/png") String mimeType,
     @Schema(example = "24576") long sizeBytes,
     @Schema(example = "http://localhost:19000/avatars/.../avatar.png?X-Amz-Algorithm=...") String url,
-    UUID ownerUserId,
     @Schema(example = "2026-07-27T15:00:00Z") OffsetDateTime createdAt
 ) {
 }

@@ -24,7 +24,8 @@ backend/
     ├── finance-service/                 # port 8086
     ├── chat-service/                    # port 8087
     ├── notification-service/            # port 8088
-    └── ai-service/                      # port 8089
+    ├── ai-service/                      # port 8089
+    └── map-service/                     # port 8090
 ```
 
 Ports and build order: `_shared/SERVICE_REGISTRY.md`.

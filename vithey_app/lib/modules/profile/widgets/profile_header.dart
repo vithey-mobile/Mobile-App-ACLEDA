@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/utils/profile_format.dart';
 import 'package:get/get.dart';
@@ -98,120 +100,50 @@ class ProfileActionRow extends StatelessWidget {
   final VoidCallback onVerifyStudent;
   final VoidCallback onShare;
 
-  static const _buttonPadding =
-      EdgeInsets.symmetric(horizontal: 20, vertical: 10);
-  static const _shareButtonPadding =
-      EdgeInsets.symmetric(horizontal: 20, vertical: 10);
   static const _buttonGap = 16.0;
-  static const _radius = 8.0;
-  static const _labelStyle = TextStyle(
-    fontWeight: FontWeight.w600,
-    fontSize: 13,
-    height: 1.1,
-  );
-
-  ButtonStyle _filledStyle(Color background, Color foreground) {
-    return FilledButton.styleFrom(
-      backgroundColor: background,
-      foregroundColor: foreground,
-      elevation: 0,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      minimumSize: Size.zero,
-      padding: _buttonPadding,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_radius),
-      ),
-    );
-  }
-
-  ButtonStyle _outlinedStyle({
-    required Color foreground,
-    required Color border,
-    Color? background,
-  }) {
-    return OutlinedButton.styleFrom(
-      foregroundColor: foreground,
-      backgroundColor: background,
-      side: BorderSide(color: border),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      minimumSize: Size.zero,
-      padding: _buttonPadding,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_radius),
-      ),
-    );
-  }
-
-  ButtonStyle _shareStyle(Color primary) {
-    return OutlinedButton.styleFrom(
-      foregroundColor: primary,
-      side: BorderSide(color: primary),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      minimumSize: Size.zero,
-      padding: _shareButtonPadding,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_radius),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final heading = context.appColors.heading;
-    final primary = Theme.of(context).colorScheme.primary;
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
-    final border = context.appColors.border;
-    final sheet = Theme.of(context).scaffoldBackgroundColor;
-
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
         if (isOwnProfile) ...[
-          FilledButton(
+          CustomButton(
+            label: 'Edit Profile',
             onPressed: onEditProfile,
-            style: _filledStyle(primary, onPrimary),
-            child: const Text('Edit Profile', style: _labelStyle),
           ),
           const SizedBox(width: _buttonGap),
-          OutlinedButton(
+          CustomButton(
+            label: isStudentVerified ? 'Review' : 'Verify',
+            variant: CustomButtonVariant.outline,
             onPressed: onVerifyStudent,
-            style: _outlinedStyle(
-              foreground: heading,
-              border: border,
-              background: sheet,
-            ),
-            child: Text(
-              isStudentVerified ? 'Review' : 'Verify',
-              style: _labelStyle,
-            ),
           ),
         ] else ...[
           if (isFollowing)
-            OutlinedButton(
+            CustomButton(
+              label: 'Unfollow',
+              variant: CustomButtonVariant.outline,
               onPressed: onFollow,
-              style: _outlinedStyle(foreground: primary, border: primary),
-              child: const Text('Unfollow', style: _labelStyle),
             )
           else
-            FilledButton(
+            CustomButton(
+              label: 'Follow',
               onPressed: onFollow,
-              style: _filledStyle(primary, onPrimary),
-              child: const Text('Follow', style: _labelStyle),
             ),
           const SizedBox(width: _buttonGap),
-          OutlinedButton(
+          CustomButton(
+            label: 'Message',
+            variant: CustomButtonVariant.outline,
             onPressed: onMessage,
-            style: _outlinedStyle(foreground: primary, border: primary),
-            child: const Text('Message', style: _labelStyle),
           ),
         ],
         const SizedBox(width: _buttonGap),
-        OutlinedButton(
+        IconButton(
           onPressed: onShare,
-          style: _shareStyle(primary),
-          child: const Icon(Icons.ios_share, size: 18),
+          color: AppColors.primary,
+          icon: const Icon(Icons.ios_share, size: 18),
         ),
       ],
       ),

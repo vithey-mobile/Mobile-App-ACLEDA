@@ -6,40 +6,42 @@ All frontend screen prompts live in this folder. Organized flows use subfolders 
 
 | Area | Current UI prompt set | Status in `vithey_app` |
 | --- | --- | --- |
-| Auth / Splash / Language / Onboarding / Startup | [`auth/v1/`](auth/README.md) | **Complete** |
+| Auth / Splash / Language / Onboarding / Startup | [`auth/`](auth/README.md) | **Complete** |
 | Home / media / create / post detail | [`media/`](media/README.md) | **Complete** |
 | Private chat | [`chat/`](chat/README.md) | **Complete** |
 | Vithey AI chatbot | [`chatbot/`](chatbot/README.md) | **Complete** |
-| Profile | [`profile/v1/`](profile/README.md) | **Complete** |
+| Profile | [`profile/`](profile/README.md) | **Complete** |
 | Job apply | [`job_apply/`](job_apply/README.md) | **Complete** |
-| Finance + verification | [`finance/v1/`](finance/README.md) | **Complete** |
+| Finance + verification | [`finance/`](finance/README.md) | **Complete** |
 | Notifications | [`notification/`](notification/README.md) | **Complete** |
 | Search | [`search/`](search/README.md) | **Complete** |
 | Settings | [`setting/`](setting/README.md) | **Complete** |
+| Map / nearby shops | [`map/`](map/README.md) | **Complete** (mock) |
 
-When a section has `v0/` + `v1/`, **implement and maintain `v1` only**. `v0` is archive. Root `update.md` files are historical redesign briefs (already applied unless a README says otherwise).
+Prompts live in flat folders (no `v0/` / `v1/` directories). Root `update.md` files are historical redesign briefs (already applied unless a README says otherwise).
 
 ## Start here
 
 1. Read `Prompt Frontend/COMMON_CONTEXT.md`.
 2. Read `Prompt Frontend/api-intergration/integration-contract.md`.
 3. Build [`00-foundation-prompt.md`](00-foundation-prompt.md) (already done for this repo).
-4. Follow the flow indexes below — prefer **v1** paths where they exist.
+4. Follow the flow indexes below.
 
-## Auth and startup (v1)
+## Auth and startup
 
 See dedicated [`auth/README.md`](auth/README.md).
 
 | Order | Prompt |
 |---|---|
-| 1 | [`auth/v1/01-splash-prompt-v1.md`](auth/v1/01-splash-prompt-v1.md) |
-| 2 | [`auth/v1/02-select-language-prompt-v1.md`](auth/v1/02-select-language-prompt-v1.md) |
-| 3 | [`auth/v1/03-onboarding-prompt-v1.md`](auth/v1/03-onboarding-prompt-v1.md) |
-| 4 | [`auth/v1/04-auth-prompt-v1.md`](auth/v1/04-auth-prompt-v1.md) |
-| 5 | [`auth/v1/05-register-prompt-v1.md`](auth/v1/05-register-prompt-v1.md) |
-| 6 | [`auth/v1/06-auth-google-1-prompt-v1.md`](auth/v1/06-auth-google-1-prompt-v1.md) |
-| 7 | [`auth/v1/07-auth-google-2-prompt-v1.md`](auth/v1/07-auth-google-2-prompt-v1.md) |
-| 8–10 | [`auth/v1/08`](auth/v1/08-startup-1-prompt-v1.md)–[`10`](auth/v1/10-startup-3-prompt-v1.md) startup |
+| 1 | [`auth/01-splash-prompt.md`](auth/01-splash-prompt.md) |
+| 2 | [`auth/02-select-language-prompt.md`](auth/02-select-language-prompt.md) |
+| 3 | [`auth/03-onboarding-prompt.md`](auth/03-onboarding-prompt.md) |
+| 4 | [`auth/04-auth-prompt.md`](auth/04-auth-prompt.md) |
+| 5 | [`auth/05-register-prompt.md`](auth/05-register-prompt.md) |
+| 6 | [`auth/06-auth-google-1-prompt.md`](auth/06-auth-google-1-prompt.md) |
+| 7 | [`auth/07-auth-google-2-prompt.md`](auth/07-auth-google-2-prompt.md) |
+| 8–10 | [`auth/08`](auth/08-startup-1-prompt.md)–[`10`](auth/10-startup-3-prompt.md) startup |
+| 11 | [`auth/11-forgot-password-prompt.md`](auth/11-forgot-password-prompt.md) |
 
 Entry flow: **Splash → Select Language → Onboarding → Auth → Startup → Home**.
 
@@ -70,6 +72,7 @@ See the dedicated [`media/README.md`](media/README.md).
 | [`chatbot/README.md`](chatbot/README.md) | Vithey AI chatbot |
 | [`finance/README.md`](finance/README.md) | Verification + Finance — use **`v1/`** prompts |
 | [`setting/README.md`](setting/README.md) | Settings home, account, privacy, security, notifications prefs, about |
+| [`map/README.md`](map/README.md) | Nearby shops map, location icon, filters |
 
 ## Maintenance rules
 
@@ -77,5 +80,5 @@ See the dedicated [`media/README.md`](media/README.md).
 - Keep auth/startup details in `auth/` only.
 - Use stable IDs in routes and APIs; never infer type from visible copy/media.
 - Update this index and the relevant subfolder README when moving prompts.
-- When UI redesign finishes, mark the section **Complete** in the status table and keep `v0/` as archive.
+- When UI redesign finishes, mark the section **Complete** in the status table.
 - Use [`_SCREEN-TEMPLATE.md`](_SCREEN-TEMPLATE.md) for new standalone screens.

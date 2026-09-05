@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_preference_card.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class NotificationMasterCard extends StatelessWidget {
   const NotificationMasterCard({
@@ -69,7 +69,7 @@ class NotificationMasterCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    shad.Switch(value: value, onChanged: onChanged),
+                    VitheySwitch(value: value, onChanged: onChanged),
                   ],
                 ),
               ),

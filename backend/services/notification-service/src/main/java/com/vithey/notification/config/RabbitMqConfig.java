@@ -21,6 +21,8 @@ public class RabbitMqConfig {
   public static final String PAYMENT_OVERDUE_QUEUE = "notification.payment.overdue";
   public static final String JOB_SUBMITTED_QUEUE = "notification.job.application.submitted";
   public static final String JOB_STATUS_QUEUE = "notification.job.application.status_changed";
+  public static final String POST_SHARED_QUEUE = "notification.post.shared";
+  public static final String AI_RESPONSE_READY_QUEUE = "notification.ai.response.ready";
 
   @Bean
   TopicExchange vitheyEventsExchange(@Value("${vithey.events.exchange}") String exchangeName) {
@@ -37,6 +39,8 @@ public class RabbitMqConfig {
   @Bean Queue paymentOverdueQueue() { return new Queue(PAYMENT_OVERDUE_QUEUE, true); }
   @Bean Queue jobSubmittedQueue() { return new Queue(JOB_SUBMITTED_QUEUE, true); }
   @Bean Queue jobStatusQueue() { return new Queue(JOB_STATUS_QUEUE, true); }
+  @Bean Queue postSharedQueue() { return new Queue(POST_SHARED_QUEUE, true); }
+  @Bean Queue aiResponseReadyQueue() { return new Queue(AI_RESPONSE_READY_QUEUE, true); }
 
   @Bean Binding commentAddedBinding(Queue commentAddedQueue, TopicExchange vitheyEventsExchange) {
     return BindingBuilder.bind(commentAddedQueue).to(vitheyEventsExchange).with("comment.added");
@@ -76,5 +80,13 @@ public class RabbitMqConfig {
 
   @Bean Binding jobStatusBinding(Queue jobStatusQueue, TopicExchange vitheyEventsExchange) {
     return BindingBuilder.bind(jobStatusQueue).to(vitheyEventsExchange).with("job.application.status_changed");
+  }
+
+  @Bean Binding postSharedBinding(Queue postSharedQueue, TopicExchange vitheyEventsExchange) {
+    return BindingBuilder.bind(postSharedQueue).to(vitheyEventsExchange).with("post.shared");
+  }
+
+  @Bean Binding aiResponseReadyBinding(Queue aiResponseReadyQueue, TopicExchange vitheyEventsExchange) {
+    return BindingBuilder.bind(aiResponseReadyQueue).to(vitheyEventsExchange).with("ai.response.ready");
   }
 }

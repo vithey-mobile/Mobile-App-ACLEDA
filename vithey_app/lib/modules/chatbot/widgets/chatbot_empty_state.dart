@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
 class ChatbotEmptyState extends StatelessWidget {
   const ChatbotEmptyState({
@@ -29,20 +30,30 @@ class ChatbotEmptyState extends StatelessWidget {
               child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 36),
             ),
             const SizedBox(height: 16),
-            const shad.Text('How can I help you today?').large().bold(),
+            Text(
+              'How can I help you today?',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: context.appColors.heading,
+              ),
+            ),
             const SizedBox(height: 8),
-            shad.Text(
+            Text(
               'Ask about CVs, jobs, interviews, student life, or Finance guidance.',
-            ).muted().textCenter(),
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.appColors.muted),
+            ),
             const SizedBox(height: 28),
             ...prompts.map(
               (prompt) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: SizedBox(
                   width: double.infinity,
-                  child: shad.Button.outline(
+                  child: CustomButton(
+                    label: prompt,
                     onPressed: () => onPromptTap(prompt),
-                    child: shad.Text(prompt),
+                    variant: CustomButtonVariant.outline,
                   ),
                 ),
               ),

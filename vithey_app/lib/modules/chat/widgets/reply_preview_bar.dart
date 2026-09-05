@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class ReplyPreviewBar extends StatelessWidget {
   const ReplyPreviewBar({
@@ -53,9 +52,10 @@ class ReplyPreviewBar extends StatelessWidget {
               ],
             ),
           ),
-          shad.Button.ghost(
+          IconButton(
             onPressed: onCancel,
-            child: const Icon(Icons.close, size: 18),
+            icon: const Icon(Icons.close, size: 18),
+            color: context.appColors.muted,
           ),
         ],
       ),

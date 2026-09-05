@@ -5,6 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
 import 'package:aub_connect_app/modules/chatbot/utils/ai_api_error.dart';
@@ -442,37 +446,76 @@ class ChatbotController extends GetxController {
   Future<void> renameSession(AiSession session) async {
     final titleController = TextEditingController(text: session.title);
     final saved = await Get.dialog<String>(
-      AlertDialog(
-        title: const Text('Rename chat'),
-        content: TextField(
-          controller: titleController,
-          autofocus: true,
-          maxLength: 80,
-          decoration: const InputDecoration(
-            hintText: 'Chat title',
-            labelText: 'Title',
-          ),
-          textInputAction: TextInputAction.done,
-          onSubmitted: (value) {
-            final title = value.trim();
-            if (title.isEmpty) return;
-            Get.back(result: title);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final title = titleController.text.trim();
-              if (title.isEmpty) return;
-              Get.back(result: title);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      Builder(
+        builder: (dialogContext) {
+          final colors = dialogContext.appColors;
+          return Dialog(
+            backgroundColor: colors.cardSurface,
+            surfaceTintColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Rename chat',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colors.heading,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    VitheyField(
+                      controller: titleController,
+                      label: 'Title',
+                      hint: 'Chat title',
+                      maxLength: 80,
+                      autofocus: true,
+                      onSubmitted: (value) {
+                        final title = value.trim();
+                        if (title.isNotEmpty) {
+                          Navigator.of(dialogContext).pop(title);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomButton(
+                            label: AppStrings.cancel,
+                            variant: CustomButtonVariant.outline,
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CustomButton(
+                            label: 'Save',
+                            onPressed: () {
+                              final title = titleController.text.trim();
+                              if (title.isEmpty) return;
+                              Navigator.of(dialogContext).pop(title);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
     titleController.dispose();
@@ -487,27 +530,15 @@ class ChatbotController extends GetxController {
   }
 
   Future<void> deleteSession(AiSession session) async {
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Delete this chat?'),
-        content: Text(
+    final context = Get.context;
+    if (context == null) return;
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: 'Delete this chat?',
+      message:
           '“${session.title}” and all its messages will be permanently deleted. This can’t be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Get.back(result: true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Delete',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
     await _aiRepository.deleteSession(session.id);

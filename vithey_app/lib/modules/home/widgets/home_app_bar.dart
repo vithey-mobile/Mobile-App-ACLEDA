@@ -43,6 +43,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Search',
         ),
         HomeAppBarAction(
+          icon: const Icon(Icons.map_outlined),
+          onPressed: () => Get.toNamed(AppRoutes.map),
+          tooltip: 'Map',
+        ),
+        HomeAppBarAction(
           icon: const Icon(Icons.chat_bubble_outline_rounded),
           onPressed: () => Get.toNamed(AppRoutes.chat),
           tooltip: 'Messages',

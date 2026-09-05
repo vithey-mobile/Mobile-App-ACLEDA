@@ -1,9 +1,11 @@
 package com.vithey.notification.event.listener;
 
 import com.vithey.notification.config.RabbitMqConfig;
+import com.vithey.notification.event.payload.AiResponseReadyEvent;
 import com.vithey.notification.event.payload.CommentAddedEvent;
 import com.vithey.notification.event.payload.FollowCreatedEvent;
 import com.vithey.notification.event.payload.MentionCreatedEvent;
+import com.vithey.notification.event.payload.PostSharedEvent;
 import com.vithey.notification.event.payload.ReactionAddedEvent;
 import com.vithey.notification.service.EventNotificationService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -36,5 +38,15 @@ public class ContentEventListener {
   @RabbitListener(queues = RabbitMqConfig.MENTION_CREATED_QUEUE)
   public void onMentionCreated(MentionCreatedEvent event) {
     eventNotificationService.onMentionCreated(event);
+  }
+
+  @RabbitListener(queues = RabbitMqConfig.POST_SHARED_QUEUE)
+  public void onPostShared(PostSharedEvent event) {
+    eventNotificationService.onPostShared(event);
+  }
+
+  @RabbitListener(queues = RabbitMqConfig.AI_RESPONSE_READY_QUEUE)
+  public void onAiResponseReady(AiResponseReadyEvent event) {
+    eventNotificationService.onAiResponseReady(event);
   }
 }

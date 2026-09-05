@@ -18,6 +18,7 @@ Other prompts must link here instead of copying this table.
 | 8 | `backend/services/chat-service/` | 8087 | `chat-service` | |
 | 9 | `backend/services/notification-service/` | 8088 | `notification-service` | |
 | 10 | `backend/services/ai-service/` | 8089 | `ai-service` | Java stub in repo; Python optional |
+| 11 | `backend/services/map-service/` | 8090 | `map-service` | Google Places nearby/shop search + filters |
 
 Paths relative to repo root. See [REPO_PATHS.md](REPO_PATHS.md).
 
@@ -37,7 +38,7 @@ Paths relative to repo root. See [REPO_PATHS.md](REPO_PATHS.md).
 | Screens | Backend services |
 | --- | --- |
 | Splash, Select Language, Onboarding | — (local only) |
-| Auth (login/register/Google), Student Verification | auth-service |
+| Auth (login/register/Google coming soon), Student Verification, change password | auth-service |
 | Home, Create Post, Post Detail, Reels | content-service, file-service |
 | Apply / Preview / Applicant CV | career-service, file-service |
 | Profile, Settings | user-profile-service, auth-service |
@@ -45,6 +46,7 @@ Paths relative to repo root. See [REPO_PATHS.md](REPO_PATHS.md).
 | Chat | chat-service |
 | AI Chatbot | ai-service |
 | Notification | notification-service |
+| Map / nearby shops | map-service (`/map`, `/add-place`) |
 
 Full screen index: `Prompt Frontend/Screen prompt/README.md`.
 
@@ -68,5 +70,6 @@ Full table: `Prompt Frontend/api-intergration/integration-contract.md` → Gatew
 | chat-service | chat-service + chat-postgres | redis, rabbitmq, eureka-server, config-server |
 | notification-service | notification-service + notification-postgres | rabbitmq, eureka-server, config-server |
 | ai-service | ai-service + ai-postgres | redis, eureka-server, config-server |
+| map-service | map-service + map-postgres | redis, eureka-server, config-server |
 
 Rule: **never duplicate** Eureka, Config, RabbitMQ, Redis, or MinIO in service compose files.

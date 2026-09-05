@@ -12,6 +12,7 @@ All endpoints require JWT.
 | GET | `/job-applications` | Current user's applications (paginated) |
 | GET | `/job-applications?job_post_id={id}` | Poster: all applicants; Applicant: own application for that job |
 | GET | `/job-applications/{id}` | Application detail + timeline fields |
+| GET | `/job-applications/{id}/cv-preview` | Applicant or poster: `{ download_url }` for the attached CV |
 | PATCH | `/job-applications/{id}/status` | Poster updates applicant status |
 
 ### Apply request
@@ -63,6 +64,25 @@ Aliases accepted: `application_note`, `cover_note` (stored as `cover_note`).
 Allowed statuses: `PENDING`, `REVIEWED`, `ACCEPTED`, `REJECTED`.
 
 When status becomes `REVIEWED`, `review_started_at` is set. When `ACCEPTED` or `REJECTED`, `decided_at` is set.
+
+### CV preview response (`200`)
+
+Applicant **or** job poster only (same ownership check as list-by-job: applicant owns the application, or caller is the job post author). Resolve URL via file-service.
+
+```json
+{
+  "data": {
+    "application_id": "uuid",
+    "cv_file_id": "uuid",
+    "cv_file_name": "resume.pdf",
+    "download_url": "https://..."
+  }
+}
+```
+
+Errors: `404` application or CV file missing · `403` caller is neither applicant nor poster.
+
+Flutter reads `download_url` or `url` (`GET /job-applications/{id}/cv-preview`).
 
 ## User CV
 

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/data/models/payment_args.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
@@ -47,10 +46,6 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
     } finally {
       if (mounted) setState(() => _downloading = false);
     }
-  }
-
-  void _reportIssue() {
-    Get.snackbar(AppStrings.appName, 'Report an issue is coming soon');
   }
 
   void _payWithAcleda() {
@@ -244,9 +239,9 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
                 ),
                 const SizedBox(height: 10),
                 _InvoiceActionButton(
-                  label: 'Report an Issue',
+                  label: 'Report an Issue (coming soon)',
                   icon: Icons.help_outline,
-                  onPressed: _reportIssue,
+                  onPressed: null,
                 ),
               ] else ...[
                 _InvoiceActionButton(
@@ -343,40 +338,16 @@ class _InvoiceActionButton extends StatelessWidget {
 
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: FilledButton.icon(
-        onPressed: isLoading ? null : onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        icon: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : Icon(icon, size: 20),
-        label: Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-        ),
-      ),
+    return CustomButton(
+      label: label,
+      icon: icon,
+      isLoading: isLoading,
+      onPressed: isLoading ? null : onPressed,
     );
   }
 }

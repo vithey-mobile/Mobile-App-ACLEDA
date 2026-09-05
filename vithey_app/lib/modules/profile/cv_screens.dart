@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
@@ -9,7 +10,6 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/secure_cv_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class PreviewOwnCvScreen extends StatefulWidget {
   const PreviewOwnCvScreen({super.key});
@@ -125,16 +125,17 @@ class ApplicantCvScreen extends GetView<ApplicantCvController> {
               Row(
                 children: [
                   Expanded(
-                    child: shad.Button.outline(
+                    child: CustomButton(
+                      label: 'Decline',
+                      variant: CustomButtonVariant.outline,
                       onPressed: controller.decline,
-                      child: const shad.Text('Decline'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: shad.Button.primary(
+                    child: CustomButton(
+                      label: 'Accept',
                       onPressed: controller.accept,
-                      child: const shad.Text('Accept'),
                     ),
                   ),
                 ],
@@ -182,14 +183,11 @@ class ApplicantCvController extends GetxController {
 
   Future<void> accept() async {
     if (_applicationId == null) return;
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Accept this application?'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Accept')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Accept this application?',
+      message: 'The applicant will be notified of your decision.',
+      confirmLabel: 'Accept',
     );
     if (confirmed != true) return;
     await _repository.updateApplicationStatus(_applicationId!, ApplicationStatus.accepted);
@@ -199,14 +197,12 @@ class ApplicantCvController extends GetxController {
 
   Future<void> decline() async {
     if (_applicationId == null) return;
-    final confirmed = await Get.dialog<bool>(
-      shad.AlertDialog(
-        title: const shad.Text('Decline this application?'),
-        actions: [
-          shad.Button.ghost(onPressed: () => Get.back(result: false), child: const shad.Text('Cancel')),
-          shad.Button.primary(onPressed: () => Get.back(result: true), child: const shad.Text('Decline')),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context: Get.context!,
+      title: 'Decline this application?',
+      message: 'The applicant will be notified of your decision.',
+      confirmLabel: 'Decline',
+      variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;
     await _repository.updateApplicationStatus(_applicationId!, ApplicationStatus.rejected);

@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:aub_connect_app/modules/chat/widgets/add_chat_contacts_row.dart';
@@ -159,7 +160,6 @@ class _ChatToolbar extends StatelessWidget {
     final colors = context.appColors;
     return Obx(() {
       final isSearchActive = chatController.isSearchActive.value;
-      final hasQuery = chatController.searchQuery.value.isNotEmpty;
 
       return Padding(
         padding: const EdgeInsets.fromLTRB(8, 0, 4, 0),
@@ -169,8 +169,6 @@ class _ChatToolbar extends StatelessWidget {
               child: isSearchActive
                   ? _ChatSearchField(
                       controller: chatController.searchController,
-                      focusNode: chatController.searchFocusNode,
-                      hasQuery: hasQuery,
                       onClear: chatController.clearSearch,
                     )
                   : Stack(
@@ -280,58 +278,21 @@ class _ChatToolbar extends StatelessWidget {
 class _ChatSearchField extends StatelessWidget {
   const _ChatSearchField({
     required this.controller,
-    required this.focusNode,
-    required this.hasQuery,
     required this.onClear,
   });
 
   final TextEditingController controller;
-  final FocusNode focusNode;
-  final bool hasQuery;
   final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(left: 4, right: 4),
-      child: TextField(
+      child: VitheySearchPill(
         controller: controller,
-        focusNode: focusNode,
-        textInputAction: TextInputAction.search,
-        style: TextStyle(
-          color: colors.heading,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: AppStrings.chatSearchHint,
-          hintStyle: TextStyle(
-            color: colors.muted,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          filled: true,
-          fillColor: colors.inputFill,
-          prefixIcon: Icon(Icons.search_rounded, color: colors.muted, size: 20),
-          suffixIcon: hasQuery
-              ? IconButton(
-                  icon: Icon(Icons.close_rounded, color: colors.muted, size: 18),
-                  onPressed: onClear,
-                  tooltip: AppStrings.clearSearch,
-                )
-              : null,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(99),
-            borderSide: BorderSide(color: colors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(99),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
-          ),
-        ),
+        hintText: AppStrings.chatSearchHint,
+        autofocus: true,
+        onClear: onClear,
       ),
     );
   }

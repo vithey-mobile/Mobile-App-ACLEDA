@@ -6,6 +6,7 @@ import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,6 +27,14 @@ public class GlobalExceptionHandler {
     List<FieldErrorBody> details = exception.getBindingResult().getFieldErrors().stream()
         .map(error -> new FieldErrorBody(error.getField(), error.getDefaultMessage()))
         .toList();
+    return ResponseEntity.badRequest()
+        .body(ApiResponseWrapper.error(ErrorCode.VALIDATION_ERROR.name(), ErrorCode.VALIDATION_ERROR.defaultMessage(), details));
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  ResponseEntity<ApiResponseWrapper<Void>> handleMissingParameter(MissingServletRequestParameterException exception) {
+    List<FieldErrorBody> details = List.of(
+        new FieldErrorBody(exception.getParameterName(), "Required parameter is missing"));
     return ResponseEntity.badRequest()
         .body(ApiResponseWrapper.error(ErrorCode.VALIDATION_ERROR.name(), ErrorCode.VALIDATION_ERROR.defaultMessage(), details));
   }

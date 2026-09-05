@@ -1,6 +1,8 @@
+import 'package:aub_connect_app/core/widgets/vithey_list_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+/// Settings-home menu row. Thin alias over [VitheyListTile] so grouped
+/// card lists keep a single kit row implementation.
 class SettingsMenuTile extends StatelessWidget {
   const SettingsMenuTile({
     super.key,
@@ -17,42 +19,11 @@ class SettingsMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
-
-    return Material(
-      color: context.appColors.cardSurface,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(icon, color: primary, size: 22),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: context.appColors.heading,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(subtitle!, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null) Icon(Icons.chevron_right, color: primary, size: 22),
-            ],
-          ),
-        ),
-      ),
+    return VitheyListTile(
+      icon: icon,
+      title: label,
+      subtitle: subtitle,
+      onTap: onTap,
     );
   }
 }
