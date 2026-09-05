@@ -29,6 +29,17 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS:true}
 
 eureka:
   client:
@@ -55,3 +66,7 @@ vithey:
     refresh-token-ttl: ${VITHEY_REFRESH_TOKEN_TTL:7d}
   events:
     exchange: ${VITHEY_EVENTS_EXCHANGE:vithey.events}
+  mail:
+    mode: ${VITHEY_MAIL_MODE:log}
+    from: ${VITHEY_MAIL_FROM:noreply@vithey.local}
+

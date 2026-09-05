@@ -19,3 +19,8 @@ eureka:
     enabled: ${EUREKA_CLIENT_ENABLED:true}
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+
+vithey:
+  mail:
+    mode: ${VITHEY_MAIL_MODE:log}
+    from: ${VITHEY_MAIL_FROM:noreply@vithey.local}

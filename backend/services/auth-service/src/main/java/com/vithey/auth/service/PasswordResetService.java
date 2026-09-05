@@ -4,6 +4,7 @@ import com.vithey.auth.entity.PasswordResetToken;
 import com.vithey.auth.entity.User;
 import com.vithey.auth.exception.ApiException;
 import com.vithey.auth.exception.ErrorCode;
+import com.vithey.auth.mail.AuthMailSender;
 import com.vithey.auth.repository.PasswordResetTokenRepository;
 import com.vithey.auth.repository.UserRepository;
 import com.vithey.auth.util.OpaqueTokenGenerator;
@@ -22,15 +23,18 @@ public class PasswordResetService {
   private final UserRepository userRepository;
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final PasswordEncoder passwordEncoder;
+  private final AuthMailSender authMailSender;
 
   public PasswordResetService(
       UserRepository userRepository,
       PasswordResetTokenRepository passwordResetTokenRepository,
-      PasswordEncoder passwordEncoder
+      PasswordEncoder passwordEncoder,
+      AuthMailSender authMailSender
   ) {
     this.userRepository = userRepository;
     this.passwordResetTokenRepository = passwordResetTokenRepository;
     this.passwordEncoder = passwordEncoder;
+    this.authMailSender = authMailSender;
   }
 
   @Transactional
@@ -38,11 +42,13 @@ public class PasswordResetService {
     userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(email.trim().toLowerCase(Locale.ROOT))
         .filter(User::isActive)
         .ifPresent(user -> {
+          String rawToken = OpaqueTokenGenerator.generate(RESET_TOKEN_BYTES);
           PasswordResetToken token = new PasswordResetToken();
           token.setUser(user);
-          token.setTokenHash(TokenHash.sha256(OpaqueTokenGenerator.generate(RESET_TOKEN_BYTES)));
+          token.setTokenHash(TokenHash.sha256(rawToken));
           token.setExpiresAt(OffsetDateTime.now().plusMinutes(30));
           passwordResetTokenRepository.save(token);
+          authMailSender.sendPasswordReset(user.getEmail(), rawToken);
         });
   }
 

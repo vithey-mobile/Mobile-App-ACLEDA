@@ -17,6 +17,10 @@ public class GatewayRouteConfig {
       KeyResolver rateLimitKeyResolver
   ) {
     return routes.routes()
+        .route("chat-websocket", route -> route
+            .order(-1)
+            .path("/ws/chat", "/ws/chat/**")
+            .uri("lb://chat-service"))
         .route("auth-service", route -> route
             .order(0)
             .path("/api/v1/auth/**", "/api/v1/students/verify")

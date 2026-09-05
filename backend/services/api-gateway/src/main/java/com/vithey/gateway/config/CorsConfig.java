@@ -29,7 +29,13 @@ public class CorsConfig {
     configuration.setAllowedHeaders(List.of(
         HttpHeaders.AUTHORIZATION,
         HttpHeaders.CONTENT_TYPE,
-        "X-Request-ID"
+        HttpHeaders.UPGRADE,
+        HttpHeaders.CONNECTION,
+        "X-Request-ID",
+        "Sec-WebSocket-Key",
+        "Sec-WebSocket-Version",
+        "Sec-WebSocket-Protocol",
+        "Sec-WebSocket-Extensions"
     ));
     configuration.setExposedHeaders(List.of("X-Request-ID", "Retry-After"));
     configuration.setAllowCredentials(false);

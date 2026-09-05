@@ -12,6 +12,7 @@ import com.vithey.auth.event.payload.UserRegisteredEvent;
 import com.vithey.auth.event.publisher.UserRegisteredEventPublisher;
 import com.vithey.auth.exception.ApiException;
 import com.vithey.auth.exception.ErrorCode;
+import com.vithey.auth.mail.AuthMailSender;
 import com.vithey.auth.mapper.UserMapper;
 import com.vithey.auth.repository.EmailVerificationTokenRepository;
 import com.vithey.auth.repository.UserRepository;
@@ -35,6 +36,7 @@ public class AuthService {
   private final TokenService tokenService;
   private final UserMapper userMapper;
   private final UserRegisteredEventPublisher userRegisteredEventPublisher;
+  private final AuthMailSender authMailSender;
 
   public AuthService(
       UserRepository userRepository,
@@ -42,7 +44,8 @@ public class AuthService {
       PasswordEncoder passwordEncoder,
       TokenService tokenService,
       UserMapper userMapper,
-      UserRegisteredEventPublisher userRegisteredEventPublisher
+      UserRegisteredEventPublisher userRegisteredEventPublisher,
+      AuthMailSender authMailSender
   ) {
     this.userRepository = userRepository;
     this.emailVerificationTokenRepository = emailVerificationTokenRepository;
@@ -50,6 +53,7 @@ public class AuthService {
     this.tokenService = tokenService;
     this.userMapper = userMapper;
     this.userRegisteredEventPublisher = userRegisteredEventPublisher;
+    this.authMailSender = authMailSender;
   }
 
   @Transactional
@@ -141,11 +145,13 @@ public class AuthService {
   }
 
   private void createEmailVerificationToken(User user) {
+    String rawToken = OpaqueTokenGenerator.generate(EMAIL_VERIFICATION_TOKEN_BYTES);
     EmailVerificationToken token = new EmailVerificationToken();
     token.setUser(user);
-    token.setTokenHash(TokenHash.sha256(OpaqueTokenGenerator.generate(EMAIL_VERIFICATION_TOKEN_BYTES)));
+    token.setTokenHash(TokenHash.sha256(rawToken));
     token.setExpiresAt(OffsetDateTime.now().plusDays(1));
     emailVerificationTokenRepository.save(token);
+    authMailSender.sendEmailVerification(user.getEmail(), rawToken);
   }
 
   private String normalizeEmail(String email) {
