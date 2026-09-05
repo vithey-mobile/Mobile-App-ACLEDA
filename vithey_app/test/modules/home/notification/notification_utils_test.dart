@@ -1,6 +1,6 @@
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
-import 'package:aub_connect_app/modules/notification/utils/notification_display_text.dart';
-import 'package:aub_connect_app/modules/notification/utils/notification_grouping.dart';
+import 'package:aub_connect_app/modules/home/notification/utils/notification_display_text.dart';
+import 'package:aub_connect_app/modules/home/notification/utils/notification_grouping.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
