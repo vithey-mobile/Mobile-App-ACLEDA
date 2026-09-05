@@ -41,9 +41,7 @@ public class FeedService {
     authorIds.add(viewerId);
 
     Page<Post> posts = postRepository.findByAuthorIdInAndDeletedAtIsNullOrderByCreatedAtDesc(authorIds, pageable);
-    List<PostResponse> content = posts.getContent().stream()
-        .map(post -> postEnrichmentService.enrich(post, viewerId))
-        .toList();
+    List<PostResponse> content = postEnrichmentService.enrichAll(posts.getContent(), viewerId);
 
     return ApiResponseWrapper.paginated(
         content,

@@ -38,8 +38,9 @@ Dropped unused indexes:
 
 ## Storage mapping
 
-MinIO object key pattern:
+- `bucket` column: e.g. `avatars`, `cvs`, `posters`, `videos`
+- Stored `object_key` (bucket is **not** in the key):
 
 ```text
-<bucket>/<owner_user_id>/<file_id>/<safe_file_name>
+<owner_user_id>/<file_id>/<safe_file_name>
 ```

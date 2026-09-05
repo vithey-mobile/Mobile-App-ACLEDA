@@ -109,9 +109,7 @@ public class PostService {
         ? postRepository.findByAuthorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable)
         : postRepository.findByAuthorIdAndTypeAndDeletedAtIsNullOrderByCreatedAtDesc(userId, type, pageable);
 
-    java.util.List<PostResponse> content = posts.getContent().stream()
-        .map(post -> postEnrichmentService.enrich(post, viewerId))
-        .toList();
+    java.util.List<PostResponse> content = postEnrichmentService.enrichAll(posts.getContent(), viewerId);
 
     return ApiResponseWrapper.paginated(
         content,

@@ -95,9 +95,8 @@ public class FollowService {
   ) {
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
-    List<AuthorSummaryResponse> content = pageResult.getContent().stream()
-        .map(follow -> postEnrichmentService.resolveAuthor(userIdExtractor.apply(follow)))
-        .toList();
+    List<UUID> userIds = pageResult.getContent().stream().map(userIdExtractor).toList();
+    List<AuthorSummaryResponse> content = postEnrichmentService.resolveAuthors(userIds);
     return ApiResponseWrapper.paginated(
         content,
         new ApiResponseWrapper.Meta(safePage, safeLimit, pageResult.getTotalElements(), pageResult.getTotalPages())

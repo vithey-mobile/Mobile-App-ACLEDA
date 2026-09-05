@@ -8,10 +8,10 @@ Owns physical files in MinIO and file metadata. It does not own posts, profile a
 
 | Flow | Logic |
 | --- | --- |
-| Upload | Validate MIME and size, choose bucket by `type`, generate object key, upload to MinIO, save metadata. |
-| Metadata | Return metadata plus presigned URL if caller can access the file. |
-| Download | Stream binary or redirect/presign URL; private CV files require owner or authorized service flow. |
-| Delete | Owner only, soft delete metadata, remove MinIO object when safe. |
+| Upload | Validate MIME and size, choose bucket by `type`, generate object key `{owner}/{fileId}/{safeName}`, MinIO put (outside DB TX), save metadata. |
+| Metadata | Any authenticated user; return metadata plus 1h URL signed with `MINIO_PUBLIC_ENDPOINT`. |
+| Download | Stream binary (`Content-Disposition: attachment`). CV is owner-only; AVATAR/POSTER/VIDEO allowed for any authenticated user. |
+| Delete | Owner only: soft-delete metadata first, then MinIO remove (outside DB TX). |
 
 ## MIME and size rules
 
