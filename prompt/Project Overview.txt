@@ -1,0 +1,48 @@
+# Vithey App — Project Overview
+
+**App:** Vithey App  
+**Package:** `aub_connect_app`  
+**Audience:** AUB students + youth users
+
+This repository stores AI prompts and specifications. Generated code goes to:
+
+- `vithey_app/` — Flutter app
+- `backend/` — Spring Boot backend
+
+See `_shared/REPO_PATHS.md` for canonical paths.
+
+## Root layout
+
+```text
+Acleda Mobile App/
+├── MASTER_AI_PROMPT.md      ← AI session entry
+├── Project Overview.txt     ← this file
+├── _shared/                 ← SERVICE_REGISTRY, REPO_PATHS, READ_ORDER
+├── Prompt Frontend/
+├── Prompt Backend/
+└── Prompt Devops/
+```
+
+## Layer index
+
+| Layer | Start here | Owns |
+| --- | --- | --- |
+| Frontend | `Prompt Frontend/KICKOFF_PROMPT.md` | UI, screens, Flutter structure |
+| Backend | `Prompt Backend/KICKOFF_PROMPT.md` | Spring Boot services, domain logic |
+| DevOps | `Prompt Devops/KICKOFF_PROMPT.md` | Docker, CI/CD, runbooks |
+| API contract | `Prompt Frontend/api-intergration/integration-contract.md` | Endpoints, envelope, gateway routes |
+| Registry | `_shared/SERVICE_REGISTRY.md` | Ports, build order, screen map |
+
+## Build order
+
+1. DevOps: `Prompt Devops/v1/00` → `07`, or per-service `Prompt Devops/services/<name>/DEVOPS_PROMPT.md`
+2. Backend infrastructure: `Prompt Backend/infrastructure/SERVICE_PROMPT.md`
+3. Backend services: order in `_shared/SERVICE_REGISTRY.md`
+4. Frontend screens: `Prompt Frontend/Screen prompt/README.md`
+5. API integration: `Prompt Frontend/api-intergration/00-api-intergration-prompt.md`
+
+## Rules
+
+- **No duplicate tables** — link `_shared/SERVICE_REGISTRY.md` and `integration-contract.md`
+- **No docs in `backend/`** — all markdown stays in `prompt/`
+- **One compose per Docker folder** — see `Prompt Devops/DOCKER.md`

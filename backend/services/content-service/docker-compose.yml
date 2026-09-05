@@ -1,0 +1,25 @@
+﻿services:
+  content-service:
+    build:
+      context: ../..
+      dockerfile: services/content-service/Dockerfile
+      args:
+        SERVICE_PORT: 8084
+    image: vithey-content-service:local
+    container_name: vithey-content-service
+    env_file:
+      - .env.example
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true

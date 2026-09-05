@@ -1,0 +1,25 @@
+﻿services:
+  user-profile-service:
+    build:
+      context: ../..
+      dockerfile: services/user-profile-service/Dockerfile
+      args:
+        SERVICE_PORT: 8082
+    image: vithey-user-profile-service:local
+    container_name: vithey-user-profile-service
+    env_file:
+      - .env.example
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true

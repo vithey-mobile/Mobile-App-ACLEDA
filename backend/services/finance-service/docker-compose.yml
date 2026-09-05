@@ -1,0 +1,25 @@
+﻿services:
+  finance-service:
+    build:
+      context: ../..
+      dockerfile: services/finance-service/Dockerfile
+      args:
+        SERVICE_PORT: 8086
+    image: vithey-finance-service:local
+    container_name: vithey-finance-service
+    env_file:
+      - .env.example
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true

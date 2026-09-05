@@ -1,0 +1,25 @@
+﻿services:
+  chat-service:
+    build:
+      context: ../..
+      dockerfile: services/chat-service/Dockerfile
+      args:
+        SERVICE_PORT: 8087
+    image: vithey-chat-service:local
+    container_name: vithey-chat-service
+    env_file:
+      - .env.example
+    ports:
+      - "8087:8087"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true

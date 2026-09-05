@@ -1,0 +1,420 @@
+---
+title: "Vithey App"
+subtitle: "Student Super App — ACLEDA AUB App Competition 2026"
+author: "Team Vithey"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "custom.css"]
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      countIncrementalSlides: false
+    seal: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+class: title-slide
+
+<div class="slide-bg hero"></div>
+<div class="slide-overlay"></div>
+<div class="slide-inner">
+<img src="assets/logo_app.png" class="vithey-logo" alt="Vithey"/>
+<h1>Vithey App</h1>
+<div class="subtitle">Student Super App for AUB Students</div>
+<div class="meta">ACLEDA Bank AUB App Competition 2026</div>
+<div class="meta">Team <strong>Vithey</strong></div>
+<div class="tagline">Organize · Share · Learn · Career</div>
+</div>
+<div class="hint">Press <strong>F</strong> for fullscreen</div>
+<div class="slide-footer"><div class="page-num">1 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Team Members
+
+<img src="assets/logo_app.png" class="vithey-logo-center" alt="Vithey"/>
+
+<div class="team-grid">
+  <div class="team-card lead">Moeng Kimheang<br/><span style="font-weight:400;font-size:14px;opacity:0.7;">Team Lead</span></div>
+  <div class="team-card">Khorn Molika</div>
+  <div class="team-card">Heng Liza</div>
+  <div class="team-card">Ponleong Bora</div>
+  <div class="team-card">Nam Ayheng</div>
+  <div class="team-card">Nao Soksovannarith</div>
+  <div class="team-card">Phon Dyna</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">2 / 21</div></div>
+
+---
+
+class: section-slide
+
+<div class="slide-inner">
+<h1>Table of Contents</h1>
+<div class="gold-line"></div>
+<div class="toc-grid">
+  <div class="toc-item"><span class="toc-num">1</span><strong>Problem & Solution</strong></div>
+  <div class="toc-item"><span class="toc-num">2</span><strong>Project Overview</strong></div>
+  <div class="toc-item"><span class="toc-num">3</span><strong>User Journeys</strong></div>
+  <div class="toc-item"><span class="toc-num">4</span><strong>System Architecture</strong></div>
+  <div class="toc-item"><span class="toc-num">5</span><strong>Microservices</strong></div>
+  <div class="toc-item"><span class="toc-num">6</span><strong>Frontend & Backend</strong></div>
+  <div class="toc-item"><span class="toc-num">7</span><strong>DevOps & Security</strong></div>
+  <div class="toc-item"><span class="toc-num">8</span><strong>Impact & ACLEDA Fit</strong></div>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">3 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-problem"></div>
+<div class="split-content">
+<h2>Problem & Solution</h2>
+<p><strong>Problem</strong></p>
+<ul>
+<li>Students use many separate apps for social, jobs, finance, chat</li>
+<li>Fragmented experience wastes time, data, and attention</li>
+<li>No single platform built for AUB campus life</li>
+</ul>
+<p><strong>Solution</strong></p>
+<ul>
+<li><strong>Vithey App</strong> — one super app for everything</li>
+<li>Social, career, finance, chat & AI in a unified experience</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">4 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-features"></div>
+<div class="split-content">
+<h2>Project Overview</h2>
+<ul>
+<li><strong>Social Feed</strong> — video, poster & job posts, likes, comments</li>
+<li><strong>Career</strong> — CV upload, job listings, applicant review</li>
+<li><strong>Finance</strong> — payments & deadlines (verified AUB students)</li>
+<li><strong>Chat</strong> — message requests, real-time private chat</li>
+<li><strong>AI Assistant</strong> — CV, jobs, interviews, finance help</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">5 / 21</div></div>
+
+---
+
+class: content-slide
+
+## User Journeys
+
+<div class="journey-row">
+  <div class="journey-card">
+    <h3>New Student</h3>
+    <p>Splash → Onboarding → Register → Explore feed → Set up profile</p>
+  </div>
+  <div class="journey-card">
+    <h3>Job Seeker</h3>
+    <p>Browse jobs → Upload CV → Apply → Track status → Get notified</p>
+  </div>
+  <div class="journey-card">
+    <h3>Daily User</h3>
+    <p>Check feed → Chat friends → Manage finance → Ask AI for help</p>
+  </div>
+</div>
+
+<div class="slide-footer"><div class="page-num">6 / 21</div></div>
+
+---
+
+class: image-bg-slide
+
+<div class="slide-bg"></div>
+<div class="slide-overlay"></div>
+
+## System Architecture
+
+.pull-left[
+- **Flutter** mobile app (GetX + Dio)
+- **API Gateway** — single entry (port 8080)
+- **10 microservices** — each with own PostgreSQL DB
+- **Shared infra** — Eureka, Redis, RabbitMQ, MinIO
+]
+
+.pull-right[
+- **Event-driven** — RabbitMQ async messaging
+- **Service discovery** — Eureka registry
+- **File storage** — MinIO object store
+- **Push notifications** — Firebase FCM
+]
+
+<div class="slide-footer"><div class="page-num">7 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Microservices (1/2)
+
+| Service | Port | Responsibility |
+|---------|------|----------------|
+| API Gateway | 8080 | Routing, JWT filter, rate limiting |
+| Auth Service | 8081 | Register, login, JWT, OTP |
+| Profile Service | 8082 | Profiles, settings, preferences |
+| File Service | 8083 | Upload/download via MinIO |
+| Content Service | 8084 | Posts, stories, comments, likes |
+
+<div class="slide-footer"><div class="page-num">8 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Microservices (2/2)
+
+| Service | Port | Responsibility |
+|---------|------|----------------|
+| Career Service | 8085 | Jobs, CV, applications |
+| Finance Service | 8086 | Budgets, transactions, goals |
+| Chat Service | 8087 | Real-time messaging (WebSocket) |
+| Notification Service | 8088 | Push & in-app notifications |
+| AI Service | 8089 | Chatbot, recommendations, search |
+
+<div class="slide-footer"><div class="page-num">9 / 21</div></div>
+
+---
+
+class: content-slide
+
+## API Gateway
+
+<div class="cols-2">
+<div>
+<ul>
+<li><strong>Single entry point</strong> for all client requests</li>
+<li><strong>JWT validation</strong> before routing to services</li>
+<li><strong>Load balancing</strong> via Eureka discovery</li>
+<li><strong>CORS & rate limiting</strong> for security</li>
+</ul>
+</div>
+<div>
+<ul>
+<li><strong>Route mapping</strong> — /api/auth/** → Auth</li>
+<li><strong>Circuit breaker</strong> — resilience4j fallback</li>
+<li><strong>Request tracing</strong> — centralized logging</li>
+<li><strong>Port 8080</strong> — exposed to Flutter app</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">10 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-features"></div>
+<div class="split-content">
+<h2>Frontend Architecture</h2>
+<ul>
+<li><strong>Flutter</strong> — cross-platform Android & iOS</li>
+<li><strong>GetX</strong> — state management, routing, DI</li>
+<li><strong>Dio</strong> — HTTP client with JWT interceptors</li>
+<li><strong>Clean architecture</strong> — presentation / domain / data</li>
+<li><strong>Hive</strong> — offline cache · <strong>Firebase</strong> — push & analytics</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">11 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-architecture"></div>
+<div class="split-content">
+<h2>Backend Architecture</h2>
+<ul>
+<li><strong>Java 21</strong> + <strong>Spring Boot 3.3.5</strong> + Spring Cloud</li>
+<li><strong>Database per service</strong> — isolated PostgreSQL</li>
+<li><strong>REST APIs</strong> — OpenAPI / Swagger docs</li>
+<li><strong>Spring Security</strong> — JWT + role-based access</li>
+<li><strong>Flyway</strong> migrations · <strong>Docker</strong> per service</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">12 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Infrastructure & Data
+
+| Component | Port | Purpose |
+|-----------|------|---------|
+| Eureka Server | 8761 | Service discovery & registry |
+| Config Server | 8888 | Centralized configuration |
+| PostgreSQL | 5432 | Per-service databases |
+| Redis | 6379 | Caching & session store |
+| RabbitMQ | 5672 | Async event messaging |
+| MinIO | 9000 | Object / file storage |
+| Firebase FCM | — | Push notifications |
+
+<div class="slide-footer"><div class="page-num">13 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-devops"></div>
+<div class="split-content">
+<h2>DevOps & Docker</h2>
+<ul>
+<li><strong>Per-service Docker</strong> — one compose project per folder</li>
+<li><strong>vithey-network</strong> — shared infra network</li>
+<li><strong>start-all.ps1</strong> — one command to start all 11 projects</li>
+<li><strong>Health checks</strong> — /actuator/health per service</li>
+<li><strong>Build order</strong> — infra → services → gateway</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">14 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Event-Driven Integration
+
+| Event | Publisher | Consumer(s) |
+|-------|-----------|-------------|
+| user.registered | Auth | Profile, Notification |
+| post.created | Content | Notification, AI |
+| job.applied | Career | Notification |
+| message.sent | Chat | Notification |
+| payment.completed | Finance | Notification |
+
+- **RabbitMQ** — topic exchanges, decoupled async services
+
+<div class="slide-footer"><div class="page-num">15 / 21</div></div>
+
+---
+
+class: split-slide
+
+<div class="slide-inner">
+<div class="split-image img-security"></div>
+<div class="split-content">
+<h2>Security Design</h2>
+<ul>
+<li><strong>JWT authentication</strong> — stateless tokens</li>
+<li><strong>BCrypt</strong> password hashing</li>
+<li><strong>Role-based access</strong> — student, admin</li>
+<li><strong>HTTPS/TLS</strong> + API rate limiting at gateway</li>
+<li><strong>Bean Validation</strong> — input sanitization</li>
+<li><strong>Secrets</strong> — env variables, never in code</li>
+</ul>
+</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">16 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Development Plan
+
+| Phase | Timeline | Deliverables |
+|-------|----------|--------------|
+| Phase 1 | Weeks 1–3 | Auth, Profile, Gateway, Docker setup |
+| Phase 2 | Weeks 4–6 | Content, Career, File + Flutter UI |
+| Phase 3 | Weeks 7–9 | Finance, Chat, Notification services |
+| Phase 4 | Weeks 10–12 | AI service, integration testing, polish |
+
+<div class="slide-footer"><div class="page-num">17 / 21</div></div>
+
+---
+
+class: content-slide
+
+## Impact & Benefits
+
+<div class="impact-grid">
+  <div class="impact-item"><span class="impact-icon">🎓</span> One app for entire campus life</div>
+  <div class="impact-item"><span class="impact-icon">💼</span> Easier job search & career growth</div>
+  <div class="impact-item"><span class="impact-icon">💰</span> Smart finance for AUB students</div>
+  <div class="impact-item"><span class="impact-icon">🤖</span> AI-powered study & career help</div>
+  <div class="impact-item"><span class="impact-icon">🔗</span> Connected student community</div>
+  <div class="impact-item"><span class="impact-icon">🏦</span> ACLEDA banking integration ready</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">18 / 21</div></div>
+
+---
+
+class: content-slide
+
+## ACLEDA Competition Requirements
+
+| Requirement | Vithey App |
+|-------------|------------|
+| Youth-focused mobile app | Student super app for AUB |
+| Minimum 5 features | Feed, jobs, finance, chat, AI (+ profile, notifications) |
+| Register / Login | Auth service + Flutter auth screens |
+| Settings menu | Settings screen with preferences |
+| Light + Dark mode | Theme system in Flutter |
+| Flutter + GetX | Cross-platform mobile frontend |
+| Spring Boot 3+ / Java 21 | 10 microservices on Java 21 |
+
+<div class="slide-footer"><div class="page-num">19 / 21</div></div>
+
+---
+
+class: section-slide
+
+<div class="slide-inner">
+<h1>Conclusion</h1>
+<div class="gold-line"></div>
+<p>Vithey App unifies social, career, finance, chat & AI — built with scalable microservices, Docker DevOps, and ready for AUB students and ACLEDA Bank integration.</p>
+</div>
+
+<div class="slide-footer"><div class="page-num">20 / 21</div></div>
+
+---
+
+class: title-slide, thank-slide
+
+<div class="slide-bg"></div>
+<div class="slide-overlay"></div>
+<div class="slide-inner">
+<h1>Thank You</h1>
+<div class="contact">Team Vithey · Vithey App · ACLEDA AUB 2026</div>
+<div class="tagline">Questions?</div>
+</div>
+
+<div class="slide-footer"><div class="page-num">21 / 21</div></div>

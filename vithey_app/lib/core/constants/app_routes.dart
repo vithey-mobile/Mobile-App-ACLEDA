@@ -1,0 +1,37 @@
+class AppRoutes {
+  AppRoutes._();
+
+  static const splash = '/splash';
+  static const onboarding = '/onboarding';
+  static const auth = '/auth';
+  static const login = '/login';
+  static const register = '/register';
+  static const googleAccountChooser = '/auth/google';
+  static const googleAuthConfirmation = '/auth/google/confirm';
+  static const startupSkills = '/startup/skills';
+  static const startupInterests = '/startup/interests';
+  static const startupDiscovery = '/startup/discovery';
+  static const home = '/home';
+  static const createPost = '/create-post';
+  static const postDetail = '/posts/detail';
+  static const applyCv = '/apply-cv';
+  static const profile = '/profile';
+  static const jobApplicants = '/profile/jobs/applicants';
+  static const applicantCvPreview = '/profile/applicants/cv';
+  static const previewOwnCv = '/profile/cv';
+  static const studentVerification = '/student-verification';
+  static const verificationStatus = '/verification-status';
+  static const finance = '/finance';
+  static const chat = '/chat';
+  static const chatDetail = '/chat/detail';
+  static const chatProfile = '/chat/profile';
+  static const chatbot = '/chatbot';
+  static const notifications = '/notifications';
+  static const settings = '/settings';
+  static const settingsAccount = '/settings/account';
+  static const settingsPrivacy = '/settings/privacy';
+  static const settingsSecurity = '/settings/security';
+  static const settingsChangePassword = '/settings/security/change-password';
+  static const settingsHelpCenter = '/settings/help-center';
+  static const settingsAbout = '/settings/about';
+}

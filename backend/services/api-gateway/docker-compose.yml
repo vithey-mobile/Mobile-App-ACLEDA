@@ -1,0 +1,25 @@
+services:
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: services/api-gateway/Dockerfile
+      args:
+        SERVICE_PORT: 8080
+    image: vithey-api-gateway:local
+    container_name: vithey-api-gateway
+    env_file:
+      - .env.example
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true

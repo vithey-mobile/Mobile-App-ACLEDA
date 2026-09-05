@@ -1,0 +1,25 @@
+﻿services:
+  notification-service:
+    build:
+      context: ../..
+      dockerfile: services/notification-service/Dockerfile
+      args:
+        SERVICE_PORT: 8088
+    image: vithey-notification-service:local
+    container_name: vithey-notification-service
+    env_file:
+      - .env.example
+    ports:
+      - "8088:8088"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    networks:
+      - vithey-network
+
+networks:
+  vithey-network:
+    external: true
