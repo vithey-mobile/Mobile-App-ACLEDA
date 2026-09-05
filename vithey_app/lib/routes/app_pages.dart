@@ -64,6 +64,8 @@ import 'package:aub_connect_app/modules/chat/chat_list_screen.dart';
 import 'package:aub_connect_app/modules/chat/chat_profile_screen.dart';
 import 'package:aub_connect_app/modules/finance/finance_binding.dart';
 import 'package:aub_connect_app/modules/finance/finance_screen.dart';
+import 'package:aub_connect_app/modules/finance/payment/payment_binding.dart';
+import 'package:aub_connect_app/modules/finance/payment/payment_screen.dart';
 import 'package:aub_connect_app/modules/student_verification/student_verification_binding.dart';
 import 'package:aub_connect_app/modules/student_verification/student_verification_screen.dart';
 import 'package:aub_connect_app/modules/student_verification/verification_status_screen.dart';
@@ -247,6 +249,11 @@ class AppPages {
       name: AppRoutes.finance,
       page: () => const FinanceScreen(),
       binding: FinanceBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.financePayment,
+      page: () => const PaymentScreen(),
+      binding: PaymentBinding(),
     ),
     GetPage(
       name: AppRoutes.chat,
