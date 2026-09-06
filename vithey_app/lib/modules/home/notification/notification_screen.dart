@@ -21,6 +21,10 @@ class NotificationScreen extends GetView<NotificationController> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomClearance = embedded
+        ? AppBottomNavigation.scrollClearance(context, extra: 20)
+        : 0.0;
+
     return Scaffold(
       backgroundColor: context.appColors.bodyBackground,
       appBar: AppBar(
@@ -43,19 +47,22 @@ class NotificationScreen extends GetView<NotificationController> {
           ),
         ),
       ),
-      body: Obx(() {
-        return Column(
-          children: [
-            const SizedBox(height: 20),
-            NotificationFilterBar(
-              selected: controller.filter.value,
-              onSelected: controller.selectFilter,
-            ),
-            const SizedBox(height: 8),
-            Expanded(child: _buildContent()),
-          ],
-        );
-      }),
+      body: Padding(
+        padding: EdgeInsets.only(bottom: bottomClearance),
+        child: Obx(() {
+          return Column(
+            children: [
+              const SizedBox(height: 20),
+              NotificationFilterBar(
+                selected: controller.filter.value,
+                onSelected: controller.selectFilter,
+              ),
+              const SizedBox(height: 8),
+              Expanded(child: _buildContent(context)),
+            ],
+          );
+        }),
+      ),
       bottomNavigationBar: embedded
           ? null
           : AppBottomNavigation(
@@ -68,10 +75,10 @@ class NotificationScreen extends GetView<NotificationController> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     if (controller.isLoading.value && controller.notifications.isEmpty) {
       return ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         itemCount: 7,
         itemBuilder: (_, __) => const NotificationItemSkeleton(),
       );
@@ -110,7 +117,7 @@ class NotificationScreen extends GetView<NotificationController> {
         },
         child: ListView(
           controller: controller.scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             ..._buildAnimatedSections(),

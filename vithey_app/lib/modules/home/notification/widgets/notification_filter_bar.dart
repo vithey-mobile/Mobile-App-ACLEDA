@@ -15,21 +15,24 @@ class NotificationFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return VitheyFilterChips(
-      items: [
-        for (final filter in NotificationFilter.values)
-          VitheyFilterChipItem(
-            id: filter.name,
-            label: switch (filter) {
-              NotificationFilter.all => 'All',
-              NotificationFilter.read => 'Read',
-              NotificationFilter.unread => 'Unread',
-            },
-            selected: filter == selected,
-          ),
-      ],
-      onSelected: (id) => onSelected(
-        NotificationFilter.values.firstWhere((f) => f.name == id),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: VitheyFilterChips(
+        items: [
+          for (final filter in NotificationFilter.values)
+            VitheyFilterChipItem(
+              id: filter.name,
+              label: switch (filter) {
+                NotificationFilter.all => 'All',
+                NotificationFilter.read => 'Read',
+                NotificationFilter.unread => 'Unread',
+              },
+              selected: filter == selected,
+            ),
+        ],
+        onSelected: (id) => onSelected(
+          NotificationFilter.values.firstWhere((f) => f.name == id),
+        ),
       ),
     );
   }

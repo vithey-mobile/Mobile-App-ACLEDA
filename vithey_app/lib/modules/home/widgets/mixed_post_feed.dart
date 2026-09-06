@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
@@ -28,18 +29,21 @@ class MixedPostFeed extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             ...topSlivers,
-            ..._bodySlivers(controller),
+            ..._bodySlivers(context, controller),
           ],
         ),
       );
     });
   }
 
-  List<Widget> _bodySlivers(HomeController controller) {
+  List<Widget> _bodySlivers(BuildContext context, HomeController controller) {
     if (controller.isInitialLoading.value) {
       return [
         SliverPadding(
-          padding: const EdgeInsets.only(top: 5, bottom: 90),
+          padding: EdgeInsets.only(
+            top: 5,
+            bottom: AppBottomNavigation.scrollClearance(context),
+          ),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, __) => const _FeedCardSkeleton(),
@@ -90,7 +94,10 @@ class ContentedSliverList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.only(top: 5, bottom: 92),
+      padding: EdgeInsets.only(
+        top: 5,
+        bottom: AppBottomNavigation.scrollClearance(context),
+      ),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {

@@ -57,24 +57,37 @@ class SettingsController extends GetxController {
   }
 
   void openLanguagePicker() {
+    // Clear leftover GetX snackbar overlays so they don't steal dismissals.
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+    final ctx = Get.context!;
+    final bg = ctx.theme.brightness == Brightness.dark
+        ? ctx.appColors.bodyBackground
+        : const Color(0xFFF2F2F2);
     Get.bottomSheet(
       LanguagePickerSheet(
         selectedCode: languageCode.value,
         onSelect: _selectLanguage,
       ),
-      backgroundColor: Get.context!.appColors.bodyBackground,
+      backgroundColor: bg,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
     );
   }
 
   Future<void> _selectLanguage(String code) async {
     languageCode.value = code;
-    await _settingsRepository.saveLanguage(code);
-    Get.back();
-    Get.snackbar('Vithey', 'Language preference saved');
+    try {
+      await _settingsRepository.saveLanguage(code);
+      Get.snackbar('Vithey', 'Language preference saved');
+    } catch (_) {
+      Get.snackbar('Vithey', 'Could not save language preference');
+    }
   }
 
   Future<void> logout() async {

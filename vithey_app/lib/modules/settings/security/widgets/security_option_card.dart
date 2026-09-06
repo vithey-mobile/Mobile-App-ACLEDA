@@ -45,7 +45,7 @@ class SecuritySwitchTile extends StatelessWidget {
     return Opacity(
       opacity: opacity,
       child: Material(
-        color: context.appColors.cardSurface,
+        color: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(

@@ -101,6 +101,8 @@ class ProfileActionRow extends StatelessWidget {
   final VoidCallback onShare;
 
   static const _buttonGap = 16.0;
+  static const _actionMinHeight = 40.0;
+  static const _actionHorizontalInset = 10.0;
 
   @override
   Widget build(BuildContext context) {
@@ -112,12 +114,16 @@ class ProfileActionRow extends StatelessWidget {
         if (isOwnProfile) ...[
           CustomButton(
             label: 'Edit Profile',
+            minHeight: _actionMinHeight,
+            horizontalInset: _actionHorizontalInset,
             onPressed: onEditProfile,
           ),
           const SizedBox(width: _buttonGap),
           CustomButton(
             label: isStudentVerified ? 'Review' : 'Verify',
             variant: CustomButtonVariant.outline,
+            minHeight: _actionMinHeight,
+            horizontalInset: _actionHorizontalInset,
             onPressed: onVerifyStudent,
           ),
         ] else ...[
@@ -125,17 +131,23 @@ class ProfileActionRow extends StatelessWidget {
             CustomButton(
               label: 'Unfollow',
               variant: CustomButtonVariant.outline,
+              minHeight: _actionMinHeight,
+              horizontalInset: _actionHorizontalInset,
               onPressed: onFollow,
             )
           else
             CustomButton(
               label: 'Follow',
+              minHeight: _actionMinHeight,
+              horizontalInset: _actionHorizontalInset,
               onPressed: onFollow,
             ),
           const SizedBox(width: _buttonGap),
           CustomButton(
             label: 'Message',
             variant: CustomButtonVariant.outline,
+            minHeight: _actionMinHeight,
+            horizontalInset: _actionHorizontalInset,
             onPressed: onMessage,
           ),
         ],

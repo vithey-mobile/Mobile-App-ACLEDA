@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/settings/settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_logout_button.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_switch_tile.dart';
-import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsHomeScreen extends GetView<SettingsController> {
   const SettingsHomeScreen({super.key});
@@ -22,6 +21,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
           return const Center(child: CircularProgressIndicator());
         }
         return ListView(
+          padding: const EdgeInsets.only(bottom: 8),
           children: [
             const SettingsSectionLabel(label: 'Preferences'),
             _CardGroup(
@@ -31,15 +31,13 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Account',
                   onTap: () => Get.toNamed(AppRoutes.settingsAccount),
                 ),
-                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.lock_outline,
                   label: 'Privacy',
                   onTap: () => Get.toNamed(AppRoutes.settingsPrivacy),
                 ),
-                const SettingsTileDivider(),
                 SettingsMenuTile(
-                  icon: Icons.language,
+                  icon: Icons.language_outlined,
                   label: 'Language',
                   subtitle: controller.languageLabel,
                   onTap: controller.openLanguagePicker,
@@ -54,13 +52,11 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Notifications',
                   onTap: () => Get.toNamed(AppRoutes.settingsNotifications),
                 ),
-                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.security,
                   label: 'Security',
                   onTap: () => Get.toNamed(AppRoutes.settingsSecurity),
                 ),
-                const SettingsTileDivider(),
                 SettingsSwitchTile(
                   icon: Icons.dark_mode_outlined,
                   label: 'Dark Mode',
@@ -77,11 +73,31 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   label: 'Help Center',
                   onTap: () => Get.toNamed(AppRoutes.settingsHelpCenter),
                 ),
-                const SettingsTileDivider(),
                 SettingsMenuTile(
                   icon: Icons.info_outline,
                   label: 'About',
                   onTap: () => Get.toNamed(AppRoutes.settingsAbout),
+                ),
+              ],
+            ),
+            const SettingsSectionLabel(label: 'General'),
+            _CardGroup(
+              children: [
+                SettingsMenuTile(
+                  icon: Icons.storage_outlined,
+                  label: 'Data & storage',
+                  onTap: () => Get.snackbar(
+                    'Settings',
+                    'Data & storage is coming soon',
+                  ),
+                ),
+                SettingsMenuTile(
+                  icon: Icons.accessibility_new_outlined,
+                  label: 'Accessibility',
+                  onTap: () => Get.snackbar(
+                    'Settings',
+                    'Accessibility is coming soon',
+                  ),
                 ),
               ],
             ),
@@ -100,23 +116,21 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? colors.cardSurface : Colors.white;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: context.appColors.cardSurface,
+          color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: context.appColors.subtleShadow,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Column(children: children)),
+          borderRadius: BorderRadius.circular(12),
+          child: Column(children: children),
+        ),
       ),
     );
   }

@@ -18,11 +18,7 @@ class NotificationPreferencesController extends GetxController {
   final isLoading = true.obs;
   final isSaving = false.obs;
 
-  NotificationPreferences _saved = const NotificationPreferences();
-
   bool get categoriesEnabled => preferences.value.allowNotifications;
-  bool get hasChanges => preferences.value != _saved;
-  bool get canSave => hasChanges && !isSaving.value;
 
   @override
   void onInit() {
@@ -33,9 +29,8 @@ class NotificationPreferencesController extends GetxController {
   Future<void> loadPreferences() async {
     isLoading.value = true;
     try {
-      final loaded = await _settingsRepository.loadNotificationPreferences();
-      _saved = loaded;
-      preferences.value = loaded;
+      preferences.value =
+          await _settingsRepository.loadNotificationPreferences();
     } finally {
       isLoading.value = false;
     }
@@ -44,35 +39,38 @@ class NotificationPreferencesController extends GetxController {
   Future<void> toggleAllowNotifications(bool value) async {
     if (value && !await _ensureNotificationPermission()) return;
     preferences.value = preferences.value.copyWith(allowNotifications: value);
+    await _persistPreferences(silent: true);
   }
 
-  void toggleChatMessages(bool value) {
+  Future<void> toggleChatMessages(bool value) async {
     if (!categoriesEnabled) return;
     preferences.value = preferences.value.copyWith(chatMessages: value);
+    await _persistPreferences(silent: true);
   }
 
-  void toggleReminders(bool value) {
+  Future<void> toggleReminders(bool value) async {
     if (!categoriesEnabled) return;
     preferences.value = preferences.value.copyWith(reminders: value);
+    await _persistPreferences(silent: true);
   }
 
-  void toggleAnnouncements(bool value) {
+  Future<void> toggleAnnouncements(bool value) async {
     if (!categoriesEnabled) return;
     preferences.value = preferences.value.copyWith(announcements: value);
+    await _persistPreferences(silent: true);
   }
 
-  void toggleAppUpdates(bool value) {
+  Future<void> toggleAppUpdates(bool value) async {
     if (!categoriesEnabled) return;
     preferences.value = preferences.value.copyWith(appUpdates: value);
+    await _persistPreferences(silent: true);
   }
 
-  Future<void> savePreferences() async {
-    if (!canSave) return;
-    isSaving.value = true;
+  Future<void> _persistPreferences({bool silent = false}) async {
     final draft = preferences.value;
+    isSaving.value = true;
     try {
       await _settingsRepository.saveNotificationPreferences(draft);
-      _saved = draft;
 
       try {
         if (draft.allowNotifications) {
@@ -81,14 +79,17 @@ class NotificationPreferencesController extends GetxController {
           await _fcmService.unregisterToken();
         }
       } catch (_) {
-        Get.snackbar(
-          'Vithey',
-          'Preferences saved, but push registration could not be updated',
-        );
-        return;
+        if (!silent) {
+          Get.snackbar(
+            'Vithey',
+            'Preferences saved, but push registration could not be updated',
+          );
+        }
       }
 
-      Get.snackbar('Vithey', 'Notification preferences saved');
+      if (!silent) {
+        Get.snackbar('Vithey', 'Notification preferences saved');
+      }
     } catch (error) {
       Get.snackbar(
         'Vithey',
@@ -96,6 +97,10 @@ class NotificationPreferencesController extends GetxController {
       );
     } finally {
       isSaving.value = false;
+      // Persist again if the user toggled while this save was in flight.
+      if (preferences.value != draft) {
+        await _persistPreferences(silent: silent);
+      }
     }
   }
 

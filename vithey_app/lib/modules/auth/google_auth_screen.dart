@@ -130,7 +130,10 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                               const AppLogo(size: 70, onWhiteCircle: true),
                               const SizedBox(height: 24),
                               Text(
-                                'Sign in with Google',
+                                _controller.authIntent.value ==
+                                        AuthIntent.changeEmail
+                                    ? 'Update email with Google'
+                                    : 'Sign in with Google',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 24,
@@ -140,7 +143,10 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'To continue to Vithey',
+                                _controller.authIntent.value ==
+                                        AuthIntent.changeEmail
+                                    ? 'Choose a Google account to update your Vithey email'
+                                    : 'To continue to Vithey',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: secondary,
@@ -281,7 +287,9 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Continue to Vithey',
+                        controller.authIntent.value == AuthIntent.changeEmail
+                            ? 'Update Vithey email'
+                            : 'Continue to Vithey',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
@@ -291,7 +299,9 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'To continue, Google will share your name, email address, and profile picture with Vithey.',
+                        controller.authIntent.value == AuthIntent.changeEmail
+                            ? 'Google will share this account’s email address with Vithey to update your account email.'
+                            : 'To continue, Google will share your name, email address, and profile picture with Vithey.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: secondary,
@@ -327,7 +337,10 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                         return SizedBox(
                           width: double.infinity,
                           child: CustomButton(
-                            label: 'Continue as $firstName',
+                            label: controller.authIntent.value ==
+                                    AuthIntent.changeEmail
+                                ? 'Use $firstName’s email'
+                                : 'Continue as $firstName',
                             isLoading: loading,
                             onPressed:
                                 loading ? null : controller.completeGoogleAuth,
@@ -343,22 +356,25 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                           onPressed: controller.backToGoogleChooser,
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account. ',
-                            style: TextStyle(color: secondary, fontSize: 13),
-                          ),
-                          CustomButton(
-                            label: AppStrings.signIn,
-                            variant: CustomButtonVariant.ghost,
-                            foregroundColor: AppColors.primary,
-                            onPressed: controller.cancelGoogleAuth,
-                          ),
-                        ],
-                      ),
+                      if (controller.authIntent.value !=
+                          AuthIntent.changeEmail) ...[
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Already have an account. ',
+                              style: TextStyle(color: secondary, fontSize: 13),
+                            ),
+                            CustomButton(
+                              label: AppStrings.signIn,
+                              variant: CustomButtonVariant.ghost,
+                              foregroundColor: AppColors.primary,
+                              onPressed: controller.cancelGoogleAuth,
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

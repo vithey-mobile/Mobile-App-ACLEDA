@@ -35,6 +35,8 @@ class CustomButton extends StatelessWidget {
     this.icon,
     this.leading,
     this.foregroundColor,
+    this.minHeight = 48,
+    this.horizontalInset = 0,
   });
 
   final String label;
@@ -48,6 +50,37 @@ class CustomButton extends StatelessWidget {
 
   /// Overrides the label/icon color (e.g. white CTAs on the teal wave).
   final Color? foregroundColor;
+
+  /// Minimum tap-target height. Default 48.
+  final double minHeight;
+
+  /// Extra horizontal padding inside the button (makes it wider).
+  final double horizontalInset;
+
+  shad.AbstractButtonStyle? _styleForVariant() {
+    if (horizontalInset == 0 && minHeight >= 48) return null;
+
+    final density = shad.ButtonDensity((padding) {
+      return EdgeInsets.fromLTRB(
+        padding.left + horizontalInset,
+        padding.top * 0.55,
+        padding.right + horizontalInset,
+        padding.bottom * 0.55,
+      );
+    });
+
+    return switch (variant) {
+      CustomButtonVariant.primary =>
+        shad.ButtonStyle.primary(density: density),
+      CustomButtonVariant.secondary =>
+        shad.ButtonStyle.secondary(density: density),
+      CustomButtonVariant.outline =>
+        shad.ButtonStyle.outline(density: density),
+      CustomButtonVariant.ghost => shad.ButtonStyle.ghost(density: density),
+      CustomButtonVariant.destructive =>
+        shad.ButtonStyle.destructive(density: density),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,38 +114,43 @@ class CustomButton extends StatelessWidget {
     final enabled = isLoading ? null : onPressed;
     // Always center — including icon + title (Logout, OAuth, etc.).
     const alignment = Alignment.center;
+    final style = _styleForVariant();
 
     final shad.Button button = switch (variant) {
       CustomButtonVariant.primary => shad.Button.primary(
           onPressed: enabled,
           alignment: alignment,
+          style: style ?? shad.ButtonVariance.primary,
           child: child,
         ),
       CustomButtonVariant.secondary => shad.Button.secondary(
           onPressed: enabled,
           alignment: alignment,
+          style: style ?? shad.ButtonVariance.secondary,
           child: child,
         ),
       CustomButtonVariant.outline => shad.Button.outline(
           onPressed: enabled,
           alignment: alignment,
+          style: style ?? shad.ButtonVariance.outline,
           child: child,
         ),
       CustomButtonVariant.ghost => shad.Button.ghost(
           onPressed: enabled,
           alignment: alignment,
+          style: style ?? shad.ButtonVariance.ghost,
           child: child,
         ),
       CustomButtonVariant.destructive => shad.Button.destructive(
           onPressed: enabled,
           alignment: alignment,
+          style: style ?? shad.ButtonVariance.destructive,
           child: child,
         ),
     };
 
-    // Enforce the 48px minimum tap target for every variant.
     return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+      constraints: BoxConstraints(minHeight: minHeight, minWidth: 48),
       child: button,
     );
   }

@@ -26,9 +26,20 @@ class AppBottomNavigation extends StatelessWidget {
   final String? avatarName;
   final bool messagesMode;
 
-  static const _height = 64.0;
+  static const barHeight = 64.0;
+  static const bottomMargin = 10.0;
   static const _radius = 32.0;
   static const _inactive = Color(0xFF9AA0A6);
+
+  /// Bottom inset so scroll content clears the floating pill.
+  ///
+  /// Use with [Scaffold.extendBody] — without this, lists slide under the bar
+  /// and feel like they “scratch” when scrolling.
+  static double scrollClearance(BuildContext context, {double extra = 12}) {
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    final navBottom = safeBottom > bottomMargin ? safeBottom : bottomMargin;
+    return barHeight + navBottom + extra;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +50,7 @@ class AppBottomNavigation extends StatelessWidget {
     final resolvedName = avatarName ?? user?.displayName;
 
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: context.appColors.cardSurface,
@@ -61,7 +72,7 @@ class AppBottomNavigation extends StatelessWidget {
           ],
         ),
         child: SizedBox(
-          height: _height,
+          height: barHeight,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(

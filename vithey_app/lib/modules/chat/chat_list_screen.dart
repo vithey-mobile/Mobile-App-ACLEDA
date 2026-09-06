@@ -72,7 +72,9 @@ class ChatListScreen extends GetView<ChatListController> {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.only(bottom: 100),
+                    padding: EdgeInsets.only(
+                      bottom: AppBottomNavigation.scrollClearance(context),
+                    ),
                     sliver: SliverList.builder(
                       itemCount: chats.length,
                       itemBuilder: (_, index) {

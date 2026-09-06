@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
-import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
 
+/// Settings shell with iOS-style large title:
+/// - At rest / top: big left title under the back button
+/// - On scroll: title collapses to the centered app-bar position
 class SettingsScaffold extends StatelessWidget {
   const SettingsScaffold({
     super.key,
@@ -16,31 +19,120 @@ class SettingsScaffold extends StatelessWidget {
   final Widget body;
   final Widget? floatingActionButton;
 
+  static const _expandedExtra = 52.0;
+
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final pageBg = Theme.of(context).brightness == Brightness.dark
+        ? colors.bodyBackground
+        : const Color(0xFFF2F2F2);
+
     return Scaffold(
+      backgroundColor: pageBg,
       extendBody: true,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1),
-        ),
-      ),
-      body: AppScreenBody(child: body),
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: MainTabNavigation.profile,
         onTap: (index) => MainTabNavigation.handle(
           index,
           currentIndex: MainTabNavigation.profile,
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.only(
+          bottom: AppBottomNavigation.scrollClearance(context),
+        ),
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: kToolbarHeight + _expandedExtra,
+                backgroundColor: pageBg,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                forceElevated: false,
+                leading: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 20,
+                    color: colors.heading,
+                  ),
+                  onPressed: () => Get.back(),
+                ),
+                centerTitle: true,
+                title: AnimatedOpacity(
+                  opacity: innerBoxIsScrolled ? 1 : 0,
+                  duration: const Duration(milliseconds: 120),
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                      color: colors.heading,
+                    ),
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.pin,
+                  background: _SettingsLargeTitle(
+                    title: title,
+                    color: colors.heading,
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: body,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsLargeTitle extends StatelessWidget {
+  const _SettingsLargeTitle({
+    required this.title,
+    required this.color,
+  });
+
+  final String title;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings =
+        context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    final t = settings == null
+        ? 0.0
+        : (1.0 -
+                (settings.currentExtent - settings.minExtent) /
+                    (settings.maxExtent - settings.minExtent))
+            .clamp(0.0, 1.0);
+
+    // Fade out the large title as the bar collapses.
+    final opacity = (1.0 - Curves.easeOut.transform(t)).clamp(0.0, 1.0);
+
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Opacity(
+        opacity: opacity,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 28,
+              height: 1.1,
+              letterSpacing: -0.3,
+              color: color,
+            ),
+          ),
         ),
       ),
     );

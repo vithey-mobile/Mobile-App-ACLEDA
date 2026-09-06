@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/notification_preferences_controller.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_master_card.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_preference_card.dart';
@@ -75,16 +74,6 @@ class NotificationPreferencesScreen
                   onChanged: controller.toggleAppUpdates,
                 ),
               ],
-            ),
-            const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: CustomButton(
-                label: 'Save Preferences',
-                isLoading: controller.isSaving.value,
-                onPressed:
-                    controller.canSave ? controller.savePreferences : null,
-              ),
             ),
           ],
         );

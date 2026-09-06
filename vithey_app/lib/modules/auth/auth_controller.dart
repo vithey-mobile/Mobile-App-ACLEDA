@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
@@ -15,7 +17,7 @@ import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
 import 'package:intl/intl.dart';
 
-enum AuthIntent { signIn, register }
+enum AuthIntent { signIn, register, changeEmail }
 
 class AuthController extends GetxController {
   AuthController(
@@ -46,6 +48,8 @@ class AuthController extends GetxController {
   final errorMessage = ''.obs;
   final forgotPasswordError = ''.obs;
   final authIntent = AuthIntent.signIn.obs;
+
+  Completer<String?>? _emailChangeCompleter;
 
   final forgotPasswordFormKey = GlobalKey<FormState>();
   final forgotPasswordEmailController = TextEditingController();
@@ -245,6 +249,16 @@ class AuthController extends GetxController {
     Get.toNamed(AppRoutes.googleAccountChooser);
   }
 
+  /// Opens the same Google chooser used at sign-up, but returns the chosen
+  /// email to Account → Edit (does not sign the user out / re-auth session).
+  Future<String?> beginGoogleEmailChange() {
+    authIntent.value = AuthIntent.changeEmail;
+    selectedGoogleAccount = null;
+    _emailChangeCompleter = Completer<String?>();
+    Get.toNamed(AppRoutes.googleAccountChooser);
+    return _emailChangeCompleter!.future;
+  }
+
   Future<void> selectGoogleAccount(GoogleAccountSummary account) async {
     selectedGoogleAccount = account;
     await Get.toNamed(AppRoutes.googleAuthConfirmation);
@@ -294,6 +308,11 @@ class AuthController extends GetxController {
     isGoogleLoading.value = true;
     clearError();
     try {
+      if (authIntent.value == AuthIntent.changeEmail) {
+        _finishEmailChange(account.email);
+        return;
+      }
+
       await _authRepository.completeGoogleAuth(
         email: account.email,
         displayName: account.displayName,
@@ -318,13 +337,32 @@ class AuthController extends GetxController {
     cancelGoogleAuth();
   }
 
-  /// Exit Google UI flow → Sign In / Register.
+  /// Exit Google UI flow → Sign In / Register, or Account edit for email change.
   void cancelGoogleAuth() {
     selectedGoogleAccount = null;
+    if (authIntent.value == AuthIntent.changeEmail) {
+      _finishEmailChange(null);
+      return;
+    }
     Get.until((route) =>
         route.settings.name == AppRoutes.login ||
         route.settings.name == AppRoutes.register ||
         route.settings.name == AppRoutes.auth);
+  }
+
+  void _finishEmailChange(String? email) {
+    selectedGoogleAccount = null;
+    final completer = _emailChangeCompleter;
+    _emailChangeCompleter = null;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(email);
+    }
+    Get.until(
+      (route) =>
+          route.settings.name == AppRoutes.settingsEditAccount ||
+          route.settings.name == AppRoutes.settingsAccount ||
+          route.isFirst,
+    );
   }
 
   Future<void> requestPasswordReset() async {

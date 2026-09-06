@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class SettingsTileDivider extends StatelessWidget {
   const SettingsTileDivider({super.key});
 
+  /// Starts after leading icon (16 pad + 22 icon + 14 gap).
   static const double _indent = 16 + 22 + 14;
 
   @override

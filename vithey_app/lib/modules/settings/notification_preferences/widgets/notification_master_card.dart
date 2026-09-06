@@ -31,18 +31,10 @@ class NotificationMasterCard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                 child: Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: primary.withValues(alpha: 0.10),
-                      ),
-                      child: Icon(
-                        Icons.notifications_none_outlined,
-                        color: primary,
-                        size: 26,
-                      ),
+                    Icon(
+                      Icons.notifications_outlined,
+                      color: primary,
+                      size: 24,
                     ),
                     const SizedBox(width: 14),
                     Expanded(

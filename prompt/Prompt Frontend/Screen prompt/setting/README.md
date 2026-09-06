@@ -25,14 +25,15 @@ No images are currently provided for Help Center or About; those prompts follow 
 ## Reading order
 
 1. `01.setting_home.md` — settings menu, dark mode, logout.
-2. `02.setting_account.md` — profile/account information and avatar update.
-3. `setting_edit_account.md` — edit account fields.
-4. `03.setting_privacy.md` — privacy switches and data protection card.
-5. `03.setting_security.md` — security settings, sessions, 2FA/biometric placeholders.
-6. `06.setting_change_password.md` — password update form.
-7. `setting_notification.md` — notification preferences.
-8. `04.setting_help_center.md` — FAQ and support.
-9. `05.setting_about.md` — app/version/legal information.
+2. `02.setting_account.md` — private personal account overview (not full profile).
+3. `setting_edit_account.md` — edit personal fields via bottom sheets (Edit Profile style).
+4. `update.md` — Account / Edit Account as-built notes.
+5. `03.setting_privacy.md` — privacy switches and data protection card.
+6. `03.setting_security.md` — security settings, sessions, 2FA/biometric placeholders.
+7. `06.setting_change_password.md` — password update form.
+8. `setting_notification.md` — notification preferences.
+9. `04.setting_help_center.md` — FAQ and support.
+10. `05.setting_about.md` — app/version/legal information.
 
 ## Route constants (sync with `AppRoutes`)
 

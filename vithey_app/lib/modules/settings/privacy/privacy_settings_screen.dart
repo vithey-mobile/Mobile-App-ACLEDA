@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/settings/privacy/privacy_settings_controller.dart';
 import 'package:aub_connect_app/modules/settings/privacy/widgets/data_protection_card.dart';
 import 'package:aub_connect_app/modules/settings/privacy/widgets/privacy_switch_card.dart';
@@ -22,20 +21,6 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              'Privacy Settings',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: context.appColors.heading,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Control how your data is used and shared',
-              style: TextStyle(color: context.appColors.muted),
-            ),
-            const SizedBox(height: 20),
             PrivacySwitchCard(
               children: [
                 PrivacySwitchTile(

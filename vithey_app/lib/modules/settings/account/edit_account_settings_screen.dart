@@ -1,176 +1,210 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:intl/intl.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
-import 'package:aub_connect_app/core/widgets/app_screen_body.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
+import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/settings/account/edit_account_settings_controller.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/account_avatar_editor.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/account_info_card.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/edit_account_date_field.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/edit_account_field_card.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/edit_account_save_button.dart';
-import 'package:aub_connect_app/modules/settings/account/widgets/edit_account_skills_editor.dart';
+import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart';
+import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
+import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 
+/// Edit private personal fields — Edit Profile style (row → bottom sheet).
+/// No inline text fields on the list.
 class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
   const EditAccountSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
-        title: const Text('Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1),
-        ),
-      ),
-      body: AppScreenBody(
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return const LoadingWidget(message: 'Loading account...');
-          }
-          if (controller.hasError.value) {
-            return AppErrorWidget(message: controller.errorMessage.value, onRetry: controller.loadProfile);
-          }
-          final profile = controller.profile.value;
-          if (profile == null) return const AppErrorWidget(message: 'Account unavailable');
-
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    AccountAvatarEditor(
-                      fullName: profile.fullName,
-                      avatarUrl: profile.avatarUrl,
-                      isUploading: controller.isUploadingAvatar.value,
-                      onChangeAvatar: controller.changeAvatar,
-                      showEditAction: false,
-                    ),
-                    const SizedBox(height: 8),
-                    const AccountSectionLabel(label: 'Basic Information'),
-                    EditAccountFieldCard(
-                      icon: Icons.person_outline,
-                      label: 'Full Name',
-                      controller: controller.fullNameController,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.notes_outlined,
-                      label: 'Bio',
-                      controller: controller.bioController,
-                      maxLines: 3,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.email_outlined,
-                      label: 'Email',
-                      controller: controller.emailController,
-                      readOnly: true,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.phone_outlined,
-                      label: 'Phone',
-                      controller: controller.phoneController,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    EditAccountDateField(
-                      label: 'Date of Birth',
-                      value: controller.dateOfBirth.value,
-                      onTap: controller.pickDateOfBirth,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.location_on_outlined,
-                      label: 'Location',
-                      controller: controller.locationController,
-                    ),
-                    const AccountSectionLabel(label: 'Academic & Career'),
-                    EditAccountFieldCard(
-                      icon: Icons.school_outlined,
-                      label: 'University',
-                      controller: controller.universityController,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.menu_book_outlined,
-                      label: 'Major',
-                      controller: controller.majorController,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Graduation Year',
-                      controller: controller.graduationYearController,
-                      keyboardType: TextInputType.number,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.history_edu_outlined,
-                      label: 'Education (one per line)',
-                      controller: controller.educationController,
-                      maxLines: 4,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.work_outline,
-                      label: 'Workplace',
-                      controller: controller.workplaceController,
-                    ),
-                    AccountInfoCard(
-                      icon: Icons.verified_outlined,
-                      label: 'Student Verified',
-                      value: profile.isStudentVerified ? 'Verified student' : 'Not verified',
-                      trailing: profile.isStudentVerified
-                          ? const Icon(Icons.verified, color: AppColors.primary, size: 18)
-                          : null,
-                    ),
-                    const AccountSectionLabel(label: 'Social & Links'),
-                    EditAccountFieldCard(
-                      icon: Icons.send_outlined,
-                      label: 'Telegram Link',
-                      controller: controller.telegramController,
-                      keyboardType: TextInputType.url,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.facebook_outlined,
-                      label: 'Facebook Link',
-                      controller: controller.facebookController,
-                      keyboardType: TextInputType.url,
-                    ),
-                    EditAccountFieldCard(
-                      icon: Icons.language_outlined,
-                      label: 'Portfolio URL',
-                      controller: controller.portfolioController,
-                      keyboardType: TextInputType.url,
-                    ),
-                    const AccountSectionLabel(label: 'Skills'),
-                    Obx(
-                      () => EditAccountSkillsEditor(
-                        skills: controller.skills.toList(),
-                        onAdd: controller.addSkill,
-                        onRemove: controller.removeSkill,
-                        onUpdate: controller.updateSkill,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: EditAccountSaveButton(
-                    isLoading: controller.isSaving.value,
-                    onPressed: controller.isSaving.value ? null : controller.save,
-                  ),
-                  ),
-                ),
-              ),
-            ],
+    return SettingsScaffold(
+      title: 'Edit account',
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const LoadingWidget(message: 'Loading account...');
+        }
+        if (controller.hasError.value) {
+          return AppErrorWidget(
+            message: controller.errorMessage.value,
+            onRetry: controller.loadProfile,
           );
-        }),
+        }
+        if (controller.profile.value == null) {
+          return const AppErrorWidget(message: 'Account unavailable');
+        }
+
+        final colors = context.appColors;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final cardColor = isDark ? colors.cardSurface : Colors.white;
+        final dob = controller.dateOfBirth.value;
+
+        return ListView(
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        UserAvatar(
+                          name: controller.fullName.value,
+                          imageUrl: controller.avatarUrl.value,
+                          radius: 44,
+                        ),
+                        if (controller.isUploadingAvatar.value)
+                          const Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black26,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Material(
+                            color: context.scheme.primary,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: controller.isUploadingAvatar.value
+                                  ? null
+                                  : controller.changeAvatar,
+                              child: const Padding(
+                                padding: EdgeInsets.all(6),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SettingsSectionLabel(label: 'Personal'),
+            _CardGroup(
+              children: [
+                SettingsMenuTile(
+                  icon: Icons.person_outline,
+                  label: 'Full name',
+                  subtitle: _display(controller.fullName.value),
+                  onTap: () => controller.editFullName(context),
+                ),
+                      SettingsMenuTile(
+                        icon: Icons.email_outlined,
+                        label: 'Email',
+                        subtitle: _display(controller.email.value),
+                        onTap: controller.onEmailTap,
+                      ),
+                SettingsMenuTile(
+                  icon: Icons.phone_outlined,
+                  label: 'Phone',
+                  subtitle: _display(controller.phone.value),
+                  onTap: () => controller.editPhone(context),
+                ),
+                SettingsMenuTile(
+                  icon: Icons.cake_outlined,
+                  label: 'Date of birth',
+                  subtitle: dob == null
+                      ? 'Not set'
+                      : DateFormat('MMMM dd, yyyy').format(dob),
+                  onTap: () => controller.editDateOfBirth(context),
+                ),
+                SettingsMenuTile(
+                  icon: Icons.wc_outlined,
+                  label: 'Gender',
+                  subtitle: _display(controller.gender.value),
+                  onTap: () => controller.editGender(context),
+                ),
+                SettingsMenuTile(
+                  icon: Icons.location_on_outlined,
+                  label: 'Location',
+                  subtitle: _display(controller.location.value),
+                  onTap: () => controller.editLocation(context),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      label: 'Save',
+                      isLoading: controller.isSaving.value,
+                      onPressed:
+                          controller.isSaving.value ? null : controller.save,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomButton(
+                      label: 'Cancel',
+                      variant: CustomButtonVariant.outline,
+                      onPressed: controller.isSaving.value
+                          ? null
+                          : controller.cancel,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  static String _display(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? 'Not set' : trimmed;
+  }
+}
+
+class _CardGroup extends StatelessWidget {
+  const _CardGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? colors.cardSurface : Colors.white;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Column(children: children),
+        ),
       ),
     );
   }

@@ -100,7 +100,7 @@ class ConfirmDialog extends StatelessWidget {
           width: double.infinity,
           child: Text(
             title,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -112,7 +112,7 @@ class ConfirmDialog extends StatelessWidget {
           width: double.infinity,
           child: Text(
             message,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
             style: TextStyle(fontSize: 14, color: colors.muted, height: 1.4),
           ),
         ),

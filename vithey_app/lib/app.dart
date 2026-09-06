@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_theme.dart';
+import 'package:aub_connect_app/core/theme/vithey_scroll_behavior.dart';
 import 'package:aub_connect_app/core/utils/connectivity_wrapper.dart';
 import 'package:aub_connect_app/routes/app_pages.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
@@ -15,6 +16,7 @@ class VitheyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Vithey App',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const VitheyScrollBehavior(),
       // shadcn_flutter widgets (text field context menu, etc.) look up
       // ShadcnLocalizations and crash if the delegate is not registered.
       localizationsDelegates: shad.ShadcnLocalizations.localizationsDelegates,

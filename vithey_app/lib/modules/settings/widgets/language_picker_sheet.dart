@@ -1,6 +1,6 @@
+import 'package:aub_connect_app/core/constants/app_assets.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/widgets/vithey_list_tile.dart';
-import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
 import 'package:flutter/material.dart';
 
 class LanguageOption {
@@ -8,19 +8,32 @@ class LanguageOption {
     required this.code,
     required this.label,
     required this.subtitle,
+    required this.flagAsset,
   });
 
   final String code;
   final String label;
   final String subtitle;
+  final String flagAsset;
 }
 
 const languageOptions = [
-  LanguageOption(code: 'en', label: 'English (US)', subtitle: 'English'),
-  LanguageOption(code: 'km', label: 'Khmer', subtitle: 'ភាសាខ្មែរ'),
+  LanguageOption(
+    code: 'en',
+    label: 'English (US)',
+    subtitle: 'English',
+    flagAsset: AppAssets.englishLanguage,
+  ),
+  LanguageOption(
+    code: 'km',
+    label: 'Khmer',
+    subtitle: 'ភាសាខ្មែរ',
+    flagAsset: AppAssets.khmerLanguage,
+  ),
 ];
 
-class LanguagePickerSheet extends StatelessWidget {
+/// Settings language picker — same option rows as auth Select Language.
+class LanguagePickerSheet extends StatefulWidget {
   const LanguagePickerSheet({
     super.key,
     required this.selectedCode,
@@ -31,52 +44,110 @@ class LanguagePickerSheet extends StatelessWidget {
   final ValueChanged<String> onSelect;
 
   @override
+  State<LanguagePickerSheet> createState() => _LanguagePickerSheetState();
+}
+
+class _LanguagePickerSheetState extends State<LanguagePickerSheet> {
+  late String _selectedCode;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCode = widget.selectedCode;
+  }
+
+  Color _secondary(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? const Color(0xFFB0B0BE) : const Color(0xFF5A5A68);
+  }
+
+  Future<void> _handleSelect(String code) async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _selectedCode = code;
+    });
+    // Let the checkmark paint before the sheet closes.
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    if (!mounted) return;
+    final onSelect = widget.onSelect;
+    // Pop this sheet via its own navigator (Get.back is unreliable
+    // after snackbars / repeated opens).
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+    onSelect(code);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final heading = context.appColors.heading;
+    final secondary = _secondary(context);
+    final border = context.appColors.border;
+
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Select Language',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: context.appColors.cardSurface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.appColors.subtleShadow,
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+            const SizedBox(height: 20),
+            Text(
+              'Select Language',
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: heading,
+                height: 1.25,
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var i = 0; i < languageOptions.length; i++) ...[
-                      if (i > 0) const SettingsTileDivider(),
-                      _LanguageOptionTile(
-                        option: languageOptions[i],
-                        isSelected: selectedCode == languageOptions[i].code,
-                        onTap: () => onSelect(languageOptions[i].code),
-                      ),
-                    ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Choose your preferred language for the app.',
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: secondary,
+              ),
+            ),
+            const SizedBox(height: 28),
+            Material(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: border),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < languageOptions.length; i++) ...[
+                    if (i > 0) Divider(height: 1, color: border),
+                    _LanguageRow(
+                      option: languageOptions[i],
+                      selected: _selectedCode == languageOptions[i].code,
+                      secondary: secondary,
+                      onTap: _busy
+                          ? null
+                          : () => _handleSelect(languageOptions[i].code),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ],
@@ -86,28 +157,78 @@ class LanguagePickerSheet extends StatelessWidget {
   }
 }
 
-class _LanguageOptionTile extends StatelessWidget {
-  const _LanguageOptionTile({
+class _LanguageRow extends StatelessWidget {
+  const _LanguageRow({
     required this.option,
-    required this.isSelected,
+    required this.selected,
+    required this.secondary,
     required this.onTap,
   });
 
   final LanguageOption option;
-  final bool isSelected;
-  final VoidCallback onTap;
+  final bool selected;
+  final Color secondary;
+  final VoidCallback? onTap;
+
+  static const _flagSize = 28.0;
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
-
-    return VitheyListTile(
-      icon: Icons.language_outlined,
-      title: option.label,
-      subtitle: option.subtitle,
+    return InkWell(
       onTap: onTap,
-      showChevron: false,
-      trailing: isSelected ? Icon(Icons.check, color: primary, size: 22) : null,
+      splashColor: AppColors.primary.withValues(alpha: 0.12),
+      highlightColor: AppColors.primary.withValues(alpha: 0.06),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            ClipOval(
+              child: Image.asset(
+                option.flagAsset,
+                width: _flagSize,
+                height: _flagSize,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    option.label,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: context.appColors.heading,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    option.subtitle,
+                    style: TextStyle(fontSize: 13, color: secondary),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: selected
+                  ? const Icon(
+                      Icons.check_rounded,
+                      key: ValueKey('check'),
+                      color: AppColors.primary,
+                      size: 24,
+                    )
+                  : const SizedBox(
+                      key: ValueKey('empty'),
+                      width: 24,
+                      height: 24,
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
@@ -27,7 +26,8 @@ class AccountSettingsController extends GetxController {
     isLoading.value = true;
     hasError.value = false;
     try {
-      profile.value = await _profileRepository.getProfile(ProfileRepository.currentUserId);
+      profile.value =
+          await _profileRepository.getProfile(ProfileRepository.currentUserId);
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
@@ -41,16 +41,13 @@ class AccountSettingsController extends GetxController {
     return DateFormat('MMMM dd, yyyy').format(date);
   }
 
-  Future<void> openLink(String? url) async {
-    if (url == null || url.trim().isEmpty) return;
-    final uri = Uri.tryParse(url.trim());
-    if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
   Future<void> changeAvatar() async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512);
+    final file = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
     if (file == null) return;
 
     isUploadingAvatar.value = true;
@@ -59,7 +56,11 @@ class AccountSettingsController extends GetxController {
       profile.value = profile.value?.copyWith(avatarUrl: file.path);
       Get.snackbar('Vithey', 'Avatar updated');
     } catch (e) {
-      Get.snackbar('Vithey', 'Avatar upload failed', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Vithey',
+        'Avatar upload failed',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isUploadingAvatar.value = false;
     }

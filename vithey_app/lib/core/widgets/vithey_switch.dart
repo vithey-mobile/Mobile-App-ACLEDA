@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 /// App-wide toggle switch wrapping [shad.Switch].
 ///
-/// Active track uses the brand primary from the theme. The whole 48px-tall
-/// area is tappable, not just the track.
+/// On = brand primary. Off = accent grey (never black).
+/// The whole 48px-tall area is tappable, not just the track.
 class VitheySwitch extends StatelessWidget {
   const VitheySwitch({
     super.key,
@@ -28,12 +29,20 @@ class VitheySwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = context.scheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Off track: brand accent grey — avoid black/near-black defaults.
+    final inactiveColor =
+        isDark ? AppColors.accentDark : AppColors.accent;
+    final inactiveThumb = isDark ? AppColors.accentLight : Colors.white;
+
     final switchWidget = shad.Switch(
       value: value,
       onChanged: enabled ? onChanged : null,
       enabled: enabled,
-      activeColor: activeColor,
+      activeColor: context.scheme.primary,
+      inactiveColor: inactiveColor,
+      inactiveThumbColor: inactiveThumb,
+      activeThumbColor: Colors.white,
       borderRadius: BorderRadius.circular(999),
     );
 

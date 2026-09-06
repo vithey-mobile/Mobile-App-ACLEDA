@@ -18,27 +18,27 @@ class SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.appColors.cardSurface,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, color: context.scheme.primary, size: 22),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: context.appColors.heading,
-                ),
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: context.scheme.primary, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: colors.heading,
+                height: 1.2,
               ),
             ),
-            VitheySwitch(value: value, onChanged: onChanged),
-          ],
-        ),
+          ),
+          VitheySwitch(value: value, onChanged: onChanged),
+        ],
       ),
     );
   }
