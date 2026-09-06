@@ -167,6 +167,15 @@ class ProfileController extends GetxController
     }
   }
 
+  /// Persist skills from Profile All tab (add / edit / remove).
+  Future<void> saveSkills(List<ProfileSkill> skills) async {
+    try {
+      profile.value = await _profileRepository.updateProfile(skills: skills);
+    } catch (e) {
+      Get.snackbar(AppStrings.appName, e.toString());
+    }
+  }
+
   void openVerifyStudent() {
     final verified =
         Get.find<StudentVerificationRepository>().isVerified.value;
@@ -190,6 +199,12 @@ class ProfileController extends GetxController
         _replacePost(result);
       }
     });
+  }
+
+  @override
+  void openPostAnalytics(FeedPost post) {
+    if (!isOwnProfile) return;
+    Get.toNamed(AppRoutes.postAnalytics, arguments: post);
   }
 
   @override
@@ -266,15 +281,23 @@ class ProfileController extends GetxController
 
   @override
   void applyToJob(String jobPostId) {
+    final jobs = tabPosts[PostType.job] ?? const <FeedPost>[];
+    FeedPost? preview;
+    for (final job in jobs) {
+      if (job.id == jobPostId) {
+        preview = job;
+        break;
+      }
+    }
     Get.toNamed(
       AppRoutes.applyCv,
-      arguments: ApplyCvArgs(jobPostId: jobPostId),
+      arguments: ApplyCvArgs(jobPostId: jobPostId, jobPreview: preview),
     )?.then((result) {
       if (result is ApplyCvResult) {
-        final jobs = tabPosts[PostType.job]!;
-        final index = jobs.indexWhere((p) => p.id == jobPostId);
+        final list = tabPosts[PostType.job]!;
+        final index = list.indexWhere((p) => p.id == jobPostId);
         if (index >= 0) {
-          jobs[index] = jobs[index]
+          list[index] = list[index]
               .copyWith(applicationState: JobApplicationState.applied);
         }
         _appliedJobsLoaded = false;

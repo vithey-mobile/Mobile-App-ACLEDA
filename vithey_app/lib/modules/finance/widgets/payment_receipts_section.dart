@@ -61,11 +61,7 @@ class PaymentReceiptsSection extends StatelessWidget {
           children: [
             Text(
               isSearching ? 'Search Results' : 'Recent Transaction',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: context.appColors.heading,
-              ),
+              style: context.text.titleLarge,
             ),
             const Spacer(),
             if (!isSearching)
@@ -76,10 +72,8 @@ class PaymentReceiptsSection extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Text(
                     showAll ? 'See Less' : 'See All',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: context.text.labelLarge
+                        ?.copyWith(color: AppColors.primary),
                   ),
                 ),
               ),

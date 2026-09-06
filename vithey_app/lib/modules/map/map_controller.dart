@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/fixtures/place_fixtures.dart';
 import 'package:aub_connect_app/data/models/place_models.dart';
 import 'package:aub_connect_app/data/repositories/place_repository.dart';
@@ -18,6 +21,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class MapController extends GetxController {
   MapController({PlaceRepository? repository})
       : _repository = repository ?? Get.find<PlaceRepository>();
@@ -32,9 +36,13 @@ class MapController extends GetxController {
   final isLoadingPlaces = false.obs;
   final isLocationGranted = false.obs;
   final isFollowingGps = true.obs;
+  final isDroppingPin = false.obs;
   final showSearchThisArea = false.obs;
   final errorMessage = ''.obs;
   final selectedPlace = Rxn<PlaceCard>();
+  final droppedPin = Rxn<LatLng>();
+  final routeDistanceM = 0.0.obs;
+  final polylines = <Polyline>{}.obs;
   final filter = const PlaceFilter(category: 'cafe').obs;
 
   final gpsLatLng = Rxn<LatLng>();
@@ -48,8 +56,15 @@ class MapController extends GetxController {
   Timer? _debounce;
   LatLng? _pendingLongPress;
   Marker? _searchFromHereMarker;
+  LatLng _cameraTarget = const LatLng(
+    PlaceFixtures.defaultLat,
+    PlaceFixtures.defaultLng,
+  );
+  final List<PlaceCard> _localPlaces = [];
 
   static const _searchFromHereId = MarkerId('search_from_here');
+  static const _droppedPinId = MarkerId('dropped_pin');
+  static const _routeId = PolylineId('route_to_pin');
 
   @override
   void onInit() {
@@ -150,7 +165,8 @@ class MapController extends GetxController {
   }
 
   void onCameraMove(CameraPosition position) {
-    if (!isFollowingGps.value) return;
+    _cameraTarget = position.target;
+    if (isDroppingPin.value || !isFollowingGps.value) return;
     final center = searchCenter.value;
     final moved = Geolocator.distanceBetween(
           center.latitude,
@@ -202,6 +218,7 @@ class MapController extends GetxController {
   }
 
   Future<void> onMapLongPress(LatLng position) async {
+    if (isDroppingPin.value) return;
     _pendingLongPress = position;
     final confirm = await Get.bottomSheet<bool>(
       SafeArea(
@@ -237,7 +254,7 @@ class MapController extends GetxController {
       ),
       backgroundColor: Get.theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
     if (confirm == true && _pendingLongPress != null) {
@@ -329,6 +346,7 @@ class MapController extends GetxController {
         filter: filter.value,
       );
       places.assignAll(result.places);
+      _mergeLocalPlaces();
       _rebuildMarkers();
     } catch (e) {
       errorMessage.value = e.toString();
@@ -349,11 +367,19 @@ class MapController extends GetxController {
         filter: filter.value,
       );
       places.assignAll(result.places);
+      _mergeLocalPlaces();
       _rebuildMarkers();
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
       isLoadingPlaces.value = false;
+    }
+  }
+
+  void _mergeLocalPlaces() {
+    for (final local in _localPlaces.reversed) {
+      final exists = places.any((p) => p.googlePlaceId == local.googlePlaceId);
+      if (!exists) places.insert(0, local);
     }
   }
 
@@ -459,7 +485,7 @@ class MapController extends GetxController {
       backgroundColor: Get.theme.colorScheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -468,6 +494,17 @@ class MapController extends GetxController {
     final next = <Marker>{};
     if (_searchFromHereMarker != null) {
       next.add(_searchFromHereMarker!);
+    }
+    final pin = droppedPin.value;
+    if (pin != null && !isDroppingPin.value) {
+      next.add(
+        Marker(
+          markerId: _droppedPinId,
+          position: pin,
+          infoWindow: const InfoWindow(title: 'Dropped pin'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
     }
     for (final place in places) {
       next.add(
@@ -495,6 +532,7 @@ class MapController extends GetxController {
           child: StatefulBuilder(
             builder: (context, setModalState) {
               return VitheyCard(
+                borderRadius: VitheyRadii.sheet,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -535,12 +573,11 @@ class MapController extends GetxController {
                   Row(
                     children: [
                       Expanded(
-                        child: CustomButton(
+                        child: _SheetAction(
                           label: current.isFavorite ? 'Saved' : 'Favorite',
                           icon: current.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          variant: CustomButtonVariant.outline,
+                              ? LucideIcons.heart
+                              : LucideIcons.heart,
                           onPressed: () async {
                             final updated =
                                 await _repository.toggleFavorite(current);
@@ -557,9 +594,9 @@ class MapController extends GetxController {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: CustomButton(
+                        child: _SheetAction(
                           label: 'Directions',
-                          icon: Icons.directions,
+                          icon: LucideIcons.navigation,
                           onPressed: () => openDirections(current),
                         ),
                       ),
@@ -588,26 +625,169 @@ class MapController extends GetxController {
     }
   }
 
-  Future<void> openAddPlace() async {
-    final result = await Get.toNamed(AppRoutes.addPlace);
-    if (result is Map) {
-      final name = result['name']?.toString() ?? 'My place';
-      final lat = (result['lat'] as num?)?.toDouble();
-      final lng = (result['lng'] as num?)?.toDouble();
-      if (lat != null && lng != null) {
-        final local = PlaceCard(
-          googlePlaceId: 'local-${DateTime.now().millisecondsSinceEpoch}',
-          name: name,
-          address: result['address']?.toString(),
-          category: result['category']?.toString() ?? 'other',
-          latitude: lat,
-          longitude: lng,
-        );
-        places.insert(0, local);
-        _rebuildMarkers();
-      }
+  Future<void> startDropPin() async {
+    isDroppingPin.value = true;
+    showSearchThisArea.value = false;
+    isFollowingGps.value = false;
+    polylines.clear();
+    _rebuildMarkers();
+  }
+
+  void cancelDropPin() {
+    isDroppingPin.value = false;
+    _rebuildMarkers();
+    _rebuildRouteLine();
+  }
+
+  Future<void> setDroppedLocation() async {
+    final dest = _cameraTarget;
+    droppedPin.value = dest;
+    isDroppingPin.value = false;
+    _rebuildMarkers();
+    await _rebuildRouteLine();
+    final origin = gpsLatLng.value ?? searchCenter.value;
+    await _fitToRoute(origin, dest);
+  }
+
+  void clearDroppedPin() {
+    droppedPin.value = null;
+    routeDistanceM.value = 0;
+    polylines.clear();
+    _rebuildMarkers();
+  }
+
+  Future<void> directionsToDroppedPin() async {
+    final dest = droppedPin.value;
+    if (dest == null) return;
+    await _rebuildRouteLine();
+    final origin = gpsLatLng.value ?? searchCenter.value;
+    await _fitToRoute(origin, dest);
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=${origin.latitude},${origin.longitude}'
+      '&destination=${dest.latitude},${dest.longitude}'
+      '&travelmode=driving',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
-  void goBack() => Get.back();
+  String get routeDistanceLabel {
+    final meters = routeDistanceM.value;
+    if (meters <= 0) return '';
+    if (meters < 1000) return '${meters.round()} m';
+    return '${(meters / 1000).toStringAsFixed(1)} km';
+  }
+
+  Future<void> _rebuildRouteLine() async {
+    polylines.clear();
+    final dest = droppedPin.value;
+    if (dest == null) return;
+    final origin = gpsLatLng.value ?? searchCenter.value;
+    routeDistanceM.value = Geolocator.distanceBetween(
+      origin.latitude,
+      origin.longitude,
+      dest.latitude,
+      dest.longitude,
+    );
+    polylines.add(
+      Polyline(
+        polylineId: _routeId,
+        points: [origin, dest],
+        color: AppColors.primary,
+        width: 5,
+        geodesic: true,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        jointType: JointType.round,
+      ),
+    );
+  }
+
+  Future<void> _fitToRoute(LatLng origin, LatLng dest) async {
+    final distance = Geolocator.distanceBetween(
+      origin.latitude,
+      origin.longitude,
+      dest.latitude,
+      dest.longitude,
+    );
+    if (distance < 25) {
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(dest, 17),
+      );
+      return;
+    }
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        math.min(origin.latitude, dest.latitude),
+        math.min(origin.longitude, dest.longitude),
+      ),
+      northeast: LatLng(
+        math.max(origin.latitude, dest.latitude),
+        math.max(origin.longitude, dest.longitude),
+      ),
+    );
+    try {
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngBounds(bounds, 80),
+      );
+    } catch (_) {
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(dest, 15),
+      );
+    }
+  }
+
+  void goBack() {
+    if (isDroppingPin.value) {
+      cancelDropPin();
+      return;
+    }
+    Get.back();
+  }
+}
+
+/// Round circular icon action with a label, used in map bottom sheets.
+class _SheetAction extends StatelessWidget {
+  const _SheetAction({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return InkWell(
+      borderRadius: BorderRadius.circular(VitheyRadii.card),
+      onTap: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            VitheyIconButton(
+              icon: icon,
+              onTap: onPressed,
+              circle: true,
+              tooltip: label,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: context.text.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colors.heading,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 enum CustomButtonVariant {
   /// Filled teal — main CTA (submit, continue, apply).
@@ -85,7 +86,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final leadingWidget =
-        icon != null ? Icon(icon, size: 18, color: foregroundColor) : leading;
+        icon != null ? VitheyIcon(icon!, size: 18, color: foregroundColor) : leading;
 
     final labelWidget = shad.Text(
       label,

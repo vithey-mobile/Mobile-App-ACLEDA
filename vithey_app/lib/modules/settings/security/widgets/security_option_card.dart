@@ -58,19 +58,12 @@ class SecuritySwitchTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: context.appColors.heading,
-                      ),
+                      style: context.text.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.appColors.muted,
-                      ),
+                      style: context.text.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],
                 ),

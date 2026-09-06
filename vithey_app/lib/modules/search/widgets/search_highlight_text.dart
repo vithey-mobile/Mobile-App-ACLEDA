@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 
 class SearchHighlightText extends StatelessWidget {
   const SearchHighlightText({
@@ -42,7 +43,7 @@ class SearchHighlightText extends StatelessWidget {
           TextSpan(text: before),
           TextSpan(
             text: match,
-            style: style.copyWith(fontWeight: FontWeight.w700),
+            style: style.copyWith(fontWeight: VitheyWeight.bold),
           ),
           TextSpan(text: after),
         ],

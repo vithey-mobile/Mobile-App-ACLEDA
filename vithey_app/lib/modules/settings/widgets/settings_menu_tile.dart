@@ -1,6 +1,8 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Settings-home menu row — TikTok-style: plain icon, label, chevron.
 class SettingsMenuTile extends StatelessWidget {
   const SettingsMenuTile({
@@ -38,10 +40,8 @@ class SettingsMenuTile extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: context.text.titleSmall?.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: colors.heading,
                         height: 1.2,
                       ),
                     ),
@@ -49,11 +49,7 @@ class SettingsMenuTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colors.muted,
-                          height: 1.25,
-                        ),
+                        style: context.text.bodySmall?.copyWith(height: 1.25),
                       ),
                     ],
                   ],
@@ -61,7 +57,7 @@ class SettingsMenuTile extends StatelessWidget {
               ),
               if (showChevron)
                 Icon(
-                  Icons.chevron_right_rounded,
+                  LucideIcons.chevronRight,
                   size: 22,
                   color: colors.muted.withValues(alpha: 0.7),
                 ),

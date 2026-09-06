@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 
 class SearchSectionHeader extends StatelessWidget {
@@ -24,11 +25,8 @@ class SearchSectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: colors.heading,
-            ),
+            style: context.text.titleMedium
+                ?.copyWith(fontWeight: VitheyWeight.bold),
           ),
           const Spacer(),
           if (showSeeAll)

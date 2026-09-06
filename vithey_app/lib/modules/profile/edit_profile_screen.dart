@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
@@ -11,6 +12,7 @@ import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_shee
 import 'package:aub_connect_app/modules/profile/widgets/profile_section_sheets.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class EditProfileController extends GetxController {
   EditProfileController(this._repository);
 
@@ -132,7 +134,7 @@ class EditProfileScreen extends GetView<EditProfileController> {
         foregroundColor: heading,
         title: Text(
           'Edit personal info',
-          style: TextStyle(fontWeight: FontWeight.bold, color: heading),
+          style: context.text.headlineSmall?.copyWith(color: heading),
         ),
       ),
       body: Obx(() {
@@ -233,24 +235,20 @@ class _TappableRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(VitheyRadii.field),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 20, color: context.appColors.muted),
+              VitheyIcon(icon!, size: 20, color: context.appColors.muted),
               const SizedBox(width: 12),
             ],
             Expanded(
               child: Text(
                 text,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.35,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.bodyLarge?.copyWith(height: 1.35, fontSize: 15),
               ),
             ),
           ],
@@ -300,11 +298,7 @@ class _SkillsBlock extends StatelessWidget {
         children: [
           Text(
             'Skills',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge,
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -357,11 +351,7 @@ class _BioBlock extends StatelessWidget {
         children: [
           Text(
             'Bio',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge,
           ),
           const SizedBox(height: 8),
           if (text.isNotEmpty)
@@ -425,19 +415,19 @@ class _PersonalBlock extends StatelessWidget {
           ),
           if (loc.isNotEmpty)
             _TappableRow(
-              icon: Icons.location_on_outlined,
+              icon: LucideIcons.mapPin,
               text: loc,
               onTap: () => _open(context),
             ),
           if (g.isNotEmpty)
             _TappableRow(
-              icon: Icons.person_outline,
+              icon: LucideIcons.user,
               text: g,
               onTap: () => _open(context),
             ),
           if (dob != null)
             _TappableRow(
-              icon: Icons.cake_outlined,
+              icon: LucideIcons.cake,
               text: DateFormat('MMMM dd yyyy').format(dob),
               onTap: () => _open(context),
             ),
@@ -491,7 +481,7 @@ class _WorkBlock extends StatelessWidget {
           else
             for (var i = 0; i < list.length; i++)
               _TappableRow(
-                icon: Icons.apartment_outlined,
+                icon: LucideIcons.building2,
                 text: list[i].displayLabel,
                 onTap: () => _open(context, index: i),
               ),
@@ -545,7 +535,7 @@ class _EducationBlock extends StatelessWidget {
           else
             for (var i = 0; i < list.length; i++)
               _TappableRow(
-                icon: Icons.school_outlined,
+                icon: LucideIcons.graduationCap,
                 text: list[i].school,
                 onTap: () => _open(context, index: i),
               ),
@@ -596,7 +586,7 @@ class _LinksBlock extends StatelessWidget {
           else
             for (var i = 0; i < list.length; i++)
               _TappableRow(
-                icon: Icons.link,
+                icon: LucideIcons.link,
                 text: '${list[i].platform}: ${list[i].url}',
                 onTap: () => _open(context, index: i),
               ),
@@ -651,13 +641,13 @@ class _ContactBlock extends StatelessWidget {
             for (var i = 0; i < list.length; i++) ...[
               if (list[i].phone != null && list[i].phone!.trim().isNotEmpty)
                 _TappableRow(
-                  icon: Icons.phone_outlined,
+                  icon: LucideIcons.phone,
                   text: list[i].phone!,
                   onTap: () => _open(context, index: i),
                 ),
               if (list[i].email != null && list[i].email!.trim().isNotEmpty)
                 _TappableRow(
-                  icon: Icons.email_outlined,
+                  icon: LucideIcons.mail,
                   text: list[i].email!,
                   onTap: () => _open(context, index: i),
                 ),

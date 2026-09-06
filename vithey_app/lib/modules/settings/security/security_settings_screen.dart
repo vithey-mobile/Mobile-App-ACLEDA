@@ -8,6 +8,8 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart'
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
   const SecuritySettingsScreen({super.key});
 
@@ -22,7 +24,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
           _CardGroup(
             children: [
               SettingsMenuTile(
-                icon: Icons.lock_outline,
+                icon: LucideIcons.lock,
                 label: 'Change Password',
                 subtitle: 'Update your account password',
                 onTap: controller.openChangePassword,
@@ -30,7 +32,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
               const SettingsTileDivider(),
               Obx(
                 () => SecuritySwitchTile(
-                  icon: Icons.vpn_key_outlined,
+                  icon: LucideIcons.keyRound,
                   title: 'Two-Factor Authentication',
                   subtitle: 'Coming soon',
                   value: controller.twoFactorEnabled.value,
@@ -41,7 +43,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
               const SettingsTileDivider(),
               Obx(
                 () => SecuritySwitchTile(
-                  icon: Icons.fingerprint,
+                  icon: LucideIcons.fingerprint,
                   title: 'Biometric Login',
                   subtitle: 'Coming soon',
                   value: controller.biometricEnabled.value,
@@ -60,7 +62,7 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.smartphone_outlined,
+                      LucideIcons.smartphone,
                       color: context.scheme.primary,
                       size: 22,
                     ),
@@ -71,21 +73,15 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                         children: [
                           Text(
                             'Current Device',
-                            style: TextStyle(
-                              fontSize: 15,
+                            style: context.text.titleSmall?.copyWith(
                               fontWeight: FontWeight.w500,
-                              color: context.appColors.heading,
                               height: 1.2,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Last active: Just now',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: context.appColors.muted,
-                              height: 1.25,
-                            ),
+                            style: context.text.bodySmall?.copyWith(height: 1.25),
                           ),
                         ],
                       ),
@@ -101,10 +97,9 @@ class SecuritySettingsScreen extends GetView<SecuritySettingsController> {
                       ),
                       child: Text(
                         'Active',
-                        style: TextStyle(
+                        style: context.text.labelMedium?.copyWith(
                           color: context.scheme.primary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -126,9 +121,7 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

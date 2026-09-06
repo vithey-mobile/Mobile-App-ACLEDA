@@ -23,9 +23,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convNewContact,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author14,
           fullName: 'New Contact',
+          lastSeenAt: MockClock.hoursAgo(3),
         ),
         lastMessagePreview: 'Hi, nice to meet you!',
         updatedAt: MockClock.minutesAgo(21),
@@ -33,9 +34,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convBora,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author6,
           fullName: 'Ponloeng Bora',
+          lastSeenAt: MockClock.minutesAgo(45),
         ),
         lastMessagePreview: "Hey! what's sub",
         updatedAt: MockClock.minutesAgo(35),
@@ -67,9 +69,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convCareer,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author3,
           fullName: 'AUB Career Center',
+          lastSeenAt: MockClock.hoursAgo(5),
         ),
         lastMessagePreview: 'New internship openings this week 📢',
         updatedAt: MockClock.hoursAgo(3),
@@ -77,9 +80,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convSreynich,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author4,
           fullName: 'Sreynich Chan',
+          lastSeenAt: MockClock.hoursAgo(8),
         ),
         lastMessagePreview: 'Thanks for the recommendation!',
         updatedAt: MockClock.hoursAgo(5),
@@ -113,9 +117,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convVanna,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author10,
           fullName: 'Vanna Chea',
+          lastSeenAt: MockClock.hoursAgo(14),
         ),
         lastMessagePreview: 'Voice message',
         updatedAt: MockClock.hoursAgo(12),
@@ -123,9 +128,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convPisey,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author11,
           fullName: 'Pisey Nget',
+          lastSeenAt: MockClock.hoursAgo(20),
         ),
         lastMessagePreview: 'Did you join the Telegram group?',
         updatedAt: MockClock.hoursAgo(18),
@@ -133,9 +139,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convRith,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author12,
           fullName: 'Rith Sok',
+          lastSeenAt: MockClock.hoursAgo(30),
         ),
         lastMessagePreview: 'Photo',
         updatedAt: MockClock.hoursAgo(26),
@@ -154,9 +161,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convGroupStudy,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author15,
           fullName: 'Study Group AUB',
+          lastSeenAt: MockClock.hoursAgo(42),
         ),
         lastMessagePreview: 'Sokha: Meeting moved to Friday',
         updatedAt: MockClock.hoursAgo(40),
@@ -164,9 +172,10 @@ abstract final class ChatFixtures {
       ),
       ConversationModel(
         id: MockIds.convMoeng,
-        participant: const ChatParticipant(
+        participant: ChatParticipant(
           id: MockIds.author7,
           fullName: 'Moeng Kimheang',
+          lastSeenAt: MockClock.hoursAgo(50),
         ),
         lastMessagePreview:
             'I checked it already nothing to modify on my side.',

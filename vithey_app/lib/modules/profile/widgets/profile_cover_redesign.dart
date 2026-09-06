@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_qr_bottom_sheet.dart';
 import 'package:get/get.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Profile Home header redesign (`update.md` + `Profile_Background_Redesign.png`).
 ///
 /// Backup of the previous header remains in [ProfileWavyHeader].
@@ -19,6 +21,9 @@ class ProfileCoverRedesign extends StatelessWidget {
     this.onMenuTap,
     this.onBack,
     this.onQrScanTap,
+    this.onEditProfile,
+    this.onVerifyStudent,
+    this.isStudentVerified = false,
   });
 
   final UserProfileModel profile;
@@ -30,6 +35,11 @@ class ProfileCoverRedesign extends StatelessWidget {
   final VoidCallback? onMenuTap;
   final VoidCallback? onBack;
   final VoidCallback? onQrScanTap;
+
+  /// Own-profile header actions (icons instead of Edit/Verify buttons).
+  final VoidCallback? onEditProfile;
+  final VoidCallback? onVerifyStudent;
+  final bool isStudentVerified;
 
   /// Larger than v1 (r56) — focal point.
   static const avatarRadius = 66.0;
@@ -60,7 +70,7 @@ class ProfileCoverRedesign extends StatelessWidget {
     final primary = Theme.of(context).colorScheme.primary;
     final onCover =
         teal.computeLuminance() > 0.45
-            ? const Color(0xFF1A1A2E)
+            ? AppColors.lightText
             : Colors.white;
     final qrVisible = showQrScan ?? showMenu;
 
@@ -77,7 +87,7 @@ class ProfileCoverRedesign extends StatelessWidget {
     final avatarTop = boundaryY - avatarExtent / 2 - 20;
     // End the cover at the avatar bottom — do not keep empty headerHeight
     // whitespace under the avatar (that pushed name/bio too far down).
-    const avatarBottomGap = 8.0;
+    const avatarBottomGap = 18.0;
     final stackHeight = avatarTop + avatarExtent + avatarBottomGap;
 
     return SizedBox(
@@ -126,57 +136,66 @@ class ProfileCoverRedesign extends StatelessWidget {
             ),
           ),
 
-          // 4) Settings (own) or back (visitor)
+          // 4) Header icons — own: settings + edit/verify/QR; visitor: back
           if (showMenu)
             Positioned(
-              top: topPad + 4,
-              left: 8,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: onCover,
-                  shadowColor: Colors.transparent,
-                ),
-                icon: Icon(Icons.settings_outlined, color: onCover, size: 24),
+              top: topPad + 12,
+              left: 4,
+              child: _CoverIconButton(
+                icon: LucideIcons.settings,
+                color: onCover,
                 tooltip: 'Settings',
                 onPressed: onMenuTap ?? () => Get.toNamed(AppRoutes.settings),
               ),
             ),
           if (showBack)
             Positioned(
-              top: topPad + 4,
-              left: 8,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: onCover,
-                  shadowColor: Colors.transparent,
-                ),
-                icon: Icon(Icons.arrow_back, color: onCover, size: 24),
+              top: topPad + 12,
+              left: 4,
+              child: _CoverIconButton(
+                icon: LucideIcons.arrowLeft,
+                color: onCover,
                 tooltip: 'Back',
                 onPressed: onBack ?? () => Get.back(),
               ),
             ),
-          if (qrVisible)
-            Positioned(
-              top: topPad + 4,
-              right: 8,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: onCover,
-                  shadowColor: Colors.transparent,
-                ),
-                icon: Icon(Icons.qr_code_scanner, color: onCover, size: 24),
-                tooltip: 'Scan QR code',
-                onPressed: onQrScanTap ??
-                    () => showProfileQrBottomSheet(
-                          context: context,
-                          userId: profile.id,
-                          userName: profile.fullName,
-                        ),
-              ),
+          Positioned(
+            top: topPad + 12,
+            right: 4,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onEditProfile != null)
+                  _CoverIconButton(
+                    icon: LucideIcons.userPen,
+                    color: onCover,
+                    tooltip: 'Edit profile',
+                    onPressed: onEditProfile!,
+                  ),
+                if (onVerifyStudent != null)
+                  _CoverIconButton(
+                    icon: isStudentVerified
+                        ? LucideIcons.badgeCheck
+                        : LucideIcons.shieldCheck,
+                    color: onCover,
+                    tooltip: isStudentVerified ? 'Review verification' : 'Verify',
+                    onPressed: onVerifyStudent!,
+                  ),
+                if (qrVisible)
+                  _CoverIconButton(
+                    icon: LucideIcons.scanLine,
+                    color: onCover,
+                    tooltip: 'Scan QR code',
+                    onPressed: onQrScanTap ??
+                        () => showProfileQrBottomSheet(
+                              context: context,
+                              userId: profile.id,
+                              userName: profile.fullName,
+                            ),
+                  ),
+              ],
             ),
+          ),
 
           // 5) Avatar — half on teal, half on white (center on wave edge)
           Positioned(
@@ -207,6 +226,36 @@ class ProfileCoverRedesign extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CoverIconButton extends StatelessWidget {
+  const _CoverIconButton({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        foregroundColor: color,
+        shadowColor: Colors.transparent,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.all(8),
+      ),
+      icon: VitheyIcon(icon, color: color, size: 22),
+      tooltip: tooltip,
+      onPressed: onPressed,
     );
   }
 }

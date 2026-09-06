@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/modules/auth/startup/widgets/startup_selection_style.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// Startup 2 grid card — unique layout; shared selection chrome.
 class SelectableInterestCard extends StatelessWidget {
   const SelectableInterestCard({
@@ -27,27 +29,24 @@ class SelectableInterestCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(18),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: fill,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 18, color: iconColor),
+              VitheyIcon(icon, size: 20, color: iconColor),
               const Spacer(),
               Text(
                 label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: labelColor,
-                ),
+                style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w500, color: labelColor),
               ),
             ],
           ),

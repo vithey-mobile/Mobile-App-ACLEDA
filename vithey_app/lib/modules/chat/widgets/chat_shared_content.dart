@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ChatSharedTabs extends StatelessWidget {
   const ChatSharedTabs({
     super.key,
@@ -35,10 +38,12 @@ class ChatSharedTabs extends StatelessWidget {
               children: [
                 Text(
                   tabs[index],
-                  style: TextStyle(
-                    fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                    color: active ? AppColors.primary : context.appColors.muted,
-                    fontSize: 14,
+                  style: context.text.bodyMedium?.copyWith(
+                    fontWeight: active
+                        ? VitheyWeight.semibold
+                        : VitheyWeight.regular,
+                    color:
+                        active ? AppColors.primary : context.appColors.muted,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -71,7 +76,7 @@ class SharedMediaGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_count == 0) {
       return const EmptyStateWidget(
-        icon: Icons.image_outlined,
+        icon: LucideIcons.image,
         title: AppStrings.chatNoSharedMedia,
         subtitle: AppStrings.chatNoSharedMediaSubtitle,
       );
@@ -90,11 +95,11 @@ class SharedMediaGrid extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: context.appColors.inputFill,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(VitheyRadii.media),
           ),
           clipBehavior: Clip.antiAlias,
           child: url == null
-              ? Icon(Icons.image_outlined, color: context.appColors.muted)
+              ? VitheyIcon(LucideIcons.image, color: context.appColors.muted)
               : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
         );
       },
@@ -118,7 +123,7 @@ class SharedVideoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_count == 0) {
       return const EmptyStateWidget(
-        icon: Icons.videocam_outlined,
+        icon: LucideIcons.video,
         title: AppStrings.chatNoSharedMedia,
         subtitle: AppStrings.chatNoSharedMediaSubtitle,
       );
@@ -140,7 +145,7 @@ class SharedVideoGrid extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: context.appColors.inputFill,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(VitheyRadii.media),
               ),
               clipBehavior: Clip.antiAlias,
               child: url == null
@@ -151,8 +156,9 @@ class SharedVideoGrid extends StatelessWidget {
               child: Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(color: Colors.white70, shape: BoxShape.circle),
-                child: const Icon(Icons.play_arrow, color: AppColors.primary),
+                decoration: const BoxDecoration(
+                    color: Colors.white70, shape: BoxShape.circle),
+                child: const VitheyIcon(LucideIcons.play, color: AppColors.primary),
               ),
             ),
           ],
@@ -181,22 +187,22 @@ class SharedFileTile extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: context.appColors.border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.picture_as_pdf, color: AppColors.error, size: 36),
+          const VitheyIcon(LucideIcons.fileText, color: AppColors.error, size: 36),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(fileName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(fileName, style: context.text.labelLarge),
                 const SizedBox(height: 2),
                 Text(
                   '$sizeLabel, $dateLabel',
-                  style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                  style: context.text.labelMedium,
                 ),
               ],
             ),
@@ -216,7 +222,7 @@ class SharedFilesList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (files.isEmpty) {
       return const EmptyStateWidget(
-        icon: Icons.insert_drive_file_outlined,
+        icon: LucideIcons.fileText,
         title: AppStrings.chatNoSharedFiles,
         subtitle: AppStrings.chatNoSharedMediaSubtitle,
       );
@@ -262,18 +268,25 @@ class SharedLinkTile extends StatelessWidget {
               color: context.appColors.inputFill,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.link, color: AppColors.primary, size: 20),
+            child: const VitheyIcon(LucideIcons.link, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(title, style: context.text.labelLarge),
                 const SizedBox(height: 4),
-                Text(description, style: TextStyle(fontSize: 13, color: context.appColors.muted)),
+                Text(
+                  description,
+                  style: context.text.bodySmall,
+                ),
                 const SizedBox(height: 4),
-                Text(url, style: const TextStyle(fontSize: 13, color: AppColors.info)),
+                Text(
+                  url,
+                  style: context.text.bodySmall
+                      ?.copyWith(color: AppColors.info),
+                ),
               ],
             ),
           ),
@@ -286,22 +299,24 @@ class SharedLinkTile extends StatelessWidget {
 class SharedLinksList extends StatelessWidget {
   const SharedLinksList({super.key, required this.links});
 
-  final List<({String month, String title, String description, String url})> links;
+  final List<({String month, String title, String description, String url})>
+      links;
 
   @override
   Widget build(BuildContext context) {
     if (links.isEmpty) {
       return const EmptyStateWidget(
-        icon: Icons.link_outlined,
+        icon: LucideIcons.link,
         title: AppStrings.chatNoSharedLinks,
         subtitle: AppStrings.chatNoSharedMediaSubtitle,
       );
     }
-    final grouped = <String, List<({String title, String description, String url})>>{};
+    final grouped =
+        <String, List<({String title, String description, String url})>>{};
     for (final link in links) {
       grouped.putIfAbsent(link.month, () => []).add(
-            (title: link.title, description: link.description, url: link.url),
-          );
+        (title: link.title, description: link.description, url: link.url),
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +324,10 @@ class SharedLinksList extends StatelessWidget {
         for (final entry in grouped.entries) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: 8, top: 4),
-            child: Text(entry.key, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
+            child: Text(
+              entry.key,
+              style: context.text.bodySmall,
+            ),
           ),
           for (final item in entry.value)
             SharedLinkTile(
@@ -330,6 +348,8 @@ class ChatQuickActionsRow extends StatelessWidget {
     required this.onCall,
     required this.onVideo,
     required this.onMute,
+    this.onCallLongPress,
+    this.onVideoLongPress,
     this.isMuted = false,
   });
 
@@ -337,6 +357,8 @@ class ChatQuickActionsRow extends StatelessWidget {
   final VoidCallback onCall;
   final VoidCallback onVideo;
   final VoidCallback onMute;
+  final VoidCallback? onCallLongPress;
+  final VoidCallback? onVideoLongPress;
   final bool isMuted;
 
   @override
@@ -347,32 +369,39 @@ class ChatQuickActionsRow extends StatelessWidget {
         color: context.appColors.cardSurface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: context.appColors.subtleShadow, blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: context.appColors.subtleShadow,
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _ActionItem(
-            icon: Icons.person_outline,
+            icon: LucideIcons.user,
             label: AppStrings.chatProfileAction,
             onTap: onProfile,
           ),
           _ActionItem(
-            icon: Icons.call_outlined,
+            icon: LucideIcons.phone,
             label: AppStrings.chatCallAction,
             onTap: onCall,
+            onLongPress: onCallLongPress,
           ),
           _ActionItem(
-            icon: Icons.videocam_outlined,
+            icon: LucideIcons.video,
             label: AppStrings.chatVideoAction,
             onTap: onVideo,
+            onLongPress: onVideoLongPress,
           ),
           _ActionItem(
             icon: isMuted
-                ? Icons.notifications_off_outlined
-                : Icons.notifications_outlined,
-            label: isMuted ? AppStrings.chatUnmuteAction : AppStrings.chatMuteAction,
+                ? LucideIcons.bellOff
+                : LucideIcons.bell,
+            label: isMuted
+                ? AppStrings.chatUnmuteAction
+                : AppStrings.chatMuteAction,
             onTap: onMute,
             highlighted: isMuted,
           ),
@@ -387,36 +416,41 @@ class _ActionItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.onLongPress,
     this.highlighted = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     final iconColor = highlighted ? AppColors.error : AppColors.primary;
-    final bgColor = highlighted
-        ? AppColors.error.withValues(alpha: 0.12)
-        : AppColors.primary.withValues(alpha: 0.12);
+    // Unified primary wash fill; muted state speaks via the error icon only.
+    const bgColor = AppColors.primary;
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Column(
         children: [
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: bgColor,
+              color: bgColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor),
+            child: VitheyIcon(icon, color: iconColor),
           ),
           const SizedBox(height: 6),
-          Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+          Text(
+            label,
+            style: context.text.labelMedium,
+          ),
         ],
       ),
     );
@@ -449,15 +483,18 @@ class ChatContactInfoCard extends StatelessWidget {
         children: [
           if (phone != null && phone!.isNotEmpty)
             _InfoRow(
-              icon: Icons.phone_outlined,
+              icon: LucideIcons.phone,
               value: phone!,
               label: AppStrings.chatMobile,
             ),
-          if (phone != null && phone!.isNotEmpty && bio != null && bio!.isNotEmpty)
+          if (phone != null &&
+              phone!.isNotEmpty &&
+              bio != null &&
+              bio!.isNotEmpty)
             const SizedBox(height: 14),
           if (bio != null && bio!.isNotEmpty)
             _InfoRow(
-              icon: Icons.info_outline,
+              icon: LucideIcons.info,
               value: bio!,
               label: AppStrings.chatBio,
             ),
@@ -468,7 +505,8 @@ class ChatContactInfoCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.value, required this.label});
+  const _InfoRow(
+      {required this.icon, required this.value, required this.label});
 
   final IconData icon;
   final String value;
@@ -479,15 +517,15 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.primary, size: 22),
+        VitheyIcon(icon, color: AppColors.primary, size: 22),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(value, style: context.text.labelLarge),
               const SizedBox(height: 2),
-              Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+              Text(label, style: context.text.labelMedium),
             ],
           ),
         ),

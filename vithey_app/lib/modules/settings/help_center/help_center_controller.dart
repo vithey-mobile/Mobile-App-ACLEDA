@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class FaqCategory {
   const FaqCategory({
     required this.id,
@@ -118,8 +120,7 @@ class _FaqCategorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = colors.cardSurface;
 
     return SafeArea(
       child: Padding(
@@ -142,10 +143,8 @@ class _FaqCategorySheet extends StatelessWidget {
             Text(
               category.title,
               textAlign: TextAlign.start,
-              style: TextStyle(
+              style: context.text.headlineSmall?.copyWith(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: colors.heading,
                 height: 1.25,
               ),
             ),
@@ -153,8 +152,7 @@ class _FaqCategorySheet extends StatelessWidget {
             Text(
               'Browse common questions in this topic.',
               textAlign: TextAlign.start,
-              style: TextStyle(
-                fontSize: 14,
+              style: context.text.bodyMedium?.copyWith(
                 height: 1.4,
                 color: colors.muted,
               ),
@@ -197,7 +195,7 @@ class _FaqCategorySheet extends StatelessWidget {
                             child: Row(
                               children: [
                                 const Icon(
-                                  Icons.article_outlined,
+                                  LucideIcons.fileText,
                                   size: 22,
                                   color: AppColors.primary,
                                 ),
@@ -205,15 +203,13 @@ class _FaqCategorySheet extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     category.topics[i],
-                                    style: TextStyle(
-                                      fontSize: 15,
+                                    style: context.text.titleSmall?.copyWith(
                                       fontWeight: FontWeight.w500,
-                                      color: colors.heading,
                                     ),
                                   ),
                                 ),
                                 Icon(
-                                  Icons.chevron_right_rounded,
+                                  LucideIcons.chevronRight,
                                   size: 22,
                                   color: colors.muted.withValues(alpha: 0.7),
                                 ),

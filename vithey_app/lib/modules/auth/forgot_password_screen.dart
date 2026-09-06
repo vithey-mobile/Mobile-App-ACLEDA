@@ -10,8 +10,10 @@ import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_moving_wave_sheet.dart';
+import 'package:aub_connect_app/modules/auth/widgets/vithey_genz.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ForgotPasswordScreen extends GetView<AuthController> {
   const ForgotPasswordScreen({super.key});
 
@@ -72,10 +74,10 @@ class ForgotPasswordScreen extends GetView<AuthController> {
             top: 0,
             left: 0,
             child: SafeArea(
-              child: CustomButton(
-                label: AppStrings.back,
-                variant: CustomButtonVariant.ghost,
-                foregroundColor: Colors.white,
+              child: VitheyIconButton(
+                icon: LucideIcons.arrowLeft,
+                tooltip: AppStrings.back,
+                onTeal: true,
                 onPressed: _goBack,
               ),
             ),
@@ -102,27 +104,21 @@ class _ResetFormBody extends StatelessWidget {
           children: [
             Text(
               AppStrings.forgotPasswordTitle,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: context.appColors.heading,
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: context.text.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
               AppStrings.forgotPasswordSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.appColors.muted,
-                height: 1.4,
-                fontSize: 14,
-              ),
+              style: context.text.bodyMedium
+                  ?.copyWith(color: context.appColors.muted, height: 1.4),
             ),
             const SizedBox(height: 20),
             CustomTextField(
               controller: controller.forgotPasswordEmailController,
               label: AppStrings.emailAddress,
               hint: 'Email',
-              prefixIcon: Icons.email_outlined,
+              prefixIcon: LucideIcons.mail,
               keyboardType: TextInputType.emailAddress,
               validator: Validators.email,
               onChanged: (_) {
@@ -140,7 +136,8 @@ class _ResetFormBody extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   controller.forgotPasswordError.value,
-                  style: const TextStyle(color: AppColors.error, fontSize: 13),
+                  style:
+                      context.text.bodySmall?.copyWith(color: AppColors.error),
                 ),
               );
             }),
@@ -148,7 +145,7 @@ class _ResetFormBody extends StatelessWidget {
             Obx(
               () => _AuthPrimaryButton(
                 label: AppStrings.sendResetLink,
-                icon: Icons.send_outlined,
+                icon: LucideIcons.send,
                 isLoading: controller.isForgotPasswordLoading.value,
                 onPressed: () {
                   FormErrorHost.activateFor(controller.forgotPasswordFormKey);
@@ -173,24 +170,32 @@ class _SuccessBody extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
-          Icons.mark_email_read_outlined,
-          size: 64,
-          color: AppColors.primary,
+        Container(
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primary.withValues(
+              alpha:
+                  Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.12,
+            ),
+          ),
+          child: const VitheyIcon(
+            LucideIcons.mailCheck,
+            size: 44,
+            color: AppColors.primary,
+          ),
         ),
         const SizedBox(height: 16),
         Text(
           AppStrings.resetLinkSent,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.appColors.heading,
-              ),
+          style: context.text.titleMedium,
         ),
         const SizedBox(height: 24),
         _AuthPrimaryButton(
           label: AppStrings.back,
-          icon: Icons.arrow_back,
+          icon: LucideIcons.arrowLeft,
           onPressed: onBack,
         ),
       ],

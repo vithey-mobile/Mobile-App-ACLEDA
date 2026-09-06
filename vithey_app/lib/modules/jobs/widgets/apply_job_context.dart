@@ -43,7 +43,10 @@ class ApplyJobContext extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Could not load job details', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              'Could not load job details',
+              style: context.text.labelLarge,
+            ),
             const SizedBox(height: 8),
             CustomButton(
               label: 'Retry',
@@ -56,6 +59,12 @@ class ApplyJobContext extends StatelessWidget {
     }
 
     final title = job!.jobMeta.title ?? 'Job opportunity';
+    final company = () {
+      final raw = job!.jobMeta.description?.trim();
+      if (raw == null || raw.isEmpty) return job!.author.fullName;
+      final companyOnly = raw.split(' · ').first.trim();
+      return companyOnly.isNotEmpty ? companyOnly : raw;
+    }();
     final status = eligibility?.message;
 
     return Padding(
@@ -65,17 +74,24 @@ class ApplyJobContext extends StatelessWidget {
         children: [
           Text(
             'Applying for $title',
-            style: TextStyle(fontSize: compact ? 14 : 16, fontWeight: FontWeight.w600, color: context.appColors.heading),
+            style: compact
+                ? context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
+                : context.text.titleMedium,
           ),
           const SizedBox(height: 4),
-          Text(job!.author.fullName, style: TextStyle(fontSize: compact ? 13 : 14, color: context.appColors.muted)),
+          Text(
+            company,
+            style: compact
+                ? context.text.bodySmall
+                : context.text.bodyMedium?.copyWith(color: context.appColors.muted),
+          ),
           if (!compact && job!.jobMeta.description != null && job!.jobMeta.description!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(job!.jobMeta.description!, style: const TextStyle(height: 1.4)),
           ],
           if (status != null && eligibility?.eligibility != JobEligibility.eligible) ...[
             const SizedBox(height: 12),
-            Text(status, style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w600)),
+            Text(status, style: context.text.labelLarge?.copyWith(color: AppColors.warning)),
           ],
         ],
       ),

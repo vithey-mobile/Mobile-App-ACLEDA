@@ -8,6 +8,7 @@ import 'package:aub_connect_app/modules/jobs/models/apply_success_args.dart';
 import 'package:aub_connect_app/modules/jobs/models/application_status_args.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/application_submitted_hero.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplySuccessScreen extends StatelessWidget {
   const ApplySuccessScreen({super.key});
 
@@ -44,11 +45,7 @@ class ApplySuccessScreen extends StatelessWidget {
                   Text(
                     AppStrings.applicationSubmittedTitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.headlineSmall,
                   ),
                   const SizedBox(height: 12),
                   ConstrainedBox(
@@ -56,30 +53,23 @@ class ApplySuccessScreen extends StatelessWidget {
                     child: Text(
                       body,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: context.appColors.muted,
-                        fontSize: 14,
-                        height: 1.45,
-                      ),
+                      style: context.text.bodyMedium?.copyWith(color: context.appColors.muted, height: 1.45),
                     ),
                   ),
                   const SizedBox(height: 22),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 250),
-                    child: CustomButton(
-                      label: AppStrings.viewApplicationStatus,
-                      variant: CustomButtonVariant.outline,
-                      icon: Icons.visibility_outlined,
-                      onPressed: () {
-                        Get.toNamed(
-                          AppRoutes.applicationStatus,
-                          arguments: ApplicationStatusArgs(
-                            applicationId: args.applicationId,
-                            jobPostId: args.jobPostId,
-                          ),
-                        );
-                      },
-                    ),
+                  CustomButton(
+                    label: AppStrings.viewApplicationStatus,
+                    variant: CustomButtonVariant.outline,
+                    icon: LucideIcons.eye,
+                    onPressed: () {
+                      Get.toNamed(
+                        AppRoutes.applicationStatus,
+                        arguments: ApplicationStatusArgs(
+                          applicationId: args.applicationId,
+                          jobPostId: args.jobPostId,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

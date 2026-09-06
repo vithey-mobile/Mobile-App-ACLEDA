@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/status_badge.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 import 'package:aub_connect_app/modules/finance/widgets/finance_status_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PaymentReceiptTile extends StatelessWidget {
   const PaymentReceiptTile({
     super.key,
@@ -22,17 +24,17 @@ class PaymentReceiptTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = FinanceStatusColors.listAccent(payment.status);
     final statusIcon = payment.status == PaymentStatus.paid
-        ? Icons.check_circle_outline
-        : Icons.schedule_outlined;
+        ? LucideIcons.circleCheck
+        : LucideIcons.clock;
 
     return VitheyCard(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      borderRadius: 14,
+      borderRadius: VitheyRadii.card,
       onTap: onTap,
       child: Row(
         children: [
-          Icon(statusIcon, color: statusColor, size: 28),
+          VitheyIcon(statusIcon, color: statusColor, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -41,15 +43,12 @@ class PaymentReceiptTile extends StatelessWidget {
                 _HighlightedText(
                   text: payment.feeName,
                   query: searchQuery,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: context.appColors.heading,
-                  ),
+                  style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: context.appColors.heading),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   payment.dateLabel,
-                  style: TextStyle(color: context.appColors.muted, fontSize: 12),
+                  style: context.text.bodySmall?.copyWith(fontSize: 12),
                 ),
               ],
             ),
@@ -59,10 +58,7 @@ class PaymentReceiptTile extends StatelessWidget {
             children: [
               Text(
                 payment.amount.formatted,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: context.appColors.heading),
               ),
               const SizedBox(height: 4),
               StatusBadge(label: payment.statusLabel, color: statusColor),
@@ -84,7 +80,7 @@ class _HighlightedText extends StatelessWidget {
 
   final String text;
   final String query;
-  final TextStyle style;
+  final TextStyle? style;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +104,7 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + trimmed.length),
-          style: style.copyWith(
+          style: style?.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.w800,
           ),

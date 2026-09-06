@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
@@ -24,7 +25,7 @@ Future<T?> showEditProfileSheet<T>({
     enableDrag: enableDrag,
     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
     ),
     builder: (ctx) {
       return Padding(
@@ -54,7 +55,7 @@ Future<T?> showFullHeightEditProfileSheet<T>({
     enableDrag: true,
     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
     ),
     builder: (ctx) {
       final height = MediaQuery.sizeOf(ctx).height;
@@ -104,11 +105,7 @@ class _EditProfileSheetScaffold extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.titleLarge?.copyWith(fontSize: 20),
               ),
             ),
             if (titleTrailing != null) titleTrailing!,
@@ -256,11 +253,7 @@ class ProfileSectionAddHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: titleSize,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge?.copyWith(fontSize: titleSize),
           ),
         ),
         GestureDetector(
@@ -270,9 +263,7 @@ class ProfileSectionAddHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Text(
               'Add',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
+              style: context.text.labelLarge?.copyWith(
                 color: AppColors.primary,
               ),
             ),

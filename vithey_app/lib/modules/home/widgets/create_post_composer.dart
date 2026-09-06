@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class CreatePostComposer extends StatelessWidget {
   const CreatePostComposer({
     super.key,
@@ -55,25 +57,19 @@ class CreatePostComposer extends StatelessWidget {
                     'What\'s on your mind?',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 14,
-                    ),
+                    style: context.text.bodyMedium
+                        ?.copyWith(color: context.appColors.muted),
                   ),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 3),
-          IconButton(
-            onPressed: onTapGallery,
-            icon: Icon(
-              Icons.image_outlined,
-              color: context.appColors.muted,
-              size: 25,
-            ),
+          VitheyIconButton(
+            icon: LucideIcons.image,
+            variant: VitheyIconButtonVariant.neutral,
             tooltip: 'Add photo',
-            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            onTap: onTapGallery,
           ),
         ],
       ),

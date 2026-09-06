@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
@@ -11,7 +12,9 @@ import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dar
 import 'package:aub_connect_app/modules/profile/profile_tabs_host.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_reel_create_tile.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_reel_grid_tile.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_content_analytics_tile.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Profile → Reels: Facebook-style 3-column grid + filter chips + Create tile.
 class ProfileReelsTab extends StatefulWidget {
   const ProfileReelsTab({super.key, this.host});
@@ -93,17 +96,17 @@ class _ProfileReelsTabState extends State<ProfileReelsTab> {
               child: EmptyStateWidget(
                 title: 'Nothing here yet',
                 subtitle: 'No Reels yet',
-                icon: Icons.video_collection_outlined,
+                icon: LucideIcons.video,
               ),
             )
           else if (allPosts.isEmpty && showCreate)
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(2, 0, 2, 100),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 100),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                   childAspectRatio: 0.62,
                 ),
                 delegate: SliverChildListDelegate([
@@ -117,32 +120,54 @@ class _ProfileReelsTabState extends State<ProfileReelsTab> {
               child: EmptyStateWidget(
                 title: 'No matching reels',
                 subtitle: 'Try another filter',
-                icon: Icons.filter_list_off_outlined,
+                icon: LucideIcons.listX,
+              ),
+            )
+          else if (showCreate)
+            // Own profile: LinkedIn-style title (left) + views (right) → analytics.
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SizedBox(
+                          height: 120,
+                          child: ProfileReelCreateTile(onTap: _openCreateReel),
+                        ),
+                      );
+                    }
+                    final post = posts[index - 1];
+                    return ProfileContentAnalyticsTile(
+                      post: post,
+                      onTap: () => host.openPostAnalytics(post),
+                    );
+                  },
+                  childCount: posts.length + 1,
+                ),
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(2, 0, 2, 100),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 100),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                   childAspectRatio: 0.62,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    if (showCreate && index == 0) {
-                      return ProfileReelCreateTile(onTap: _openCreateReel);
-                    }
-                    final postIndex = showCreate ? index - 1 : index;
-                    final post = posts[postIndex];
+                    final post = posts[index];
                     return ProfileReelGridTile(
                       post: post,
                       onTap: () => _openReel(context, post, host),
                     );
                   },
-                  childCount: posts.length + (showCreate ? 1 : 0),
+                  childCount: posts.length,
                 ),
               ),
             ),
@@ -169,18 +194,19 @@ class _ReelFilterChips extends StatelessWidget {
   final ValueChanged<_ReelFilter> onSelected;
 
   static const _items = <(_ReelFilter, String, IconData)>[
-    (_ReelFilter.all, 'All', Icons.grid_view_rounded),
-    (_ReelFilter.liked, 'Liked', Icons.thumb_up_alt_outlined),
-    (_ReelFilter.shared, 'Shared', Icons.share_outlined),
-    (_ReelFilter.popular, 'Popular', Icons.visibility_outlined),
+    (_ReelFilter.all, 'All', LucideIcons.layoutGrid),
+    (_ReelFilter.liked, 'Liked', LucideIcons.thumbsUp),
+    (_ReelFilter.shared, 'Shared', LucideIcons.share2),
+    (_ReelFilter.popular, 'Popular', LucideIcons.eye),
   ];
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    // VitheyFilterChips chrome: solid teal selected pill (r24, 48 tap).
     return SizedBox(
-      height: 40,
+      height: 48,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _items.length,
@@ -188,32 +214,31 @@ class _ReelFilterChips extends StatelessWidget {
         itemBuilder: (context, index) {
           final (id, label, icon) = _items[index];
           final isSelected = selected == id;
-          final bg = isSelected
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : colors.cardSurface;
-          final fg = isSelected ? AppColors.primary : colors.heading;
+          final bg = isSelected ? AppColors.primary : colors.cardSurface;
+          final fg = isSelected ? context.scheme.onPrimary : colors.heading;
           final border = isSelected ? AppColors.primary : colors.border;
 
           return Material(
             color: bg,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(VitheyRadii.pill),
               side: BorderSide(color: border),
             ),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => onSelected(id),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, size: 16, color: fg),
+                    VitheyIcon(icon, size: 16, color: fg),
                     const SizedBox(width: 6),
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 13,
+                      style: context.text.labelLarge?.copyWith(
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: fg,

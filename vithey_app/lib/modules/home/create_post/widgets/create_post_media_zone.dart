@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class CreatePostMediaZone extends StatelessWidget {
   const CreatePostMediaZone({
     super.key,
@@ -36,8 +37,8 @@ class CreatePostMediaZone extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.add_photo_alternate_outlined,
+                    VitheyIcon(
+                      LucideIcons.imagePlus,
                       size: 36,
                       color: context.appColors.muted,
                     ),
@@ -58,8 +59,8 @@ class CreatePostMediaZone extends StatelessWidget {
                       child: ColoredBox(
                         color: Colors.black87,
                         child: Center(
-                          child: Icon(
-                            Icons.videocam,
+                          child: VitheyIcon(
+                            LucideIcons.video,
                             size: 48,
                             color: context.scheme.onPrimary,
                           ),
@@ -77,7 +78,7 @@ class CreatePostMediaZone extends StatelessWidget {
                               errorBuilder: (_, __, ___) => const SizedBox(
                                 height: 180,
                                 child: Center(
-                                  child: Icon(Icons.broken_image_outlined),
+                                  child: VitheyIcon(LucideIcons.imageOff),
                                 ),
                               ),
                             )
@@ -95,14 +96,21 @@ class CreatePostMediaZone extends StatelessWidget {
                       ),
                     ),
                   Positioned(
-                    top: 8,
-                    left: 8,
-                    child: IconButton.filled(
-                      style:
-                          IconButton.styleFrom(backgroundColor: Colors.black54),
-                      icon: const Icon(Icons.close,
-                          color: Colors.white, size: 18),
-                      onPressed: isUploading ? null : onClear,
+                    top: 10,
+                    left: 10,
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          shape: const CircleBorder(),
+                          padding: EdgeInsets.zero,
+                        ),
+                        icon: const VitheyIcon(LucideIcons.x,
+                            color: Colors.white, size: 18),
+                        onPressed: isUploading ? null : onClear,
+                      ),
                     ),
                   ),
                 ],

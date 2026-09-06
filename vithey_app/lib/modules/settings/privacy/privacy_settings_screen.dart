@@ -7,6 +7,8 @@ import 'package:aub_connect_app/modules/settings/privacy/widgets/privacy_switch_
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
   const PrivacySettingsScreen({super.key});
 
@@ -24,7 +26,7 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
             PrivacySwitchCard(
               children: [
                 PrivacySwitchTile(
-                  icon: Icons.visibility_outlined,
+                  icon: LucideIcons.eye,
                   title: 'Profile Visibility',
                   subtitle: 'Allow others to view your profile',
                   value: controller.privacy.value.profileVisible,
@@ -32,7 +34,7 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                 ),
                 const SettingsTileDivider(),
                 PrivacySwitchTile(
-                  icon: Icons.share_outlined,
+                  icon: LucideIcons.share2,
                   title: 'Data Sharing',
                   subtitle: 'Share anonymized usage data to improve Vithey',
                   value: controller.privacy.value.dataSharing,
@@ -40,7 +42,7 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                 ),
                 const SettingsTileDivider(),
                 PrivacySwitchTile(
-                  icon: Icons.track_changes_outlined,
+                  icon: LucideIcons.crosshair,
                   title: 'Activity Tracking',
                   subtitle: 'Track in-app activity for personalized features',
                   value: controller.privacy.value.activityTracking,

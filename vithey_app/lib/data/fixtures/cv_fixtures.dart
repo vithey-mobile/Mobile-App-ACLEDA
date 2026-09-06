@@ -12,6 +12,29 @@ abstract final class CvFixtures {
       fileName: '${MockIdentities.mockUserFullName.replaceAll(' ', '_')}_CV.pdf',
       mimeType: 'application/pdf',
       downloadUrl: previewUrl,
+      isDefault: true,
+      isAiGenerated: false,
+      createdAt: DateTime.now().subtract(const Duration(days: 14)),
+    );
+  }
+
+  static CvMetadataModel aiGeneratedCv({
+    String? fileId,
+    String? fullName,
+    String? templateId,
+    bool isDefault = true,
+  }) {
+    final name =
+        (fullName ?? MockIdentities.mockUserFullName).replaceAll(' ', '_');
+    return CvMetadataModel(
+      fileId: fileId ?? MockIds.cvFileAi,
+      fileName: '${name}_AI_CV.pdf',
+      mimeType: 'application/pdf',
+      downloadUrl: previewUrl,
+      templateId: templateId,
+      createdAt: DateTime.now(),
+      isDefault: isDefault,
+      isAiGenerated: true,
     );
   }
 }

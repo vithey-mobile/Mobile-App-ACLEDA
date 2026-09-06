@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_controller.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ChatbotHistoryDrawer extends StatelessWidget {
   const ChatbotHistoryDrawer({super.key, required this.controller});
 
@@ -28,23 +30,16 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Vithey AI',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: context.appColors.heading,
-                      ),
+                      style: context.text.headlineSmall,
                     ),
                   ),
                   Material(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(VitheyRadii.pill),
                     child: InkWell(
-                      onTap: () {
-                        controller.newChat();
-                        Get.back();
-                      },
-                      borderRadius: BorderRadius.circular(22),
-                      child: const Padding(
+                      onTap: controller.newChat,
+                      borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                      child: Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 10,
@@ -52,18 +47,17 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.edit_note_rounded,
+                            VitheyIcon(
+                              LucideIcons.penLine,
                               size: 18,
-                              color: Colors.white,
+                              color: context.scheme.onPrimary,
                             ),
                             SizedBox(width: 6),
                             Text(
                               'New chat',
-                              style: TextStyle(
-                                color: Colors.white,
+                              style: context.text.bodySmall?.copyWith(
+                                color: context.scheme.onPrimary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -73,7 +67,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   _CircleAction(
-                    icon: Icons.search_rounded,
+                    icon: LucideIcons.search,
                     tooltip: 'Search chats (coming soon)',
                     onTap: null,
                   ),
@@ -102,11 +96,8 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                       child: Text(
                         'Recents',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: context.appColors.heading,
-                        ),
+                        style: context.text.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                     ...sessions.map(
@@ -142,7 +133,8 @@ class ChatbotHistoryDrawer extends StatelessWidget {
       context: context,
       backgroundColor: context.appColors.cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
       builder: (ctx) {
         return SafeArea(
@@ -161,10 +153,10 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(
+                  leading: VitheyIcon(
                     session.isPinned
-                        ? Icons.push_pin_rounded
-                        : Icons.push_pin_outlined,
+                        ? LucideIcons.pin
+                        : LucideIcons.pin,
                     color: session.isPinned
                         ? AppColors.primary
                         : context.appColors.heading,
@@ -176,8 +168,8 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: Icon(
-                    Icons.edit_outlined,
+                  leading: VitheyIcon(
+                    LucideIcons.pencil,
                     color: context.appColors.heading,
                   ),
                   title: const Text('Rename'),
@@ -187,7 +179,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  leading: const VitheyIcon(LucideIcons.trash2, color: Colors.red),
                   title: const Text(
                     'Delete',
                     style: TextStyle(color: Colors.red),
@@ -230,7 +222,7 @@ class _CircleAction extends StatelessWidget {
         child: IconButton(
           tooltip: tooltip,
           onPressed: onTap,
-          icon: Icon(icon, color: context.appColors.heading, size: 22),
+          icon: VitheyIcon(icon, color: context.appColors.heading, size: 22),
         ),
       ),
     );
@@ -256,36 +248,44 @@ class _SessionTile extends StatelessWidget {
       color: isSelected
           ? AppColors.primary.withValues(alpha: 0.08)
           : Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
           child: Row(
             children: [
+              Container(
+                width: 44,
+                height: 44,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withValues(alpha: 0.14)
+                      : context.appColors.inputFill,
+                  borderRadius: BorderRadius.circular(VitheyRadii.iconSquircle),
+                ),
+                child: VitheyIcon(
+                  session.isPinned
+                      ? LucideIcons.pin
+                      : LucideIcons.messageCircle,
+                  size: 20,
+                  color: isSelected || session.isPinned
+                      ? AppColors.primary
+                      : context.appColors.muted,
+                ),
+              ),
               Expanded(
                 child: Text(
                   session.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
-                    color: context.appColors.heading,
-                  ),
+                  style: context.text.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
-              if (session.isPinned)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.push_pin_rounded,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
-                ),
             ],
           ),
         ),

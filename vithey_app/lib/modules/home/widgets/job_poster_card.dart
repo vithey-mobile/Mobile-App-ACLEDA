@@ -5,6 +5,7 @@ import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dar
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 
 class JobPosterCard extends StatelessWidget {
   const JobPosterCard({
@@ -67,20 +68,15 @@ class JobPosterCard extends StatelessWidget {
             if (post.jobMeta.title?.isNotEmpty == true) ...[
               Text(
                 post.jobMeta.title!,
-                style: TextStyle(
-                  color: context.appColors.heading,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
+                style: context.text.titleSmall,
               ),
               const SizedBox(height: 4),
             ],
             if (post.content.isNotEmpty)
               Text(
                 post.content,
-                style: TextStyle(
+                style: context.text.bodyMedium?.copyWith(
                   color: context.appColors.muted,
-                  fontSize: 14,
                   height: 1.4,
                 ),
               ),
@@ -138,8 +134,8 @@ class _JobActionButton extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(right: 8),
           child: Text('Applied',
-              style: TextStyle(
-                  color: context.appColors.muted, fontWeight: FontWeight.w600)),
+              style: context.text.labelLarge
+                  ?.copyWith(color: context.appColors.muted)),
         );
       case JobApplicationState.checking:
         return const Padding(
@@ -159,20 +155,19 @@ class _JobActionButton extends StatelessWidget {
         }
         return Material(
           color: context.scheme.primary,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(VitheyRadii.pill),
           child: InkWell(
             onTap: onApply,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(VitheyRadii.pill),
             child: SizedBox(
-              width: 50,
-              height: 26,
+              width: 58,
+              height: 28,
               child: Center(
                 child: Text(
                   'Apply',
-                  style: TextStyle(
-                    color: context.scheme.onPrimary,
+                  style: context.text.labelLarge?.copyWith(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    color: context.scheme.onPrimary,
                   ),
                 ),
               ),

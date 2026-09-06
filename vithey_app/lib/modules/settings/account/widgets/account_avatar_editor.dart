@@ -3,6 +3,8 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class AccountAvatarEditor extends StatelessWidget {
   const AccountAvatarEditor({
     super.key,
@@ -45,7 +47,7 @@ class AccountAvatarEditor extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                    child: const VitheyIcon(LucideIcons.camera, color: Colors.white, size: 18),
                   ),
                 ),
               ),
@@ -57,7 +59,7 @@ class AccountAvatarEditor extends StatelessWidget {
           Center(
             child: CustomButton(
               label: 'Update Information',
-              icon: Icons.edit,
+              icon: LucideIcons.pencil,
               variant: CustomButtonVariant.ghost,
               foregroundColor: AppColors.primary,
               onPressed: onEditInfo,

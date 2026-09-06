@@ -1,5 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
+
+/// App [TextTheme] wired from [VitheyType] / [VitheyWeight] + semantic colors.
+///
+/// Shared by the light and dark themes so call sites can use
+/// `context.text.titleSmall` etc. instead of inline `TextStyle` blobs.
+TextTheme vitheyTextTheme(AppSemanticColors semantic) {
+  return TextTheme(
+    headlineSmall: TextStyle(
+        fontSize: VitheyType.display,
+        fontWeight: VitheyWeight.bold,
+        color: semantic.heading),
+    titleLarge: TextStyle(
+        fontSize: VitheyType.titleLg,
+        fontWeight: VitheyWeight.bold,
+        color: semantic.heading),
+    titleMedium: TextStyle(
+        fontSize: VitheyType.title,
+        fontWeight: VitheyWeight.semibold,
+        color: semantic.heading),
+    titleSmall: TextStyle(
+        fontSize: VitheyType.titleSm,
+        fontWeight: VitheyWeight.semibold,
+        color: semantic.heading),
+    bodyLarge: TextStyle(
+        fontSize: VitheyType.title,
+        fontWeight: VitheyWeight.regular,
+        color: semantic.heading),
+    bodyMedium: TextStyle(
+        fontSize: VitheyType.body,
+        fontWeight: VitheyWeight.regular,
+        color: semantic.heading),
+    bodySmall: TextStyle(
+        fontSize: VitheyType.subtitle,
+        fontWeight: VitheyWeight.regular,
+        color: semantic.muted),
+    labelLarge: TextStyle(
+        fontSize: VitheyType.body,
+        fontWeight: VitheyWeight.semibold,
+        color: semantic.heading),
+    labelMedium: TextStyle(
+        fontSize: VitheyType.meta,
+        fontWeight: VitheyWeight.medium,
+        color: semantic.muted),
+    labelSmall: TextStyle(
+        fontSize: VitheyType.caption,
+        fontWeight: VitheyWeight.medium,
+        color: semantic.muted),
+  );
+}
 
 /// Semantic colors that adapt to light/dark mode.
 @immutable

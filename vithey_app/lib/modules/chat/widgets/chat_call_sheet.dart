@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 Future<void> showChatCallSheet({
   required BuildContext context,
   required ChatParticipant participant,
@@ -76,7 +79,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    icon: const VitheyIcon(LucideIcons.chevronDown),
                     color: Colors.white70,
                     iconSize: 32,
                     tooltip: 'Minimize',
@@ -95,8 +98,7 @@ class _ChatCallScreenState extends State<ChatCallScreen> {
                   onToggleMic: () => setState(() => _micMuted = !_micMuted),
                   onToggleSpeaker: () =>
                       setState(() => _speakerOn = !_speakerOn),
-                  onToggleCamera: () =>
-                      setState(() => _cameraOn = !_cameraOn),
+                  onToggleCamera: () => setState(() => _cameraOn = !_cameraOn),
                   onEndCall: () => Navigator.of(context).pop(),
                 ),
                 const SizedBox(height: 12),
@@ -159,7 +161,8 @@ class _VideoCallBackground extends StatelessWidget {
           ? Image.network(
               participant.avatarUrl!,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const ColoredBox(color: Colors.black),
+              errorBuilder: (_, __, ___) =>
+                  const ColoredBox(color: Colors.black),
             )
           : null,
     );
@@ -178,20 +181,17 @@ class _VoiceCallCenter extends StatelessWidget {
       children: [
         Text(
           participant.fullName,
-          style: const TextStyle(
-            color: Colors.white,
+          style: context.text.titleLarge?.copyWith(
             fontSize: 28,
-            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
           AppStrings.chatCalling,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.72),
-            fontSize: 16,
-          ),
+          style: context.text.bodyLarge
+              ?.copyWith(color: Colors.white.withValues(alpha: 0.72)),
         ),
         const SizedBox(height: 120),
       ],
@@ -222,18 +222,17 @@ class _VideoCallCenter extends StatelessWidget {
         ],
         Text(
           participant.fullName,
-          style: const TextStyle(
-            color: Colors.white,
+          style: context.text.titleLarge?.copyWith(
             fontSize: 24,
-            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           AppStrings.chatVideoCalling,
-          style: TextStyle(
+          style: context.text.bodyLarge?.copyWith(
+            fontSize: VitheyType.titleSm,
             color: Colors.white.withValues(alpha: 0.75),
-            fontSize: 15,
           ),
         ),
       ],
@@ -263,13 +262,14 @@ class _LocalPreviewBubble extends StatelessWidget {
           Center(
             child: UserAvatar(name: name, radius: 28),
           ),
-          const Align(
+          Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 6),
               child: Text(
                 'You',
-                style: TextStyle(color: Colors.white70, fontSize: 11),
+                style: context.text.labelSmall
+                    ?.copyWith(color: Colors.white70),
               ),
             ),
           ),
@@ -309,26 +309,29 @@ class _CallControls extends StatelessWidget {
         children: [
           if (isVideo)
             _ControlButton(
-              icon: Icons.flip_camera_ios_outlined,
+              icon: LucideIcons.switchCamera,
               label: 'Flip',
               onTap: () {},
             ),
           _ControlButton(
-            icon: micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+            icon: micMuted ? LucideIcons.micOff : LucideIcons.mic,
             label: micMuted ? 'Unmute' : 'Mute',
             onTap: onToggleMic,
             active: micMuted,
           ),
           _EndCallButton(onTap: onEndCall),
           _ControlButton(
-            icon: speakerOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+            icon:
+                speakerOn ? LucideIcons.volume2 : LucideIcons.volumeX,
             label: 'Speaker',
             onTap: onToggleSpeaker,
             active: !speakerOn,
           ),
           if (isVideo)
             _ControlButton(
-              icon: cameraOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+              icon: cameraOn
+                  ? LucideIcons.video
+                  : LucideIcons.videoOff,
               label: 'Camera',
               onTap: onToggleCamera,
               active: !cameraOn,
@@ -366,9 +369,9 @@ class _ControlButton extends StatelessWidget {
             customBorder: const CircleBorder(),
             onTap: onTap,
             child: SizedBox(
-              width: 52,
-              height: 52,
-              child: Icon(
+              width: 56,
+              height: 56,
+              child: VitheyIcon(
                 icon,
                 color: active ? Colors.black87 : Colors.white,
                 size: 24,
@@ -379,10 +382,8 @@ class _ControlButton extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.78),
-            fontSize: 12,
-          ),
+          style: context.text.labelMedium
+              ?.copyWith(color: Colors.white.withValues(alpha: 0.78)),
         ),
       ],
     );
@@ -406,19 +407,18 @@ class _EndCallButton extends StatelessWidget {
             customBorder: const CircleBorder(),
             onTap: onTap,
             child: const SizedBox(
-              width: 64,
-              height: 64,
-              child: Icon(Icons.call_end_rounded, color: Colors.white, size: 30),
+              width: 72,
+              height: 72,
+              child:
+                  VitheyIcon(LucideIcons.phoneOff, color: Colors.white, size: 34),
             ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           AppStrings.chatEndCall,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.78),
-            fontSize: 12,
-          ),
+          style: context.text.labelMedium
+              ?.copyWith(color: Colors.white.withValues(alpha: 0.78)),
         ),
       ],
     );

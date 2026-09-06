@@ -7,7 +7,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_app_bar.dart';
 import 'package:get/get.dart';
-
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// One media circle in the home header (Telegram-style stories strip).
 class HomeMediaItem {
   const HomeMediaItem({
@@ -211,12 +211,7 @@ class _Toolbar extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 8),
                       child: Text(
                         title,
-                        style: TextStyle(
-                          color: colors.heading,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
+                        style: context.text.headlineSmall?.copyWith(fontSize: 26, fontWeight: FontWeight.w800, color: colors.heading, letterSpacing: -0.3),
                       ),
                     ),
                   ),
@@ -246,11 +241,7 @@ class _Toolbar extends StatelessWidget {
                             title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.heading,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: context.text.titleLarge,
                           ),
                         ),
                       ],
@@ -261,22 +252,18 @@ class _Toolbar extends StatelessWidget {
             ),
           ),
           HomeAppBarAction(
-            icon: const Icon(Icons.search),
+            icon: const VitheyIcon(LucideIcons.search),
             onPressed: () => Get.toNamed(AppRoutes.search),
             tooltip: 'Search',
           ),
           HomeAppBarAction(
-            icon: const Icon(Icons.map_outlined),
+            icon: const VitheyIcon(LucideIcons.mapPinned),
             onPressed: () => Get.toNamed(AppRoutes.map),
             tooltip: 'Map',
           ),
-          HomeAppBarAction(
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
-            onPressed: () => Get.toNamed(AppRoutes.chat),
-            tooltip: 'Messages',
-          ),
+          const HomeChatAppBarAction(),
           const HomeAppBarAction(
-            icon: Icon(Icons.account_balance_wallet_outlined),
+            icon: VitheyIcon(LucideIcons.wallet),
             onPressed: FinanceNavigation.openFinanceEntry,
             tooltip: 'Finance',
           ),
@@ -398,10 +385,9 @@ class _MediaStoryChip extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: context.text.labelMedium?.copyWith(
                 fontSize: 12,
                 height: 1.1,
-                fontWeight: FontWeight.w500,
                 color: context.appColors.heading,
               ),
             ),
@@ -487,7 +473,7 @@ class _MediaRingAvatar extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: colors.cardSurface, width: 2),
                 ),
-                child: const Icon(Icons.add, size: 12, color: Colors.white),
+                child: const VitheyIcon(LucideIcons.plus, size: 12, color: Colors.white),
               ),
             ),
         ],

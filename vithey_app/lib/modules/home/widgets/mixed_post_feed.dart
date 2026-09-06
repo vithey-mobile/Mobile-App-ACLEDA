@@ -5,12 +5,14 @@ import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/job_poster_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/poster_post_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/video_post_card.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class MixedPostFeed extends StatelessWidget {
   const MixedPostFeed({super.key, this.topSlivers = const []});
 
@@ -118,7 +120,7 @@ class ContentedSliverList extends StatelessWidget {
                       label: 'Retry',
                       onPressed: controller.loadMore,
                       variant: CustomButtonVariant.ghost,
-                      icon: Icons.refresh_rounded,
+                      icon: LucideIcons.refreshCw,
                     ),
                   ),
                 );
@@ -155,7 +157,9 @@ class _FeedPostItem extends StatelessWidget {
   final HomeController controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => _buildCard(context);
+
+  Widget _buildCard(BuildContext context) {
     final common = (
       onLike: () => controller.toggleReaction(post.id),
       onReact: (PostReactionType type) => controller.setReaction(post.id, type),
@@ -199,7 +203,8 @@ class _FeedPostItem extends StatelessWidget {
           onReact: common.onReact,
           onComment: common.onComment,
           onShare: common.onShare,
-          onApply: () => controller.openJobApplication(post.id),
+          onApply: () => controller.openJobApplication(post),
+          onViewApplicants: () => controller.openJobApplicants(post),
           onOpen: common.onOpen,
           onAuthorTap: common.onAuthorTap,
           onFollow: () => controller.toggleFollow(post.author.id),
@@ -219,7 +224,7 @@ class _FeedCardSkeleton extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: context.appColors.border),
       ),
       child: Column(

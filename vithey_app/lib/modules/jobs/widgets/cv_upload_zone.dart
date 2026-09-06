@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CvUploadZone extends StatelessWidget {
@@ -34,9 +34,9 @@ class CvUploadZone extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: CustomPaint(
-            painter: _DashedRectPainter(color: border, radius: 16),
+            painter: _DashedRectPainter(color: border, radius: 20),
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(
@@ -45,38 +45,45 @@ class CvUploadZone extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Opacity(
-                    opacity: enabled ? 1 : 0.5,
-                    child: Image.asset(
-                      AppAssets.uploadIcon,
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      gaplessPlayback: true,
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: context.scheme.primary.withValues(
+                        alpha: enabled ? 0.12 : 0.06,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Opacity(
+                      opacity: enabled ? 1 : 0.5,
+                      child: VitheyIcon(
+                        LucideIcons.upload,
+                        size: 40,
+                        color: context.scheme.primary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.dragDropCv,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                    style: context.text.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                       color: enabled ? heading : muted,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     AppStrings.orTapToBrowse,
-                    style: TextStyle(color: muted, fontSize: 14),
+                    style: context.text.bodyMedium?.copyWith(color: muted),
                   ),
                   const SizedBox(height: 16),
                   Divider(color: border, height: 1),
                   const SizedBox(height: 12),
                   Text(
                     policyLabel,
-                    style: TextStyle(color: muted, fontSize: 12),
+                    style: context.text.bodySmall?.copyWith(fontSize: 12, color: muted),
                   ),
                 ],
               ),

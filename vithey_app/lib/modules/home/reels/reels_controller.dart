@@ -37,10 +37,8 @@ class ReelsController extends GetxController {
     isLoading.value = true;
     hasError.value = false;
     try {
-      final result = await _postRepository.fetchFeed(page: 1, limit: 40);
-      posts.assignAll(
-        result.posts.where((p) => p.type == PostType.video).toList(),
-      );
+      final result = await _postRepository.fetchReels(page: 1, limit: 40);
+      posts.assignAll(result.posts);
       if (currentIndex.value >= posts.length) {
         currentIndex.value = 0;
       }

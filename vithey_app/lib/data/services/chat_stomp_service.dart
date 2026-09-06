@@ -113,6 +113,23 @@ class ChatStompService {
     );
   }
 
+  void simulateIncomingCall({
+    required String conversationId,
+    required String senderId,
+    bool isVideo = false,
+  }) {
+    if (!useMockChat) return;
+    _events.add(
+      ChatStompPayload(
+        type: ChatStompEventType.callInvite,
+        conversationId: conversationId,
+        senderId: senderId,
+        isVideoCall: isVideo,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
   bool shouldIncrementUnread(String conversationId) {
     return _activeConversationId != conversationId;
   }

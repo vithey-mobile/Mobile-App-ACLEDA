@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_emoji_panel.dart';
 
+/// Telegram-style message composer:
+/// `[ attach | text… | emoji | send ]` — all icons live inside the pill, no fills.
 class ChatComposer extends StatelessWidget {
   const ChatComposer({
     super.key,
@@ -38,6 +41,8 @@ class ChatComposer extends StatelessWidget {
   final VoidCallback? onFocusText;
 
   static const int _maxInputLines = 6;
+  static const double _iconTap = 42;
+  static const double _iconSize = 22;
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +55,8 @@ class ChatComposer extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Divider(height: 1, color: colors.border),
             Padding(
-              padding: EdgeInsets.fromLTRB(8, 8, 8, showEmojiPanel ? 6 : 8),
+              padding: EdgeInsets.fromLTRB(10, 8, 10, showEmojiPanel ? 6 : 8),
               child: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: controller,
                 builder: (context, value, _) {
@@ -62,82 +66,111 @@ class ChatComposer extends StatelessWidget {
                     final canSend =
                         (hasText || attachments.isNotEmpty) && !sending;
 
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                        if (attachments.isNotEmpty)
+                          SizedBox(
+                            height: 64,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+                              itemCount: attachments.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (_, index) {
+                                final item = attachments[index];
+                                return _AttachmentChip(
+                                  attachment: item,
+                                  onRemove: () => onRemoveAttachment(item),
+                                );
+                              },
+                            ),
+                          ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colors.inputFill,
+                            borderRadius:
+                                BorderRadius.circular(VitheyRadii.pill),
+                            border: Border.all(
+                              color: colors.border.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              if (attachments.isNotEmpty)
-                                SizedBox(
-                                  height: 72,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      12,
-                                      8,
-                                      12,
-                                      4,
+                              _PlainIcon(
+                                tooltip: 'Add photo, video, or file',
+                                icon: LucideIcons.paperclip,
+                                color: colors.heading,
+                                onPressed:
+                                    sending ? null : onAddAttachment,
+                              ),
+                              Expanded(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    minHeight: _iconTap,
+                                    maxHeight: 132,
+                                  ),
+                                  child: TextField(
+                                    controller: controller,
+                                    enabled: !sending,
+                                    minLines: 1,
+                                    maxLines: _maxInputLines,
+                                    keyboardType: TextInputType.multiline,
+                                    textInputAction: TextInputAction.newline,
+                                    cursorColor: AppColors.primary,
+                                    onChanged: onTyping,
+                                    onTap: onFocusText,
+                                    style: context.text.bodyLarge
+                                        ?.copyWith(height: 1.3),
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      filled: false,
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      hintText: AppStrings.chatComposerHint,
+                                      hintStyle: context.text.bodyLarge
+                                          ?.copyWith(color: colors.muted),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 10,
+                                      ),
                                     ),
-                                    itemCount: attachments.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(width: 8),
-                                    itemBuilder: (_, index) {
-                                      final item = attachments[index];
-                                      return _AttachmentChip(
-                                        attachment: item,
-                                        onRemove: () =>
-                                            onRemoveAttachment(item),
-                                      );
-                                    },
                                   ),
                                 ),
-                              VitheyField(
-                                controller: controller,
-                                hint: AppStrings.chatComposerHint,
-                                minLines: 1,
-                                maxLines: _maxInputLines,
-                                enabled: !sending,
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                onChanged: onTyping,
-                                onTap: onFocusText,
-                                filled: true,
-                                suffix: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _ComposerIconButton(
-                                      tooltip: 'Add photo, video, or file',
-                                      onPressed:
-                                          sending ? null : onAddAttachment,
-                                      icon: Icons.add_rounded,
-                                      color: colors.heading,
-                                    ),
-                                    _ComposerIconButton(
-                                      tooltip: showEmojiPanel
-                                          ? 'Hide emoji'
-                                          : 'Emoji',
-                                      onPressed:
-                                          sending ? null : onToggleEmoji,
-                                      icon: showEmojiPanel
-                                          ? Icons.keyboard_rounded
-                                          : Icons.emoji_emotions_outlined,
-                                      color: showEmojiPanel
-                                          ? AppColors.primary
-                                          : colors.heading,
-                                    ),
-                                  ],
-                                ),
+                              ),
+                              _PlainIcon(
+                                tooltip: showEmojiPanel
+                                    ? 'Hide emoji'
+                                    : 'Emoji',
+                                icon: showEmojiPanel
+                                    ? LucideIcons.keyboard
+                                    : LucideIcons.smile,
+                                color: showEmojiPanel
+                                    ? AppColors.primary
+                                    : colors.heading,
+                                onPressed:
+                                    sending ? null : onToggleEmoji,
+                              ),
+                              _PlainIcon(
+                                tooltip: 'Send',
+                                icon: LucideIcons.send,
+                                color: canSend
+                                    ? AppColors.primary
+                                    : colors.muted.withValues(alpha: 0.45),
+                                onPressed: canSend ? onSend : null,
+                                loading: sending,
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        _SendButton(
-                          canSend: canSend,
-                          sending: sending,
-                          onSend: onSend,
                         ),
                       ],
                     );
@@ -157,70 +190,45 @@ class ChatComposer extends StatelessWidget {
   }
 }
 
-class _ComposerIconButton extends StatelessWidget {
-  const _ComposerIconButton({
+class _PlainIcon extends StatelessWidget {
+  const _PlainIcon({
     required this.tooltip,
-    required this.onPressed,
     required this.icon,
     required this.color,
+    this.onPressed,
+    this.loading = false,
   });
 
   final String tooltip;
-  final VoidCallback? onPressed;
   final IconData icon;
   final Color color;
+  final VoidCallback? onPressed;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onPressed,
-      padding: const EdgeInsets.all(8),
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 44),
-      icon: Icon(icon, color: color, size: 24),
-    );
-  }
-}
-
-class _SendButton extends StatelessWidget {
-  const _SendButton({
-    required this.canSend,
-    required this.sending,
-    required this.onSend,
-  });
-
-  final bool canSend;
-  final bool sending;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: canSend
-          ? AppColors.primary
-          : AppColors.primary.withValues(alpha: 0.35),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: canSend ? onSend : null,
-        child: SizedBox(
-          width: 46,
-          height: 46,
-          child: Center(
-            child: sending
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: ChatComposer._iconTap,
+            height: ChatComposer._iconTap,
+            child: Center(
+              child: loading
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : VitheyIcon(icon, size: ChatComposer._iconSize, color: color),
+            ),
           ),
         ),
       ),
@@ -247,7 +255,7 @@ class _AttachmentChip extends StatelessWidget {
           height: 64,
           decoration: BoxDecoration(
             color: context.appColors.cardSurface,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(VitheyRadii.media),
             border: Border.all(
               color: context.appColors.border.withValues(alpha: 0.7),
             ),
@@ -257,18 +265,18 @@ class _AttachmentChip extends StatelessWidget {
               ? Image.file(
                   File(attachment.path),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.broken_image_outlined,
+                  errorBuilder: (_, __, ___) => VitheyIcon(
+                    LucideIcons.imageOff,
                     color: context.appColors.muted,
                   ),
                 )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    VitheyIcon(
                       attachment.isVideo
-                          ? Icons.videocam_outlined
-                          : Icons.insert_drive_file_outlined,
+                          ? LucideIcons.video
+                          : LucideIcons.fileText,
                       color: AppColors.primary,
                       size: 22,
                     ),
@@ -280,10 +288,8 @@ class _AttachmentChip extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: context.appColors.muted,
-                        ),
+                        style: context.text.labelSmall
+                            ?.copyWith(fontSize: 9),
                       ),
                     ),
                   ],
@@ -301,7 +307,7 @@ class _AttachmentChip extends StatelessWidget {
               child: const SizedBox(
                 width: 20,
                 height: 20,
-                child: Icon(Icons.close, size: 12, color: Colors.white),
+                child: VitheyIcon(LucideIcons.x, size: 12, color: Colors.white),
               ),
             ),
           ),

@@ -5,10 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
@@ -39,14 +42,14 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwn = message.isOwn;
     final maxWidth = MediaQuery.sizeOf(context).width * 0.78;
-    final incomingBubbleColor = const Color(0xFFF1F3F5);
-    final bubbleColor =
-        isOwn ? AppColors.primary : incomingBubbleColor;
-    final textColor = isOwn ? Colors.white : context.appColors.heading;
+    final incomingBubbleColor = context.appColors.inputFill;
+    final bubbleColor = isOwn ? AppColors.primary : incomingBubbleColor;
+    final onPrimary = context.scheme.onPrimary;
+    final textColor = isOwn ? onPrimary : context.appColors.heading;
     final displayText =
         message.isDeleted ? 'This message was deleted' : message.text;
     final timeColor =
-        isOwn ? Colors.white.withValues(alpha: 0.75) : context.appColors.muted;
+        isOwn ? onPrimary.withValues(alpha: 0.75) : context.appColors.muted;
     final timeLabel = _formatBubbleTime(message.createdAt);
 
     return Padding(
@@ -88,7 +91,8 @@ class MessageBubble extends StatelessWidget {
                           )
                           .toList(),
                     ),
-                    if (displayText.trim().isNotEmpty) const SizedBox(height: 6),
+                    if (displayText.trim().isNotEmpty)
+                      const SizedBox(height: 6),
                   ],
                   if (message.isDeleted || displayText.trim().isNotEmpty)
                     IntrinsicWidth(
@@ -101,8 +105,8 @@ class MessageBubble extends StatelessWidget {
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(18),
                             topRight: const Radius.circular(18),
-                            bottomLeft: Radius.circular(isOwn ? 18 : 4),
-                            bottomRight: Radius.circular(isOwn ? 4 : 18),
+                            bottomLeft: Radius.circular(isOwn ? 18 : 16),
+                            bottomRight: Radius.circular(isOwn ? 16 : 18),
                           ),
                           boxShadow: isOwn
                               ? null
@@ -150,21 +154,16 @@ class MessageBubble extends StatelessWidget {
                         children: [
                           Text(
                             timeLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.appColors.muted,
-                            ),
+                            style: context.text.labelSmall,
                           ),
                           if (message.isFailed) ...[
                             const SizedBox(width: 6),
                             GestureDetector(
                               onTap: onRetry,
-                              child: const Text(
+                              child: Text(
                                 'Retry',
-                                style: TextStyle(
-                                  color: AppColors.error,
-                                  fontSize: 11,
-                                ),
+                                style: context.text.labelSmall
+                                    ?.copyWith(color: AppColors.error),
                               ),
                             ),
                           ],
@@ -203,7 +202,8 @@ class MessageBubble extends StatelessWidget {
                               reaction.count > 1
                                   ? '${reaction.emoji} ${reaction.count}'
                                   : reaction.emoji,
-                              style: const TextStyle(fontSize: 13),
+                              style: context.text.bodyMedium
+                                  ?.copyWith(fontSize: 13),
                             ),
                           ),
                         );
@@ -217,10 +217,7 @@ class MessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4, right: 4),
                       child: Text(
                         AppStrings.chatSeen,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: context.appColors.muted,
-                        ),
+                        style: context.text.labelSmall,
                       ),
                     ),
                 ],
@@ -263,9 +260,9 @@ class _TelegramBubbleBody extends StatelessWidget {
       children: [
         Text(
           text,
-          style: TextStyle(
+          style: context.text.bodyMedium?.copyWith(
             color: textColor,
-            fontSize: 15,
+            fontSize: VitheyType.titleSm,
             height: 1.35,
             fontStyle: isDeleted ? FontStyle.italic : FontStyle.normal,
           ),
@@ -278,19 +275,17 @@ class _TelegramBubbleBody extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 1),
               child: Text(
                 timeLabel,
-                style: TextStyle(fontSize: 11, color: timeColor),
+                style: context.text.labelSmall?.copyWith(color: timeColor),
               ),
             ),
             if (isFailed) ...[
               const SizedBox(width: 6),
               GestureDetector(
                 onTap: onRetry,
-                child: const Text(
+                child: Text(
                   'Retry',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontSize: 11,
-                  ),
+                  style: context.text.labelSmall
+                      ?.copyWith(color: AppColors.error),
                 ),
               ),
             ],
@@ -316,12 +311,14 @@ class _ReplyPreview extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isOwn
-            ? Colors.white.withValues(alpha: 0.15)
+            ? context.scheme.onPrimary.withValues(alpha: 0.15)
             : context.appColors.inputFill,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         border: Border(
           left: BorderSide(
-            color: isOwn ? Colors.white70 : AppColors.primary,
+            color: isOwn
+                ? context.scheme.onPrimary.withValues(alpha: 0.7)
+                : AppColors.primary,
             width: 3,
           ),
         ),
@@ -330,9 +327,10 @@ class _ReplyPreview extends StatelessWidget {
         preview,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 12,
-          color: isOwn ? Colors.white70 : context.appColors.muted,
+        style: context.text.labelMedium?.copyWith(
+          color: isOwn
+              ? context.scheme.onPrimary.withValues(alpha: 0.7)
+              : context.appColors.muted,
           fontStyle: FontStyle.italic,
         ),
       ),
@@ -356,12 +354,12 @@ class _BubbleAttachment extends StatelessWidget {
       height: 110,
       decoration: BoxDecoration(
         color: isOwn
-            ? Colors.white.withValues(alpha: 0.15)
+            ? context.scheme.onPrimary.withValues(alpha: 0.15)
             : context.appColors.inputFill,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(VitheyRadii.media),
         border: Border.all(
           color: isOwn
-              ? Colors.white.withValues(alpha: 0.25)
+              ? context.scheme.onPrimary.withValues(alpha: 0.25)
               : context.appColors.border.withValues(alpha: 0.7),
         ),
       ),
@@ -370,19 +368,23 @@ class _BubbleAttachment extends StatelessWidget {
           ? Image.file(
               File(attachment.path),
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.broken_image_outlined,
-                color: isOwn ? Colors.white70 : context.appColors.muted,
+              errorBuilder: (_, __, ___) => VitheyIcon(
+                LucideIcons.imageOff,
+                color: isOwn
+                    ? context.scheme.onPrimary.withValues(alpha: 0.7)
+                    : context.appColors.muted,
               ),
             )
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                VitheyIcon(
                   attachment.isVideo
-                      ? Icons.videocam_rounded
-                      : Icons.insert_drive_file_rounded,
-                  color: isOwn ? Colors.white : AppColors.primary,
+                      ? LucideIcons.video
+                      : LucideIcons.fileText,
+                  color: isOwn
+                      ? context.scheme.onPrimary
+                      : AppColors.primary,
                   size: 26,
                 ),
                 const SizedBox(height: 6),
@@ -393,9 +395,10 @@ class _BubbleAttachment extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isOwn ? Colors.white : context.appColors.heading,
+                    style: context.text.labelSmall?.copyWith(
+                      color: isOwn
+                          ? context.scheme.onPrimary
+                          : context.appColors.heading,
                     ),
                   ),
                 ),

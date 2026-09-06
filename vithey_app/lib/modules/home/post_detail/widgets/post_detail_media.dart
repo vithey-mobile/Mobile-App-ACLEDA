@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PostDetailMedia extends StatefulWidget {
   const PostDetailMedia({super.key, required this.post});
 
@@ -91,9 +92,9 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
             IconButton(
               iconSize: 56,
               color: Colors.white70,
-              icon: Icon(_controller!.value.isPlaying
-                  ? Icons.pause_circle
-                  : Icons.play_circle),
+              icon: VitheyIcon(_controller!.value.isPlaying
+                  ? LucideIcons.circlePause
+                  : LucideIcons.circlePlay),
               onPressed: () {
                 setState(() {
                   _controller!.value.isPlaying
@@ -123,7 +124,7 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
                   color: context.scheme.onSurfaceVariant,
                   shape: BoxShape.circle),
               child:
-                  const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+                  const VitheyIcon(LucideIcons.play, color: Colors.white, size: 40),
             ),
           if (_error != null)
             Positioned(
@@ -148,7 +149,7 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
       alignment: Alignment.center,
       child: loading
           ? const CircularProgressIndicator(strokeWidth: 2)
-          : const Icon(Icons.image_not_supported_outlined),
+          : const VitheyIcon(LucideIcons.imageOff),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 
 class SplashBrandTitle extends StatelessWidget {
@@ -25,10 +26,8 @@ class SplashBrandTitle extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               AppStrings.loading,
-              style: TextStyle(
+              style: context.text.labelSmall?.copyWith(
                 color: AppColors.accentLight.withValues(alpha: 0.9),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
                 letterSpacing: 0.4,
               ),
             ),
@@ -37,7 +36,7 @@ class SplashBrandTitle extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           AppStrings.appName.split(' ').first,
-          style: const TextStyle(
+          style: context.text.titleLarge?.copyWith(
             color: AppColors.accentLight,
             fontSize: 30,
             fontWeight: FontWeight.w600,

@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_dialog.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplicationFeedbackSuccess {
   static Future<void> show() {
-    return Get.dialog<void>(
-      const _ApplicationFeedbackSuccessDialog(),
+    return showVitheyDialog<void>(
+      context: Get.context!,
       barrierDismissible: false,
+      child: const _ApplicationFeedbackSuccessDialog(),
     );
   }
 }
@@ -17,52 +20,26 @@ class _ApplicationFeedbackSuccessDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: EdgeInsets.zero,
-      backgroundColor: context.appColors.cardSurface,
-      surfaceTintColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(),
-      child: SizedBox.expand(
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 28,
-                vertical: 32,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const _FeedbackSubmittedHero(),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Feedback Submitted!',
-                    style: TextStyle(
-                      color: context.appColors.heading,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 310),
-                    child: Text(
-                      'Your feedback has been submitted successfully to the candidate.',
-                      style: TextStyle(
-                        color: context.appColors.muted,
-                        fontSize: 14,
-                        height: 1.45,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const _FeedbackSubmittedHero(),
+        const SizedBox(height: 18),
+        Text(
+          'Feedback Submitted!',
+          style: context.text.titleLarge?.copyWith(fontSize: 20),
+          textAlign: TextAlign.center,
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(
+          'Your feedback has been submitted successfully to the candidate.',
+          style: context.text.bodyMedium?.copyWith(
+            color: context.appColors.muted,
+            height: 1.45,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }
@@ -83,15 +60,15 @@ class _FeedbackSubmittedHero extends StatelessWidget {
             top: 30,
             child: Transform.rotate(
               angle: -0.08,
-              child: Icon(
-                Icons.description,
+              child: VitheyIcon(
+                LucideIcons.fileText,
                 size: 76,
                 color: AppColors.info.withValues(alpha: 0.2),
               ),
             ),
           ),
-          const Icon(
-            Icons.description,
+          const VitheyIcon(
+            LucideIcons.fileText,
             size: 82,
             color: AppColors.info,
           ),
@@ -105,7 +82,7 @@ class _FeedbackSubmittedHero extends StatelessWidget {
                 color: AppColors.success,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 20),
+              child: const VitheyIcon(LucideIcons.check, color: Colors.white, size: 20),
             ),
           ),
           Positioned(

@@ -8,7 +8,9 @@ import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.da
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_top_section.dart';
+import 'package:aub_connect_app/modules/auth/widgets/vithey_genz.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -93,10 +95,10 @@ class OnboardingScreen extends StatelessWidget {
                       child: SafeArea(
                         child: Row(
                           children: [
-                            CustomButton(
-                              label: AppStrings.back,
-                              variant: CustomButtonVariant.ghost,
-                              foregroundColor: AppColors.accentLight,
+                            VitheyIconButton(
+                              icon: LucideIcons.arrowLeft,
+                              tooltip: AppStrings.back,
+                              onTeal: true,
                               onPressed: busy ? null : controller.back,
                             ),
                             const Spacer(),

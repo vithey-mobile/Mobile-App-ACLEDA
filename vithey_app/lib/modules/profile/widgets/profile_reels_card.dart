@@ -1,11 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
 import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileReelsCard extends StatelessWidget {
   const ProfileReelsCard({
     super.key,
@@ -28,14 +31,13 @@ class ProfileReelsCard extends StatelessWidget {
             ? '${post.content.substring(0, 40)}…'
             : post.content);
 
-    return Card(
+    return VitheyCard(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.symmetric(vertical: 8),
+      bordered: true,
+      elevated: false,
+      borderRadius: VitheyRadii.card,
       clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.appColors.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -65,8 +67,8 @@ class ProfileReelsCard extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 28,
                       backgroundColor: Colors.white54,
-                      child: Icon(
-                        Icons.play_arrow,
+                      child: VitheyIcon(
+                        LucideIcons.play,
                         size: 36,
                         color: Colors.white,
                       ),
@@ -85,10 +87,8 @@ class ProfileReelsCard extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
+                  style: context.text.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 if (post.content.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -96,19 +96,13 @@ class ProfileReelsCard extends StatelessWidget {
                     post.content,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 13,
-                    ),
+                    style: context.text.bodySmall,
                   ),
                 ],
                 const SizedBox(height: 6),
                 Text(
                   RelativeTime.format(post.createdAt),
-                  style: TextStyle(
-                    color: context.appColors.muted,
-                    fontSize: 12,
-                  ),
+                  style: context.text.labelMedium,
                 ),
               ],
             ),

@@ -102,22 +102,65 @@ class PostRepository {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
       _ensureMockSeed();
-      if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
+      if (page < 1) return const FeedPageResult(posts: [], hasMore: false);
       final fixturePosts = PostFixtures.feedPage(
         page: page,
         currentUserId: _mockUserId,
         reactedPosts: _reactedPosts,
         followedAuthors: _followedAuthors,
       );
+      if (fixturePosts.isEmpty && page > 1) {
+        return const FeedPageResult(posts: [], hasMore: false);
+      }
       final posts = _applyMockPostState([
         if (page == 1) ..._mockCreatedPosts.values,
         ...fixturePosts,
       ]);
-      return FeedPageResult(posts: posts, hasMore: page < 2);
+      return FeedPageResult(
+        posts: posts,
+        hasMore: PostFixtures.feedHasMore(
+          page: page,
+          currentUserId: _mockUserId,
+        ),
+      );
     }
 
     final posts = await _postService.fetchFeed(
         page: page, limit: limit, currentUserId: _mockUserId);
+    return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
+  }
+
+  /// Video-only feed for the Reels tab. The home feed first page is mostly
+  /// jobs, so filtering that page would show an empty Reels screen.
+  Future<FeedPageResult> fetchReels({required int page, int limit = 20}) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      _ensureMockSeed();
+      if (page < 1) return const FeedPageResult(posts: [], hasMore: false);
+      final all = _applyMockPostState([
+        ..._mockCreatedPosts.values,
+        ...PostFixtures.allPosts(
+          currentUserId: _mockUserId,
+          reactedPosts: _reactedPosts,
+          followedAuthors: _followedAuthors,
+        ),
+      ]).where((p) => p.type == PostType.video).toList();
+      final start = (page - 1) * limit;
+      if (start >= all.length) {
+        return const FeedPageResult(posts: [], hasMore: false);
+      }
+      return FeedPageResult(
+        posts: all.skip(start).take(limit).toList(),
+        hasMore: start + limit < all.length,
+      );
+    }
+
+    final posts = await _postService.fetchFeed(
+      page: page,
+      limit: limit,
+      currentUserId: _mockUserId,
+      type: PostType.video,
+    );
     return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
   }
 

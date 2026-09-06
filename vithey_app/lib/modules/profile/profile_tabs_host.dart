@@ -17,6 +17,7 @@ abstract class ProfileTabsHost extends GetxController {
   bool get isAllPostsLoading;
 
   void openPost(String postId);
+  void openPostAnalytics(FeedPost post);
   void openJobApplicants(FeedPost jobPost);
   void applyToJob(String jobPostId);
   void editPost(FeedPost post);

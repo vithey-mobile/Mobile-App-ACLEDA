@@ -10,7 +10,6 @@ import 'package:aub_connect_app/modules/chat/widgets/date_separator.dart';
 import 'package:aub_connect_app/modules/chat/widgets/jump_to_latest_chip.dart';
 import 'package:aub_connect_app/modules/chat/widgets/message_bubble.dart';
 import 'package:aub_connect_app/modules/chat/widgets/reply_preview_bar.dart';
-import 'package:aub_connect_app/modules/chat/widgets/typing_indicator_banner.dart';
 
 class ChatDetailScreen extends GetView<ChatDetailController> {
   const ChatDetailScreen({super.key});
@@ -43,7 +42,8 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
             child: Stack(
               children: [
                 Obx(() {
-                  if (controller.isLoading.value && controller.messages.isEmpty) {
+                  if (controller.isLoading.value &&
+                      controller.messages.isEmpty) {
                     return const LoadingWidget();
                   }
                   final visible = controller.visibleMessages;
@@ -59,7 +59,8 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
                   }
                   return ListView.builder(
                     controller: controller.scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 16),
                     itemCount: visible.length,
                     itemBuilder: (_, index) {
                       final message = visible[index];
@@ -69,14 +70,19 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
                             DateSeparator(date: message.createdAt),
                           MessageBubble(
                             message: message,
-                            showAvatar: controller.shouldShowAvatarInThread(index),
-                            participantName: controller.participant.value?.fullName ?? '',
-                            participantAvatarUrl: controller.participant.value?.avatarUrl,
+                            showAvatar:
+                                controller.shouldShowAvatarInThread(index),
+                            participantName:
+                                controller.participant.value?.fullName ?? '',
+                            participantAvatarUrl:
+                                controller.participant.value?.avatarUrl,
                             onRetry: () => controller.retryMessage(message),
-                            onLongPress: () => controller.showMessageActions(message),
+                            onLongPress: () =>
+                                controller.showMessageActions(message),
                             onReactionTap: (emoji) =>
                                 controller.reactToMessage(message, emoji),
-                            showSeenLabel: controller.shouldShowSeenLabelInThread(index),
+                            showSeenLabel:
+                                controller.shouldShowSeenLabelInThread(index),
                           ),
                         ],
                       );
@@ -84,25 +90,20 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
                   );
                 }),
                 Obx(() {
-                  if (!controller.showJumpToLatest.value) return const SizedBox.shrink();
+                  if (!controller.showJumpToLatest.value) {
+                    return const SizedBox.shrink();
+                  }
                   return Positioned(
                     left: 0,
                     right: 0,
                     bottom: 8,
-                    child: JumpToLatestChip(onTap: controller.forceScrollToBottom),
+                    child:
+                        JumpToLatestChip(onTap: controller.forceScrollToBottom),
                   );
                 }),
               ],
             ),
           ),
-          Obx(() {
-            if (controller.isTyping.value) {
-              return TypingIndicatorBanner(
-                participantName: controller.participant.value?.fullName ?? 'Someone',
-              );
-            }
-            return const SizedBox.shrink();
-          }),
           Obx(() {
             final reply = controller.replyToMessage.value;
             if (reply == null) return const SizedBox.shrink();

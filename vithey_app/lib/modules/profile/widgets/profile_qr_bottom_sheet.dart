@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
@@ -54,7 +55,7 @@ class _ProfileQrSheetBody extends StatelessWidget {
         const SizedBox(height: 20),
         Center(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(VitheyRadii.card),
             child: Image.asset(
               AppAssets.profileQrCode,
               width: qrSize,

@@ -1,7 +1,10 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// App-wide surface card built on [shad.Card].
 ///
 /// Use for settings groups, info panels, and form field shells.
@@ -16,7 +19,7 @@ class VitheyCard extends StatelessWidget {
     this.bordered = false,
     this.elevated = true,
     this.clipBehavior = Clip.antiAlias,
-    this.borderRadius = 12,
+    this.borderRadius = VitheyRadii.card,
   });
 
   final Widget child;
@@ -88,7 +91,6 @@ class VitheyInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     final primary = context.scheme.primary;
 
     return VitheyCard(
@@ -100,16 +102,13 @@ class VitheyInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: primary),
+              VitheyIcon(icon, size: 18, color: primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    color: colors.muted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: context.text.bodySmall
+                      ?.copyWith(fontWeight: VitheyWeight.medium),
                 ),
               ),
               if (trailing != null) trailing!,

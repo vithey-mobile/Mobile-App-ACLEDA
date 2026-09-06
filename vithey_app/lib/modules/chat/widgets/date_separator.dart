@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 
 class DateSeparator extends StatelessWidget {
   const DateSeparator({super.key, required this.date});
@@ -25,11 +26,11 @@ class DateSeparator extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: context.appColors.inputFill,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(VitheyRadii.pill),
           ),
           child: Text(
             labelFor(date),
-            style: TextStyle(fontSize: 12, color: context.appColors.muted),
+            style: context.text.labelMedium,
           ),
         ),
       ),

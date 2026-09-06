@@ -2,6 +2,8 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Logout row styled like other settings tiles (TikTok-style list item).
 class SettingsLogoutButton extends StatelessWidget {
   const SettingsLogoutButton({super.key, required this.onPressed});
@@ -10,9 +12,7 @@ class SettingsLogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),
@@ -31,7 +31,7 @@ class SettingsLogoutButton extends StatelessWidget {
               child: Row(
                 children: [
                   const Icon(
-                    Icons.logout_rounded,
+                    LucideIcons.logOut,
                     size: 22,
                     color: AppColors.error,
                   ),
@@ -39,8 +39,7 @@ class SettingsLogoutButton extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Logout',
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: context.text.titleSmall?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: AppColors.error,
                         height: 1.2,

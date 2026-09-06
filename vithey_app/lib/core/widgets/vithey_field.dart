@@ -1,10 +1,13 @@
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// App-wide text field built on [shad.TextField].
 ///
 /// Labels use [FontWeight.w600]. Works with [FormErrorHost] / [FieldErrors]
@@ -168,16 +171,16 @@ class _VitheyFieldState extends State<VitheyField> {
     final features = <shad.InputFeature>[
       if (widget.prefixIcon != null)
         shad.InputFeature.leading(
-          Icon(widget.prefixIcon, size: 20, color: chrome),
+          VitheyIcon(widget.prefixIcon!, size: 22, color: chrome),
         ),
       if (widget.obscureText)
         shad.InputFeature.trailing(
           shad.IconButton.text(
-            icon: Icon(
+            icon: VitheyIcon(
               _obscure
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              size: 18,
+                  ? LucideIcons.eye
+                  : LucideIcons.eyeOff,
+              size: 20,
               color: chrome,
             ),
             onPressed: () {
@@ -202,15 +205,14 @@ class _VitheyFieldState extends State<VitheyField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: labelColor,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              widget.label!,
+              style: context.text.titleSmall?.copyWith(color: labelColor),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
         ],
         FormField<String>(
           initialValue: widget.controller.text,
@@ -226,7 +228,14 @@ class _VitheyFieldState extends State<VitheyField> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                shad.TextField(
+                // Inset so shad FocusOutline (~3px outside) is not clipped
+                // by parent ClipRect / hardEdge (auth step slider, sheets).
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 3,
+                  ),
+                  child: shad.TextField(
                   controller: widget.controller,
                   focusNode: _focusNode,
                   autofocus: widget.autofocus,
@@ -241,19 +250,23 @@ class _VitheyFieldState extends State<VitheyField> {
                   onTap: widget.onTap,
                   inputFormatters: widget.inputFormatters,
                   filled: widget.filled,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                  borderRadius: BorderRadius.circular(VitheyRadii.field),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  style: context.text.bodyLarge?.copyWith(
+                    fontWeight: VitheyWeight.medium,
+                    height: 1.25,
                     color: widget.readOnly || !widget.enabled ? muted : heading,
                   ),
                   placeholder: widget.hint == null
                       ? null
                       : Text(
                           widget.hint!,
-                          style: TextStyle(
+                          style: context.text.bodyLarge?.copyWith(
                             color: chrome,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
+                            height: 1.25,
                           ),
                         ),
                   features: features,
@@ -263,14 +276,17 @@ class _VitheyFieldState extends State<VitheyField> {
                   },
                   onSubmitted: widget.onSubmitted,
                 ),
+                ),
                 if (hasError) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    externalError ?? _errorText!,
-                    style: const TextStyle(
-                      color: AppColors.error,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      externalError ?? _errorText!,
+                      style: context.text.bodySmall?.copyWith(
+                        color: AppColors.error,
+                        fontWeight: VitheyWeight.medium,
+                      ),
                     ),
                   ),
                 ],

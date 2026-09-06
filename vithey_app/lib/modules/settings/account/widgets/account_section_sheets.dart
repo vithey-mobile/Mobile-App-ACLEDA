@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_sheet.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_section_sheets.dart';
 
@@ -171,7 +172,7 @@ class _AccountDobFormState extends State<_AccountDobForm> {
           label: 'Date of birth',
           controller: _dob,
           readOnly: true,
-          suffix: const Icon(Icons.calendar_today_outlined),
+          suffix: const Icon(LucideIcons.calendar),
           onTap: _pickDob,
         ),
         EditProfileSheetActions(

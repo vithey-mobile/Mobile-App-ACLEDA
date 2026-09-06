@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/payment_args.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
 import 'package:aub_connect_app/modules/finance/payment/payment_controller.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PaymentScreen extends GetView<PaymentController> {
   const PaymentScreen({super.key});
 
@@ -21,7 +24,7 @@ class PaymentScreen extends GetView<PaymentController> {
         elevation: 0,
         title: Text(
           _isAcleda ? 'Pay With Acleda' : 'Pay With Another Bank',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: context.text.titleLarge,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -69,7 +72,7 @@ class _CollectingView extends GetView<PaymentController> {
             Text(
               'This is a preview flow — no real payment is processed yet.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: context.appColors.muted, fontSize: 12),
+              style: context.text.bodySmall?.copyWith(fontSize: 12),
             ),
           ],
         ),
@@ -90,28 +93,27 @@ class _InvoiceSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: colors.subtleShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             invoice.feeName,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: colors.heading,
-            ),
+            style: context.text.headlineSmall,
           ),
           const SizedBox(height: 6),
           Text(
             invoice.invoiceReference,
-            style: TextStyle(
-              color: colors.muted,
-              letterSpacing: 0.6,
-              fontWeight: FontWeight.w500,
-            ),
+            style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w500, color: colors.muted, letterSpacing: 0.6),
           ),
           const SizedBox(height: 14),
           Row(
@@ -119,20 +121,13 @@ class _InvoiceSummaryCard extends StatelessWidget {
             children: [
               Text(
                 invoice.totalLabel,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: colors.heading,
-                ),
+                style: context.text.titleLarge?.copyWith(fontSize: 17),
               ),
               const Spacer(),
               Text(
                 invoice.total.formatted,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
+                style: context.text.headlineSmall
+                    ?.copyWith(color: AppColors.primary),
               ),
             ],
           ),
@@ -152,8 +147,15 @@ class _AcledaQrPanel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: colors.subtleShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -162,16 +164,16 @@ class _AcledaQrPanel extends StatelessWidget {
             height: 180,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(VitheyRadii.media),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
-            child: const Icon(Icons.qr_code_2, size: 96, color: AppColors.primary),
+            child: const VitheyIcon(LucideIcons.qrCode, size: 96, color: AppColors.primary),
           ),
           const SizedBox(height: 16),
           Text(
             'Scan this KHQR code with your Acleda Mobile app to pay',
             textAlign: TextAlign.center,
-            style: TextStyle(color: colors.heading, fontWeight: FontWeight.w500),
+            style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w500, color: colors.heading),
           ),
         ],
       ),
@@ -193,20 +195,23 @@ class _BankTransferPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: colors.subtleShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'TRANSFER DETAILS',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.6,
-              fontSize: 12,
-              color: colors.muted,
-            ),
+            style: context.text.labelMedium
+                ?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 0.6),
           ),
           const SizedBox(height: 12),
           _CopyableRow(label: 'Bank Name', value: bankName),
@@ -238,26 +243,22 @@ class _CopyableRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: colors.muted,
-                    letterSpacing: 0.4,
-                  ),
+                  style: context.text.labelSmall
+                      ?.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.4),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(color: colors.heading, fontWeight: FontWeight.w600),
+                  style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: colors.heading),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.copy_outlined, size: 18),
-            color: AppColors.primary,
+          VitheyIconButton(
+            icon: LucideIcons.copy,
+            variant: VitheyIconButtonVariant.neutral,
             tooltip: 'Copy',
-            onPressed: () {
+            onTap: () {
               Clipboard.setData(ClipboardData(text: value));
               Get.snackbar(AppStrings.appName, '$label copied');
             },
@@ -296,7 +297,6 @@ class _SuccessView extends GetView<PaymentController> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -310,16 +310,12 @@ class _SuccessView extends GetView<PaymentController> {
                 color: AppColors.success,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 44),
+              child: const VitheyIcon(LucideIcons.check, color: Colors.white, size: 44),
             ),
             const SizedBox(height: 20),
             Text(
               'Payment Submitted',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: colors.heading,
-              ),
+              style: context.text.headlineSmall,
             ),
             const SizedBox(height: 6),
             Text(
@@ -327,7 +323,7 @@ class _SuccessView extends GetView<PaymentController> {
                   ? "We'll update your invoice once Acleda confirms the payment."
                   : "We'll update your invoice once the transfer is confirmed.",
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.muted, fontSize: 13),
+              style: context.text.bodySmall,
             ),
             const SizedBox(height: 28),
             CustomButton(

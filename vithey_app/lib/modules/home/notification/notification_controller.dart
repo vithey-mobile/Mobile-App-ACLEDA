@@ -11,6 +11,7 @@ import 'package:aub_connect_app/modules/home/notification/utils/notification_dis
 import 'package:aub_connect_app/modules/home/notification/utils/notification_grouping.dart';
 import 'package:aub_connect_app/modules/home/notification/widgets/delete_notification_dialog.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class NotificationController extends GetxController {
   NotificationController(this._repository);
 
@@ -26,6 +27,11 @@ class NotificationController extends GetxController {
   final paginationError = false.obs;
   final mutatingIds = <String>{}.obs;
   final scrollController = ScrollController();
+
+  /// In-header notification search (filters the loaded list).
+  final isSearchOpen = false.obs;
+  final searchQuery = ''.obs;
+  final searchController = TextEditingController();
 
   /// 1 when the user moved to a tab on the right, -1 for the left.
   /// Drives the direction of the list entrance animation.
@@ -45,10 +51,48 @@ class NotificationController extends GetxController {
     _repository.reconcileUnreadCount();
   }
 
-  List<NotificationSection> get sections => groupNotifications(notifications);
+  List<NotificationSection> get sections {
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isEmpty) return groupNotifications(notifications);
+    final matched = notifications.where((n) => _matchesSearch(n, query)).toList();
+    return groupNotifications(matched);
+  }
+
+  bool get hasSearchResults {
+    final query = searchQuery.value.trim();
+    if (query.isEmpty) return notifications.isNotEmpty;
+    return notifications.any((n) => _matchesSearch(n, query.toLowerCase()));
+  }
+
+  bool _matchesSearch(AppNotification n, String query) {
+    final haystacks = <String>[
+      n.title,
+      n.body,
+      n.actor?.fullName ?? '',
+      NotificationDisplayText.build(n),
+    ];
+    return haystacks.any((text) => text.toLowerCase().contains(query));
+  }
+
+  void openSearch() {
+    isSearchOpen.value = true;
+  }
+
+  void closeSearch() {
+    isSearchOpen.value = false;
+    if (searchQuery.value.isNotEmpty || searchController.text.isNotEmpty) {
+      searchController.clear();
+      searchQuery.value = '';
+    }
+  }
+
+  void setSearchQuery(String value) {
+    searchQuery.value = value;
+  }
 
   @override
   void onClose() {
+    searchController.dispose();
     scrollController.dispose();
     super.onClose();
   }
@@ -202,14 +246,14 @@ class NotificationController extends GetxController {
           value: 'mark_read',
           label: notification.isRead ? 'Already read' : 'Mark as read',
           icon: notification.isRead
-              ? Icons.check_circle
-              : Icons.check_circle_outline,
+              ? LucideIcons.circleCheck
+              : LucideIcons.circleCheck,
           enabled: !notification.isRead,
         ),
         VitheyActionSheetAction(
           value: 'delete',
           label: 'Delete notification',
-          icon: Icons.delete_outline,
+          icon: LucideIcons.trash2,
           destructive: true,
         ),
       ],

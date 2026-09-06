@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class OnboardingBottomSection extends StatelessWidget {
   const OnboardingBottomSection({
     super.key,
@@ -37,22 +38,14 @@ class OnboardingBottomSection extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: colors.heading,
-              height: 1.25,
-            ),
+            style: context.text.headlineSmall?.copyWith(height: 1.25),
           ),
           const SizedBox(height: 12),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: colors.muted,
-              fontSize: 14,
-              height: 1.4,
-            ),
+            style: context.text.bodyMedium
+                ?.copyWith(color: colors.muted, height: 1.4),
           ),
           const Spacer(flex: 2),
           if (showChrome) ...[
@@ -126,7 +119,7 @@ class _OnboardingCtaButton extends StatelessWidget {
           width: double.infinity,
           child: CustomButton(
             label: label,
-            icon: Icons.arrow_forward,
+            icon: LucideIcons.chevronRight,
             onPressed: onPressed,
           ),
         ),
@@ -152,12 +145,14 @@ class _PageDots extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(totalPages, (index) {
         final isActive = index == currentPage;
-        return Container(
-          width: 8,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          width: isActive ? 22 : 8,
           height: 8,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(4),
             color: isActive ? active : inactive,
           ),
         );

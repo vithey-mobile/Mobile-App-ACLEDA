@@ -22,6 +22,9 @@ class SearchController extends GetxController {
   final focusNode = FocusNode();
 
   final query = ''.obs;
+
+  /// Active results filter — one of [SearchResultFilters] ids.
+  final resultFilter = 'all'.obs;
   final recentItems = <SearchRecentItem>[].obs;
   final isLoadingRecents = true.obs;
   final isSearching = false.obs;
@@ -92,6 +95,7 @@ class SearchController extends GetxController {
       posts.clear();
       jobs.clear();
       videos.clear();
+      resultFilter.value = 'all';
       isSearching.value = false;
       return;
     }
@@ -241,4 +245,6 @@ class SearchController extends GetxController {
   }
 
   void retrySearch() => _runSearch(query.value.trim());
+
+  void setResultFilter(String id) => resultFilter.value = id;
 }

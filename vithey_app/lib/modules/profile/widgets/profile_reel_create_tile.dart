@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 
-/// Facebook-style “Create reel” tile — orange → purple gradient.
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+/// “Create reel” tile — orange → purple gradient, GenZ rounded (r16).
 class ProfileReelCreateTile extends StatelessWidget {
   const ProfileReelCreateTile({super.key, required this.onTap});
 
@@ -23,8 +26,12 @@ class ProfileReelCreateTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         child: Ink(
-          decoration: const BoxDecoration(gradient: _gradient),
+          decoration: BoxDecoration(
+            gradient: _gradient,
+            borderRadius: BorderRadius.circular(VitheyRadii.card),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -45,8 +52,8 @@ class ProfileReelCreateTile extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Icon(
-                      Icons.videocam_rounded,
+                    VitheyIcon(
+                      LucideIcons.video,
                       color: AppColors.error.withValues(alpha: 0.9),
                       size: 26,
                     ),
@@ -60,8 +67,8 @@ class ProfileReelCreateTile extends StatelessWidget {
                           color: AppColors.error,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.add,
+                        child: const VitheyIcon(
+                          LucideIcons.plus,
                           size: 12,
                           color: Colors.white,
                         ),
@@ -71,12 +78,11 @@ class ProfileReelCreateTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Create reel',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: context.text.bodySmall?.copyWith(
                   color: Colors.white,
-                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),

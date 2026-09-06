@@ -19,18 +19,14 @@ class StartupSkillsPage extends GetView<StartupController> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
             'What are your skills?',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Select your top skills to stand out to employers.',
-            style: TextStyle(color: context.appColors.muted, fontSize: 12),
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
         ),
         const SizedBox(height: 16),
@@ -63,18 +59,14 @@ class StartupInterestsPage extends GetView<StartupController> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
             'What are you interested in?',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Choose your favorite topics to personalize your feed.',
-            style: TextStyle(color: context.appColors.muted, fontSize: 12),
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
         ),
         const SizedBox(height: 16),
@@ -119,18 +111,14 @@ class StartupDiscoveryPage extends GetView<StartupController> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
             'How did you find us?',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'Select one option to help us improve your experience.',
-            style: TextStyle(color: context.appColors.muted, fontSize: 12),
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
         ),
         const SizedBox(height: 16),

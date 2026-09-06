@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/constants/app_assets.dart';
+import 'package:aub_connect_app/data/fixtures/application_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/mock_clock.dart';
 import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
@@ -10,19 +11,116 @@ import 'package:aub_connect_app/data/models/post_author.dart';
 /// Usage split (no role picker):
 /// - Logged-in user (**Poster / HR**): owns JOB posts `post-7`…`post-9`.
 /// - `author-1` (**Applier / Student**): posters/videos only — no JOB posts.
-/// - `post-10`: another user's open job — **not** seeded as applied (Apply CV demo).
+/// - `post-10`, `post-19`, `post-20`: open jobs for Apply CV UI testing.
+/// - `post-3`, `post-4`, `post-17`, `post-18`: seeded Applied Jobs for the logged-in user.
 abstract final class PostFixtures {
+  static const feedPageSize = 5;
+
   static List<FeedPost> allPosts({
     required String currentUserId,
     Set<String> reactedPosts = const {},
     Set<String> followedAuthors = const {},
   }) {
+    final appliedIds = ApplicationFixtures.seedAppliedJobPostIds();
+
     return [
+      // Apply CV demos — open jobs with Apply button (not seeded as applied).
+      _job(
+        id: MockIds.post10,
+        authorId: MockIds.author3,
+        title: 'Web Developer',
+        company: 'Aeon Mall',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, 32nd Street, SMC',
+        mediaUrl: AppAssets.jobPost1,
+        applicantCount: 2,
+        createdAt: MockClock.hoursAgo(2),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: JobApplicationState.notApplied,
+      ),
+      _job(
+        id: MockIds.post19,
+        authorId: MockIds.author5,
+        title: 'Mobile App Developer',
+        company: 'Pipay',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, BKK1',
+        mediaUrl: AppAssets.jobPost2,
+        applicantCount: 6,
+        createdAt: MockClock.hoursAgo(4),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: JobApplicationState.notApplied,
+      ),
+      _job(
+        id: MockIds.post20,
+        authorId: MockIds.author6,
+        title: 'Junior Data Analyst',
+        company: 'ACLEDA Bank Plc.',
+        employmentType: 'Internship',
+        location: 'Phnom Penh, Head Office',
+        mediaUrl: AppAssets.jobPost3,
+        applicantCount: 11,
+        createdAt: MockClock.hoursAgo(7),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: JobApplicationState.notApplied,
+      ),
+      // Own job — Applicants link on feed.
+      _job(
+        id: MockIds.post7,
+        authorId: MockIds.currentUser,
+        title: 'Call Center Officer',
+        company: 'LOLC (Cambodia) Plc.',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, Head Office',
+        mediaUrl: AppAssets.jobPost3,
+        applicantCount: 8,
+        createdAt: MockClock.monthsAgo(2),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+      ),
       _poster(
         id: MockIds.post1,
         authorId: MockIds.author1,
         content: 'Campus event this Friday! Join us for workshops and networking.',
         seed: 1,
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+      ),
+      _job(
+        id: MockIds.post3,
+        authorId: MockIds.author3,
+        title: 'Frontend Developer',
+        company: 'Chip Mong Group',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, Head Office',
+        mediaUrl: AppAssets.jobPost1,
+        applicantCount: 5,
+        createdAt: MockClock.hoursAgo(5),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: appliedIds.contains(MockIds.post3)
+            ? JobApplicationState.applied
+            : JobApplicationState.notApplied,
+      ),
+      _job(
+        id: MockIds.post9,
+        authorId: MockIds.currentUser,
+        title: 'Marketing Intern',
+        company: 'KDSB',
+        employmentType: 'Internship',
+        location: 'Phnom Penh, 32nd Street, SMC',
+        mediaUrl: AppAssets.jobPost2,
+        applicantCount: 3,
+        createdAt: MockClock.hoursAgo(18),
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
@@ -37,6 +135,71 @@ abstract final class PostFixtures {
         followedAuthors: followedAuthors,
         mediaUrl:
             'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      ),
+      _job(
+        id: MockIds.post4,
+        authorId: MockIds.author3,
+        title: 'Sales (Credit Officer) Intern',
+        company: 'KDSB',
+        employmentType: 'Internship',
+        location: 'KDSB Branches & Head Office',
+        mediaUrl: AppAssets.jobPost2,
+        applicantCount: 12,
+        createdAt: MockClock.daysAgo(3),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: appliedIds.contains(MockIds.post4)
+            ? JobApplicationState.applied
+            : JobApplicationState.notApplied,
+      ),
+      _job(
+        id: MockIds.post8,
+        authorId: MockIds.currentUser,
+        title: 'Young Talent, Finance',
+        company: 'Chip Mong Group',
+        employmentType: 'Internship',
+        location: 'Phnom Penh',
+        mediaUrl: AppAssets.jobPost1,
+        applicantCount: 5,
+        createdAt: MockClock.yearsAgo(1),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+      ),
+      _job(
+        id: MockIds.post17,
+        authorId: MockIds.author5,
+        title: 'UI/UX Designer',
+        company: 'Smart Axiata',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh',
+        mediaUrl: AppAssets.jobPost3,
+        applicantCount: 9,
+        createdAt: MockClock.daysAgo(8),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: appliedIds.contains(MockIds.post17)
+            ? JobApplicationState.applied
+            : JobApplicationState.notApplied,
+      ),
+      _job(
+        id: MockIds.post18,
+        authorId: MockIds.author6,
+        title: 'Content Marketing Associate',
+        company: 'Wing Bank',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, Toul Kork',
+        mediaUrl: AppAssets.jobPost2,
+        applicantCount: 4,
+        createdAt: MockClock.daysAgo(11),
+        currentUserId: currentUserId,
+        reactedPosts: reactedPosts,
+        followedAuthors: followedAuthors,
+        applicationState: appliedIds.contains(MockIds.post18)
+            ? JobApplicationState.applied
+            : JobApplicationState.notApplied,
       ),
       _video(
         id: MockIds.post5,
@@ -115,48 +278,6 @@ abstract final class PostFixtures {
         shareCount: 41,
         reactionCount: 890,
       ),
-      _job(
-        id: MockIds.post10,
-        authorId: MockIds.author3,
-        title: 'Web Developer',
-        company: 'Aeon Mall',
-        employmentType: 'Full-time',
-        location: 'Phnom Penh, 32nd Street, SMC',
-        mediaUrl: AppAssets.jobPost1,
-        applicantCount: 2,
-        createdAt: MockClock.hoursAgo(2),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
-      _job(
-        id: MockIds.post3,
-        authorId: MockIds.author3,
-        title: 'Multiple position',
-        company: 'Chip Mong Group',
-        employmentType: 'Full-time',
-        location: 'Phnom Penh, Head Office',
-        mediaUrl: AppAssets.jobPost1,
-        applicantCount: 5,
-        createdAt: MockClock.hoursAgo(5),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
-      _job(
-        id: MockIds.post4,
-        authorId: MockIds.author3,
-        title: 'Sales (Credit Officer) Intern',
-        company: 'KDSB',
-        employmentType: 'Internship',
-        location: 'KDSB Branches & Head Office',
-        mediaUrl: AppAssets.jobPost2,
-        applicantCount: 12,
-        createdAt: MockClock.daysAgo(3),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
       _video(
         id: MockIds.post15,
         authorId: MockIds.author1,
@@ -180,48 +301,6 @@ abstract final class PostFixtures {
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
       ),
-      _job(
-        id: MockIds.post7,
-        authorId: MockIds.currentUser,
-        title: 'Call Center Officer',
-        company: 'LOLC (Cambodia) Plc.',
-        employmentType: 'Full-time',
-        location: 'Phnom Penh, Head Office',
-        mediaUrl: AppAssets.jobPost3,
-        applicantCount: 8,
-        createdAt: MockClock.monthsAgo(2),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
-      _job(
-        id: MockIds.post8,
-        authorId: MockIds.currentUser,
-        title: 'Young Talent, Finance',
-        company: 'Chip Mong Group',
-        employmentType: 'Internship',
-        location: 'Phnom Penh',
-        mediaUrl: AppAssets.jobPost1,
-        applicantCount: 5,
-        createdAt: MockClock.yearsAgo(1),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
-      _job(
-        id: MockIds.post9,
-        authorId: MockIds.currentUser,
-        title: 'Marketing Intern',
-        company: 'KDSB',
-        employmentType: 'Internship',
-        location: 'Phnom Penh, 32nd Street, SMC',
-        mediaUrl: AppAssets.jobPost2,
-        applicantCount: 3,
-        createdAt: MockClock.hoursAgo(18),
-        currentUserId: currentUserId,
-        reactedPosts: reactedPosts,
-        followedAuthors: followedAuthors,
-      ),
     ];
   }
 
@@ -236,10 +315,18 @@ abstract final class PostFixtures {
       reactedPosts: reactedPosts,
       followedAuthors: followedAuthors,
     );
-    const pageSize = 3;
-    if (page < 1 || page > 2) return [];
-    final start = (page - 1) * pageSize;
-    return all.skip(start).take(pageSize).toList();
+    if (page < 1) return [];
+    final start = (page - 1) * feedPageSize;
+    if (start >= all.length) return [];
+    return all.skip(start).take(feedPageSize).toList();
+  }
+
+  static bool feedHasMore({
+    required int page,
+    required String currentUserId,
+  }) {
+    final total = allPosts(currentUserId: currentUserId).length;
+    return page * feedPageSize < total;
   }
 
   static FeedPost? findPost(
@@ -274,6 +361,7 @@ abstract final class PostFixtures {
       content: content,
       mediaUrl: 'https://picsum.photos/seed/poster$seed/600/420',
       createdAt: MockClock.hoursAgo(seed * 2),
+      viewCount: 180 + seed * 37,
       reactionCount: 12 + seed,
       commentCount: 3 + seed,
       shareCount: seed,
@@ -306,6 +394,9 @@ abstract final class PostFixtures {
       thumbnailUrl: 'https://picsum.photos/seed/vthumb$seed/600/340',
       durationSeconds: 95 + seed,
       createdAt: MockClock.hoursAgo(seed * 3),
+      viewCount: reactionCount != null
+          ? reactionCount * 14 + 320
+          : 520 + seed * 91,
       reactionCount: reactionCount ?? (45 + seed),
       commentCount: commentCount ?? 8,
       shareCount: shareCount ?? 2,
@@ -338,7 +429,7 @@ abstract final class PostFixtures {
       mediaUrl: mediaUrl,
       jobMeta: JobMeta(
         title: title,
-        description: company,
+        description: '$company · $employmentType · $location',
         requirement: employmentType,
       ),
       applicantCount: applicantCount,

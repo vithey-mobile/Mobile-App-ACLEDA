@@ -12,11 +12,8 @@ class TypingIndicatorBanner extends StatelessWidget {
       padding: const EdgeInsets.only(left: 16, bottom: 8),
       child: Text(
         '$participantName is typing…',
-        style: TextStyle(
-          fontSize: 13,
-          fontStyle: FontStyle.italic,
-          color: context.appColors.muted,
-        ),
+        style: context.text.bodySmall
+            ?.copyWith(fontStyle: FontStyle.italic),
       ),
     );
   }

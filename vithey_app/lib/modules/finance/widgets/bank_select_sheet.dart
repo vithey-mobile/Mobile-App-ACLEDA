@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/payment_args.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class _BankOption {
   const _BankOption({required this.name, required this.color});
 
@@ -27,7 +29,7 @@ class BankSelectSheet {
       isScrollControlled: true,
       backgroundColor: context.scheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -80,17 +82,13 @@ class _BankSelectSheetBody extends StatelessWidget {
             Text(
               'Select a Bank',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: colors.heading,
-              ),
+              style: context.text.headlineSmall,
             ),
             const SizedBox(height: 6),
             Text(
               'Choose which bank to pay from',
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.muted, fontSize: 13),
+              style: context.text.bodySmall,
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -104,14 +102,14 @@ class _BankSelectSheetBody extends StatelessWidget {
                       child: _BankTile(
                         label: bank.name,
                         color: bank.color,
-                        icon: Icons.account_balance,
+                        icon: LucideIcons.landmark,
                         onTap: () => _selectBank(bank.name),
                       ),
                     ),
                   _BankTile(
-                    label: 'More (soon)',
+                    label: 'More banks',
                     color: colors.muted,
-                    icon: Icons.more_horiz,
+                    icon: LucideIcons.ellipsis,
                     onTap: null,
                   ),
                 ],
@@ -140,8 +138,9 @@ class _BankTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final disabled = onTap == null;
     return Opacity(
-      opacity: onTap == null ? 0.5 : 1,
+      opacity: disabled ? 0.75 : 1,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
@@ -150,32 +149,96 @@ class _BankTile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color.withValues(alpha: 0.3)),
-                ),
-                child: Icon(icon, color: color, size: 26),
-              ),
+              disabled
+                  ? CustomPaint(
+                      painter: _DashedCirclePainter(color: color),
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        alignment: Alignment.center,
+                        child: VitheyIcon(icon, color: color, size: 26),
+                      ),
+                    )
+                  : Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                        border:
+                            Border.all(color: color.withValues(alpha: 0.3)),
+                      ),
+                      child: VitheyIcon(icon, color: color, size: 26),
+                    ),
               const SizedBox(height: 8),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
+                style: context.text.labelMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: colors.heading,
+                  color: disabled ? colors.muted : colors.heading,
                 ),
               ),
+              if (disabled) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.muted.withValues(alpha: 0.12),
+                    borderRadius:
+                        BorderRadius.circular(VitheyRadii.pill),
+                  ),
+                  child: Text(
+                    'Coming soon',
+                    style: context.text.labelSmall?.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _DashedCirclePainter extends CustomPainter {
+  _DashedCirclePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    final path = Path()
+      ..addOval(Offset.zero & size);
+    const dashWidth = 5.0;
+    const dashSpace = 4.0;
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        final next = distance + dashWidth;
+        canvas.drawPath(
+          metric.extractPath(distance, next.clamp(0, metric.length)),
+          paint,
+        );
+        distance = next + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
+      oldDelegate.color != color;
 }

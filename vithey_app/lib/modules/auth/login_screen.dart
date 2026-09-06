@@ -12,9 +12,11 @@ import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 import 'package:aub_connect_app/modules/auth/widgets/auth_panel_switcher.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
+import 'package:aub_connect_app/modules/auth/widgets/vithey_genz.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Auth v2 shell:
 /// - Wave to solid teal morph from Onboarding (shared painter)
 /// - Light-teal wave band (~10% screen) + white body (hugs form content)
@@ -93,10 +95,10 @@ class LoginScreen extends GetView<AuthController> {
                       top: 0,
                       left: 0,
                       child: SafeArea(
-                        child: CustomButton(
-                          label: AppStrings.back,
-                          variant: CustomButtonVariant.ghost,
-                          foregroundColor: AppColors.accentLight,
+                        child: VitheyIconButton(
+                          icon: LucideIcons.arrowLeft,
+                          tooltip: AppStrings.back,
+                          onTeal: true,
                           onPressed: busy ? null : controller.goBack,
                         ),
                       ),
@@ -149,17 +151,14 @@ class _SignInForm extends GetView<AuthController> {
             children: [
               Text(
                 AppStrings.welcomeBack,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: context.appColors.heading,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: context.text.headlineSmall,
               ),
               const SizedBox(height: 20),
               CustomTextField(
                 controller: controller.emailController,
                 label: AppStrings.emailAddress,
                 hint: 'Email',
-                prefixIcon: Icons.email_outlined,
+                prefixIcon: LucideIcons.mail,
                 keyboardType: TextInputType.emailAddress,
                 validator: Validators.email,
                 onChanged: (_) => controller.clearError(),
@@ -170,7 +169,7 @@ class _SignInForm extends GetView<AuthController> {
                 controller: controller.passwordController,
                 label: AppStrings.password,
                 hint: 'Password',
-                prefixIcon: Icons.lock_outline,
+                prefixIcon: LucideIcons.lock,
                 obscureText: true,
                 validator: Validators.password,
                 onChanged: (_) => controller.clearError(),
@@ -197,14 +196,15 @@ class _SignInForm extends GetView<AuthController> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     controller.errorMessage.value,
-                    style: const TextStyle(color: AppColors.error, fontSize: 13),
+                    style:
+                        context.text.bodySmall?.copyWith(color: AppColors.error),
                   ),
                 );
               }),
               Obx(
                 () => _AuthPrimaryButton(
                   label: AppStrings.signIn,
-                  icon: Icons.login,
+                  icon: LucideIcons.logIn,
                   isLoading: controller.isLoading.value,
                   onPressed: () {
                     FormErrorHost.activateFor(controller.loginFormKey);
@@ -231,10 +231,7 @@ class _SignInForm extends GetView<AuthController> {
                 children: [
                   Text(
                     AppStrings.noAccount,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.appColors.muted,
-                    ),
+                    style: context.text.labelMedium,
                   ),
                   CustomButton(
                     label: AppStrings.signUp,
@@ -272,10 +269,7 @@ class _SignUpForm extends GetView<AuthController> {
         children: [
           Text(
             AppStrings.createAccount,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: context.appColors.heading,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: context.text.headlineSmall,
           ),
           const SizedBox(height: 16),
           // Fields slide inside this padded lane (clipped ΓÇö never to screen edge).
@@ -304,7 +298,7 @@ class _SignUpForm extends GetView<AuthController> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 controller.errorMessage.value,
-                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                style: context.text.bodySmall?.copyWith(color: AppColors.error),
               ),
             );
           }),
@@ -314,7 +308,7 @@ class _SignUpForm extends GetView<AuthController> {
             if (step == 0) {
               return _AuthPrimaryButton(
                 label: AppStrings.next,
-                icon: Icons.arrow_forward,
+                icon: LucideIcons.chevronRight,
                 isLoading: false,
                 onPressed: () {
                   FormErrorHost.activateFor(controller.registerPart1FormKey);
@@ -324,7 +318,7 @@ class _SignUpForm extends GetView<AuthController> {
             }
             return _AuthPrimaryButton(
               label: AppStrings.signUp,
-              icon: Icons.person_add_alt_1,
+              icon: LucideIcons.userPlus,
               isLoading: loading,
               onPressed: () {
                 FormErrorHost.activateFor(controller.registerPart2FormKey);
@@ -360,8 +354,8 @@ class _SignUpForm extends GetView<AuthController> {
                 FormErrorHost.clearAll();
                 controller.goToRegisterPart1();
               },
-              leading: Icon(
-                Icons.arrow_back,
+              leading: VitheyIcon(
+                LucideIcons.arrowLeft,
                 size: 20,
                 color: context.appColors.heading,
               ),
@@ -373,10 +367,7 @@ class _SignUpForm extends GetView<AuthController> {
             children: [
               Text(
                 AppStrings.hasAccount,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.appColors.muted,
-                ),
+                style: context.text.labelMedium,
               ),
               CustomButton(
                 label: AppStrings.signIn,
@@ -407,7 +398,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.emailController,
           label: AppStrings.emailAddress,
           hint: 'Email',
-          prefixIcon: Icons.email_outlined,
+          prefixIcon: LucideIcons.mail,
           keyboardType: TextInputType.emailAddress,
           validator: Validators.email,
           onChanged: (_) => controller.clearError(),
@@ -418,7 +409,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.passwordController,
           label: AppStrings.password,
           hint: 'Password',
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: LucideIcons.lock,
           obscureText: true,
           validator: Validators.password,
           onChanged: (_) => controller.clearError(),
@@ -429,7 +420,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.confirmPasswordController,
           label: AppStrings.confirmPassword,
           hint: 'Confirm Password',
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: LucideIcons.lock,
           obscureText: true,
           validator: controller.confirmPasswordValidator,
           onChanged: (_) => controller.clearError(),
@@ -452,7 +443,7 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.fullNameController,
           label: AppStrings.fullName,
           hint: 'Username',
-          prefixIcon: Icons.person_outline,
+          prefixIcon: LucideIcons.user,
           validator: Validators.fullName,
           onChanged: (_) => controller.clearError(),
           textInputAction: TextInputAction.next,
@@ -462,7 +453,7 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.phoneController,
           label: AppStrings.phoneNumber,
           hint: '012345678',
-          prefixIcon: Icons.phone_outlined,
+          prefixIcon: LucideIcons.phone,
           keyboardType: TextInputType.phone,
           validator: Validators.phone,
           onChanged: (_) => controller.clearError(),
@@ -473,7 +464,7 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.dateOfBirthController,
           label: AppStrings.dateOfBirth,
           hint: 'Date of Birth',
-          prefixIcon: Icons.calendar_today_outlined,
+          prefixIcon: LucideIcons.calendar,
           readOnly: true,
           validator: Validators.dateOfBirth,
           onTap: () => controller.pickDateOfBirth(context),

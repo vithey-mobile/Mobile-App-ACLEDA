@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
@@ -9,14 +11,17 @@ import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/application_feedback_success.dart';
+import 'package:aub_connect_app/modules/profile/widgets/applicant_ai_match_panel.dart';
 import 'package:aub_connect_app/modules/profile/widgets/experience_timeline.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplicantDetailController extends GetxController {
   ApplicantDetailController(this._repository);
 
@@ -152,7 +157,7 @@ class ApplicantDetailScreen extends GetView<ApplicantDetailController> {
       appBar: AppBar(
         title: Obx(() {
           final name = controller.detail.value?.applicantName;
-          return Text(name ?? 'Applicant', style: const TextStyle(fontWeight: FontWeight.bold));
+          return Text(name ?? 'Applicant', style: context.text.headlineSmall);
         }),
       ),
       body: Obx(() {
@@ -192,7 +197,7 @@ class ApplicantDetailScreen extends GetView<ApplicantDetailController> {
                             Expanded(
                               child: Text(
                                 applicant.applicantName,
-                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                style: context.text.headlineSmall,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -205,20 +210,17 @@ class ApplicantDetailScreen extends GetView<ApplicantDetailController> {
                         const SizedBox(height: 2),
                         Text(
                           'Apply position: ${applicant.jobTitle}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         // Gap between profile group and contact group
                         const SizedBox(height: 20),
                         // Group 2: location + email (tight)
                         if (applicant.location != null)
-                          _ContactRow(icon: Icons.location_on_outlined, text: applicant.location!),
+                          _ContactRow(icon: LucideIcons.mapPin, text: applicant.location!),
                         if (applicant.location != null && applicant.email != null)
                           const SizedBox(height: 2),
                         if (applicant.email != null)
-                          _ContactRow(icon: Icons.email_outlined, text: applicant.email!),
+                          _ContactRow(icon: LucideIcons.mail, text: applicant.email!),
                         const SizedBox(height: 28),
                         ExperienceTimeline(
                           title: 'Experience',
@@ -230,6 +232,15 @@ class ApplicantDetailScreen extends GetView<ApplicantDetailController> {
                           entries: applicant.education,
                           useEducationIcon: true,
                         ),
+                        // Block 5 — AI match certify panel (AI-JOB-08/13).
+                        if (Get.find<FeatureFlags>().useAiJobMatch) ...[
+                          const SizedBox(height: 28),
+                          ApplicantAiMatchPanel(
+                            jobPostId: applicant.jobPostId,
+                            applicantUserId: applicant.applicantUserId,
+                            applicantName: applicant.applicantName,
+                          ),
+                        ],
                         const SizedBox(height: 28),
                         _CurriculumVitaeCard(
                           fileName: applicant.cvFileName,
@@ -285,10 +296,10 @@ class _ApplicantCoverHeader extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: coverTeal,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(VitheyRadii.card),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Stack(children: _decorIcons(decorTeal)),
+            child: Stack(children: _decorIcons(context, decorTeal)),
           ),
           Positioned(
             left: 12,
@@ -317,40 +328,40 @@ class _ApplicantCoverHeader extends StatelessWidget {
     );
   }
 
-  List<Widget> _decorIcons(Color iconColor) {
+  List<Widget> _decorIcons(BuildContext context, Color iconColor) {
     return [
       Positioned(
         left: 20,
         top: 32,
         child: Text(
           '</>',
-          style: TextStyle(color: iconColor, fontSize: 28, fontWeight: FontWeight.w600),
+          style: context.text.titleMedium?.copyWith(fontSize: 28, color: iconColor),
         ),
       ),
       Positioned(
         right: 28,
         top: 24,
-        child: Icon(Icons.casino_outlined, color: iconColor, size: 28),
+        child: VitheyIcon(LucideIcons.dices, color: iconColor, size: 28),
       ),
       Positioned(
         right: 72,
         top: 54,
-        child: Icon(Icons.view_in_ar_outlined, color: iconColor, size: 26),
+        child: VitheyIcon(LucideIcons.box, color: iconColor, size: 26),
       ),
       Positioned(
         left: 78,
         top: 18,
-        child: Icon(Icons.chat_bubble_outline, color: iconColor, size: 24),
+        child: VitheyIcon(LucideIcons.messageCircle, color: iconColor, size: 24),
       ),
       Positioned(
         right: 16,
         top: 78,
-        child: Icon(Icons.star_outline, color: iconColor, size: 24),
+        child: VitheyIcon(LucideIcons.star, color: iconColor, size: 24),
       ),
       Positioned(
         left: 118,
         top: 50,
-        child: Icon(Icons.auto_awesome_outlined, color: iconColor, size: 22),
+        child: VitheyIcon(LucideIcons.sparkles, color: iconColor, size: 22),
       ),
     ];
   }
@@ -366,10 +377,10 @@ class _ContactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: context.appColors.muted),
+        VitheyIcon(icon, size: 18, color: context.appColors.muted),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(text, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
+          child: Text(text, style: context.text.bodySmall),
         ),
       ],
     );
@@ -399,12 +410,12 @@ class _CurriculumVitaeCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Curriculum Vitae', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text('Curriculum Vitae', style: context.text.titleLarge),
         const SizedBox(height: 12),
         Material(
-          color: Theme.of(context).cardColor,
+          color: context.appColors.cardSurface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(VitheyRadii.card),
             side: BorderSide(color: border),
           ),
           clipBehavior: Clip.antiAlias,
@@ -436,20 +447,21 @@ class _CurriculumVitaeCard extends StatelessWidget {
                   color: context.appColors.muted.withValues(alpha: 0.08),
                   child: Row(
                     children: [
-                      Icon(_fileIcon(displayName), color: AppColors.error, size: 22),
+                      VitheyIcon(_fileIcon(displayName), color: AppColors.error, size: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           displayName == null || displayName.isEmpty ? 'CV' : displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      IconButton(
+                      VitheyIconButton(
+                        icon: LucideIcons.download,
+                        variant: VitheyIconButtonVariant.neutral,
                         tooltip: 'Download',
-                        onPressed: onDownload,
-                        icon: Icon(Icons.download_outlined, color: context.appColors.muted),
+                        onTap: onDownload,
                       ),
                     ],
                   ),
@@ -463,12 +475,12 @@ class _CurriculumVitaeCard extends StatelessWidget {
 
   IconData _fileIcon(String? name) {
     final lower = (name ?? '').toLowerCase();
-    if (lower.endsWith('.pdf')) return Icons.picture_as_pdf;
-    if (lower.endsWith('.doc') || lower.endsWith('.docx')) return Icons.description_outlined;
+    if (lower.endsWith('.pdf')) return LucideIcons.fileText;
+    if (lower.endsWith('.doc') || lower.endsWith('.docx')) return LucideIcons.fileText;
     if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp')) {
-      return Icons.image_outlined;
+      return LucideIcons.image;
     }
-    return Icons.insert_drive_file_outlined;
+    return LucideIcons.fileText;
   }
 }
 
@@ -483,11 +495,11 @@ class _NoCvPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.description_outlined, size: 40, color: context.appColors.muted),
+          VitheyIcon(LucideIcons.fileText, size: 40, color: context.appColors.muted),
           const SizedBox(height: 8),
           Text(
             'No CV Available',
-            style: TextStyle(color: context.appColors.muted, fontWeight: FontWeight.w600),
+            style: context.text.labelLarge?.copyWith(color: context.appColors.muted),
           ),
         ],
       ),

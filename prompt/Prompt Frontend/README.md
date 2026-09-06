@@ -20,10 +20,15 @@ Screen prompts are organized under `Screen prompt/`. Where `v0/` + `v1/` exist, 
 This project uses a **Shadcn Flutter–style design system**: screens must be composed using shared components + theme tokens.
 
 **Standardization plan:** [`SHADCN_STANDARD_PLAN.md`](SHADCN_STANDARD_PLAN.md)  
-**GLM prompts (6 chats, in order):** [`run-shadcn-standard/README.md`](run-shadcn-standard/README.md)
+**GLM prompts — kit standard (6 chats, in order):** [`run-shadcn-standard/README.md`](run-shadcn-standard/README.md)  
+**GLM prompts — GenZ complete restyle (all 10 modules):** [`run-genz-complete/README.md`](run-genz-complete/README.md)  
+**GLM prompts — type + color tokens (extract only, no UI change):** [`run-type-tokens/README.md`](run-type-tokens/README.md)  
+**GLM prompts — Lucide icons (one shot):** [`run-lucide-icons/README.md`](run-lucide-icons/README.md)
 
 - Shared components: `vithey_app/lib/core/widgets/`
 - Theme + semantic tokens: `vithey_app/lib/core/theme/` (especially `app_semantic_colors.dart`)
+- GenZ radii / icon chrome: see `run-genz-complete/DESIGN_SYSTEM.md`
+- Typography sizes / weights: see `run-type-tokens/DESIGN.md` (`VitheyType` / `VitheyWeight` + `context.text`)
 
 If `shadcn_ui` or `shadcn_flutter` is installed in `vithey_app/pubspec.yaml`, those widgets may be used too, but do not break the GetX module architecture.
 

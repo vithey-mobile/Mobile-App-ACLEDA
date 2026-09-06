@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:aub_connect_app/core/alerts/in_app_alert_service.dart';
 import 'package:aub_connect_app/core/config/app_config.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
@@ -124,7 +125,29 @@ class FcmService {
       repository.reconcileUnreadCount();
     }
 
-    NotificationRouter.routeFromPushData(data);
+    // Foreground chat pushes → in-app heads-up (tap still deep-links below).
+    if (!userTapped &&
+        Get.isRegistered<InAppAlertService>() &&
+        (notification.type == NotificationType.chatMessage ||
+            notification.type == NotificationType.chatRequest)) {
+      final conversationId = notification.destination.conversationId;
+      if (conversationId != null && conversationId.isNotEmpty) {
+        await Get.find<InAppAlertService>().showChatMessage(
+          conversationId: conversationId,
+          senderName: notification.actor?.fullName ??
+              (notification.title.isNotEmpty ? notification.title : 'New message'),
+          text: notification.body.isNotEmpty ? notification.body : notification.title,
+          senderAvatarUrl: notification.actor?.avatarUrl,
+          participantId: notification.actor?.id,
+          createdAt: notification.createdAt,
+        );
+        return;
+      }
+    }
+
+    if (userTapped) {
+      NotificationRouter.routeFromPushData(data);
+    }
   }
 
   String get _platform {

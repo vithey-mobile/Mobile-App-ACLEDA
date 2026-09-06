@@ -6,8 +6,11 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// One Facebook/TikTok-style reel page inside a vertical PageView.
 class ReelVideoPage extends StatefulWidget {
   const ReelVideoPage({
@@ -241,20 +244,20 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _RoundControl(
-                    icon: Icons.replay_10_rounded,
+                    icon: LucideIcons.rotateCcw,
                     onTap: () => _seekBy(const Duration(seconds: -10)),
                   ),
                   const SizedBox(width: 28),
                   _RoundControl(
                     icon: playing
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
+                        ? LucideIcons.pause
+                        : LucideIcons.play,
                     size: 34,
                     onTap: _togglePlay,
                   ),
                   const SizedBox(width: 28),
                   _RoundControl(
-                    icon: Icons.forward_10_rounded,
+                    icon: LucideIcons.rotateCw,
                     onTap: () => _seekBy(const Duration(seconds: 10)),
                   ),
                 ],
@@ -270,36 +273,36 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
               children: [
                 _SideAction(
                   icon: _post.userReacted
-                      ? Icons.thumb_up
-                      : Icons.thumb_up_outlined,
+                      ? LucideIcons.thumbsUp
+                      : LucideIcons.thumbsUp,
                   label: _formatCount(_post.reactionCount),
                   active: _post.userReacted,
                   onTap: _toggleLike,
                 ),
                 const SizedBox(height: 16),
                 _SideAction(
-                  icon: Icons.chat_bubble_outline_rounded,
+                  icon: LucideIcons.messageCircle,
                   label: _formatCount(_post.commentCount),
                   onTap: widget.onComment,
                 ),
                 const SizedBox(height: 16),
                 _SideAction(
-                  icon: Icons.share_outlined,
+                  icon: LucideIcons.share2,
                   label: _formatCount(_post.shareCount),
                   onTap: _onShare,
                 ),
                 const SizedBox(height: 16),
                 _SideAction(
                   icon: _saved
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
+                      ? LucideIcons.bookmark
+                      : LucideIcons.bookmark,
                   label: _formatCount(487),
                   active: _saved,
                   onTap: () => setState(() => _saved = !_saved),
                 ),
                 const SizedBox(height: 16),
                 _SideAction(
-                  icon: Icons.more_horiz_rounded,
+                  icon: LucideIcons.ellipsis,
                   onTap: () => _showMoreSheet(context),
                 ),
               ],
@@ -351,8 +354,8 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Icon(
-                          Icons.public,
+                        VitheyIcon(
+                          LucideIcons.globe,
                           size: 14,
                           color: Colors.white.withValues(alpha: 0.75),
                         ),
@@ -399,25 +402,21 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                         ready
                             ? '${_format(position)} / ${_format(duration)}'
                             : '0:00 / 0:00',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: context.text.labelMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.85)),
                       ),
                       const Spacer(),
                       IconButton(
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                          minWidth: 44,
+                          minHeight: 44,
                         ),
                         onPressed: widget.onToggleMute,
-                        icon: Icon(
+                        icon: VitheyIcon(
                           widget.muted
-                              ? Icons.volume_off_rounded
-                              : Icons.volume_up_rounded,
+                              ? LucideIcons.volumeX
+                              : LucideIcons.volume2,
                           color: Colors.white,
                           size: 22,
                         ),
@@ -490,38 +489,22 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
   }
 
   void _showMoreSheet(BuildContext context) {
-    showModalBottomSheet<void>(
+    showVitheyActionSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF1C1C1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.share_outlined, color: Colors.white),
-              title: const Text('Share', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _onShare();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline, color: Colors.white),
-              title: const Text(
-                'View profile',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                widget.onAuthorTap();
-              },
-            ),
-          ],
+      title: 'Reel actions',
+      actions: [
+        VitheyActionSheetItem(
+          label: 'Share',
+          icon: LucideIcons.share2,
+          onTap: _onShare,
         ),
-      ),
+        VitheyActionSheetItem(
+          label: 'View profile',
+          icon: LucideIcons.user,
+          onTap: widget.onAuthorTap,
+        ),
+      ],
+      cancelLabel: 'Cancel',
     );
   }
 
@@ -554,7 +537,7 @@ class _RoundControl extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Icon(icon, color: Colors.white, size: size),
+          child: VitheyIcon(icon, color: Colors.white, size: size),
         ),
       ),
     );
@@ -576,26 +559,33 @@ class _SideAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 48px circular hit target with a subtle scrim wash.
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      customBorder: const CircleBorder(),
+      child: SizedBox(
+        width: 48,
+        height: 48,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            VitheyIcon(
               icon,
               color: active ? AppColors.primaryLight : Colors.white,
-              size: 28,
+              size: 27,
+              shadows: const [
+                Shadow(blurRadius: 8, color: Colors.black54),
+              ],
             ),
             if (label.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w600,
+                  shadows: [Shadow(blurRadius: 6, color: Colors.black54)],
                 ),
               ),
             ],

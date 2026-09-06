@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
 import 'package:aub_connect_app/modules/auth/startup/widgets/selectable_skill_chip.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 
 /// Packs skill chips into rows by moving shorter chips into leftover space
 /// so each line fills better (long + short together).
@@ -21,8 +22,8 @@ class PackedSkillChipFlow extends StatelessWidget {
   final double runSpacing;
 
   static const _labelStyle = TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontSize: VitheyType.subtitle,
+    fontWeight: VitheyWeight.medium,
   );
 
   /// Matches [SelectableSkillChip]: pad 12+12, icon 16, gap 6, border 1+1, fudge.

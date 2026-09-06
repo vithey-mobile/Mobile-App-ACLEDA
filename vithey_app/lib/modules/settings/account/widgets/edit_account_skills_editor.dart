@@ -1,9 +1,14 @@
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
+import 'package:aub_connect_app/data/models/ai_skill_scorer.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class EditAccountSkillsEditor extends StatelessWidget {
   const EditAccountSkillsEditor({
@@ -29,10 +34,14 @@ class EditAccountSkillsEditor extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: colors.border),
         boxShadow: [
-          BoxShadow(color: colors.subtleShadow, blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: colors.subtleShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -40,10 +49,15 @@ class EditAccountSkillsEditor extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.psychology_outlined, size: 18, color: primary),
+              VitheyIcon(LucideIcons.brain, size: 18, color: primary),
               const SizedBox(width: 8),
-              Text('Skills', style: TextStyle(color: colors.muted, fontSize: 13)),
+              Text('Skills', style: context.text.bodySmall),
             ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'AI sets each score when you update a skill.',
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
           const SizedBox(height: 12),
           if (skills.isEmpty)
@@ -64,7 +78,7 @@ class EditAccountSkillsEditor extends StatelessWidget {
           Center(
             child: CustomButton(
               label: 'Add Skill',
-              icon: Icons.add_circle_outline,
+              icon: LucideIcons.circlePlus,
               variant: CustomButtonVariant.ghost,
               foregroundColor: AppColors.primary,
               onPressed: onAdd,
@@ -104,7 +118,8 @@ class _SkillRowState extends State<_SkillRow> {
   @override
   void didUpdateWidget(covariant _SkillRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.skill.name != widget.skill.name && _nameController.text != widget.skill.name) {
+    if (oldWidget.skill.name != widget.skill.name &&
+        _nameController.text != widget.skill.name) {
       _nameController.text = widget.skill.name;
     }
   }
@@ -118,50 +133,38 @@ class _SkillRowState extends State<_SkillRow> {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final proficiency = widget.skill.proficiency.clamp(0, 100).toDouble();
+    final aiPercent = AiSkillScorer.scoreSkill(widget.skill);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.inputFill,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.field),
         border: Border.all(color: colors.border),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: VitheyField(
-                  controller: _nameController,
-                  hint: 'Skill name',
-                  onChanged: widget.onNameChanged,
-                ),
-              ),
-              IconButton(
-                onPressed: widget.onRemove,
-                icon: Icon(Icons.close, color: colors.muted, size: 20),
-                tooltip: 'Remove skill',
-              ),
-            ],
+          Expanded(
+            child: VitheyField(
+              controller: _nameController,
+              hint: 'Skill name',
+              onChanged: widget.onNameChanged,
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text('Proficiency', style: TextStyle(fontSize: 12, color: colors.muted)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Slider(
-                  value: proficiency,
-                  min: 0,
-                  max: 100,
-                  divisions: 20,
-                  onChanged: null,
-                ),
-              ),
-              Text('${proficiency.round()}%', style: TextStyle(fontSize: 12, color: colors.muted)),
-            ],
+          const SizedBox(width: 8),
+          Text(
+            'AI $aiPercent%',
+            style: context.text.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+          VitheyIconButton(
+            icon: LucideIcons.x,
+            variant: VitheyIconButtonVariant.destructive,
+            tooltip: 'Remove skill',
+            onTap: widget.onRemove,
           ),
         ],
       ),

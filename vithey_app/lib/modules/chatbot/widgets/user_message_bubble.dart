@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// ChatGPT-style user bubble with optional photo / video / file previews.
 class UserMessageBubble extends StatelessWidget {
   const UserMessageBubble({
@@ -22,9 +24,7 @@ class UserMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bubbleColor =
-        isDark ? context.appColors.inputFill : const Color(0xFFF4F4F4);
+    final bubbleColor = context.appColors.inputFill;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -59,15 +59,11 @@ class UserMessageBubble extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: bubbleColor,
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(VitheyRadii.card),
                   ),
                   child: Text(
                     content,
-                    style: TextStyle(
-                      color: context.appColors.heading,
-                      fontSize: 16,
-                      height: 1.45,
-                    ),
+                    style: context.text.bodyLarge?.copyWith(height: 1.45),
                   ),
                 ),
               ),
@@ -75,7 +71,7 @@ class UserMessageBubble extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             _formatTimestamp(createdAt),
-            style: TextStyle(fontSize: 11, color: context.appColors.muted),
+            style: context.text.labelSmall,
           ),
         ],
       ),
@@ -106,7 +102,7 @@ class _SentAttachment extends StatelessWidget {
       height: 120,
       decoration: BoxDecoration(
         color: context.appColors.inputFill,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(VitheyRadii.media),
         border: Border.all(
           color: context.appColors.border.withValues(alpha: 0.7),
         ),
@@ -116,18 +112,18 @@ class _SentAttachment extends StatelessWidget {
           ? Image.file(
               File(attachment.path),
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.broken_image_outlined,
+              errorBuilder: (_, __, ___) => VitheyIcon(
+                LucideIcons.imageOff,
                 color: context.appColors.muted,
               ),
             )
           : Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                VitheyIcon(
                   attachment.isVideo
-                      ? Icons.videocam_rounded
-                      : Icons.insert_drive_file_rounded,
+                      ? LucideIcons.video
+                      : LucideIcons.fileText,
                   color: AppColors.primary,
                   size: 28,
                 ),
@@ -139,10 +135,8 @@ class _SentAttachment extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.labelSmall
+                        ?.copyWith(color: context.appColors.heading),
                   ),
                 ),
               ],

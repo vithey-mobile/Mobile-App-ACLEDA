@@ -97,7 +97,7 @@ class _AuthPanelSwitcherState extends State<AuthPanelSwitcher>
         duration: const Duration(milliseconds: _sizeMs),
         curve: Curves.easeInOutCubic,
         alignment: Alignment.topCenter,
-        clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.none,
         child: FadeTransition(
           opacity: _fade,
           child: KeyedSubtree(

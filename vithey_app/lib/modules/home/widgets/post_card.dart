@@ -6,7 +6,10 @@ import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_author_header.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
@@ -39,14 +42,12 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return VitheyCard(
+      padding: EdgeInsets.zero,
       margin: margin,
-      elevation: 0,
-      color: context.appColors.cardSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: context.appColors.border),
-      ),
+      bordered: true,
+      elevated: false,
+      borderRadius: VitheyRadii.card,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,11 +61,7 @@ class PostCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               child: Text(
                 post.content,
-                style: TextStyle(
-                  color: context.appColors.heading,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
+                style: context.text.bodyMedium?.copyWith(height: 1.4),
               ),
             ),
           if (body != null) GestureDetector(onTap: onBodyTap, child: body),
@@ -108,7 +105,7 @@ class PostMediaImage extends StatelessWidget {
         errorBuilder: (_, __, ___) => Container(
           color: context.appColors.inputFill,
           alignment: Alignment.center,
-          child: const Icon(Icons.broken_image_outlined),
+          child: const VitheyIcon(LucideIcons.imageOff),
         ),
       );
     } else {
@@ -126,7 +123,7 @@ class PostMediaImage extends StatelessWidget {
         errorWidget: (_, __, ___) => Container(
           color: context.appColors.inputFill,
           alignment: Alignment.center,
-          child: const Icon(Icons.broken_image_outlined),
+          child: const VitheyIcon(LucideIcons.imageOff),
         ),
       );
     }

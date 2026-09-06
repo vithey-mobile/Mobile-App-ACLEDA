@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_recent_tile.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SearchRecentSection extends StatelessWidget {
   const SearchRecentSection({
     super.key,
@@ -43,7 +44,7 @@ class SearchRecentSection extends StatelessWidget {
       return const EmptyStateWidget(
         title: 'No recent searches',
         subtitle: 'Try searching for people, posts, or jobs',
-        icon: Icons.history,
+        icon: LucideIcons.history,
       );
     }
 
@@ -54,14 +55,7 @@ class SearchRecentSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
           child: Row(
             children: [
-              Text(
-                'Recent',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.heading,
-                ),
-              ),
+              Text('Recent', style: context.text.titleMedium),
               const Spacer(),
               if (onClearAll != null)
                 VitheyTextLink(

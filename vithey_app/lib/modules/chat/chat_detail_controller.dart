@@ -18,6 +18,7 @@ import 'package:aub_connect_app/modules/chat/widgets/delete_message_dialog.dart'
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/report_reason_dialog.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ChatDetailController extends GetxController {
   ChatDetailController(this._chatRepository);
 
@@ -60,8 +61,10 @@ class ChatDetailController extends GetxController {
     _messageSub = _chatRepository
         .watchMessages(_conversationId!)
         .listen(_onMessagesUpdated);
-    _conversationSub = _chatRepository.watchConversations().listen((conversations) {
-      final match = conversations.where((c) => c.id == _conversationId).toList();
+    _conversationSub =
+        _chatRepository.watchConversations().listen((conversations) {
+      final match =
+          conversations.where((c) => c.id == _conversationId).toList();
       if (match.isEmpty) return;
       isTyping.value = match.first.isTyping;
       participant.value = match.first.participant;
@@ -75,15 +78,15 @@ class ChatDetailController extends GetxController {
       updated.map(_withLocalReactions).toList(),
     );
     if (wasAtBottom) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => forceScrollToBottom());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => forceScrollToBottom());
     } else if (updated.isNotEmpty) {
       showJumpToLatest.value = true;
     }
     _markVisibleMessagesRead();
   }
 
-  String _reactionKey(ChatMessage message) =>
-      message.clientId ?? message.id;
+  String _reactionKey(ChatMessage message) => message.clientId ?? message.id;
 
   ChatMessage _withLocalReactions(ChatMessage message) {
     final key = _reactionKey(message);
@@ -202,7 +205,8 @@ class ChatDetailController extends GetxController {
       participant.value = conversation?.participant;
       isTyping.value = conversation?.isTyping ?? false;
       await _chatRepository.markConversationRead(_conversationId!);
-      WidgetsBinding.instance.addPostFrameCallback((_) => forceScrollToBottom());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => forceScrollToBottom());
     } catch (e) {
       Get.snackbar(AppStrings.appName, 'Could not load messages');
     } finally {
@@ -216,7 +220,8 @@ class ChatDetailController extends GetxController {
     final query = threadSearchQuery.value.trim().toLowerCase();
     if (query.isEmpty) return messages;
     return messages
-        .where((message) => !message.isDeleted && message.text.toLowerCase().contains(query))
+        .where((message) =>
+            !message.isDeleted && message.text.toLowerCase().contains(query))
         .toList();
   }
 
@@ -279,17 +284,17 @@ class ChatDetailController extends GetxController {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.photo_outlined),
+                leading: const VitheyIcon(LucideIcons.image),
                 title: const Text('Photo'),
                 onTap: () => Get.back(result: 'photo'),
               ),
               ListTile(
-                leading: const Icon(Icons.videocam_outlined),
+                leading: const VitheyIcon(LucideIcons.video),
                 title: const Text('Video'),
                 onTap: () => Get.back(result: 'video'),
               ),
               ListTile(
-                leading: const Icon(Icons.attach_file_rounded),
+                leading: const VitheyIcon(LucideIcons.paperclip),
                 title: const Text('File'),
                 onTap: () => Get.back(result: 'file'),
               ),
@@ -475,7 +480,8 @@ class ChatDetailController extends GetxController {
     if (_conversationId == null) return;
     final index = messages.indexWhere((m) => m.id == message.id);
     if (index < 0) return;
-    messages[index] = message.copyWith(isFailed: false, status: MessageDeliveryStatus.sending);
+    messages[index] = message.copyWith(
+        isFailed: false, status: MessageDeliveryStatus.sending);
     try {
       final saved = await _chatRepository.sendMessage(
         conversationId: _conversationId!,
@@ -486,7 +492,8 @@ class ChatDetailController extends GetxController {
       );
       messages[index] = saved.copyWith(status: MessageDeliveryStatus.sent);
     } catch (_) {
-      messages[index] = message.copyWith(isFailed: true, status: MessageDeliveryStatus.failed);
+      messages[index] = message.copyWith(
+          isFailed: true, status: MessageDeliveryStatus.failed);
     }
   }
 
@@ -532,7 +539,7 @@ class ChatDetailController extends GetxController {
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.copy),
+              leading: const VitheyIcon(LucideIcons.copy),
               title: const Text('Copy'),
               onTap: () {
                 Get.back();
@@ -540,7 +547,7 @@ class ChatDetailController extends GetxController {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.reply),
+              leading: const VitheyIcon(LucideIcons.reply),
               title: const Text('Reply'),
               onTap: () {
                 Get.back();
@@ -549,7 +556,7 @@ class ChatDetailController extends GetxController {
             ),
             if (message.isOwn)
               ListTile(
-                leading: const Icon(Icons.delete_outline),
+                leading: const VitheyIcon(LucideIcons.trash2),
                 title: const Text('Delete'),
                 onTap: () {
                   Get.back();
@@ -604,18 +611,23 @@ class ChatDetailController extends GetxController {
 
   bool shouldShowSeenLabel(int index, List<ChatMessage> source) {
     final message = source[index];
-    if (!message.isOwn || message.status != MessageDeliveryStatus.read) return false;
+    if (!message.isOwn || message.status != MessageDeliveryStatus.read) {
+      return false;
+    }
     for (var i = index + 1; i < source.length; i++) {
       if (source[i].isOwn) return false;
     }
     return true;
   }
 
-  bool shouldShowDateSeparatorInThread(int index) => shouldShowDateSeparator(index, visibleMessages);
+  bool shouldShowDateSeparatorInThread(int index) =>
+      shouldShowDateSeparator(index, visibleMessages);
 
-  bool shouldShowAvatarInThread(int index) => shouldShowAvatar(index, visibleMessages);
+  bool shouldShowAvatarInThread(int index) =>
+      shouldShowAvatar(index, visibleMessages);
 
-  bool shouldShowSeenLabelInThread(int index) => shouldShowSeenLabel(index, visibleMessages);
+  bool shouldShowSeenLabelInThread(int index) =>
+      shouldShowSeenLabel(index, visibleMessages);
 
   void handleHeaderMenu(String action) {
     switch (action) {

@@ -101,11 +101,7 @@ class ConfirmDialog extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.start,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colors.heading,
-            ),
+            style: context.text.titleLarge?.copyWith(color: colors.heading),
           ),
         ),
         content: SizedBox(
@@ -113,7 +109,8 @@ class ConfirmDialog extends StatelessWidget {
           child: Text(
             message,
             textAlign: TextAlign.start,
-            style: TextStyle(fontSize: 14, color: colors.muted, height: 1.4),
+            style: context.text.bodyMedium
+                ?.copyWith(color: colors.muted, height: 1.4),
           ),
         ),
         actions: [

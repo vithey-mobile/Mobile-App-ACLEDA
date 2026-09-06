@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 class PostDetailHeader extends StatelessWidget {
@@ -37,19 +38,12 @@ class PostDetailHeader extends StatelessWidget {
                 post.author.fullName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.appColors.heading,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14.5,
-                ),
+                style: context.text.labelLarge?.copyWith(fontSize: 14.5),
               ),
               const SizedBox(height: 2),
               Text(
                 'Public  ·  ${RelativeTime.format(post.createdAt)}',
-                style: TextStyle(
-                  color: context.appColors.muted,
-                  fontSize: 11.5,
-                ),
+                style: context.text.bodySmall?.copyWith(fontSize: 11.5),
               ),
             ],
           ),
@@ -60,21 +54,20 @@ class PostDetailHeader extends StatelessWidget {
           const SizedBox(width: 8),
           Material(
             color: context.scheme.primary,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(VitheyRadii.pill),
             child: InkWell(
               onTap: onFollow,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(VitheyRadii.pill),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 7,
+                  vertical: 8,
                 ),
                 child: Text(
                   post.isFollowingAuthor ? 'Following' : 'Follow',
-                  style: TextStyle(
-                    color: context.scheme.onPrimary,
+                  style: context.text.labelLarge?.copyWith(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    color: context.scheme.onPrimary,
                   ),
                 ),
               ),

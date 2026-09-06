@@ -17,8 +17,11 @@ import 'package:aub_connect_app/modules/home/reels/reels_screen.dart';
 /// Chatbot is opened as a full-screen route (no bottom bar).
 class MainShellController extends GetxController {
   final currentIndex = MainTabNavigation.home.obs;
+  final navVisible = true.obs;
 
   late final PageController pageController;
+
+  static const _hideThreshold = 6.0;
 
   @override
   void onInit() {
@@ -56,6 +59,8 @@ class MainShellController extends GetxController {
       Get.toNamed(AppRoutes.chatbot);
       return;
     }
+    // Always reveal nav when switching tabs.
+    navVisible.value = true;
     if (index == currentIndex.value) return;
     currentIndex.value = index;
     if (!pageController.hasClients) return;
@@ -68,6 +73,28 @@ class MainShellController extends GetxController {
 
   void onPageChanged(int pageIndex) {
     currentIndex.value = _tabForPage(pageIndex);
+    navVisible.value = true;
+  }
+
+  /// Hide bar while scrolling down the feed; show again when scrolling up.
+  bool handleScrollNotification(ScrollNotification notification) {
+    if (notification is! ScrollUpdateNotification) return false;
+    if (notification.metrics.axis != Axis.vertical) return false;
+
+    final pixels = notification.metrics.pixels;
+    final delta = notification.scrollDelta ?? 0;
+
+    if (pixels <= 48) {
+      if (!navVisible.value) navVisible.value = true;
+      return false;
+    }
+
+    if (delta > _hideThreshold && navVisible.value) {
+      navVisible.value = false;
+    } else if (delta < -_hideThreshold && !navVisible.value) {
+      navVisible.value = true;
+    }
+    return false;
   }
 
   @override
@@ -91,18 +118,34 @@ class MainShellScreen extends GetView<MainShellController> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: PageView(
-        controller: controller.pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: controller.onPageChanged,
-        children: _pages,
-      ),
-      bottomNavigationBar: Obx(
-        () => AppBottomNavigation(
-          currentIndex: controller.currentIndex.value,
-          onTap: controller.selectTab,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: controller.handleScrollNotification,
+        child: PageView(
+          controller: controller.pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          onPageChanged: controller.onPageChanged,
+          children: _pages,
         ),
       ),
+      bottomNavigationBar: Obx(() {
+        final visible = controller.navVisible.value;
+        return AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: visible ? Offset.zero : const Offset(0, 1.4),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 180),
+            opacity: visible ? 1 : 0,
+            child: IgnorePointer(
+              ignoring: !visible,
+              child: AppBottomNavigation(
+                currentIndex: controller.currentIndex.value,
+                onTap: controller.selectTab,
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }

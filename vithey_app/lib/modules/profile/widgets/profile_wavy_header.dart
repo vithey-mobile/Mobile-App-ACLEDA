@@ -8,6 +8,7 @@ import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:get/get.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileWavyClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -77,10 +78,9 @@ class ProfileWavyHeader extends StatelessWidget {
     final decor = decorColor(context);
     // Chrome icons must contrast the soft teal cover (not colorScheme.onPrimary).
     final onCover = cover.computeLuminance() > 0.45
-        ? const Color(0xFF1A1A2E)
+        ? AppColors.lightText
         : Colors.white;
     final avatarRing = Theme.of(context).scaffoldBackgroundColor;
-    final heading = context.appColors.heading;
     final muted = context.appColors.muted;
 
     return Column(
@@ -102,8 +102,8 @@ class ProfileWavyHeader extends StatelessWidget {
                         top: topPad + 4,
                         left: 8,
                         child: IconButton(
-                          icon: Icon(
-                            Icons.settings_outlined,
+                          icon: VitheyIcon(
+                            LucideIcons.settings,
                             color: onCover,
                           ),
                           tooltip: 'Settings',
@@ -147,11 +147,7 @@ class ProfileWavyHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             profile.fullName,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: heading,
-            ),
+            style: context.text.titleLarge?.copyWith(fontSize: 20),
             textAlign: TextAlign.center,
           ),
         ),
@@ -164,8 +160,7 @@ class ProfileWavyHeader extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
+              style: context.text.bodyMedium?.copyWith(
                 color: muted,
                 height: 1.35,
               ),
@@ -187,26 +182,26 @@ class ProfileWavyHeader extends StatelessWidget {
     final rng = math.Random(profile.id.hashCode ^ 0xA17C0DE7);
 
     const icons = <IconData>[
-      Icons.code,
-      Icons.casino_outlined,
-      Icons.view_in_ar_outlined,
-      Icons.chat_bubble_outline,
-      Icons.star_outline,
-      Icons.auto_awesome_outlined,
-      Icons.bolt_outlined,
-      Icons.favorite_border,
-      Icons.lightbulb_outline,
-      Icons.extension_outlined,
-      Icons.sports_esports_outlined,
-      Icons.brush_outlined,
-      Icons.memory_outlined,
-      Icons.cloud_outlined,
-      Icons.rocket_launch_outlined,
-      Icons.music_note_outlined,
-      Icons.camera_alt_outlined,
-      Icons.pets_outlined,
-      Icons.diamond_outlined,
-      Icons.public_outlined,
+      LucideIcons.code,
+      LucideIcons.dices,
+      LucideIcons.box,
+      LucideIcons.messageCircle,
+      LucideIcons.star,
+      LucideIcons.sparkles,
+      LucideIcons.zap,
+      LucideIcons.heart,
+      LucideIcons.lightbulb,
+      LucideIcons.puzzle,
+      LucideIcons.gamepad2,
+      LucideIcons.brush,
+      LucideIcons.cpu,
+      LucideIcons.cloud,
+      LucideIcons.rocket,
+      LucideIcons.music,
+      LucideIcons.camera,
+      LucideIcons.pawPrint,
+      LucideIcons.gem,
+      LucideIcons.globe,
     ];
 
     const smallSizes = <double>[10, 12, 14];
@@ -259,10 +254,9 @@ class ProfileWavyHeader extends StatelessWidget {
             angle: (rng.nextDouble() - 0.5) * 0.9,
             child: Text(
               '</>',
-              style: TextStyle(
+              style: context.text.titleLarge?.copyWith(
                 color: iconColor,
                 fontSize: codeSize,
-                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -301,7 +295,7 @@ class ProfileWavyHeader extends StatelessWidget {
                 : 0.55 + rng.nextDouble() * 0.4,
             child: Transform.rotate(
               angle: (rng.nextDouble() - 0.5) * 1.2,
-              child: Icon(
+              child: VitheyIcon(
                 icons[rng.nextInt(icons.length)],
                 color: iconColor,
                 size: size,

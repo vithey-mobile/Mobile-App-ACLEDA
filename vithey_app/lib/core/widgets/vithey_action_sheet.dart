@@ -1,8 +1,11 @@
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// One callback-style row in a [VitheyActionSheet].
 ///
 /// The sheet closes first, then [onTap] fires. `onTap == null` renders the
@@ -71,7 +74,7 @@ Future<T?> showVitheyActionSheet<T>({
     backgroundColor: colors.cardSurface,
     barrierColor: barrierColor ?? Colors.black45,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
     ),
     builder: (sheetContext) => VitheyActionSheet(
       title: title,
@@ -114,11 +117,7 @@ class VitheyActionSheet extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: message == null ? 1 : 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colors.muted,
-              ),
+              style: context.text.labelLarge?.copyWith(color: colors.muted),
             ),
             if (message != null) ...[
               const SizedBox(height: 4),
@@ -127,11 +126,8 @@ class VitheyActionSheet extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: colors.heading,
-                  height: 1.3,
-                ),
+                style: context.text.bodySmall
+                    ?.copyWith(color: colors.heading, height: 1.3),
               ),
             ],
             const SizedBox(height: 8),
@@ -204,7 +200,7 @@ class _ActionRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: _enabled ? () => _resolve(context) : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.pill),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48),
           child: Padding(
@@ -212,7 +208,7 @@ class _ActionRow extends StatelessWidget {
             child: Row(
               children: [
                 if (_icon != null) ...[
-                  Icon(_icon, size: 20, color: foreground),
+                  VitheyIcon(_icon!, size: 20, color: foreground),
                   const SizedBox(width: 12),
                 ],
                 Expanded(
@@ -222,9 +218,8 @@ class _ActionRow extends StatelessWidget {
                     children: [
                       Text(
                         _label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                        style: context.text.titleSmall?.copyWith(
+                          fontWeight: VitheyWeight.medium,
                           color: foreground,
                         ),
                       ),
@@ -232,11 +227,8 @@ class _ActionRow extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           _subtitle!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.muted,
-                            height: 1.3,
-                          ),
+                          style: context.text.labelMedium
+                              ?.copyWith(height: 1.3),
                         ),
                       ],
                     ],

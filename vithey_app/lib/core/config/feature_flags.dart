@@ -48,6 +48,18 @@ class FeatureFlags {
     return useMockApi;
   }
 
+  /// AI product flags (shared task S2). Default ON in dev; set `USE_AI_*=false`
+  /// in `.env` to hide a single AI feature. Production hides all via isProduction.
+  /// These gate whether the AI UI appears; `useMockAi` decides the data source.
+  bool get useAiCv => !_isFalse(dotenv.env['USE_AI_CV']) && !isProduction;
+
+  bool get useAiFeed => !_isFalse(dotenv.env['USE_AI_FEED']) && !isProduction;
+
+  bool get useAiSkills => !_isFalse(dotenv.env['USE_AI_SKILLS']) && !isProduction;
+
+  bool get useAiJobMatch =>
+      !_isFalse(dotenv.env['USE_AI_JOB_MATCH']) && !isProduction;
+
   bool get enableGoogleAuth => _isTrue(dotenv.env['ENABLE_GOOGLE_AUTH']);
 
   bool get fcmEnabled => _isTrue(dotenv.env['FCM_ENABLED']);

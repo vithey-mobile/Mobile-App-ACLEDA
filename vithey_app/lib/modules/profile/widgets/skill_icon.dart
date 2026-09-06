@@ -6,6 +6,7 @@ import 'package:aub_connect_app/data/models/profile_skill_catalog.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Resolves a skill logo for pickers and ring watermarks (local assets first).
 class SkillIcon extends StatelessWidget {
   const SkillIcon({
@@ -87,10 +88,10 @@ class SkillIcon extends StatelessWidget {
           label: label ?? skill?.name,
         );
 
-    final iconData = entry?.icon ?? Icons.auto_awesome_outlined;
+    final iconData = entry?.icon ?? LucideIcons.sparkles;
     return Opacity(
       opacity: opacity,
-      child: Icon(
+      child: VitheyIcon(
         iconData,
         size: size,
         color: color ?? context.appColors.muted,
@@ -99,5 +100,5 @@ class SkillIcon extends StatelessWidget {
   }
 
   Widget _fallback(BuildContext context) =>
-      Icon(Icons.auto_awesome_outlined, size: size, color: color);
+      VitheyIcon(LucideIcons.sparkles, size: size, color: color);
 }

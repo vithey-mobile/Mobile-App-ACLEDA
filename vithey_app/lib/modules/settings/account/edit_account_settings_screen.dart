@@ -11,6 +11,8 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Edit private personal fields — Edit Profile style (row → bottom sheet).
 /// No inline text fields on the list.
 class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
@@ -35,8 +37,7 @@ class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
         }
 
         final colors = context.appColors;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final cardColor = isDark ? colors.cardSurface : Colors.white;
+        final cardColor = colors.cardSurface;
         final dob = controller.dateOfBirth.value;
 
         return ListView(
@@ -89,7 +90,7 @@ class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
                               child: const Padding(
                                 padding: EdgeInsets.all(6),
                                 child: Icon(
-                                  Icons.camera_alt,
+                                  LucideIcons.camera,
                                   color: Colors.white,
                                   size: 16,
                                 ),
@@ -107,25 +108,25 @@ class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.person_outline,
+                  icon: LucideIcons.user,
                   label: 'Full name',
                   subtitle: _display(controller.fullName.value),
                   onTap: () => controller.editFullName(context),
                 ),
                       SettingsMenuTile(
-                        icon: Icons.email_outlined,
+                        icon: LucideIcons.mail,
                         label: 'Email',
                         subtitle: _display(controller.email.value),
                         onTap: controller.onEmailTap,
                       ),
                 SettingsMenuTile(
-                  icon: Icons.phone_outlined,
+                  icon: LucideIcons.phone,
                   label: 'Phone',
                   subtitle: _display(controller.phone.value),
                   onTap: () => controller.editPhone(context),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.cake_outlined,
+                  icon: LucideIcons.cake,
                   label: 'Date of birth',
                   subtitle: dob == null
                       ? 'Not set'
@@ -133,13 +134,13 @@ class EditAccountSettingsScreen extends GetView<EditAccountSettingsController> {
                   onTap: () => controller.editDateOfBirth(context),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.wc_outlined,
+                  icon: LucideIcons.venusAndMars,
                   label: 'Gender',
                   subtitle: _display(controller.gender.value),
                   onTap: () => controller.editGender(context),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.location_on_outlined,
+                  icon: LucideIcons.mapPin,
                   label: 'Location',
                   subtitle: _display(controller.location.value),
                   onTap: () => controller.editLocation(context),
@@ -190,9 +191,7 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

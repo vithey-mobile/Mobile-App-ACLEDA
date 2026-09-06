@@ -7,6 +7,7 @@ import 'package:aub_connect_app/data/services/upload_service.dart';
 import 'package:aub_connect_app/modules/home/create_post/models/create_post_args.dart';
 import 'package:aub_connect_app/modules/home/create_post/widgets/create_post_schedule_sheet.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 enum PostAudience { public, friends, private }
 
 class CreatePostController extends GetxController {
@@ -148,12 +149,12 @@ class CreatePostController extends GetxController {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
+              leading: const VitheyIcon(LucideIcons.camera),
               title: const Text('Take Photo'),
               onTap: () => Get.back(result: ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const VitheyIcon(LucideIcons.images),
               title: Text(type == PostType.video
                   ? 'Choose Video'
                   : 'Choose from Library'),
