@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class JumpToLatestChip extends StatelessWidget {
   const JumpToLatestChip({super.key, required this.onTap});
@@ -8,6 +9,7 @@ class JumpToLatestChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
@@ -15,17 +17,26 @@ class JumpToLatestChip extends StatelessWidget {
         child: Material(
           elevation: 2,
           borderRadius: BorderRadius.circular(20),
-          color: Theme.of(context).colorScheme.surface,
+          color: colors.cardSurface,
+          shadowColor: colors.subtleShadow,
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(20),
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: Row(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colors.border),
+              ),
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: 4),
                   Text(
                     'Jump to latest',
                     style: TextStyle(fontSize: 13, color: AppColors.primary),

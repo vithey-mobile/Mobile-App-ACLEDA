@@ -52,7 +52,7 @@ class ProfileWavyHeader extends StatelessWidget {
   /// Soft teal cover that follows scaffold + theme primary in light/dark.
   static Color coverColor(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = Theme.of(context).scaffoldBackgroundColor;
+    final base = context.appColors.bodyBackground;
     return Color.alphaBlend(
       AppColors.primaryLight.withValues(alpha: isDark ? 0.38 : 0.55),
       base,
@@ -79,7 +79,7 @@ class ProfileWavyHeader extends StatelessWidget {
     final onCover = cover.computeLuminance() > 0.45
         ? const Color(0xFF1A1A2E)
         : Colors.white;
-    final avatarRing = Theme.of(context).scaffoldBackgroundColor;
+    final avatarRing = context.appColors.bodyBackground;
     final heading = context.appColors.heading;
     final muted = context.appColors.muted;
 

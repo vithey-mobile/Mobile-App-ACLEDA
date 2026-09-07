@@ -141,8 +141,10 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: context.appColors.bodyBackground,
+        foregroundColor: context.appColors.heading,
         actions: [
           PopupMenuButton<String>(
+            color: context.appColors.cardSurface,
             onSelected: (value) {
               switch (value) {
                 case 'block':
@@ -151,10 +153,19 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                   controller.reportUser();
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'block', child: Text('Block')),
-              PopupMenuItem(value: 'report', child: Text('Report')),
-            ],
+            itemBuilder: (ctx) {
+              final colors = ctx.appColors;
+              return [
+                PopupMenuItem(
+                  value: 'block',
+                  child: Text('Block', style: TextStyle(color: colors.heading)),
+                ),
+                PopupMenuItem(
+                  value: 'report',
+                  child: Text('Report', style: TextStyle(color: colors.heading)),
+                ),
+              ];
+            },
           ),
         ],
       ),
@@ -189,7 +200,10 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                           decoration: BoxDecoration(
                             color: AppColors.success,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                              color: context.appColors.cardSurface,
+                              width: 2,
+                            ),
                           ),
                         ),
                       ),

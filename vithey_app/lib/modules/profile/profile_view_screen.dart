@@ -114,11 +114,9 @@ class ProfileViewScreen extends GetView<ProfileViewController> {
                   controller: controller.tabController,
                   isScrollable: true,
                   labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.5),
+                  unselectedLabelColor: context.appColors.muted,
                   indicatorColor: Theme.of(context).colorScheme.primary,
+                  dividerColor: context.appColors.border,
                   indicatorWeight: 3,
                   tabAlignment: TabAlignment.start,
                   labelPadding: const EdgeInsets.symmetric(horizontal: 12),
@@ -160,12 +158,12 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Material(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: context.appColors.bodyBackground,
       elevation: overlapsContent ? 1 : 0,
       child: tabBar,
     );
   }
 
   @override
-  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => true;
 }

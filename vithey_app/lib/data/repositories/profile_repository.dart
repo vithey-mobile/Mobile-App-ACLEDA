@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
+import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/fixtures/application_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/cv_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
@@ -21,6 +22,7 @@ class ProfileRepository {
     this._cvRepository,
     this._currentUser,
     this._flags,
+    this._localStorage,
   );
 
   final ProfileService _profileService;
@@ -29,6 +31,7 @@ class ProfileRepository {
   final CvRepository _cvRepository;
   final CurrentUserService _currentUser;
   final FeatureFlags _flags;
+  final LocalStorageService _localStorage;
 
   static String get currentUserId {
     if (Get.isRegistered<CurrentUserService>()) {
@@ -38,6 +41,7 @@ class ProfileRepository {
   }
 
   bool get useMockApi => _flags.useMockApi;
+  static Future<void>? _mockApplicantStatusesFuture;
 
   Future<UserProfileModel> getProfile(String userId) async {
     if (useMockApi) {
@@ -76,6 +80,7 @@ class ProfileRepository {
   Future<List<JobApplicationModel>> getJobApplicants(String jobPostId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await _ensureMockApplicantStatuses();
       return _mockApplicants[jobPostId] ?? _defaultApplicants;
     }
     return _jobApplicationRepository.getApplicantsForJob(jobPostId);
@@ -252,6 +257,7 @@ class ProfileRepository {
   Future<ApplicantDetailModel> getApplicantDetail(String applicationId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await _ensureMockApplicantStatuses();
       return _buildMockApplicantDetail(applicationId);
     }
 
@@ -358,21 +364,69 @@ class ProfileRepository {
   Future<void> updateApplicationStatus(String applicationId, ApplicationStatus status) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      await _ensureMockApplicantStatuses();
+      var updated = false;
       for (final list in _mockApplicants.values) {
         final index = list.indexWhere((a) => a.id == applicationId);
         if (index >= 0) {
           list[index] = list[index].copyWith(status: status);
-          return;
+          updated = true;
+          break;
         }
       }
-      for (var i = 0; i < _defaultApplicants.length; i++) {
-        if (_defaultApplicants[i].id == applicationId) {
-          _defaultApplicants[i] = _defaultApplicants[i].copyWith(status: status);
+      if (!updated) {
+        for (var i = 0; i < _defaultApplicants.length; i++) {
+          if (_defaultApplicants[i].id == applicationId) {
+            _defaultApplicants[i] = _defaultApplicants[i].copyWith(status: status);
+            updated = true;
+            break;
+          }
         }
+      }
+      if (updated) {
+        final statuses = await _localStorage.readMockApplicationStatuses();
+        statuses[applicationId] = status.name;
+        await _localStorage.saveMockApplicationStatuses(statuses);
+        await _jobApplicationRepository.setMockApplicationStatus(
+          applicationId,
+          status,
+        );
       }
       return;
     }
     await _jobApplicationRepository.updateApplicationStatus(applicationId, status);
+  }
+
+  Future<void> _ensureMockApplicantStatuses() async {
+    if (!useMockApi) return;
+    _mockApplicantStatusesFuture ??= _loadMockApplicantStatuses();
+    await _mockApplicantStatusesFuture;
+  }
+
+  Future<void> _loadMockApplicantStatuses() async {
+    final statuses = await _localStorage.readMockApplicationStatuses();
+    for (final entry in statuses.entries) {
+      ApplicationStatus? status;
+      for (final value in ApplicationStatus.values) {
+        if (value.name == entry.value) {
+          status = value;
+          break;
+        }
+      }
+      if (status == null) continue;
+      for (final list in _mockApplicants.values) {
+        final index = list.indexWhere((a) => a.id == entry.key);
+        if (index >= 0) {
+          list[index] = list[index].copyWith(status: status);
+        }
+      }
+      for (var i = 0; i < _defaultApplicants.length; i++) {
+        if (_defaultApplicants[i].id == entry.key) {
+          _defaultApplicants[i] =
+              _defaultApplicants[i].copyWith(status: status);
+        }
+      }
+    }
   }
 
   UserProfileModel _withFollowState(UserProfileModel profile) {

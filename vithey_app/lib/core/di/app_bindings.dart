@@ -75,9 +75,19 @@ class AppBindings {
 
     Get.put<PostService>(PostService(Get.find<ApiService>()), permanent: true);
     Get.put<PostRepository>(
-      PostRepository(Get.find<PostService>(), Get.find<CurrentUserService>(), featureFlags),
+      PostRepository(
+        Get.find<PostService>(),
+        Get.find<CurrentUserService>(),
+        featureFlags,
+        localStorage,
+      ),
       permanent: true,
     );
+    if (featureFlags.useMockApi) {
+      await Get.find<PostRepository>().hydrateMockState(
+        restoreCatalogIfNeeded: true,
+      );
+    }
     Get.put<CommentRepository>(CommentRepository(Get.find<PostRepository>()), permanent: true);
     Get.put<ProfileService>(ProfileService(Get.find<ApiService>()), permanent: true);
     Get.put<UploadService>(UploadService(Get.find<DioClient>()), permanent: true);
@@ -91,9 +101,13 @@ class AppBindings {
         Get.find<PostRepository>(),
         Get.find<JobApplicationService>(),
         featureFlags,
+        localStorage,
       ),
       permanent: true,
     );
+    if (featureFlags.useMockApi) {
+      await Get.find<JobApplicationRepository>().hydrateMockState();
+    }
     Get.put<ProfileRepository>(
       ProfileRepository(
         Get.find<ProfileService>(),
@@ -102,6 +116,7 @@ class AppBindings {
         Get.find<CvRepository>(),
         Get.find<CurrentUserService>(),
         featureFlags,
+        localStorage,
       ),
       permanent: true,
     );

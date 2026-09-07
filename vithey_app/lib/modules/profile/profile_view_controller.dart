@@ -241,7 +241,7 @@ class ProfileViewController extends GetxController
   void editJobPost(FeedPost jobPost) {}
 
   @override
-  void deleteJobPost(FeedPost jobPost) {}
+  Future<void> deleteJobPost(BuildContext context, FeedPost jobPost) async {}
 
   @override
   void applyToJob(String jobPostId) {}

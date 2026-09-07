@@ -18,6 +18,7 @@ class CreatePostController extends GetxController {
 
   final contentController = TextEditingController();
   final jobTitleController = TextEditingController(text: 'Job announcement!');
+  final jobCompanyController = TextEditingController();
   final jobRequirementController = TextEditingController();
   final selectedType = Rxn<PostType>();
   final audience = PostAudience.public.obs;
@@ -51,6 +52,8 @@ class CreatePostController extends GetxController {
         removeExistingMedia.value ||
         (isJob &&
             (jobTitleController.text.trim() != (original.jobMeta.title ?? '') ||
+                jobCompanyController.text.trim() !=
+                    (original.jobMeta.description ?? '') ||
                 jobRequirementController.text.trim() !=
                     (original.jobMeta.requirement ?? '')));
   }
@@ -87,6 +90,7 @@ class CreatePostController extends GetxController {
       existingMediaUrl.value = original.mediaUrl ?? original.thumbnailUrl;
       if (original.type == PostType.job) {
         jobTitleController.text = original.jobMeta.title ?? 'Job announcement!';
+        jobCompanyController.text = original.jobMeta.description ?? '';
         jobRequirementController.text = original.jobMeta.requirement ?? '';
       }
     }
@@ -263,7 +267,9 @@ class CreatePostController extends GetxController {
               title: jobTitleController.text.trim().isEmpty
                   ? 'Job announcement!'
                   : jobTitleController.text.trim(),
-              description: content,
+              description: jobCompanyController.text.trim().isEmpty
+                  ? null
+                  : jobCompanyController.text.trim(),
               requirement: jobRequirementController.text.trim().isEmpty
                   ? null
                   : jobRequirementController.text.trim(),
@@ -308,6 +314,7 @@ class CreatePostController extends GetxController {
     contentController.removeListener(_onContentChanged);
     contentController.dispose();
     jobTitleController.dispose();
+    jobCompanyController.dispose();
     jobRequirementController.dispose();
     super.onClose();
   }

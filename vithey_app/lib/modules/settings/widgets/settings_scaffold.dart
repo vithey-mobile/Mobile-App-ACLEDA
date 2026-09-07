@@ -24,9 +24,7 @@ class SettingsScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final pageBg = Theme.of(context).brightness == Brightness.dark
-        ? colors.bodyBackground
-        : const Color(0xFFF2F2F2);
+    final pageBg = colors.inputFill;
 
     return Scaffold(
       backgroundColor: pageBg,

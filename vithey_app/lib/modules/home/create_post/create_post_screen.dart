@@ -140,8 +140,11 @@ class _AdaptiveEditor extends StatelessWidget {
       final mediaPath = controller.mediaPreviewPath;
       final isUploading = controller.isUploadingMedia.value;
       final error = controller.errorMessage.value;
+      // Jobs (and any edit with media) use the media composer so the poster
+      // is visible and replaceable — not the text-only expanded editor.
+      final useMediaForm = mediaPath != null || controller.isJob;
 
-      if (mediaPath == null) {
+      if (!useMediaForm) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -167,12 +170,57 @@ class _AdaptiveEditor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            VitheyTextArea(
-              key: const ValueKey('media-composer-editor'),
-              controller: controller.contentController,
-              minLines: 4,
-              maxLines: 12,
-            ),
+            if (controller.isJob) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: VitheyField(
+                  controller: controller.jobTitleController,
+                  label: 'Job title',
+                  hint: 'e.g. Web Developer',
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => controller.contentRevision.value++,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: VitheyField(
+                  controller: controller.jobCompanyController,
+                  label: 'Company',
+                  hint: 'Company or organization',
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => controller.contentRevision.value++,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: VitheyField(
+                  controller: controller.jobRequirementController,
+                  label: 'Employment type',
+                  hint: 'Full-time, Part-time, Internship…',
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => controller.contentRevision.value++,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: VitheyTextArea(
+                  key: const ValueKey('job-location-editor'),
+                  controller: controller.contentController,
+                  label: 'Location',
+                  hint: 'City, street, office…',
+                  minLines: 3,
+                  maxLines: 6,
+                ),
+              ),
+            ] else ...[
+              VitheyTextArea(
+                key: const ValueKey('media-composer-editor'),
+                controller: controller.contentController,
+                hint: 'What\'s on your mind?',
+                minLines: 4,
+                maxLines: 12,
+              ),
+            ],
             CreatePostMediaZone(
               mediaPath: mediaPath,
               isVideo: controller.isVideo,

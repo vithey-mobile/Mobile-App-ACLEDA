@@ -65,7 +65,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => ChatFolderTabs.height;
 
   @override
-  bool shouldRebuild(covariant _ChatFolderTabsDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant _ChatFolderTabsDelegate oldDelegate) => true;
 
   @override
   Widget build(
@@ -75,23 +75,12 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
   ) {
     final colors = context.appColors;
     final controller = Get.find<ChatListController>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final trackFill = isDark
-        ? const Color(0xFF1E2329)
-        : colors.cardSurface;
-    final trackBorder = isDark
-        ? const Color(0xFF3A424C)
-        : colors.border;
-    final inactiveLabel = isDark
-        ? const Color(0xFFA8B0BA)
-        : colors.muted;
-    final badgeBg = isDark
-        ? const Color(0xFFE8EAED)
-        : const Color(0xFFF1F3F5);
-    final badgeFg = isDark
-        ? const Color(0xFF2C333A)
-        : colors.heading;
+    final trackFill = colors.inputFill;
+    final trackBorder = colors.border;
+    final inactiveLabel = colors.muted;
+    final badgeBg = colors.cardSurface;
+    final badgeFg = colors.heading;
 
     return Material(
       color: colors.cardSurface,
@@ -111,7 +100,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
               border: Border.all(color: trackBorder, width: 1.2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
+                  color: colors.subtleShadow,
                   blurRadius: 6,
                   offset: const Offset(0, 1),
                 ),
@@ -262,12 +251,12 @@ class _InlineCreateFolderFieldState extends State<_InlineCreateFolderField> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: widget.inactiveLabel,
+            color: context.appColors.heading,
           ),
           decoration: InputDecoration(
             hintText: AppStrings.chatFolderNameHint,
             hintStyle: TextStyle(
-              color: widget.inactiveLabel.withValues(alpha: 0.65),
+              color: context.appColors.muted.withValues(alpha: 0.65),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -275,7 +264,7 @@ class _InlineCreateFolderFieldState extends State<_InlineCreateFolderField> {
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: context.appColors.cardSurface,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(99),
               borderSide: const BorderSide(
@@ -348,7 +337,7 @@ class _FolderNavTab extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        color: selected ? AppColors.primaryLight : inactiveLabel,
+                        color: selected ? AppColors.primary : inactiveLabel,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         height: 1.1,
@@ -360,9 +349,7 @@ class _FolderNavTab extends StatelessWidget {
                       constraints: const BoxConstraints(minWidth: 18),
                       padding: const EdgeInsets.symmetric(horizontal: 5),
                       decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.primaryLight
-                            : badgeBg,
+                        color: selected ? AppColors.primary : badgeBg,
                         borderRadius: BorderRadius.circular(99),
                       ),
                       alignment: Alignment.center,
@@ -371,7 +358,7 @@ class _FolderNavTab extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: badgeFg,
+                          color: selected ? Colors.white : badgeFg,
                           height: 1,
                         ),
                       ),

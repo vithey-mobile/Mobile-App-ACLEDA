@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageService {
@@ -22,6 +24,95 @@ class LocalStorageService {
   static const _notificationsAppUpdatesKey = 'notifications_app_updates';
   static const _chatFoldersKey = 'chat_folders_json';
   static const _mutedConversationsKey = 'muted_chat_conversations';
+  static const _mockDeletedPostIdsKey = 'mock_deleted_post_ids';
+  static const _mockAppliedJobIdsKey = 'mock_applied_job_ids';
+  static const _mockApplicationStatusesKey = 'mock_application_statuses_json';
+  static const _mockSubmittedApplicationsKey = 'mock_submitted_applications_json';
+  static const _mockCatalogRestoredKey = 'mock_catalog_restored_v1';
+
+  Future<void> saveMockDeletedPostIds(Set<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    final ok = await prefs.setStringList(_mockDeletedPostIdsKey, ids.toList());
+    if (!ok) {
+      throw StateError('Failed to persist mock deleted post ids');
+    }
+  }
+
+  Future<void> clearMockDeletedPostIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_mockDeletedPostIdsKey);
+  }
+
+  /// One-shot restore of the full mock catalog after wiping demo deletes.
+  Future<bool> consumeMockCatalogRestore() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_mockCatalogRestoredKey) == true) return false;
+    await prefs.remove(_mockDeletedPostIdsKey);
+    await prefs.setBool(_mockCatalogRestoredKey, true);
+    return true;
+  }
+
+  Future<Set<String>> readMockDeletedPostIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return prefs.getStringList(_mockDeletedPostIdsKey)?.toSet() ?? {};
+  }
+
+  Future<Set<String>> readMockAppliedJobIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_mockAppliedJobIdsKey)?.toSet() ?? {};
+  }
+
+  Future<void> saveMockAppliedJobIds(Set<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_mockAppliedJobIdsKey, ids.toList());
+  }
+
+  Future<Map<String, String>> readMockApplicationStatuses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_mockApplicationStatusesKey);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return {};
+      return decoded.map(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      );
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> saveMockApplicationStatuses(Map<String, String> statuses) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_mockApplicationStatusesKey, jsonEncode(statuses));
+  }
+
+  Future<List<Map<String, dynamic>>> readMockSubmittedApplications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_mockSubmittedApplicationsKey);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> saveMockSubmittedApplications(
+    List<Map<String, dynamic>> applications,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _mockSubmittedApplicationsKey,
+      jsonEncode(applications),
+    );
+  }
 
   Future<Set<String>> readMutedConversationIds() async {
     final prefs = await SharedPreferences.getInstance();

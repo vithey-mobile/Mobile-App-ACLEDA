@@ -93,8 +93,7 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fill = isDark ? colors.cardSurface : Colors.white;
+    final fill = colors.cardSurface;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -134,8 +133,7 @@ class _CardGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = colors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

@@ -22,9 +22,7 @@ class UserMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bubbleColor =
-        isDark ? context.appColors.inputFill : const Color(0xFFF4F4F4);
+    final bubbleColor = context.appColors.inputFill;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

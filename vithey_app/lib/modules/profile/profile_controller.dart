@@ -244,24 +244,36 @@ class ProfileController extends GetxController
 
   @override
   void editJobPost(FeedPost jobPost) {
-    // Intentionally no-op — edit UI is not shipped yet.
+    Get.toNamed(
+      AppRoutes.createPost,
+      arguments: CreatePostArgs(editingPost: jobPost),
+    )?.then((result) {
+      if (result is FeedPost) _replacePost(result);
+    });
   }
 
   @override
-  void deleteJobPost(FeedPost jobPost) {
-    Get.defaultDialog(
+  Future<void> deleteJobPost(BuildContext context, FeedPost jobPost) async {
+    if (!jobPost.isOwnPost) return;
+    final title = jobPost.jobMeta.title?.trim();
+    final confirmed = await showConfirmDialog(
+      context: context,
       title: 'Delete job?',
-      middleText:
-          'Remove “${jobPost.jobMeta.title ?? 'this job'}” from your posts?',
-      textCancel: 'Cancel',
-      textConfirm: 'Delete',
-      confirmTextColor: Colors.white,
-      onConfirm: () {
-        tabPosts[PostType.job]!.removeWhere((p) => p.id == jobPost.id);
-        Get.back();
-        Get.snackbar(AppStrings.appName, 'Job deleted');
-      },
+      message: title == null || title.isEmpty
+          ? 'Remove this job from your posts? This cannot be undone.'
+          : 'Remove “$title” from your posts? This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Keep job',
+      variant: ConfirmDialogVariant.destructive,
     );
+    if (confirmed != true) return;
+    try {
+      await Get.find<PostRepository>().deletePost(jobPost.id);
+      tabPosts[PostType.job]!.removeWhere((p) => p.id == jobPost.id);
+      Get.snackbar(AppStrings.appName, 'Job deleted');
+    } catch (error) {
+      Get.snackbar(AppStrings.appName, error.toString());
+    }
   }
 
   @override

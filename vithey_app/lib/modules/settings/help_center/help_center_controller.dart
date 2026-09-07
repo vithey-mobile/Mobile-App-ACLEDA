@@ -74,9 +74,7 @@ class HelpCenterController extends GetxController {
     }
 
     final ctx = Get.context!;
-    final bg = ctx.theme.brightness == Brightness.dark
-        ? ctx.appColors.bodyBackground
-        : const Color(0xFFF2F2F2);
+    final bg = ctx.appColors.inputFill;
 
     Get.bottomSheet(
       _FaqCategorySheet(category: category),
@@ -118,8 +116,7 @@ class _FaqCategorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = colors.cardSurface;
 
     return SafeArea(
       child: Padding(

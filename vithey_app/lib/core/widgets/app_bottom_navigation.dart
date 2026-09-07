@@ -29,7 +29,6 @@ class AppBottomNavigation extends StatelessWidget {
   static const barHeight = 64.0;
   static const bottomMargin = 10.0;
   static const _radius = 32.0;
-  static const _inactive = Color(0xFF9AA0A6);
 
   /// Bottom inset so scroll content clears the floating pill.
   ///
@@ -126,6 +125,7 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = context.appColors.muted;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -143,8 +143,7 @@ class _NavIcon extends StatelessWidget {
             child: Icon(
               icon,
               size: 24,
-              color:
-                  selected ? AppColors.primary : AppBottomNavigation._inactive,
+              color: selected ? AppColors.primary : inactive,
             ),
           ),
         ),
@@ -164,6 +163,7 @@ class _NotificationNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = context.appColors.muted;
     final repo = Get.isRegistered<NotificationRepository>()
         ? Get.find<NotificationRepository>()
         : null;
@@ -187,9 +187,7 @@ class _NotificationNavItem extends StatelessWidget {
                 ? Icon(
                     Icons.notifications_outlined,
                     size: 24,
-                    color: selected
-                        ? AppColors.primary
-                        : AppBottomNavigation._inactive,
+                    color: selected ? AppColors.primary : inactive,
                   )
                 : Obx(() {
                     final count = repo.unreadCount.value;
@@ -199,9 +197,7 @@ class _NotificationNavItem extends StatelessWidget {
                       child: Icon(
                         Icons.notifications_outlined,
                         size: 24,
-                        color: selected
-                            ? AppColors.primary
-                            : AppBottomNavigation._inactive,
+                        color: selected ? AppColors.primary : inactive,
                       ),
                     );
                   }),
@@ -249,7 +245,7 @@ class _ProfileNavItem extends StatelessWidget {
                 border: Border.all(
                   color: selected
                       ? AppColors.primary
-                      : AppBottomNavigation._inactive.withValues(alpha: 0.45),
+                      : context.appColors.muted.withValues(alpha: 0.45),
                   width: selected ? 2 : 1.2,
                 ),
               ),

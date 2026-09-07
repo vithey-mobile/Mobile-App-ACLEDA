@@ -65,10 +65,20 @@ class ChatDetailHeader extends StatelessWidget {
         ),
         PopupMenuButton<String>(
           onSelected: onMenu,
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'profile', child: Text('View profile')),
-            PopupMenuItem(value: 'block', child: Text('Block')),
-            PopupMenuItem(value: 'report', child: Text('Report')),
+          color: colors.cardSurface,
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: 'profile',
+              child: Text('View profile', style: TextStyle(color: colors.heading)),
+            ),
+            PopupMenuItem(
+              value: 'block',
+              child: Text('Block', style: TextStyle(color: colors.heading)),
+            ),
+            PopupMenuItem(
+              value: 'report',
+              child: Text('Report', style: TextStyle(color: colors.heading)),
+            ),
           ],
         ),
       ],
@@ -110,7 +120,11 @@ class _HeaderTitle extends StatelessWidget {
                   p.fullName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: context.appColors.heading,
+                  ),
                 ),
                 Text(
                   isTyping

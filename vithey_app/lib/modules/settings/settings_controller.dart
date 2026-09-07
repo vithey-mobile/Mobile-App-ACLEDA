@@ -62,9 +62,7 @@ class SettingsController extends GetxController {
       Get.closeAllSnackbars();
     }
     final ctx = Get.context!;
-    final bg = ctx.theme.brightness == Brightness.dark
-        ? ctx.appColors.bodyBackground
-        : const Color(0xFFF2F2F2);
+    final bg = ctx.appColors.inputFill;
     Get.bottomSheet(
       LanguagePickerSheet(
         selectedCode: languageCode.value,

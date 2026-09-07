@@ -6,6 +6,7 @@ class VitheyTextArea extends VitheyField {
   const VitheyTextArea({
     super.key,
     required super.controller,
+    super.label,
     super.hint,
     super.minLines = 4,
     super.maxLines = 8,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_qr_bottom_sheet.dart';
@@ -55,7 +56,7 @@ class ProfileCoverRedesign extends StatelessWidget {
     final topPad = MediaQuery.paddingOf(context).top;
     final teal = tealColor(context);
     final decor = decorColor(context);
-    final sheet = Theme.of(context).scaffoldBackgroundColor;
+    final sheet = context.appColors.bodyBackground;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
     final onCover =

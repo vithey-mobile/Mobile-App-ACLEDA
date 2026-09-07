@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 class ProfileJobCard extends StatelessWidget {
   const ProfileJobCard({
@@ -61,6 +62,7 @@ class ProfileJobCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 0,
+      color: context.appColors.cardSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: context.appColors.border),
@@ -155,24 +157,10 @@ class ProfileJobCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (isOwnProfile)
-                  PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: context.appColors.muted,
-                    ),
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        onEdit?.call();
-                      } else if (value == 'delete') {
-                        onDelete?.call();
-                      }
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
-                    ],
+                if (isOwnProfile && onEdit != null && onDelete != null)
+                  PostOwnerActions(
+                    onEdit: onEdit!,
+                    onDelete: onDelete!,
                   ),
               ],
             ),
@@ -225,9 +213,7 @@ class ProfileJobCard extends StatelessWidget {
                         ? Text(
                             'Applied',
                             style: TextStyle(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? const Color(0xFFB0B0B0)
-                                  : const Color(0xFF616161),
+                              color: context.appColors.muted,
                               fontWeight: FontWeight.w600,
                             ),
                           )

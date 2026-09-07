@@ -11,8 +11,7 @@ class SettingsLogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? colors.cardSurface : Colors.white;
+    final cardColor = colors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),

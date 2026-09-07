@@ -57,10 +57,7 @@ class _LanguagePickerSheetState extends State<LanguagePickerSheet> {
     _selectedCode = widget.selectedCode;
   }
 
-  Color _secondary(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return isDark ? const Color(0xFFB0B0BE) : const Color(0xFF5A5A68);
-  }
+  Color _secondary(BuildContext context) => context.appColors.muted;
 
   Future<void> _handleSelect(String code) async {
     if (_busy) return;
