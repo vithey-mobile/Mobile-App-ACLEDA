@@ -1,5 +1,8 @@
 # Wave shape source of truth (intro / auth)
 
+> **Current ribbon (Language → Onboarding → Auth):** see **[`Auth Background Wave Shape.md`](./Auth%20Background%20Wave%20Shape.md)** + [`auth_background_wave_shape.svg`](./auth_background_wave_shape.svg).  
+> This file keeps **legacy** single-curve / sheet notes for restore and comparison.
+
 Saved curve points for each intro screen’s wave style.  
 Coordinates are **fractions of width / height** (0–1), left → right.
 

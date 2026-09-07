@@ -113,6 +113,10 @@ class SettingsController extends GetxController {
         await Get.find<SearchRecentStore>().clearAll();
       }
     } catch (_) {}
-    Get.offAllNamed(AppRoutes.auth);
+    // Close any leftover dialogs before wiping the stack.
+    while (Get.isDialogOpen ?? false) {
+      Get.back<void>();
+    }
+    Get.offAllNamed(AppRoutes.login);
   }
 }

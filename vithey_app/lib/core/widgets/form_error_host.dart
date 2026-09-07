@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 /// Hosts per-form error visibility for [VitheyField] / [CustomTextField].
 ///
-/// - [activateFor] / [FieldErrors.activate] before `FormState.validate()`
-/// - [clearAll] / field focus clears messages and restores idle colors
+/// Flow:
+/// - Submit: [submit] unfocuses first, then shows errors once
+/// - Any other interaction (field focus / tap outside): [clearAll] → idle
 class FormErrorHost extends StatefulWidget {
   const FormErrorHost({
     super.key,
@@ -31,6 +33,19 @@ class FormErrorHost extends StatefulWidget {
         return;
       }
     }
+  }
+
+  /// Unfocus any focused field, then show errors and validate.
+  ///
+  /// Use from Sign In / Next / Sign Up submit so a pre-focused field does not
+  /// keep primary focus chrome over the red error state.
+  static Future<bool> submit(GlobalKey<FormState> formKey) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    // Let focus/chrome settle before painting Required errors.
+    await SchedulerBinding.instance.endOfFrame;
+    await Future<void>.delayed(Duration.zero);
+    activateFor(formKey);
+    return formKey.currentState?.validate() ?? false;
   }
 
   @override

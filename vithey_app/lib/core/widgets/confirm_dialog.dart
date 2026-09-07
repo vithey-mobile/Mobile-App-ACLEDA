@@ -3,7 +3,6 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 /// Color presets for the confirm button.
 enum ConfirmDialogVariant {
@@ -16,8 +15,9 @@ enum ConfirmDialogVariant {
 
 /// Shows the app-wide confirmation dialog.
 ///
-/// Rendered with [shad.AlertDialog] + [CustomButton] (ghost cancel,
-/// primary or destructive confirm).
+/// Uses a Material [Dialog] (not shadcn AlertDialog) so action buttons get
+/// bounded width constraints — shadcn's action row is unconstrained and
+/// freezes the UI when paired with [CustomButton].
 ///
 /// Returns `true` when confirmed, `false` when cancelled, and `null` when
 /// dismissed via the scrim or back button.
@@ -34,10 +34,6 @@ Future<bool?> showConfirmDialog({
   Color? cancelForegroundColor,
   bool barrierDismissible = true,
 }) {
-  // confirmColor / foreground overrides are kept for API compatibility with
-  // existing callers; styling is driven by [variant] through CustomButton.
-  // The scrim + scrim-tap dismissal come from the route barrier; the
-  // AlertDialog backdrop stays transparent to avoid double-darkening.
   return Get.dialog<bool>(
     ConfirmDialog(
       title: title,
@@ -55,7 +51,7 @@ Future<bool?> showConfirmDialog({
   );
 }
 
-/// App-wide confirmation dialog built on [shad.AlertDialog].
+/// App-wide confirmation dialog.
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
     super.key,
@@ -90,58 +86,66 @@ class ConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final isDestructive = variant == ConfirmDialogVariant.destructive;
+    final dialogWidth =
+        (MediaQuery.sizeOf(context).width - 48).clamp(280.0, 420.0);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 420),
-      child: shad.AlertDialog(
-        barrierColor: Colors.transparent,
-        padding: const EdgeInsets.all(24),
-        title: SizedBox(
-          width: double.infinity,
-          child: Text(
-            title,
-            textAlign: TextAlign.start,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colors.heading,
-            ),
+    return Dialog(
+      backgroundColor: colors.cardSurface,
+      elevation: 8,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: SizedBox(
+        width: dialogWidth,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                title,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.heading,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colors.muted,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      label: cancelLabel,
+                      variant: CustomButtonVariant.ghost,
+                      onPressed: () => _pop(context, false),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomButton(
+                      label: confirmLabel,
+                      variant: isDestructive
+                          ? CustomButtonVariant.destructive
+                          : CustomButtonVariant.primary,
+                      onPressed: () => _pop(context, true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        content: SizedBox(
-          width: double.infinity,
-          child: Text(
-            message,
-            textAlign: TextAlign.start,
-            style: TextStyle(fontSize: 14, color: colors.muted, height: 1.4),
-          ),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomButton(
-                    label: cancelLabel,
-                    variant: CustomButtonVariant.ghost,
-                    onPressed: () => _pop(context, false),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CustomButton(
-                    label: confirmLabel,
-                    variant: isDestructive
-                        ? CustomButtonVariant.destructive
-                        : CustomButtonVariant.primary,
-                    onPressed: () => _pop(context, true),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

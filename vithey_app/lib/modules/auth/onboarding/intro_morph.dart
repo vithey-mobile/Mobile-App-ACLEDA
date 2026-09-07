@@ -1,19 +1,19 @@
 import 'package:flutter/animation.dart';
 
 /// Intro handoff flags. Morph animations run on the **entering** screen only.
+///
+/// Ribbon continuum: Language(0) → Onb1(1) → Onb2(2) → Onb3(3) → SignIn(4) → SignUp(5).
+/// Forward (index↑) slides **left**; backward (index↓) slides **right**.
 class IntroMorph {
   IntroMorph._();
 
-  /// Language ↔ Onboarding (single-phase wave + content).
+  /// Language ↔ Onboarding content fade on enter.
   static const duration = Duration(milliseconds: 360);
 
-  /// Sign In ↔ Sign Up slide + white-hug lerp (same pace every time).
+  /// Whole-frame ribbon slide (Onboarding pages, Sign In ↔ Sign Up).
   static const panelDuration = Duration(milliseconds: 560);
 
-  /// Onboarding ↔ Auth: wave morph only (content fades separately, shorter).
-  static const authWaveDuration = Duration(milliseconds: 280);
-
-  /// Onboarding ↔ Auth: content fade in/out after the wave.
+  /// Onboarding ↔ Auth: content fade in/out.
   static const authContentDuration = Duration(milliseconds: 180);
 
   static bool fadeContentIn = false;
@@ -22,8 +22,8 @@ class IntroMorph {
   static bool fromAuth = false;
   static int initialOnboardingPage = 0;
 
-  /// Wave factor of the screen being left (Auth → Onboarding reverse morph).
-  static double fromAuthWaveFactor = 1.0;
+  /// When entering Auth, start on Sign Up (register route).
+  static bool startOnSignUp = false;
 
   static void clear() {
     fadeContentIn = false;
@@ -31,7 +31,7 @@ class IntroMorph {
     fromOnboarding = false;
     fromAuth = false;
     initialOnboardingPage = 0;
-    fromAuthWaveFactor = 1.0;
+    startOnSignUp = false;
   }
 
   static Future<void> run(

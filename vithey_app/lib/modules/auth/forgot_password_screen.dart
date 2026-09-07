@@ -28,10 +28,7 @@ class ForgotPasswordScreen extends GetView<AuthController> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const OnboardingBackground(
-            waveHeightFactor: OnboardingBackground.onboardingFactor,
-            authMorph: 1.0,
-          ),
+          const OnboardingBackground(solidTeal: true),
           Column(
             children: [
               Expanded(
@@ -150,9 +147,10 @@ class _ResetFormBody extends StatelessWidget {
                 label: AppStrings.sendResetLink,
                 icon: Icons.send_outlined,
                 isLoading: controller.isForgotPasswordLoading.value,
-                onPressed: () {
-                  FormErrorHost.activateFor(controller.forgotPasswordFormKey);
-                  controller.requestPasswordReset();
+                onPressed: () async {
+                  final ok =
+                      await FormErrorHost.submit(controller.forgotPasswordFormKey);
+                  if (ok) controller.requestPasswordReset();
                 },
               ),
             ),

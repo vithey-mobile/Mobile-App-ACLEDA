@@ -101,6 +101,7 @@ class _VitheyFieldState extends State<VitheyField> {
   }
 
   void _onFocusChange() {
+    // Any field interaction while errors are up → back to normal.
     if (_focusNode.hasFocus) {
       FieldErrors.clear(context);
     }
@@ -202,12 +203,41 @@ class _VitheyFieldState extends State<VitheyField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: labelColor,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: labelColor,
+                  ),
+                ),
+              ),
+              if (hasError)
+                Text(
+                  _inlineErrorLabel(externalError ?? _errorText!),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+        ] else if (hasError) ...[
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              _inlineErrorLabel(externalError ?? _errorText!),
+              style: const TextStyle(
+                color: AppColors.error,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -223,62 +253,63 @@ class _VitheyFieldState extends State<VitheyField> {
             return error;
           },
           builder: (field) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                shad.TextField(
-                  controller: widget.controller,
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocus,
-                  enabled: widget.enabled,
-                  readOnly: widget.readOnly,
-                  obscureText: effectiveObscure,
-                  maxLines: widget.maxLines,
-                  minLines: widget.minLines,
-                  maxLength: widget.maxLength,
-                  keyboardType: widget.keyboardType,
-                  textInputAction: widget.textInputAction,
-                  onTap: widget.onTap,
-                  inputFormatters: widget.inputFormatters,
-                  filled: widget.filled,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: widget.readOnly || !widget.enabled ? muted : heading,
-                  ),
-                  placeholder: widget.hint == null
-                      ? null
-                      : Text(
-                          widget.hint!,
-                          style: TextStyle(
-                            color: chrome,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                  features: features,
-                  onChanged: (value) {
-                    field.didChange(value);
-                    widget.onChanged?.call(value);
-                  },
-                  onSubmitted: widget.onSubmitted,
-                ),
-                if (hasError) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    externalError ?? _errorText!,
-                    style: const TextStyle(
-                      color: AppColors.error,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+            return shad.TextField(
+              controller: widget.controller,
+              focusNode: _focusNode,
+              autofocus: widget.autofocus,
+              enabled: widget.enabled,
+              readOnly: widget.readOnly,
+              obscureText: effectiveObscure,
+              maxLines: widget.maxLines,
+              minLines: widget.minLines,
+              maxLength: widget.maxLength,
+              keyboardType: widget.keyboardType,
+              textInputAction: widget.textInputAction,
+              onTap: widget.onTap,
+              inputFormatters: widget.inputFormatters,
+              filled: widget.filled,
+              border: Border.all(
+                color: chrome,
+                width: 1,
+                strokeAlign: BorderSide.strokeAlignInside,
+              ),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: widget.readOnly || !widget.enabled ? muted : heading,
+              ),
+              placeholder: widget.hint == null
+                  ? null
+                  : Text(
+                      widget.hint!,
+                      style: TextStyle(
+                        color: chrome,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ],
-              ],
+              features: features,
+              onChanged: (value) {
+                field.didChange(value);
+                if (hasError) {
+                  FieldErrors.clear(context);
+                }
+                widget.onChanged?.call(value);
+              },
+              onSubmitted: widget.onSubmitted,
             );
           },
         ),
       ],
     );
+  }
+
+  /// Empty-field messages → compact "Required" (right of label; no extra height).
+  static String _inlineErrorLabel(String error) {
+    final t = error.trim().toLowerCase();
+    if (t == 'required' || t.endsWith('is required')) {
+      return 'Required';
+    }
+    return error.trim();
   }
 }

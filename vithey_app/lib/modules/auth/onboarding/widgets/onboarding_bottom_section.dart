@@ -76,6 +76,7 @@ class OnboardingBottomChrome extends StatelessWidget {
     required this.totalPages,
     required this.onNext,
     this.isLastSlide,
+    this.nextLabel,
   });
 
   final int currentPage;
@@ -86,10 +87,15 @@ class OnboardingBottomChrome extends StatelessWidget {
   /// (needed when dots include Select Language as step 0).
   final bool? isLastSlide;
 
+  /// Overrides Next / Get Started when set (e.g. Language → Continue).
+  final String? nextLabel;
+
   @override
   Widget build(BuildContext context) {
     final isLast = isLastSlide ?? (currentPage == totalPages - 1);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final label =
+        nextLabel ?? (isLast ? AppStrings.getStarted : AppStrings.next);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
@@ -99,7 +105,7 @@ class OnboardingBottomChrome extends StatelessWidget {
           _PageDots(currentPage: currentPage, totalPages: totalPages),
           const SizedBox(height: 24),
           _OnboardingCtaButton(
-            label: isLast ? AppStrings.getStarted : AppStrings.next,
+            label: label,
             onPressed: onNext,
           ),
         ],

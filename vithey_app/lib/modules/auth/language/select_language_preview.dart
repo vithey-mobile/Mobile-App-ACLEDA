@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
 /// Visual-only Select Language for Splash handoff.
 /// Must NOT use GetX — Splash deletes/replaces routes around this widget.
@@ -34,7 +35,7 @@ class SelectLanguagePreview extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           const OnboardingBackground(
-            waveHeightFactor: OnboardingBackground.languageFactor,
+            profile: WaveRibbon.language,
           ),
           Opacity(
             opacity: contentT,

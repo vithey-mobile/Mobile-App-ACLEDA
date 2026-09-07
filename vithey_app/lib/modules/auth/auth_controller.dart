@@ -9,27 +9,20 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
-import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register, changeEmail }
 
 class AuthController extends GetxController {
-  AuthController(
-    this._authRepository, {
-    this.fadeContentIn = false,
-  });
+  AuthController(this._authRepository);
 
   final AuthRepository _authRepository;
-
-  /// When true, crossfade from onboarding backdrop into Auth UI.
-  final bool fadeContentIn;
 
   final loginFormKey = GlobalKey<FormState>();
   final registerPart1FormKey = GlobalKey<FormState>();
@@ -55,26 +48,14 @@ class AuthController extends GetxController {
   final forgotPasswordFormKey = GlobalKey<FormState>();
   final forgotPasswordEmailController = TextEditingController();
 
-  /// Auth v2: 0 = Sign In, 1 = Sign Up. Switch only via footer toggle buttons.
+  /// Auth v2: 0 = Sign In, 1 = Sign Up (synced from intro ribbon).
   final authPageIndex = 0.obs;
-
-  /// True while the Sign In ↔ Sign Up height morph is running.
-  final isPanelAnimating = false.obs;
 
   /// Sign Up only: 0 = Part 1 (credentials), 1 = Part 2 (profile).
   final registerStep = 0.obs;
 
   /// True while Part 1 ↔ Part 2 field slide is running.
   final isRegisterStepAnimating = false.obs;
-
-  /// Shared wave depth — driven by measured form height (white hugs content).
-  final waveFactor = OnboardingBackground.onboardingFactor.obs;
-
-  /// Intro morph: forms + chrome fade/rise in with waveFactor.
-  final layoutReveal = 1.0.obs;
-
-  /// Intro morph: auth chrome + forms opacity.
-  final contentOpacity = 1.0.obs;
 
   final isBusy = false.obs;
 
@@ -85,159 +66,46 @@ class AuthController extends GetxController {
   /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
   bool get isGoogleAuthEnabled => Get.find<FeatureFlags>().enableGoogleAuth;
 
-  /// After Onboarding enter, first measured height animates the hug.
-  bool _pendingIntroHug = false;
-  double? _introHugTarget;
-  int _waveMorphToken = 0;
-
-  /// Painter white band ≈ `1 - 0.58 * waveFactor` of screen height.
-  static double waveFactorFromContentHeight({
-    required double contentHeight,
-    required double screenHeight,
-  }) {
-    if (screenHeight <= 0 || contentHeight <= 0) {
-      return OnboardingBackground.authSignInFactor;
-    }
-    // Slight padding so errors / fields aren't flush on the wave edge.
-    final whiteFraction =
-        ((contentHeight + 12) / screenHeight).clamp(0.28, 0.78);
-    return ((1.0 - whiteFraction) / 0.58).clamp(0.35, 1.0);
-  }
-
   @override
   void onInit() {
     super.onInit();
-    final startOnSignUp = Get.currentRoute == AppRoutes.register;
+    final startOnSignUp =
+        Get.currentRoute == AppRoutes.register || IntroMorph.startOnSignUp;
     authPageIndex.value = startOnSignUp ? 1 : 0;
-
-    if (fadeContentIn) {
-      // Laid out for height measure, hidden until wave transition finishes.
-      contentOpacity.value = 0;
-      layoutReveal.value = 1;
-      waveFactor.value = OnboardingBackground.onboardingFactor;
-      _pendingIntroHug = true;
-      _enterFromOnboarding();
-    } else {
-      waveFactor.value = OnboardingBackground.authSignInFactor;
-    }
-  }
-
-  /// Sequence: wave transition first → then show content.
-  Future<void> _enterFromOnboarding() async {
-    final target = await _waitForIntroHugTarget();
-    if (isClosed) return;
-
-    _pendingIntroHug = false;
-    final hug = target ?? OnboardingBackground.authSignInFactor;
-    _introHugTarget = null;
-    await _animateWaveTo(hug, IntroMorph.authWaveDuration);
-    if (isClosed) return;
-
-    await IntroMorph.run(IntroMorph.authContentDuration, (t) {
-      if (isClosed) return;
-      contentOpacity.value = t;
-    });
-    if (!isClosed) contentOpacity.value = 1;
-  }
-
-  Future<double?> _waitForIntroHugTarget() async {
-    // Prefer the first layout measure; don't spin for nearly a second.
-    for (var i = 0; i < 12; i++) {
-      final queued = _introHugTarget;
-      if (queued != null) return queued;
-      await Future<void>.delayed(const Duration(milliseconds: 16));
-      if (isClosed) return null;
-    }
-    return _introHugTarget;
-  }
-
-  /// Keep white hug locked to the live form height (Sign In/Up, errors, parts).
-  void reportContentHeight({
-    required double contentHeight,
-    required double screenHeight,
-  }) {
-    if (isClosed) return;
-    final target = waveFactorFromContentHeight(
-      contentHeight: contentHeight,
-      screenHeight: screenHeight,
-    );
-    if (_pendingIntroHug) {
-      _introHugTarget = target;
-      return;
-    }
-    if ((waveFactor.value - target).abs() < 0.002) return;
-    // During panel slide the switcher drives height every tick — apply immediately.
-    waveFactor.value = target;
-  }
-
-  Future<void> _animateWaveTo(double to, Duration duration) async {
-    final token = ++_waveMorphToken;
-    final from = waveFactor.value;
-    if ((from - to).abs() < 0.002) {
-      waveFactor.value = to;
-      return;
-    }
-    await IntroMorph.run(duration, (t) {
-      if (isClosed || token != _waveMorphToken) return;
-      waveFactor.value = from + (to - from) * t;
-    });
-    if (!isClosed && token == _waveMorphToken) {
-      waveFactor.value = to;
-    }
   }
 
   void showSignIn() {
-    if (isPanelAnimating.value ||
-        isRegisterStepAnimating.value ||
-        authPageIndex.value == 0) {
-      return;
-    }
+    if (isRegisterStepAnimating.value || authPageIndex.value == 0) return;
     clearError();
     registerStep.value = 0;
+    if (Get.isRegistered<IntroRibbonController>()) {
+      Get.find<IntroRibbonController>().showSignIn();
+      return;
+    }
     authPageIndex.value = 0;
   }
 
   void showSignUp() {
-    if (isPanelAnimating.value ||
-        isRegisterStepAnimating.value ||
-        authPageIndex.value == 1) {
-      return;
-    }
+    if (isRegisterStepAnimating.value || authPageIndex.value == 1) return;
     clearError();
     registerStep.value = 0;
+    if (Get.isRegistered<IntroRibbonController>()) {
+      Get.find<IntroRibbonController>().showSignUp();
+      return;
+    }
     authPageIndex.value = 1;
   }
 
-  /// Leave Auth → Onboarding: content out → wave transition → navigate.
+  /// Leave Auth → slide back on the intro ribbon (or pop if stacked).
   Future<void> goBack() async {
     if (isBusy.value) return;
-
-    if (Get.key.currentState?.canPop() ?? false) {
-      Get.back();
+    if (Get.isRegistered<IntroRibbonController>()) {
+      await Get.find<IntroRibbonController>().authBack();
       return;
     }
-
-    isBusy.value = true;
-
-    // 1) Disappear content first.
-    final startOpacity = contentOpacity.value;
-    await IntroMorph.run(IntroMorph.authContentDuration, (t) {
-      if (isClosed) return;
-      contentOpacity.value = startOpacity * (1.0 - t);
-    });
-    if (!isClosed) contentOpacity.value = 0;
-
-    // 2) Wave transition toward Onboarding resting depth.
-    await _animateWaveTo(
-      OnboardingBackground.onboardingFactor,
-      IntroMorph.authWaveDuration,
-    );
-
-    await Get.find<LocalStorageService>().setOnboardingCompleted(false);
-    IntroMorph.fromAuth = true;
-    IntroMorph.fromAuthWaveFactor = OnboardingBackground.onboardingFactor;
-    IntroMorph.initialOnboardingPage = OnboardingController.totalPages - 1;
-    Get.offAllNamed(AppRoutes.onboarding);
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
+    }
   }
 
   void clearError() {
@@ -250,7 +118,7 @@ class AuthController extends GetxController {
 
   Future<void> goToRegisterPart2() async {
     if (isRegisterStepAnimating.value || registerStep.value == 1) return;
-    if (!(registerPart1FormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(registerPart1FormKey)) return;
     clearError();
     registerStep.value = 1;
   }
@@ -291,7 +159,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (!(loginFormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(loginFormKey)) return;
     isLoading.value = true;
     clearError();
     try {
@@ -311,7 +179,7 @@ class AuthController extends GetxController {
 
   Future<void> register() async {
     if (registerStep.value != 1) return;
-    if (!(registerPart2FormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(registerPart2FormKey)) return;
     isLoading.value = true;
     clearError();
     try {
@@ -434,10 +302,15 @@ class AuthController extends GetxController {
       _finishEmailChange(null);
       return;
     }
-    Get.until((route) =>
-        route.settings.name == AppRoutes.login ||
-        route.settings.name == AppRoutes.register ||
-        route.settings.name == AppRoutes.auth);
+    Get.until((route) => _isIntroRibbonRoute(route.settings.name));
+  }
+
+  static bool _isIntroRibbonRoute(String? name) {
+    return name == AppRoutes.login ||
+        name == AppRoutes.register ||
+        name == AppRoutes.auth ||
+        name == AppRoutes.selectLanguage ||
+        name == AppRoutes.onboarding;
   }
 
   void _finishEmailChange(String? email) {
@@ -456,7 +329,6 @@ class AuthController extends GetxController {
   }
 
   Future<void> requestPasswordReset() async {
-    if (!(forgotPasswordFormKey.currentState?.validate() ?? false)) return;
     isForgotPasswordLoading.value = true;
     forgotPasswordError.value = '';
     try {

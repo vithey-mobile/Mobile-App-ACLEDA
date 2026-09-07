@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
 class OnboardingSlide {
   const OnboardingSlide({
@@ -23,21 +22,17 @@ class OnboardingController extends GetxController {
     this.fromLanguage = false,
     this.fromAuth = false,
     this.initialPage = 0,
-    this.fromAuthWaveFactor = OnboardingBackground.authSignInFactor,
   });
 
   final LocalStorageService _localStorage;
   final bool fromLanguage;
   final bool fromAuth;
   final int initialPage;
-  final double fromAuthWaveFactor;
 
   late final pageController = PageController(initialPage: initialPage);
   late final currentPage = initialPage.obs;
 
   final contentOpacity = 1.0.obs;
-  final waveFactor = OnboardingBackground.onboardingFactor.obs;
-  final authMorph = 0.0.obs;
   final isBusy = false.obs;
 
   static const totalPages = 3;
@@ -67,44 +62,18 @@ class OnboardingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (fromLanguage) {
+    if (fromLanguage || fromAuth) {
       contentOpacity.value = 0;
-      waveFactor.value = OnboardingBackground.languageFactor;
-      authMorph.value = 0;
-      _enterFromLanguage();
-    } else if (fromAuth) {
-      contentOpacity.value = 0;
-      waveFactor.value = fromAuthWaveFactor;
-      authMorph.value = 0;
-      _enterFromAuth();
+      _fadeContentIn();
     }
   }
 
-  Future<void> _enterFromLanguage() async {
-    final from = OnboardingBackground.languageFactor;
-    final to = OnboardingBackground.onboardingFactor;
+  Future<void> _fadeContentIn() async {
     await IntroMorph.run(IntroMorph.duration, (t) {
       if (isClosed) return;
       contentOpacity.value = t;
-      waveFactor.value = from + (to - from) * t;
     });
-    if (isClosed) return;
-    contentOpacity.value = 1;
-    waveFactor.value = to;
-  }
-
-  /// Same pattern as Onboarding → Language: waveFactor + content fade.
-  Future<void> _enterFromAuth() async {
-    final from = fromAuthWaveFactor;
-    final to = OnboardingBackground.onboardingFactor;
-    await IntroMorph.run(IntroMorph.duration, (t) {
-      if (isClosed) return;
-      contentOpacity.value = t;
-      waveFactor.value = from + (to - from) * t;
-    });
-    if (isClosed) return;
-    contentOpacity.value = 1;
-    waveFactor.value = to;
+    if (!isClosed) contentOpacity.value = 1;
   }
 
   void onPageChanged(int index) => currentPage.value = index;
@@ -113,7 +82,7 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     if (currentPage.value < totalPages - 1) {
       pageController.nextPage(
-        duration: 300.milliseconds,
+        duration: IntroMorph.panelDuration,
         curve: Curves.easeInOut,
       );
     } else {
@@ -125,7 +94,7 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     if (currentPage.value > 0) {
       pageController.previousPage(
-        duration: 300.milliseconds,
+        duration: IntroMorph.panelDuration,
         curve: Curves.easeInOut,
       );
       return;
@@ -143,7 +112,6 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     isBusy.value = true;
     await _localStorage.setOnboardingCompleted(true);
-    // Entering Auth morphs waveFactor onboarding → auth (white hugs forms).
     IntroMorph.fadeContentIn = true;
     Get.offAllNamed(AppRoutes.login);
   }

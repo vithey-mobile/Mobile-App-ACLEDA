@@ -10,123 +10,87 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
-import 'package:aub_connect_app/modules/auth/widgets/auth_panel_switcher.dart';
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
-/// Auth shell — same mixed teal + white [OnboardingBackground] as Language /
-/// Onboarding. Forms sit on that surface (no white overlay sheet).
-class LoginScreen extends GetView<AuthController> {
-  const LoginScreen({super.key});
+/// Full auth frame: ribbon wave + logo + form + back.
+class AuthRibbonFrame extends StatelessWidget {
+  const AuthRibbonFrame({
+    super.key,
+    required this.profile,
+    required this.form,
+    required this.onBack,
+  });
+
+  final WaveRibbonProfile profile;
+  final Widget form;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: context.appColors.cardSurface,
-      body: Obx(() {
-        final layout = controller.layoutReveal.value.clamp(0.0, 1.0);
-        final content = controller.contentOpacity.value.clamp(0.0, 1.0);
-        final busy = controller.isBusy.value;
-        final wave = controller.waveFactor.value;
-        final contentT = Curves.easeOutCubic.transform(layout);
-        final uiOpacity = (content * contentT).clamp(0.0, 1.0);
-        final screenH = MediaQuery.sizeOf(context).height;
-        final tealBandH =
-            screenH * OnboardingBackground.tealBandHeightFraction(wave);
+    final screenH = MediaQuery.sizeOf(context).height;
+    final screenW = MediaQuery.sizeOf(context).width;
+    final tealBandH =
+        screenH * OnboardingBackground.tealBandHeightFraction(profile);
+    final formWidth = screenW < 420 ? screenW : 420.0;
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            OnboardingBackground(waveHeightFactor: wave),
-            Opacity(
-              opacity: uiOpacity,
-              child: Transform.translate(
-                offset: Offset(0, (1.0 - contentT) * 48),
-                child: IgnorePointer(
-                  ignoring: busy,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Logo stays centered in the teal band as it grows/shrinks.
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: tealBandH,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            FormErrorHost.clearAll();
-                          },
-                          child: const Center(
-                            child: AppLogo(
-                              size: 100,
-                              onWhiteCircle: true,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Forms anchored to the bottom; white wave hugs this height.
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 420),
-                            child: const AuthPanelSwitcher(
-                              signInForm: _SignInForm(),
-                              signUpForm: _SignUpForm(),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        child: SafeArea(
-                          child: CustomButton(
-                            label: AppStrings.back,
-                            variant: CustomButtonVariant.ghost,
-                            foregroundColor: AppColors.accentLight,
-                            onPressed: busy ? null : controller.goBack,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        OnboardingBackground(profile: profile),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: tealBandH,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+              FormErrorHost.clearAll();
+            },
+            child: const Center(
+              child: AppLogo(
+                size: 100,
+                onWhiteCircle: true,
               ),
             ),
-          ],
-        );
-      }),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              width: formWidth,
+              child: form,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          child: SafeArea(
+            child: CustomButton(
+              label: AppStrings.back,
+              variant: CustomButtonVariant.ghost,
+              foregroundColor: AppColors.accentLight,
+              onPressed: onBack,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Legacy route target — opens the same Auth shell on the Sign Up panel.
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = Get.find<AuthController>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (auth.authPageIndex.value != 1) {
-        auth.showSignUp();
-      }
-    });
-    return const LoginScreen();
-  }
-}
-
-class _SignInForm extends GetView<AuthController> {
-  const _SignInForm();
+/// Auth Sign In form (used by intro ribbon continuum).
+class AuthSignInForm extends GetView<AuthController> {
+  const AuthSignInForm({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -203,10 +167,7 @@ class _SignInForm extends GetView<AuthController> {
                   label: AppStrings.signIn,
                   icon: Icons.login,
                   isLoading: controller.isLoading.value,
-                  onPressed: () {
-                    FormErrorHost.activateFor(controller.loginFormKey);
-                    controller.login();
-                  },
+                  onPressed: controller.login,
                 ),
               ),
               const SizedBox(height: 16),
@@ -252,8 +213,9 @@ class _SignInForm extends GetView<AuthController> {
   }
 }
 
-class _SignUpForm extends GetView<AuthController> {
-  const _SignUpForm();
+/// Auth Sign Up form (used by intro ribbon continuum).
+class AuthSignUpForm extends GetView<AuthController> {
+  const AuthSignUpForm({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -312,20 +274,14 @@ class _SignUpForm extends GetView<AuthController> {
                 label: AppStrings.next,
                 icon: Icons.arrow_forward,
                 isLoading: false,
-                onPressed: () {
-                  FormErrorHost.activateFor(controller.registerPart1FormKey);
-                  controller.goToRegisterPart2();
-                },
+                onPressed: controller.goToRegisterPart2,
               );
             }
             return _AuthPrimaryButton(
               label: AppStrings.signUp,
               icon: Icons.person_add_alt_1,
               isLoading: loading,
-              onPressed: () {
-                FormErrorHost.activateFor(controller.registerPart2FormKey);
-                controller.register();
-              },
+              onPressed: controller.register,
             );
           }),
           const SizedBox(height: 14),

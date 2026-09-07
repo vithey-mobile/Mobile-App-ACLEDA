@@ -3,14 +3,14 @@ class Validators {
 
   static String? required(String? value, {String field = 'This field'}) {
     if (value == null || value.trim().isEmpty) {
-      return '$field is required';
+      return 'Required';
     }
     return null;
   }
 
   static String? email(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return 'Required';
     }
     final pattern = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!pattern.hasMatch(value.trim())) {
@@ -21,7 +21,7 @@ class Validators {
 
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'Required';
     }
     if (value.length < 8) {
       return 'Password must be at least 8 characters';
@@ -31,7 +31,7 @@ class Validators {
 
   static String? fullName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Full name is required';
+      return 'Required';
     }
     if (value.trim().length < 2) {
       return 'Enter your full name';
@@ -41,7 +41,7 @@ class Validators {
 
   static String? phone(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Phone number is required';
+      return 'Required';
     }
     final digits = value.replaceAll(RegExp(r'\D'), '');
     if (digits.length < 8 || digits.length > 15) {
@@ -52,7 +52,7 @@ class Validators {
 
   static String? confirmPassword(String? value, String password) {
     if (value == null || value.isEmpty) {
-      return 'Confirm password is required';
+      return 'Required';
     }
     if (value != password) {
       return 'Passwords do not match';
@@ -62,7 +62,7 @@ class Validators {
 
   static String? dateOfBirth(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Date of birth is required';
+      return 'Required';
     }
     return null;
   }

@@ -8,7 +8,9 @@ import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.da
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_top_section.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
+/// Onboarding — each page is a full ribbon frame (wave + content) that slides L/R.
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -17,10 +19,7 @@ class OnboardingScreen extends StatelessWidget {
     if (!Get.isRegistered<OnboardingController>()) {
       return Scaffold(
         backgroundColor: context.appColors.cardSurface,
-        body: const OnboardingBackground(
-          waveHeightFactor: OnboardingBackground.onboardingFactor,
-          authMorph: 1,
-        ),
+        body: const OnboardingBackground(profile: WaveRibbon.onboarding1),
       );
     }
     final controller = Get.find<OnboardingController>();
@@ -29,62 +28,50 @@ class OnboardingScreen extends StatelessWidget {
       backgroundColor: context.appColors.cardSurface,
       body: Obx(() {
         if (!Get.isRegistered<OnboardingController>()) {
-          return const OnboardingBackground(
-            waveHeightFactor: OnboardingBackground.onboardingFactor,
-            authMorph: 1,
-          );
+          return const OnboardingBackground(profile: WaveRibbon.onboarding1);
         }
-        final wave = controller.waveFactor.value;
-        final authMorph = controller.authMorph.value;
         final opacity = controller.contentOpacity.value;
         final busy = controller.isBusy.value;
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            OnboardingBackground(
-              waveHeightFactor: wave,
-              authMorph: authMorph,
-            ),
-            Opacity(
-              opacity: opacity,
-              child: IgnorePointer(
-                ignoring: busy,
-                child: Stack(
+        return Opacity(
+          opacity: opacity,
+          child: IgnorePointer(
+            ignoring: busy,
+            child: PageView.builder(
+              controller: controller.pageController,
+              itemCount: OnboardingController.totalPages,
+              onPageChanged: controller.onPageChanged,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (_, index) {
+                final slide = controller.slides[index];
+                final profile = WaveRibbon.onboardingPage(index);
+                return Stack(
                   fit: StackFit.expand,
                   children: [
-                    PageView.builder(
-                      controller: controller.pageController,
-                      itemCount: OnboardingController.totalPages,
-                      onPageChanged: controller.onPageChanged,
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (_, index) {
-                        final slide = controller.slides[index];
-                        return Column(
-                          children: [
-                            Expanded(
-                              flex: 55,
-                              child: OnboardingTopSection(
-                                imageAsset: slide.imageAsset,
-                              ),
+                    OnboardingBackground(profile: profile),
+                    Column(
+                      children: [
+                        Expanded(
+                          flex: 55,
+                          child: OnboardingTopSection(
+                            imageAsset: slide.imageAsset,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 45,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 112),
+                            child: OnboardingBottomSection(
+                              title: slide.title,
+                              description: slide.description,
+                              currentPage: index,
+                              totalPages: OnboardingController.totalPages,
+                              onNext: controller.next,
+                              showChrome: false,
                             ),
-                            Expanded(
-                              flex: 45,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 112),
-                                child: OnboardingBottomSection(
-                                  title: slide.title,
-                                  description: slide.description,
-                                  currentPage: index,
-                                  totalPages: OnboardingController.totalPages,
-                                  onNext: controller.next,
-                                  showChrome: false,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                          ),
+                        ),
+                      ],
                     ),
                     Positioned(
                       top: 0,
@@ -114,24 +101,19 @@ class OnboardingScreen extends StatelessWidget {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: Obx(() {
-                        if (!Get.isRegistered<OnboardingController>()) {
-                          return const SizedBox.shrink();
-                        }
-                        return OnboardingBottomChrome(
-                          currentPage: controller.currentPage.value + 1,
-                          totalPages: OnboardingController.introDotCount,
-                          onNext: controller.next,
-                          isLastSlide: controller.currentPage.value ==
-                              OnboardingController.totalPages - 1,
-                        );
-                      }),
+                      child: OnboardingBottomChrome(
+                        currentPage: index + 1,
+                        totalPages: OnboardingController.introDotCount,
+                        onNext: controller.next,
+                        isLastSlide:
+                            index == OnboardingController.totalPages - 1,
+                      ),
                     ),
                   ],
-                ),
-              ),
+                );
+              },
             ),
-          ],
+          ),
         );
       }),
     );

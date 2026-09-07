@@ -85,33 +85,38 @@ class _RegisterStepSliderState extends State<RegisterStepSlider>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        return ClipRect(
-          child: AnimatedBuilder(
-            animation: _t,
-            builder: (context, _) {
-              final progress = _busy ? _t.value : 0.0;
-              return Stack(
-              clipBehavior: Clip.hardEdge,
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        // Only clip while sliding. At rest, ClipRect chops focus rings /
+        // field borders (looks like a broken outline on Confirm Password).
+        final stack = AnimatedBuilder(
+          animation: _t,
+          builder: (context, _) {
+            final progress = _busy ? _t.value : 0.0;
+            return Stack(
+              clipBehavior: _busy ? Clip.hardEdge : Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                  _slideChild(
-                    index: 0,
-                    width: width,
-                    progress: progress,
-                    child: widget.part1,
-                  ),
-                  _slideChild(
-                    index: 1,
-                    width: width,
-                    progress: progress,
-                    child: widget.part2,
-                  ),
-                ],
+                _slideChild(
+                  index: 0,
+                  width: width,
+                  progress: progress,
+                  child: widget.part1,
+                ),
+                _slideChild(
+                  index: 1,
+                  width: width,
+                  progress: progress,
+                  child: widget.part2,
+                ),
+              ],
             );
-            },
-          ),
+          },
         );
+
+        if (!_busy) return stack;
+        return ClipRect(child: stack);
       },
     );
   }
