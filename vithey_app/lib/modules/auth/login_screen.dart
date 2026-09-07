@@ -15,10 +15,8 @@ import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
-/// Auth v2 shell:
-/// - Wave to solid teal morph from Onboarding (shared painter)
-/// - Light-teal wave band (~10% screen) + white body (hugs form content)
-/// - Toggle animation: sheet grows up / shrinks down to hug each form
+/// Auth shell — same mixed teal + white [OnboardingBackground] as Language /
+/// Onboarding. Forms sit on that surface (no white overlay sheet).
 class LoginScreen extends GetView<AuthController> {
   const LoginScreen({super.key});
 
@@ -26,82 +24,81 @@ class LoginScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      backgroundColor: context.appColors.cardSurface,
       body: Obx(() {
-        final bgMorph = controller.bgMorph.value.clamp(0.0, 1.0);
         final layout = controller.layoutReveal.value.clamp(0.0, 1.0);
         final content = controller.contentOpacity.value.clamp(0.0, 1.0);
         final busy = controller.isBusy.value;
-        final sheetSlide =
-            MediaQuery.sizeOf(context).height * 0.35 * (1.0 - layout);
+        final wave = controller.waveFactor.value;
+        final contentT = Curves.easeOutCubic.transform(layout);
+        final uiOpacity = (content * contentT).clamp(0.0, 1.0);
+        final screenH = MediaQuery.sizeOf(context).height;
+        final tealBandH =
+            screenH * OnboardingBackground.tealBandHeightFraction(wave);
 
         return Stack(
           fit: StackFit.expand,
           children: [
-            OnboardingBackground(
-              waveHeightFactor: OnboardingBackground.onboardingFactor,
-              authMorph: bgMorph,
-            ),
+            OnboardingBackground(waveHeightFactor: wave),
             Opacity(
-              opacity: content,
-              child: IgnorePointer(
-                ignoring: busy,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Column(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              FormErrorHost.clearAll();
-                            },
-                            child: SafeArea(
-                              bottom: false,
-                              child: Center(
-                                child: Obx(() {
-                                  final animating =
-                                      controller.isPanelAnimating.value;
-                                  return AnimatedOpacity(
-                                    opacity: animating ? 0.9 : 1.0,
-                                    duration: const Duration(milliseconds: 420),
-                                    curve: Curves.easeInOut,
-                                    child: const AppLogo(
-                                      size: 108,
-                                      onWhiteCircle: true,
-                                    ),
-                                  );
-                                }),
-                              ),
+              opacity: uiOpacity,
+              child: Transform.translate(
+                offset: Offset(0, (1.0 - contentT) * 48),
+                child: IgnorePointer(
+                  ignoring: busy,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Logo stays centered in the teal band as it grows/shrinks.
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: tealBandH,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            FormErrorHost.clearAll();
+                          },
+                          child: const Center(
+                            child: AppLogo(
+                              size: 100,
+                              onWhiteCircle: true,
                             ),
                           ),
                         ),
-                        Transform.translate(
-                          offset: Offset(0, sheetSlide),
-                          child: Opacity(
-                            opacity: layout,
+                      ),
+                      // Forms anchored to the bottom; white wave hugs this height.
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 420),
                             child: const AuthPanelSwitcher(
                               signInForm: _SignInForm(),
                               signUpForm: _SignUpForm(),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: SafeArea(
-                        child: CustomButton(
-                          label: AppStrings.back,
-                          variant: CustomButtonVariant.ghost,
-                          foregroundColor: AppColors.accentLight,
-                          onPressed: busy ? null : controller.goBack,
+                      ),
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: SafeArea(
+                          child: CustomButton(
+                            label: AppStrings.back,
+                            variant: CustomButtonVariant.ghost,
+                            foregroundColor: AppColors.accentLight,
+                            onPressed: busy ? null : controller.goBack,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -136,9 +133,9 @@ class _SignInForm extends GetView<AuthController> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
-        20,
+        28,
         24,
-        24 + MediaQuery.paddingOf(context).bottom,
+        20 + MediaQuery.paddingOf(context).bottom,
       ),
       child: FormErrorHost(
         formKey: controller.loginFormKey,
@@ -263,9 +260,9 @@ class _SignUpForm extends GetView<AuthController> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
-        20,
+        28,
         24,
-        24 + MediaQuery.paddingOf(context).bottom,
+        20 + MediaQuery.paddingOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -278,7 +275,6 @@ class _SignUpForm extends GetView<AuthController> {
                 ),
           ),
           const SizedBox(height: 16),
-          // Fields slide inside this padded lane (clipped ΓÇö never to screen edge).
           RegisterStepSlider(
             part1: FormErrorHost(
               formKey: controller.registerPart1FormKey,
@@ -295,7 +291,7 @@ class _SignUpForm extends GetView<AuthController> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 28),
           Obx(() {
             if (controller.errorMessage.isEmpty) {
               return const SizedBox.shrink();
@@ -335,7 +331,6 @@ class _SignUpForm extends GetView<AuthController> {
           const SizedBox(height: 14),
           Obx(() {
             final step = controller.registerStep.value;
-            // Part 1: labeled divider; Part 2: line only ΓÇö same vertical chrome.
             return SocialDivider(
               label: step == 0 ? AppStrings.signInWith : null,
               fontSize: 12,

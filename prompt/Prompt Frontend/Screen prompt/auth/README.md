@@ -9,7 +9,7 @@ Prompts live **directly in this folder** (no `v0` / `v1`).
 | Path | Contents |
 | --- | --- |
 | `01`–`10` | Screen prompts |
-| `update.md` | As-built teal/white sheet + **AppLogo white circle** |
+| `update.md` | Auth background alignment + morph (implementation brief) |
 | `WAVE_SHAPES.md` | Wave geometry notes |
 | `Sample-for-Onboarding.md` | Sample reference |
 | `README.md` | This index |
@@ -31,5 +31,6 @@ Prompts live **directly in this folder** (no `v0` / `v1`).
 
 ## Shared chrome
 
-- Teal + morphing white sheet (`update.md`)
+- Language / Onboarding / Auth Sign In·Up: shared mixed teal + white waves (`OnboardingBackground`) — **no** Auth white overlay sheet on Sign In/Up
+- Intro morph: Language ↔ Onboarding (done); Onboarding ↔ Auth content reveal on same waves (`04-auth-prompt.md`, `update.md`)
 - **`AppLogo`** always on a **white** circular background (`lib/core/widgets/app_logo.dart`)

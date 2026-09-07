@@ -23,12 +23,14 @@ class OnboardingController extends GetxController {
     this.fromLanguage = false,
     this.fromAuth = false,
     this.initialPage = 0,
+    this.fromAuthWaveFactor = OnboardingBackground.authSignInFactor,
   });
 
   final LocalStorageService _localStorage;
   final bool fromLanguage;
   final bool fromAuth;
   final int initialPage;
+  final double fromAuthWaveFactor;
 
   late final pageController = PageController(initialPage: initialPage);
   late final currentPage = initialPage.obs;
@@ -72,8 +74,8 @@ class OnboardingController extends GetxController {
       _enterFromLanguage();
     } else if (fromAuth) {
       contentOpacity.value = 0;
-      waveFactor.value = OnboardingBackground.onboardingFactor;
-      authMorph.value = 1;
+      waveFactor.value = fromAuthWaveFactor;
+      authMorph.value = 0;
       _enterFromAuth();
     }
   }
@@ -91,15 +93,18 @@ class OnboardingController extends GetxController {
     waveFactor.value = to;
   }
 
+  /// Same pattern as Onboarding → Language: waveFactor + content fade.
   Future<void> _enterFromAuth() async {
+    final from = fromAuthWaveFactor;
+    final to = OnboardingBackground.onboardingFactor;
     await IntroMorph.run(IntroMorph.duration, (t) {
       if (isClosed) return;
-      authMorph.value = 1.0 - t;
       contentOpacity.value = t;
+      waveFactor.value = from + (to - from) * t;
     });
     if (isClosed) return;
-    authMorph.value = 0;
     contentOpacity.value = 1;
+    waveFactor.value = to;
   }
 
   void onPageChanged(int index) => currentPage.value = index;
@@ -138,6 +143,7 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     isBusy.value = true;
     await _localStorage.setOnboardingCompleted(true);
+    // Entering Auth morphs waveFactor onboarding → auth (white hugs forms).
     IntroMorph.fadeContentIn = true;
     Get.offAllNamed(AppRoutes.login);
   }

@@ -4,7 +4,17 @@ import 'package:flutter/animation.dart';
 class IntroMorph {
   IntroMorph._();
 
-  static const duration = Duration(milliseconds: 520);
+  /// Language ↔ Onboarding (single-phase wave + content).
+  static const duration = Duration(milliseconds: 360);
+
+  /// Sign In ↔ Sign Up slide + white-hug lerp (same pace every time).
+  static const panelDuration = Duration(milliseconds: 560);
+
+  /// Onboarding ↔ Auth: wave morph only (content fades separately, shorter).
+  static const authWaveDuration = Duration(milliseconds: 280);
+
+  /// Onboarding ↔ Auth: content fade in/out after the wave.
+  static const authContentDuration = Duration(milliseconds: 180);
 
   static bool fadeContentIn = false;
   static bool fromLanguage = false;
@@ -12,12 +22,16 @@ class IntroMorph {
   static bool fromAuth = false;
   static int initialOnboardingPage = 0;
 
+  /// Wave factor of the screen being left (Auth → Onboarding reverse morph).
+  static double fromAuthWaveFactor = 1.0;
+
   static void clear() {
     fadeContentIn = false;
     fromLanguage = false;
     fromOnboarding = false;
     fromAuth = false;
     initialOnboardingPage = 0;
+    fromAuthWaveFactor = 1.0;
   }
 
   static Future<void> run(

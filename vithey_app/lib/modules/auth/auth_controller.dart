@@ -15,6 +15,7 @@ import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register, changeEmail }
@@ -66,10 +67,10 @@ class AuthController extends GetxController {
   /// True while Part 1 ↔ Part 2 field slide is running.
   final isRegisterStepAnimating = false.obs;
 
-  /// Intro morph: 0 = onboarding waves, 1 = full teal (Auth).
-  final bgMorph = 1.0.obs;
+  /// Shared wave depth — driven by measured form height (white hugs content).
+  final waveFactor = OnboardingBackground.onboardingFactor.obs;
 
-  /// Intro morph: sheet + forms slide/fade in over teal.
+  /// Intro morph: forms + chrome fade/rise in with waveFactor.
   final layoutReveal = 1.0.obs;
 
   /// Intro morph: auth chrome + forms opacity.
@@ -84,6 +85,25 @@ class AuthController extends GetxController {
   /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
   bool get isGoogleAuthEnabled => Get.find<FeatureFlags>().enableGoogleAuth;
 
+  /// After Onboarding enter, first measured height animates the hug.
+  bool _pendingIntroHug = false;
+  double? _introHugTarget;
+  int _waveMorphToken = 0;
+
+  /// Painter white band ≈ `1 - 0.58 * waveFactor` of screen height.
+  static double waveFactorFromContentHeight({
+    required double contentHeight,
+    required double screenHeight,
+  }) {
+    if (screenHeight <= 0 || contentHeight <= 0) {
+      return OnboardingBackground.authSignInFactor;
+    }
+    // Slight padding so errors / fields aren't flush on the wave edge.
+    final whiteFraction =
+        ((contentHeight + 12) / screenHeight).clamp(0.28, 0.78);
+    return ((1.0 - whiteFraction) / 0.58).clamp(0.35, 1.0);
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -91,24 +111,78 @@ class AuthController extends GetxController {
     authPageIndex.value = startOnSignUp ? 1 : 0;
 
     if (fadeContentIn) {
+      // Laid out for height measure, hidden until wave transition finishes.
       contentOpacity.value = 0;
-      layoutReveal.value = 0;
-      bgMorph.value = 0;
+      layoutReveal.value = 1;
+      waveFactor.value = OnboardingBackground.onboardingFactor;
+      _pendingIntroHug = true;
       _enterFromOnboarding();
+    } else {
+      waveFactor.value = OnboardingBackground.authSignInFactor;
     }
   }
 
+  /// Sequence: wave transition first → then show content.
   Future<void> _enterFromOnboarding() async {
-    await IntroMorph.run(IntroMorph.duration, (t) {
+    final target = await _waitForIntroHugTarget();
+    if (isClosed) return;
+
+    _pendingIntroHug = false;
+    final hug = target ?? OnboardingBackground.authSignInFactor;
+    _introHugTarget = null;
+    await _animateWaveTo(hug, IntroMorph.authWaveDuration);
+    if (isClosed) return;
+
+    await IntroMorph.run(IntroMorph.authContentDuration, (t) {
       if (isClosed) return;
-      bgMorph.value = t;
-      layoutReveal.value = t;
       contentOpacity.value = t;
     });
-    if (!isClosed) {
-      layoutReveal.value = 1;
-      contentOpacity.value = 1;
-      bgMorph.value = 1;
+    if (!isClosed) contentOpacity.value = 1;
+  }
+
+  Future<double?> _waitForIntroHugTarget() async {
+    // Prefer the first layout measure; don't spin for nearly a second.
+    for (var i = 0; i < 12; i++) {
+      final queued = _introHugTarget;
+      if (queued != null) return queued;
+      await Future<void>.delayed(const Duration(milliseconds: 16));
+      if (isClosed) return null;
+    }
+    return _introHugTarget;
+  }
+
+  /// Keep white hug locked to the live form height (Sign In/Up, errors, parts).
+  void reportContentHeight({
+    required double contentHeight,
+    required double screenHeight,
+  }) {
+    if (isClosed) return;
+    final target = waveFactorFromContentHeight(
+      contentHeight: contentHeight,
+      screenHeight: screenHeight,
+    );
+    if (_pendingIntroHug) {
+      _introHugTarget = target;
+      return;
+    }
+    if ((waveFactor.value - target).abs() < 0.002) return;
+    // During panel slide the switcher drives height every tick — apply immediately.
+    waveFactor.value = target;
+  }
+
+  Future<void> _animateWaveTo(double to, Duration duration) async {
+    final token = ++_waveMorphToken;
+    final from = waveFactor.value;
+    if ((from - to).abs() < 0.002) {
+      waveFactor.value = to;
+      return;
+    }
+    await IntroMorph.run(duration, (t) {
+      if (isClosed || token != _waveMorphToken) return;
+      waveFactor.value = from + (to - from) * t;
+    });
+    if (!isClosed && token == _waveMorphToken) {
+      waveFactor.value = to;
     }
   }
 
@@ -134,7 +208,7 @@ class AuthController extends GetxController {
     authPageIndex.value = 1;
   }
 
-  /// Leave Auth toward Onboarding (morph when this is the root intro route).
+  /// Leave Auth → Onboarding: content out → wave transition → navigate.
   Future<void> goBack() async {
     if (isBusy.value) return;
 
@@ -144,8 +218,24 @@ class AuthController extends GetxController {
     }
 
     isBusy.value = true;
+
+    // 1) Disappear content first.
+    final startOpacity = contentOpacity.value;
+    await IntroMorph.run(IntroMorph.authContentDuration, (t) {
+      if (isClosed) return;
+      contentOpacity.value = startOpacity * (1.0 - t);
+    });
+    if (!isClosed) contentOpacity.value = 0;
+
+    // 2) Wave transition toward Onboarding resting depth.
+    await _animateWaveTo(
+      OnboardingBackground.onboardingFactor,
+      IntroMorph.authWaveDuration,
+    );
+
     await Get.find<LocalStorageService>().setOnboardingCompleted(false);
     IntroMorph.fromAuth = true;
+    IntroMorph.fromAuthWaveFactor = OnboardingBackground.onboardingFactor;
     IntroMorph.initialOnboardingPage = OnboardingController.totalPages - 1;
     Get.offAllNamed(AppRoutes.onboarding);
   }

@@ -34,6 +34,23 @@ class OnboardingBackground extends StatelessWidget {
   /// Onboarding default.
   static const onboardingFactor = 1.0;
 
+  /// Auth Sign In — shorter form, less white (higher wave).
+  static const authSignInFactor = 0.62;
+
+  /// Auth Sign Up — taller form, more white (lower wave).
+  static const authSignUpFactor = 0.48;
+
+  /// Default Auth resting factor (Sign In).
+  static const authFactor = authSignInFactor;
+
+  /// Approximate teal-band bottom as a fraction of screen height for [waveFactor].
+  ///
+  /// Matches the teal wave edge in [_OnboardingWavePainter] (`_tealY` × factor).
+  static double tealBandHeightFraction(double waveFactor) {
+    const meanTealY = 0.499; // avg of _tealY
+    return (meanTealY * waveFactor.clamp(0.35, 1.0)).clamp(0.22, 0.72);
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseColor = context.appColors.cardSurface;

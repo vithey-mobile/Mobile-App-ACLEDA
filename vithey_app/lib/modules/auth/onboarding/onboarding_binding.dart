@@ -8,6 +8,7 @@ class OnboardingBinding extends Bindings {
   void dependencies() {
     final fromLanguage = IntroMorph.fromLanguage;
     final fromAuth = IntroMorph.fromAuth;
+    final fromAuthWaveFactor = IntroMorph.fromAuthWaveFactor;
     final initialPage = IntroMorph.initialOnboardingPage
         .clamp(0, OnboardingController.totalPages - 1);
     IntroMorph.clear();
@@ -20,6 +21,7 @@ class OnboardingBinding extends Bindings {
         Get.find<LocalStorageService>(),
         fromLanguage: fromLanguage,
         fromAuth: fromAuth,
+        fromAuthWaveFactor: fromAuthWaveFactor,
         initialPage: initialPage,
       ),
     );

@@ -3,7 +3,8 @@
 Build the **Auth screen (Sign In panel)** for the Vithey App in Flutter.
 
 > **Pair with** `05-register-prompt.md` — Sign In and Sign Up live on **one Auth screen** and morph between each other (grow/shrink).  
-> **Wave style source of truth:** Onboarding v2 / `onboarding_background.dart` + `COMMON_CONTEXT.md` → *Shared teal wave background*.
+> **Background source of truth:** same shared mixed teal + white waves as Language + Onboarding (`onboarding_background.dart`).  
+> **Alignment prompt:** `update.md` (Auth background + intro morph). Do not edit Language or Onboarding.
 
 ## Design reference
 
@@ -11,11 +12,10 @@ Build the **Auth screen (Sign In panel)** for the Vithey App in Flutter.
 
 ## Visual reference
 
-- Reference image: `Prompt Frontend/screen image/auth/Auth Screen.png`
-- Logo asset: `Prompt Frontend/screen image/auth/logo app.png` → `assets/images/brand/logo_app.png` (`AppLogo` / `AppAssets.logoApp`)
-- Treat the image as the source of truth for form fields, labels, and hierarchy.
-- Recreate responsively; do not hard-code to reference pixel sizes.
-- **UI language** matches Onboarding v2 (teal / light teal / white wavy layers), with Auth-specific motion rules below.
+- Reference image: `Prompt Frontend/screen image/auth/Auth Screen.png` (form content / hierarchy)
+- Logo: `AppLogo` / `AppAssets.logoApp` on white circle
+- Recreate responsively; do not hard-code to reference pixel sizes
+- **Background UI language** matches Language + Onboarding (mixed waves, **no** white overlay container)
 
 ## Quick info
 
@@ -25,149 +25,138 @@ Build the **Auth screen (Sign In panel)** for the Vithey App in Flutter.
 | Primary route | `AppRoutes.auth` / `AppRoutes.login` |
 | Sibling panel | Sign Up / Register (same screen — see `05-register-prompt.md`) |
 | Flutter module | `lib/modules/auth/` |
+| Shell file | `login_screen.dart` |
 | Backend service | `auth-service` |
 | Auth required | No (public) |
-| Primary feature | Email/password + Google sign-in on a shared Auth shell (grow/shrink toggle) |
+| Primary feature | Email/password + Google sign-in on a shared Auth shell |
 
 ## Goal
 
-One **Auth screen** hosts **Sign In** and **Sign Up**. Users tap footer links to morph between panels (no swipe). This prompt defines the **Sign In** panel and the **shared shell** (background + logo + motion). Sign Up field details live in register v2.
+One **Auth screen** hosts **Sign In** and **Sign Up**. Users tap footer links to morph between panels (no swipe). This prompt defines the **Sign In** panel and the **shared shell** (background + logo + intro morph). Sign Up field details live in `05-register-prompt.md`.
 
-Sign In content is **shorter** than Sign Up — layout must grow/shrink with content without breaking the fixed teal back layer.
+Keep all Sign In / Sign Up **content**. Only chrome/background follows Language / Onboarding.
 
-## Critical difference vs Onboarding v2
+## Same family as Language + Onboarding
 
-| | Onboarding v2 | Auth v2 |
+| | Language / Onboarding | Auth (required) |
 | --- | --- | --- |
-| Fixed layer | Teal + light teal + white (all fixed) | **Only teal** fixed (full-screen back) |
-| Moves with content | Illustration + text only | **Light teal + white** wavy overlay **and** form content |
-| Top content | Skip + illustration | **No Skip** — **logo** only on teal |
-| White content | Title / subtitle / dots / Next | **Auth form** (Sign In or Sign Up) |
-| Height model | ~55/45 split | **Content-driven** height; teal is just the back |
+| Background | Mixed teal + light teal + white waves (`OnboardingBackground`) | **Same** widget / style |
+| White overlay container | None | **None** — do not wrap forms in `AuthMovingWaveSheet` |
+| Content | Language picker / slides | Sign In / Sign Up forms |
+| Intro morph | Language ↔ Onboarding wave + content fade | Onboarding ↔ Auth: **content fade/rise** on shared waves |
+
+### Critical: remove old Auth chrome
+
+| Old Auth (do not use) | New Auth |
+| --- | --- |
+| Solid teal back + white moving sheet overlay | Full-page `OnboardingBackground` |
+| Forms only inside white overlay | Forms sit **on** the mixed background |
+| `bgMorph` / `authMorph` → solid teal | No solid-teal Auth resting state |
 
 ## Screen composition
 
 ### Shared Auth shell
 
-`text
+```text
 Scaffold
-â””â”€â”€ Stack
-    â”œâ”€â”€ AuthTealBackdrop()                 // FIXED full-back teal
-    â””â”€â”€ Column
-        â”œâ”€â”€ Expanded → logo (teal auto height)
-        â””â”€â”€ AuthMovingWaveSheet            // MOVING with panel toggle only
-            â”œâ”€â”€ wave band â‰ˆ 10% screen     // light teal + white curly edge
-            â””â”€â”€ white body                 // HUGS form content (Figma hug)
-`
+└── Stack
+    ├── OnboardingBackground(onboardingFactor)   // shared with Language/Onboarding
+    └── Opacity + translate (intro content reveal)
+        └── Column
+            ├── Expanded(~34%) → AppLogo
+            └── Expanded(~66%) → AuthPanelSwitcher (Sign In | Sign Up forms)
+        + Back (ghost)
+```
 
-### Background (Auth-specific)
+### Background
 
-1. **Fixed — teal only**
-   - Full-back teal (`AppColors.primaryLight` ≈ `#2FC5C1`).
-   - Height is **auto**: fills whatever space remains above the white sheet.
-   - Rough visual guide â‰ˆ 30% when Sign In content is short; grows/shrinks as white hugs taller/shorter forms.
-   - Does not move when switching Sign In â†” Sign Up.
+1. **Reuse** `OnboardingBackground` with `OnboardingBackground.onboardingFactor` (same resting waves as Onboarding).
+2. **Do not** set `authMorph` to solid teal for Auth resting UI.
+3. **Do not** use a full-width white overlay / morphing white sheet as the form container.
+4. Field fills / local cards for controls are OK; a page-level white sheet is not.
 
-2. **Moving — light teal wave band + white body**
-   - Wave band â‰ˆ **10% of screen height** (light teal + white curly edge together).
-   - White body **hugs its content** (not a fixed 60% lock) — all form fields must fit in white without vertical scroll.
-   - Sheet switches with a **height morph** (grow/shrink), not a left/right slide:
-     1. Current form fades out (text does **not** scale with the sheet)
-     2. White sheet **grows upward** (Sign In → Sign Up) or **shrinks downward** (Sign Up → Sign In) to hug the next form
-     3. Next form fades in once the height is mostly ready
-     4. Logo gently eases (subtle scale/opacity) while teal auto-fills the space above the sheet
+### Sign In ↔ Sign Up panel slide
 
-3. **No scroll / no swipe**
-   - **No vertical scroll** and **no horizontal swipe**.
-   - Panel change **only** via footer toggle (**Sign Up** / **Sign In** buttons).
-   - Ignore duplicate taps while `isPanelAnimating` is true.
-   - `resizeToAvoidBottomInset: false`.
+Direct continuum slide (no disappear gap). Logo stays put.
 
-Reuse Onboarding’s painter math where practical. Do **not** keep light teal + white fixed like Onboarding.
+| Action | Motion |
+| --- | --- |
+| Sign In → Sign Up | Panels move **left** (incoming from the right) |
+| Sign Up → Sign In | Panels move **right** (incoming from the left) |
 
-### Content on teal (Sign In page)
+- White hug / `waveFactor` still content-driven.
+- Footer toggles only (no swipe). Ignore duplicate taps while `isPanelAnimating`.
 
-- **No Skip button.**
-- Center **Vithey logo** in the teal band (`AppLogo`, white circle as in current Auth design / reference).
-- Logo size ~`82` logical px circle (responsive).
-- Naming: this is the **brand logo**, not the onboarding **illustration** scene art — different asset, similar placement role.
+### Intro morph (Onboarding ↔ Auth)
 
-### Content on white (Sign In panel)
+Sequence (Auth-owned; Language / Onboarding unchanged):
 
-1. **Heading** — centered **Welcome Back** (bold dark charcoal ~24–26)
-2. **Email Address** — label + **placeholder `Email`**, envelope icon
-3. **Password** — label + **placeholder `Password`**, lock icon, visibility toggle
-4. **Forgot password?** — smaller font (~12), **primary** color (`#08B9B3`), right-aligned
-5. **Primary CTA** — full-width teal button; icon + **Sign In** **centered as a group**
-6. **Divider** — **Sign in with** in **smaller** muted font (~12) + horizontal rules
-7. **Google** — bordered white button; Google mark + **Continue with Google** with **larger** label font (~15); **no helper/hint text under this button**
-8. **Footer** — **Don’t have an account?** in **smaller** muted font (~12) + **Sign Up** in **primary** color  
-   - Morphs the Auth sheet to Sign Up (same screen)
+`transition (wave) → show content → … → hide content → transition (wave) → next screen content`
 
-Horizontal padding ~`24 px`. No vertical page scroll.
+| Transition | Behavior |
+| --- | --- |
+| Onboarding → Auth | Measure form (hidden) → morph `waveFactor` → fade content in |
+| Auth → Onboarding | Fade content out → morph wave to onboarding → navigate |
+| Auth Sign In ↔ Sign Up | Continuum slide; white hug lerps to each panel's content height |
+
+- Auth forms are **bottom-aligned**; logo stays **centered in the teal band**.
+- White hug is **content-driven** (errors / parts change height → wave follows).
+
+### No swipe between Sign In / Sign Up
+
+- Panel change **only** via footer toggles.
+- `resizeToAvoidBottomInset: false` on the shell.
+
+### Content (Sign In) — preserve
+
+- Logo on teal band (`AppLogo`, white circle) — size ~100 like Language
+- **Welcome Back**
+- Email / Password fields (placeholders `Email`, `Password`)
+- **Forgot password?** (small, primary, right-aligned)
+- **Sign In** primary CTA
+- **Sign in with** + **Continue with Google**
+- Footer: **Don’t have an account?** + **Sign Up** → Sign Up panel
+- Back → Onboarding (intro handoff)
+
+Horizontal padding ~`24`. Prefer fitting content without relying on a white sheet; light scroll only if needed for small devices.
 
 ## Visual style
 
 | Token | Direction |
 | --- | --- |
-| Fixed back | Teal `#2FC5C1` |
-| Moving rear wave | Light teal `#6AD6D2` |
-| Moving body | White |
-| Primary / links | `#08B9B3` |
-| Heading | `#303236` |
+| Page background | Shared Onboarding waves |
+| Primary / links | `#08B9B3` / theme primary |
+| Heading | `#303236` / semantic heading |
 | Input fill | `#F5F5F5` |
 | Font | App theme sans-serif |
 
-Avoid: app bar, back button, Skip, onboarding dots/Next, half-circle header, fixed full-screen white (Auth white moves).
-
-## Responsive behavior
-
-- **No vertical scroll** and **no horizontal swipe**.
-- Switch Sign In â†” Sign Up **only** with footer toggle buttons.
-- White sheet **hugs content**; teal above is **auto** (remaining space).
-- Wave band â‰ˆ **10%** of screen height (adaptive %).
-- Guide ratios when Sign In is short: teal ~30% / wave ~10% / white ~60% — not hard locks; content wins.
-- No overflow / scroll errors; all Sign In fields must remain visible in white.
-
-## Interaction and validation
-
-- Validate via `validators.dart` (email required + format; password required + min length).
-- Inline errors; stable button size with loading indicator.
-- Success: save tokens → `Get.offAllNamed(AppRoutes.home)` (or startup flow if project requires).
-- Google: existing OAuth / `USE_MOCK_AUTH` behavior.
-- **Sign Up** footer → animate to Sign Up panel on the same Auth screen.
-
-## Accessibility
-
-- Semantics for logo, fields, visibility toggle, Sign In, Google, Sign Up.
-- Min `44 × 44` targets; keyboard submit from password field.
+Avoid: AuthTealBackdrop, AuthMovingWaveSheet on Sign In/Up, Skip, onboarding dots, solid-teal Auth end-state.
 
 ## Architecture
 
-`text
+```text
 lib/modules/auth/
-  auth_screen.dart                 # shared shell + height morph (Sign In | Sign Up)
-  login_screen.dart                # may become a panel widget
-  register_screen.dart             # may become a panel widget (see register v2)
-  auth_controller.dart
-  auth_binding.dart
+  login_screen.dart              # shell + Sign In / Sign Up forms
+  auth_controller.dart           # panel index, intro reveal, auth logic
+  auth_binding.dart              # fadeContentIn from IntroMorph
   widgets/
-    auth_teal_backdrop.dart        # FIXED teal only
-    auth_moving_wave_sheet.dart    # MOVING light teal + white (onboarding-family curves)
-    login_form.dart
+    auth_panel_switcher.dart     # Sign In ↔ Sign Up continuum slide
     oauth_button.dart
-    auth_logo_header.dart          # logo on teal band
-`
+    register_step_slider.dart
+  onboarding/widgets/
+    onboarding_background.dart   # REUSE — do not fork for Auth
+```
 
-- Prefer extracting shared wave math from `onboarding_background.dart` into a reusable painter/helper when implementing.
 - Keep business logic in `AuthController`.
-- Reuse `CustomTextField`, validators, OAuth button patterns from current auth module.
+- Reuse `CustomTextField`, validators, OAuth patterns.
+- `AuthMovingWaveSheet` may remain for other screens (e.g. Forgot Password) but **not** for Sign In / Sign Up shell.
 
 ## Controller behavior
 
-- `login()` / `loginWithGoogle()` — same existing auth contracts.
-- Panel index / `PageController` for Sign In â†” Sign Up.
-- Reactive loading / error flags.
+- `login()` / Google auth — existing contracts
+- `showSignIn()` / `showSignUp()` — panel index
+- `goBack()` — Auth → Onboarding continuous handoff
+- `layoutReveal` / `contentOpacity` — intro content morph (not solid teal)
 
 ## API endpoints
 
@@ -180,30 +169,29 @@ lib/modules/auth/
 
 | From | Action | To |
 | --- | --- | --- |
-| Onboarding / Splash | Open auth | Auth screen (Sign In panel) |
+| Onboarding | Finish / Get Started | Auth (Sign In) + content morph |
+| Auth | Back | Onboarding (continuous waves) |
 | Sign In | Success | Home / startup |
 | Sign In | Tap **Sign Up** | Sign Up panel (same screen) |
 | Sign Up | Tap **Sign In** | Sign In panel (same screen) |
 
 ## Testing and acceptance criteria
 
-- Only **teal** is fixed as the back color; wave+white sit on top and hug content.
-- **No vertical or horizontal scroll/swipe**; panel changes only via **Sign Up** / **Sign In** toggles.
-- White hugs form content; teal auto-fills above without layout overflow.
-- Logo on teal; no Skip.
-- Fields show placeholders (`Email`, `Password`).
-- Forgot password is small + primary; Sign In CTA text centered; divider label small; Google label larger with no hint under it; footer small with primary Sign Up.
-- Wave colors/style align with Onboarding v2 family.
-- Validation, loading, Google, token save still work.
+- [ ] Auth uses same mixed wave background as Language / Onboarding (no white overlay sheet).
+- [ ] Sign In and Sign Up content preserved and usable.
+- [ ] Sign In ↔ Sign Up continuum slide (Sign Up from right, Sign In from left).
+- [ ] Onboarding → Auth content morph is continuous (no hard cut to solid teal / white sheet).
+- [ ] Auth → Onboarding back stays in the same wave family.
+- [ ] Language and Onboarding modules unchanged.
+- [ ] Validation, loading, Google, tokens still work.
 
 ## Dependencies
 
-- `00-foundation-prompt.md`
-- `03-onboarding-prompt.md` (wave style)
+- `03-onboarding-prompt.md` / Select Language (background reference only)
 - `05-register-prompt.md`
-- `Prompt Frontend/COMMON_CONTEXT.md` (shared wave note)
-- `Prompt Frontend/api-intergration/integration-contract.md`
+- `update.md` (alignment requirements)
+- `Prompt Frontend/COMMON_CONTEXT.md` if present
 
 ## Output
 
-Deliver (when implementing) a shared Auth shell with **fixed teal** + **moving light-teal/white waves**, Sign In form on the white sheet, and grow/shrink morph to Sign Up per register v2.
+Shared Auth shell on **OnboardingBackground**, Sign In form content on that surface, grow/shrink morph to Sign Up per register v2, intro morph aligned with Language ↔ Onboarding.
