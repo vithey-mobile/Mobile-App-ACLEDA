@@ -1,4 +1,5 @@
-enum AiTopic { cv, job, interview, student, finance }
+/// Chat topics (AI-BOT-02). MEDIA covers poster / video / job-post explainers.
+enum AiTopic { cv, job, interview, student, finance, media }
 
 enum AiMessageRole { user, assistant }
 
@@ -61,6 +62,7 @@ class AiMessage {
     required this.sessionId,
     required this.role,
     required this.content,
+    this.reasoning,
     this.status = AiMessageStatus.complete,
     required this.createdAt,
     this.clientId,
@@ -71,6 +73,8 @@ class AiMessage {
   final String sessionId;
   final AiMessageRole role;
   final String content;
+  /// ChatGPT-style hidden thought process shown above the visible reply.
+  final String? reasoning;
   final AiMessageStatus status;
   final DateTime createdAt;
   final String? clientId;
@@ -86,6 +90,7 @@ class AiMessage {
   AiMessage copyWith({
     String? id,
     String? content,
+    String? reasoning,
     AiMessageStatus? status,
     List<ChatAttachment>? attachments,
   }) {
@@ -94,6 +99,7 @@ class AiMessage {
       sessionId: sessionId,
       role: role,
       content: content ?? this.content,
+      reasoning: reasoning ?? this.reasoning,
       status: status ?? this.status,
       createdAt: createdAt,
       clientId: clientId,
@@ -106,12 +112,14 @@ class AiChatResponse {
   const AiChatResponse({
     required this.sessionId,
     required this.reply,
+    this.reasoning,
     this.messageId,
     this.requestId,
   });
 
   final String sessionId;
   final String reply;
+  final String? reasoning;
   final String? messageId;
   final String? requestId;
 }

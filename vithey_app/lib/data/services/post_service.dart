@@ -12,10 +12,15 @@ class PostService {
     required int page,
     required int limit,
     String? currentUserId,
+    PostType? type,
   }) async {
     final response = await _api.get<List<FeedPost>>(
       ApiEndpoints.posts,
-      queryParameters: {'page': page, 'limit': limit},
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (type != null) 'type': type.name.toUpperCase(),
+      },
       fromJson: (json) {
         final list = json as List<dynamic>? ?? [];
         return list

@@ -54,7 +54,8 @@ class ChatProfileController extends GetxController {
     if (_conversationId == null) return;
     isSharedLoading.value = true;
     try {
-      sharedContent.value = await _chatRepository.fetchSharedContent(_conversationId!);
+      sharedContent.value =
+          await _chatRepository.fetchSharedContent(_conversationId!);
     } finally {
       isSharedLoading.value = false;
     }
@@ -92,6 +93,18 @@ class ChatProfileController extends GetxController {
     final ctx = Get.context;
     if (p == null || ctx == null) return;
     showChatCallSheet(context: ctx, participant: p, isVideo: true);
+  }
+
+  /// Long-press Call / Video — mock incoming call banner on the previous screen.
+  Future<void> previewIncomingCall({required bool isVideo}) async {
+    final conversationId = _conversationId;
+    if (conversationId == null) return;
+    Get.back();
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _chatRepository.simulateIncomingCall(
+      conversationId,
+      isVideo: isVideo,
+    );
   }
 
   Future<void> toggleMuteNotifications() async {
@@ -189,7 +202,8 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    UserAvatar(name: p.fullName, imageUrl: p.avatarUrl, radius: 48),
+                    UserAvatar(
+                        name: p.fullName, imageUrl: p.avatarUrl, radius: 48),
                     if (p.isOnline)
                       Positioned(
                         right: 2,
@@ -215,18 +229,15 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
             Center(
               child: Text(
                 p.fullName,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.headlineSmall,
               ),
             ),
             Center(
               child: Text(
                 p.isOnline ? AppStrings.chatOnline : 'Offline',
                 style: TextStyle(
-                  color: p.isOnline ? AppColors.primary : context.appColors.muted,
+                  color:
+                      p.isOnline ? AppColors.primary : context.appColors.muted,
                 ),
               ),
             ),
@@ -235,6 +246,10 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
               onProfile: controller.openFullProfile,
               onCall: controller.startVoiceCall,
               onVideo: controller.startVideoCall,
+              onCallLongPress: () =>
+                  controller.previewIncomingCall(isVideo: false),
+              onVideoLongPress: () =>
+                  controller.previewIncomingCall(isVideo: true),
               onMute: controller.toggleMuteNotifications,
               isMuted: controller.isNotificationsMuted.value,
             ),
@@ -253,7 +268,8 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              return _buildTabContent(controller.selectedTab.value, controller.sharedContent.value);
+              return _buildTabContent(
+                  controller.selectedTab.value, controller.sharedContent.value);
             }),
           ],
         );
@@ -271,7 +287,8 @@ class ChatProfileScreen extends GetView<ChatProfileController> {
       case 2:
         return SharedFilesList(
           files: shared.files
-              .map((file) => (name: file.name, size: file.sizeLabel, date: file.sharedAt))
+              .map((file) =>
+                  (name: file.name, size: file.sizeLabel, date: file.sharedAt))
               .toList(),
         );
       case 3:

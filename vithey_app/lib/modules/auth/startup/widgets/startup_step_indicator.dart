@@ -16,12 +16,14 @@ class StartupStepIndicator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(3, (index) {
           final active = index == currentStep;
-          return Container(
-            width: 8,
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            width: active ? 22 : 8,
             height: 8,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(4),
               color: active ? AppColors.primary : context.appColors.border,
             ),
           );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 
-/// Rounded surface card shared by all About screen sections.
+/// Rounded surface card shared by all About screen sections (kit radius 18).
 class AboutSectionCard extends StatelessWidget {
   const AboutSectionCard({super.key, required this.title, required this.child});
 
@@ -15,7 +16,7 @@ class AboutSectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         boxShadow: [
           BoxShadow(
             color: context.appColors.subtleShadow,
@@ -29,10 +30,8 @@ class AboutSectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: context.appColors.heading,
+            style: context.text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 10),
@@ -72,7 +71,10 @@ class AboutInfoCard extends StatelessWidget {
               onTap: onLinkTap,
               child: Text(
                 linkLabel!,
-                style: TextStyle(color: context.scheme.primary, fontWeight: FontWeight.w500),
+                style: context.text.bodyMedium?.copyWith(
+                  color: context.scheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class MessageActionRow extends StatefulWidget {
   const MessageActionRow({
     super.key,
@@ -68,21 +70,14 @@ class _MessageActionRowState extends State<MessageActionRow> {
                     const SizedBox(width: 8),
                     Text(
                       'Sources',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: context.appColors.heading,
-                      ),
+                      style: context.text.titleLarge?.copyWith(fontSize: 17),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Reference resources used for this reply',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: context.appColors.muted,
-                  ),
+                  style: context.text.bodySmall,
                 ),
                 const SizedBox(height: 14),
                 ...sources.map(
@@ -114,11 +109,19 @@ class _MessageActionRowState extends State<MessageActionRow> {
                                     .withValues(alpha: 0.6),
                               ),
                             ),
-                            child: Image.asset(
-                              source.logoAsset,
-                              fit: BoxFit.contain,
-                            ),
+                            alignment: Alignment.center,
+                            child: source.icon != null
+                                ? VitheyIcon(
+                                    source.icon!,
+                                    size: 20,
+                                    color: context.appColors.heading,
+                                  )
+                                : Image.asset(
+                                    source.logoAsset!,
+                                    fit: BoxFit.contain,
+                                  ),
                           ),
+
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(
@@ -126,19 +129,12 @@ class _MessageActionRowState extends State<MessageActionRow> {
                               children: [
                                 Text(
                                   source.title,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                    color: context.appColors.heading,
-                                  ),
+                                  style: context.text.labelLarge,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   source.subtitle,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: context.appColors.muted,
-                                  ),
+                                  style: context.text.labelMedium,
                                 ),
                               ],
                             ),
@@ -158,55 +154,73 @@ class _MessageActionRowState extends State<MessageActionRow> {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.appColors.muted;
-
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: [
-          _ActionIcon(
-            icon: Icons.copy_rounded,
+          VitheyIconButton(
+            icon: LucideIcons.copy,
             tooltip: 'Copy',
-            color: muted,
-            onPressed: widget.onCopy,
+            variant: VitheyIconButtonVariant.neutral,
+            iconSize: 20,
+            onTap: widget.onCopy,
           ),
-          if (widget.onRegenerate != null)
-            _ActionIcon(
-              icon: Icons.refresh_rounded,
+          if (widget.onRegenerate != null) ...[
+            const SizedBox(width: 4),
+            VitheyIconButton(
+              icon: LucideIcons.refreshCw,
               tooltip: 'Regenerate',
-              color: muted,
-              onPressed: widget.onRegenerate!,
+              variant: VitheyIconButtonVariant.neutral,
+              iconSize: 20,
+              onTap: widget.onRegenerate,
             ),
-          _ActionIcon(
-            icon: Icons.share_outlined,
+          ],
+          const SizedBox(width: 4),
+          VitheyIconButton(
+            icon: LucideIcons.share2,
             tooltip: 'Share',
-            color: muted,
-            onPressed: widget.onShare,
+            variant: VitheyIconButtonVariant.neutral,
+            iconSize: 20,
+            onTap: widget.onShare,
           ),
-          _ActionIcon(
+          const SizedBox(width: 4),
+          VitheyIconButton(
             icon: _feedback == true
-                ? Icons.thumb_up_alt_rounded
-                : Icons.thumb_up_alt_outlined,
+                ? LucideIcons.thumbsUp
+                : LucideIcons.thumbsUp,
             tooltip: 'Like',
-            color: _feedback == true ? AppColors.primary : muted,
-            onPressed: () => _setFeedback(true),
+            variant: _feedback == true
+                ? VitheyIconButtonVariant.primary
+                : VitheyIconButtonVariant.neutral,
+            iconSize: 20,
+            onTap: () => _setFeedback(true),
           ),
-          _ActionIcon(
+          const SizedBox(width: 4),
+          VitheyIconButton(
             icon: _feedback == false
-                ? Icons.thumb_down_alt_rounded
-                : Icons.thumb_down_alt_outlined,
+                ? LucideIcons.thumbsDown
+                : LucideIcons.thumbsDown,
             tooltip: 'Unlike',
-            color: _feedback == false ? AppColors.primary : muted,
-            onPressed: () => _setFeedback(false),
+            variant: _feedback == false
+                ? VitheyIconButtonVariant.primary
+                : VitheyIconButtonVariant.neutral,
+            iconSize: 20,
+            onTap: () => _setFeedback(false),
           ),
+          const SizedBox(width: 4),
           Tooltip(
             message: 'Sources',
-            child: InkWell(
-              onTap: () => _showSources(context),
-              borderRadius: BorderRadius.circular(8),
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: AppLogo(size: 22),
+            child: Material(
+              color: context.appColors.inputFill,
+              borderRadius: BorderRadius.circular(VitheyRadii.iconSquircle),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () => _showSources(context),
+                child: const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(child: AppLogo(size: 22)),
+                ),
               ),
             ),
           ),
@@ -214,13 +228,13 @@ class _MessageActionRowState extends State<MessageActionRow> {
             const SizedBox(width: 4),
             Text(
               'Stopped',
-              style: TextStyle(fontSize: 12, color: muted),
+              style: context.text.labelMedium,
             ),
           ],
           const Spacer(),
           Text(
             _formatTimestamp(widget.message.createdAt),
-            style: TextStyle(fontSize: 11, color: muted),
+            style: context.text.labelSmall,
           ),
         ],
       ),
@@ -239,42 +253,18 @@ class _MessageActionRowState extends State<MessageActionRow> {
   }
 }
 
-class _ActionIcon extends StatelessWidget {
-  const _ActionIcon({
-    required this.icon,
-    required this.onPressed,
-    required this.tooltip,
-    required this.color,
-  });
-
-  final IconData icon;
-  final VoidCallback onPressed;
-  final String tooltip;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onPressed,
-      visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.all(6),
-      constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-      icon: Icon(icon, size: 18, color: color),
-    );
-  }
-}
-
 class _ChatSourceRef {
   const _ChatSourceRef({
     required this.title,
     required this.subtitle,
-    required this.logoAsset,
-  });
+    this.logoAsset,
+    this.icon,
+  }) : assert(logoAsset != null || icon != null);
 
   final String title;
   final String subtitle;
-  final String logoAsset;
+  final String? logoAsset;
+  final IconData? icon;
 }
 
 const _defaultSources = [
@@ -286,7 +276,7 @@ const _defaultSources = [
   _ChatSourceRef(
     title: 'Vithey Finance',
     subtitle: 'Student verification and payment guidance',
-    logoAsset: AppAssets.walletIcon,
+    icon: LucideIcons.wallet,
   ),
   _ChatSourceRef(
     title: 'Vithey Knowledge Base',

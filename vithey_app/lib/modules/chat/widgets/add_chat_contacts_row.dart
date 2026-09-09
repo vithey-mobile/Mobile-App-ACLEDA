@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class AddChatContactsRow extends StatelessWidget {
   const AddChatContactsRow({
     super.key,
@@ -51,16 +52,17 @@ class _AddChatChip extends StatelessWidget {
             Container(
               width: 56,
               height: 56,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
+              child: const VitheyIcon(LucideIcons.plus,
+                  color: AppColors.primary, size: 28),
             ),
             const SizedBox(height: 6),
             Text(
               AppStrings.chatAddChat,
-              style: TextStyle(fontSize: 12, color: context.appColors.muted),
+              style: context.text.labelMedium,
               textAlign: TextAlign.center,
             ),
           ],
@@ -103,7 +105,8 @@ class _ContactAvatarChip extends StatelessWidget {
               contact.fullName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: context.appColors.heading),
+              style: context.text.labelMedium
+                  ?.copyWith(color: context.appColors.heading),
               textAlign: TextAlign.center,
             ),
           ],

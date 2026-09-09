@@ -6,7 +6,9 @@ import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dar
 import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class VideoPostCard extends StatelessWidget {
   const VideoPostCard({
     super.key,
@@ -82,7 +84,7 @@ class VideoPostCard extends StatelessWidget {
                 color: context.scheme.onSurfaceVariant,
                 shape: BoxShape.circle,
               ),
-              child: Icon(isPlaying ? Icons.pause : Icons.play_arrow,
+              child: VitheyIcon(isPlaying ? LucideIcons.pause : LucideIcons.play,
                   color: Colors.white, size: 32),
             ),
           ),
@@ -94,7 +96,7 @@ class VideoPostCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: context.scheme.onSurfaceVariant,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(VitheyRadii.pill),
                 ),
                 child: Text(
                   _formatDuration(post.durationSeconds),
@@ -112,20 +114,19 @@ class VideoPostCard extends StatelessWidget {
           ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
           : Material(
               color: context.scheme.primary,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(VitheyRadii.pill),
               child: InkWell(
                 onTap: onFollow,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(VitheyRadii.pill),
                 child: SizedBox(
-                  height: 26,
-                  width: post.isFollowingAuthor ? 66 : 54,
+                  height: 28,
+                  width: post.isFollowingAuthor ? 70 : 58,
                   child: Center(
                     child: Text(
                       post.isFollowingAuthor ? 'Following' : 'Follow',
-                      style: TextStyle(
-                        color: context.scheme.onPrimary,
+                      style: context.text.labelLarge?.copyWith(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        color: context.scheme.onPrimary,
                       ),
                     ),
                   ),

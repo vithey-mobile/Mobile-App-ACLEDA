@@ -1,6 +1,7 @@
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Password field with label, placeholder, and leading lock icon.
 ///
 /// Uses the kit [VitheyField]; the eye toggle is built into the field.
@@ -22,7 +23,7 @@ class PasswordInputField extends StatelessWidget {
       controller: controller,
       label: label,
       hint: placeholder,
-      prefixIcon: Icons.lock_outline,
+      prefixIcon: LucideIcons.lock,
       obscureText: true,
     );
   }

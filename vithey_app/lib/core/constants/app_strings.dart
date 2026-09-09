@@ -106,8 +106,9 @@ class AppStrings {
   static const chatMessageRequests = 'Message Requests';
   static const chatTyping = 'Typing…';
   static const chatActiveNow = 'Active Now';
+  static const chatLastSeenRecently = 'last seen recently';
   static const chatSeen = 'Seen';
-  static const chatComposerHint = 'Write comment…';
+  static const chatComposerHint = 'Message…';
   static const chatNoMessages = 'No messages yet';
   static const chatNoMessagesSubtitle = 'Start a conversation with Add Chat';
   static const chatSayHello = 'Say hello!';

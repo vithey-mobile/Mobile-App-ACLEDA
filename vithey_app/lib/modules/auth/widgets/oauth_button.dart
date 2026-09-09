@@ -101,10 +101,8 @@ class SocialDivider extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
               text,
-              style: TextStyle(
+              style: context.text.labelMedium?.copyWith(
                 fontSize: fontSize,
-                color: context.appColors.muted,
-                fontWeight: FontWeight.w500,
                 height: 1,
               ),
             ),

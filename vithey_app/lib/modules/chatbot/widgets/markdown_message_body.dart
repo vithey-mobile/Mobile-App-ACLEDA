@@ -1,84 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:markdown/markdown.dart' as md;
+import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/code_block_card.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:aub_connect_app/modules/chatbot/widgets/streaming_markdown.dart';
 
+/// ChatGPT-style auto preview of assistant replies.
+///
+/// Renders markdown as a formatted preview (headings, lists, tables, code,
+/// links) — users never see raw `**` / `#` source. Works for both streaming
+/// and finished messages via [GptMarkdown.isStreaming].
 class MarkdownMessageBody extends StatelessWidget {
   const MarkdownMessageBody({
     super.key,
     required this.content,
+    this.streaming = false,
     this.onCodeCopied,
   });
 
   final String content;
+  final bool streaming;
   final void Function(String code)? onCodeCopied;
 
   @override
   Widget build(BuildContext context) {
+    final raw = content.trimRight();
+    final text = streaming ? stabilizeStreamingMarkdown(raw) : raw;
+    if (text.isEmpty) return const SizedBox.shrink();
+
     final colors = context.appColors;
     final scheme = context.scheme;
+    final base = context.text.bodyLarge?.copyWith(
+      fontSize: 15,
+      height: 1.5,
+      color: scheme.onSurface,
+    );
 
-    return MarkdownBody(
-      data: content,
-      selectable: true,
-      onTapLink: (text, href, title) async {
-        if (href == null) return;
-        final uri = Uri.tryParse(href);
+    return GptMarkdown(
+      text,
+      style: base,
+      // Stream + final both preview as formatted UI (not raw markdown).
+      isStreaming: streaming,
+      animation: GptMarkdownAnimation.none,
+      followLinkColor: true,
+      onLinkTap: (url, title) async {
+        final uri = Uri.tryParse(url);
         if (uri == null) return;
         if (uri.scheme == 'javascript') return;
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       },
-      styleSheet: MarkdownStyleSheet(
-        p: TextStyle(color: scheme.onSurface, fontSize: 15, height: 1.5),
-        h1: TextStyle(color: scheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
-        h2: TextStyle(color: scheme.onSurface, fontSize: 19, fontWeight: FontWeight.bold),
-        h3: TextStyle(color: scheme.onSurface, fontSize: 17, fontWeight: FontWeight.w600),
-        strong: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.bold),
-        em: TextStyle(color: scheme.onSurface, fontStyle: FontStyle.italic),
-        code: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 13,
-          backgroundColor: colors.inputFill,
-          color: scheme.onSurface,
-        ),
-        blockquoteDecoration: BoxDecoration(
-          border: Border(left: BorderSide(color: colors.border, width: 3)),
-        ),
-        blockquotePadding: const EdgeInsets.only(left: 12),
-        listBullet: TextStyle(color: scheme.onSurface),
-        a: TextStyle(color: scheme.primary, decoration: TextDecoration.underline),
-      ),
-      builders: {
-        'pre': _PreElementBuilder(onCodeCopied: onCodeCopied),
+      onCodeCopy: (code) => onCodeCopied?.call(code),
+      codeBuilder: (context, name, code, closed) {
+        return CodeBlockCard(
+          code: code.trimRight(),
+          language: name.isEmpty ? null : name,
+          onCopied: () => onCodeCopied?.call(code.trimRight()),
+        );
       },
-    );
-  }
-}
-
-class _PreElementBuilder extends MarkdownElementBuilder {
-  _PreElementBuilder({this.onCodeCopied});
-
-  final void Function(String code)? onCodeCopied;
-
-  @override
-  Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    String? language;
-    var code = element.textContent;
-
-    if (element.children != null && element.children!.isNotEmpty) {
-      final child = element.children!.first;
-      if (child is md.Element && child.tag == 'code') {
-        language = child.attributes['class']?.replaceFirst('language-', '');
-        code = child.textContent;
-      }
-    }
-
-    return CodeBlockCard(
-      code: code.trimRight(),
-      language: language,
-      onCopied: () => onCodeCopied?.call(code.trimRight()),
+      styleSheet: GptMarkdownStyleSheet(
+        codeBlock: CodeBlockStyle(
+          backgroundColor: colors.inputFill,
+          borderColor: colors.border,
+          showCopyButton: false,
+        ),
+        table: TableStyle(
+          borderColor: colors.border,
+          borderWidth: 0.6,
+          headerBackground: colors.inputFill,
+          rowStripeColor: colors.cardSurface,
+        ),
+        link: LinkStyle(color: scheme.primary),
+        blockQuote: BlockQuoteStyle(
+          backgroundColor: colors.inputFill,
+          barColor: colors.border,
+          barWidth: 3,
+        ),
+      ),
     );
   }
 }

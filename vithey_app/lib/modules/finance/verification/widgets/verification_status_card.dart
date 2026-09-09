@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Status hero cards from `Verified.png`:
 /// pending = orange, verified = green, notSubmitted = grey.
 class VerificationStatusCard extends StatelessWidget {
@@ -57,7 +60,7 @@ class _GradientCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(VitheyRadii.sheet),
         gradient: LinearGradient(
           colors: colors,
           begin: Alignment.centerLeft,
@@ -74,8 +77,8 @@ class _GradientCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.28),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.access_time_outlined,
+            child: const VitheyIcon(
+              LucideIcons.clock,
               color: Colors.white,
               size: 32,
             ),
@@ -84,19 +87,17 @@ class _GradientCard extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: context.text.headlineSmall?.copyWith(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: context.text.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.95),
-              fontSize: 14,
             ),
           ),
         ],

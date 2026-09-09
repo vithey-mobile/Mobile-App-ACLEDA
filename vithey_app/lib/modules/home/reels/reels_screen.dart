@@ -7,9 +7,11 @@ import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_controller.dart';
 import 'package:aub_connect_app/modules/home/reels/widgets/reel_video_page.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ReelsScreen extends GetView<ReelsController> {
   const ReelsScreen({super.key, this.embedded = false});
 
@@ -48,7 +50,7 @@ class ReelsScreen extends GetView<ReelsController> {
               child: EmptyStateWidget(
                 title: 'No reels yet',
                 subtitle: 'Video posts from the community will show up here',
-                icon: Icons.video_collection_outlined,
+                icon: LucideIcons.video,
               ),
             );
           }
@@ -106,24 +108,16 @@ class ReelsScreen extends GetView<ReelsController> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
                         children: [
-                          const Text(
+                          Text(
                             'Reels',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.3,
-                            ),
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.3),
                           ),
                           const Spacer(),
-                          IconButton(
-                            onPressed: () => Get.toNamed(AppRoutes.search),
-                            icon: const Icon(
-                              Icons.search_rounded,
-                              color: Colors.white,
-                              size: 26,
-                            ),
+                          VitheyIconButton(
+                            icon: LucideIcons.search,
+                            onTap: () => Get.toNamed(AppRoutes.search),
                             tooltip: 'Search',
+                            color: Colors.white,
                           ),
                         ],
                       ),

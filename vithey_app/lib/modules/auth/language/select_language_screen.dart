@@ -9,6 +9,7 @@ import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_botto
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 import 'package:aub_connect_app/modules/auth/language/select_language_controller.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Select Language — UI only; preference saved for future i18n.
 class SelectLanguageScreen extends StatelessWidget {
   const SelectLanguageScreen({
@@ -43,7 +44,6 @@ class SelectLanguageScreen extends StatelessWidget {
     }
     final controller = Get.find<SelectLanguageController>();
 
-    final heading = context.appColors.heading;
     final secondary = _secondary(context);
     final border = context.appColors.border;
     final reveal = contentReveal.clamp(0.0, 1.0);
@@ -111,21 +111,17 @@ class SelectLanguageScreen extends StatelessWidget {
                                             Text(
                                               'Select Language',
                                               textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold,
-                                                color: heading,
-                                                height: 1.25,
-                                              ),
+                                              style: context.text.headlineSmall
+                                                  ?.copyWith(height: 1.25),
                                             ),
                                             const SizedBox(height: 12),
                                             Text(
                                               'Choose your preferred language for the app.',
                                               textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                height: 1.4,
+                                              style: context.text.bodyMedium
+                                                  ?.copyWith(
                                                 color: secondary,
+                                                height: 1.4,
                                               ),
                                             ),
                                             const SizedBox(height: 40),
@@ -141,7 +137,7 @@ class SelectLanguageScreen extends StatelessWidget {
                                                   color: Theme.of(context)
                                                       .scaffoldBackgroundColor,
                                                   borderRadius:
-                                                      BorderRadius.circular(14),
+                                                      BorderRadius.circular(18),
                                                   border:
                                                       Border.all(color: border),
                                                 ),
@@ -236,7 +232,7 @@ class _LanguageRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -256,22 +252,19 @@ class _LanguageRow extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 13, color: secondary),
+                    style: context.text.bodySmall?.copyWith(color: secondary),
                   ),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check, color: AppColors.primary, size: 24)
+              const VitheyIcon(LucideIcons.check, color: AppColors.primary, size: 24)
             else
               const SizedBox(width: 24),
           ],

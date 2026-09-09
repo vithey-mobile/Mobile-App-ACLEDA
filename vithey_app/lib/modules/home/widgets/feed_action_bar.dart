@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class FeedActionBar extends StatefulWidget {
   const FeedActionBar({
     super.key,
@@ -12,7 +13,6 @@ class FeedActionBar extends StatefulWidget {
     required this.onComment,
     required this.onShare,
     this.onReact,
-    this.onRepost,
     this.alignStart = false,
     this.onDark = false,
     this.showShareAction = true,
@@ -23,7 +23,6 @@ class FeedActionBar extends StatefulWidget {
   final VoidCallback onComment;
   final VoidCallback onShare;
   final ValueChanged<PostReactionType>? onReact;
-  final VoidCallback? onRepost;
 
   /// Kept for profile screens that want compact left-aligned actions.
   final bool alignStart;
@@ -31,7 +30,7 @@ class FeedActionBar extends StatefulWidget {
   /// Light icons for dark fullscreen overlays.
   final bool onDark;
 
-  /// When false, hides the trailing share (send) action — used on profile cards.
+  /// When false, hides the trailing share action — used on profile cards.
   final bool showShareAction;
 
   @override
@@ -180,20 +179,30 @@ class _FeedActionBarState extends State<FeedActionBar>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (reacted)
+                        // Idle: Lucide outline. Liked: solid filled thumb + color.
+                        // Other reactions: emoji.
+                        if (reacted && reaction != PostReactionType.like)
                           Text(reaction.emoji,
-                              style: const TextStyle(fontSize: 20))
+                              style: context.text.bodyLarge
+                                  ?.copyWith(fontSize: 20))
+                        else if (reacted)
+                          VitheyIcon(
+                            LucideIcons.thumbsUp,
+                            size: 22,
+                            color: likeColor,
+                          )
                         else
-                          Icon(Icons.thumb_up_outlined, size: 22, color: idle),
+                          VitheyIcon(
+                            LucideIcons.thumbsUp,
+                            size: 22,
+                            color: idle,
+                          ),
                         if (widget.post.reactionCount > 0) ...[
                           const SizedBox(width: 6),
                           Text(
                             '${widget.post.reactionCount}',
-                            style: TextStyle(
-                              color: likeColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: context.text.labelLarge
+                                ?.copyWith(color: likeColor),
                           ),
                         ],
                       ],
@@ -202,20 +211,16 @@ class _FeedActionBarState extends State<FeedActionBar>
                 ),
                 _IconAction(
                   onTap: widget.onComment,
-                  child: Icon(
-                    Icons.chat_bubble_outline_rounded,
+                  child: VitheyIcon(
+                    LucideIcons.messageCircle,
                     size: 22,
                     color: idle,
                   ),
                 ),
-                _IconAction(
-                  onTap: widget.onRepost ?? widget.onShare,
-                  child: Icon(Icons.repeat_rounded, size: 22, color: idle),
-                ),
                 if (widget.showShareAction)
                   _IconAction(
                     onTap: widget.onShare,
-                    child: Icon(Icons.send_outlined, size: 22, color: idle),
+                    child: VitheyIcon(LucideIcons.share2, size: 22, color: idle),
                   ),
               ],
             ),
@@ -303,7 +308,9 @@ class _ReactionPickerBar extends StatelessWidget {
                 onTap: () => onSelect(type),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
-                  child: Text(type.emoji, style: const TextStyle(fontSize: 28)),
+                  child: Text(type.emoji,
+                      style:
+                          context.text.bodyLarge?.copyWith(fontSize: 28)),
                 ),
               ),
             ),
@@ -391,7 +398,7 @@ class _ReactionBadge extends StatelessWidget {
             : type == PostReactionType.love
                 ? '❤️'
                 : type.emoji,
-        style: const TextStyle(fontSize: 10, height: 1),
+        style: context.text.bodyLarge?.copyWith(fontSize: 10, height: 1),
       ),
     );
   }

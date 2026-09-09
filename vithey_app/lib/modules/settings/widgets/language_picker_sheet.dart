@@ -3,6 +3,8 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class LanguageOption {
   const LanguageOption({
     required this.code,
@@ -80,7 +82,6 @@ class _LanguagePickerSheetState extends State<LanguagePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final heading = context.appColors.heading;
     final secondary = _secondary(context);
     final border = context.appColors.border;
 
@@ -105,19 +106,13 @@ class _LanguagePickerSheetState extends State<LanguagePickerSheet> {
             Text(
               'Select Language',
               textAlign: TextAlign.start,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: heading,
-                height: 1.25,
-              ),
+              style: context.text.headlineSmall?.copyWith(height: 1.25),
             ),
             const SizedBox(height: 12),
             Text(
               'Choose your preferred language for the app.',
               textAlign: TextAlign.start,
-              style: TextStyle(
-                fontSize: 14,
+              style: context.text.bodyMedium?.copyWith(
                 height: 1.4,
                 color: secondary,
               ),
@@ -194,16 +189,14 @@ class _LanguageRow extends StatelessWidget {
                 children: [
                   Text(
                     option.label,
-                    style: TextStyle(
+                    style: context.text.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: context.appColors.heading,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     option.subtitle,
-                    style: TextStyle(fontSize: 13, color: secondary),
+                    style: context.text.bodySmall?.copyWith(color: secondary),
                   ),
                 ],
               ),
@@ -212,7 +205,7 @@ class _LanguageRow extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               child: selected
                   ? const Icon(
-                      Icons.check_rounded,
+                      LucideIcons.check,
                       key: ValueKey('check'),
                       color: AppColors.primary,
                       size: 24,

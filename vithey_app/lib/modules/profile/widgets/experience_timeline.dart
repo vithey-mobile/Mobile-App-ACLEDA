@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Experience (timeline + two-column) and Education lists for Application Detail v1.
 class ExperienceTimeline extends StatelessWidget {
   const ExperienceTimeline({
@@ -16,8 +18,6 @@ class ExperienceTimeline extends StatelessWidget {
   final List<dynamic> entries;
   final bool useEducationIcon;
 
-  static const sectionTitleStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 18);
-
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) return const SizedBox.shrink();
@@ -25,7 +25,7 @@ class ExperienceTimeline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: sectionTitleStyle),
+        Text(title, style: context.text.titleLarge),
         const SizedBox(height: 14),
         if (useEducationIcon)
           ...List.generate(entries.length, (index) {
@@ -57,7 +57,6 @@ class _ExperienceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.appColors.muted;
     // Dot + vertical line for every experience (title + description height).
     return IntrinsicHeight(
       child: Row(
@@ -96,17 +95,18 @@ class _ExperienceRow extends StatelessWidget {
                     children: [
                       Text(
                         entry.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: context.text.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       if (entry.organization.isNotEmpty) ...[
                         const SizedBox(height: 2),
-                        Text(entry.organization, style: TextStyle(color: muted, fontSize: 13)),
+                        Text(entry.organization, style: context.text.bodySmall),
                       ],
                       if (entry.description != null && entry.description!.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Text(
                           entry.description!,
-                          style: TextStyle(color: muted, fontSize: 13, height: 1.4),
+                          style: context.text.bodySmall?.copyWith(height: 1.4),
                         ),
                       ],
                     ],
@@ -121,9 +121,8 @@ class _ExperienceRow extends StatelessWidget {
                   ),
                   child: Text(
                     entry.period,
-                    style: const TextStyle(
+                    style: context.text.labelSmall?.copyWith(
                       color: AppColors.primary,
-                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -145,8 +144,7 @@ class _EducationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.appColors.muted;
-    final icon = iconIndex == 0 ? Icons.workspace_premium_outlined : Icons.school_outlined;
+    final icon = iconIndex == 0 ? LucideIcons.award : LucideIcons.graduationCap;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -156,9 +154,9 @@ class _EducationRow extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(VitheyRadii.iconSquircle),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+          child: VitheyIcon(icon, color: AppColors.primary, size: 22),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -170,28 +168,22 @@ class _EducationRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       entry.school,
-                      style: TextStyle(
-                        color: muted,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.text.bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     entry.period,
-                    style: TextStyle(
-                      color: muted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: context.text.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
               Text(
                 entry.degree,
-                style: TextStyle(color: muted, fontSize: 13),
+                style: context.text.bodySmall,
               ),
             ],
           ),

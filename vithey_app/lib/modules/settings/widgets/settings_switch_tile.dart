@@ -18,8 +18,6 @@ class SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -29,10 +27,8 @@ class SettingsSwitchTile extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 15,
+              style: context.text.titleSmall?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: colors.heading,
                 height: 1.2,
               ),
             ),

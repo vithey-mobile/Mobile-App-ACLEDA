@@ -3,13 +3,14 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class WhatHappensNextList extends StatelessWidget {
   const WhatHappensNextList({super.key});
 
   static const _items = [
-    (Icons.visibility_outlined, AppStrings.reviewStepReviewedTitle, AppStrings.reviewStepReviewedDesc),
-    (Icons.phone_outlined, AppStrings.reviewStepContactTitle, AppStrings.reviewStepContactDesc),
-    (Icons.notifications_outlined, AppStrings.reviewStepDecisionTitle, AppStrings.reviewStepDecisionDesc),
+    (LucideIcons.eye, AppStrings.reviewStepReviewedTitle, AppStrings.reviewStepReviewedDesc),
+    (LucideIcons.phone, AppStrings.reviewStepContactTitle, AppStrings.reviewStepContactDesc),
+    (LucideIcons.bell, AppStrings.reviewStepDecisionTitle, AppStrings.reviewStepDecisionDesc),
   ];
 
   @override
@@ -21,10 +22,7 @@ class WhatHappensNextList extends StatelessWidget {
         children: [
           Text(
             AppStrings.whatHappensNext,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+            style: context.text.titleMedium,
           ),
           const SizedBox(height: 16),
           ..._items.map((item) => _InfoRow(icon: item.$1, title: item.$2, description: item.$3)),
@@ -59,16 +57,16 @@ class _InfoRow extends StatelessWidget {
               color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: VitheyIcon(icon, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(title, style: context.text.labelLarge),
                 const SizedBox(height: 2),
-                Text(description, style: TextStyle(fontSize: 13, color: context.appColors.muted)),
+                Text(description, style: context.text.bodySmall),
               ],
             ),
           ),

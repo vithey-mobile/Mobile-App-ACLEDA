@@ -121,19 +121,12 @@ class VerificationStatusScreen extends GetView<VerificationStatusController> {
             children: [
               Text(
                 'Verification Status',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.headlineSmall,
               ),
               const SizedBox(height: 6),
               Text(
                 _subtitleFor(data.status),
-                style: TextStyle(
-                  color: context.appColors.muted,
-                  fontSize: 13,
-                ),
+                style: context.text.bodySmall,
               ),
               const SizedBox(height: 20),
               VerificationStatusCard(status: data.status),

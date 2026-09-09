@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_dialog.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplicationSuccessDialog {
   static Future<void> show({required String jobTitle}) {
     final context = Get.context;
@@ -19,8 +20,8 @@ class ApplicationSuccessDialog {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.check_circle_outline,
+              const VitheyIcon(
+                LucideIcons.circleCheck,
                 color: AppColors.success,
                 size: 56,
               ),
@@ -28,21 +29,13 @@ class ApplicationSuccessDialog {
               Text(
                 'Application submitted',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colors.heading,
-                ),
+                style: context.text.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
                 'Your CV was sent for $jobTitle.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colors.muted,
-                  height: 1.4,
-                ),
+                style: context.text.bodyMedium?.copyWith(color: colors.muted, height: 1.4),
               ),
               const SizedBox(height: 20),
               SizedBox(

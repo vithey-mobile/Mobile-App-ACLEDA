@@ -7,18 +7,20 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.d
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class HelpCenterScreen extends GetView<HelpCenterController> {
   const HelpCenterScreen({super.key});
 
   static IconData _iconFor(String categoryId) {
     return switch (categoryId) {
-      'account' => Icons.person_outline,
-      'verification' => Icons.verified_outlined,
-      'finance' => Icons.account_balance_wallet_outlined,
-      'jobs' => Icons.work_outline,
-      'chat' => Icons.chat_bubble_outline,
-      'ai' => Icons.auto_awesome_outlined,
-      _ => Icons.help_outline,
+      'account' => LucideIcons.user,
+      'verification' => LucideIcons.badgeCheck,
+      'finance' => LucideIcons.wallet,
+      'jobs' => LucideIcons.briefcase,
+      'chat' => LucideIcons.messageCircle,
+      'ai' => LucideIcons.sparkles,
+      _ => LucideIcons.circleHelp,
     };
   }
 
@@ -46,7 +48,7 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Text(
                   'No topics match your search.',
-                  style: TextStyle(color: colors.muted, fontSize: 14),
+                  style: context.text.bodyMedium?.copyWith(color: colors.muted),
                 ),
               );
             }
@@ -68,7 +70,7 @@ class HelpCenterScreen extends GetView<HelpCenterController> {
           _CardGroup(
             children: [
               SettingsMenuTile(
-                icon: Icons.email_outlined,
+                icon: LucideIcons.mail,
                 label: 'Email Support',
                 subtitle: 'support@vithey.app',
                 onTap: controller.contactSupport,
@@ -104,14 +106,17 @@ class _SearchField extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        style: TextStyle(
+        style: context.text.bodyMedium?.copyWith(
           fontSize: 15,
           color: colors.heading,
         ),
         decoration: InputDecoration(
           hintText: 'Search help topics',
-          hintStyle: TextStyle(color: colors.muted, fontSize: 15),
-          prefixIcon: Icon(Icons.search, color: colors.muted, size: 22),
+          hintStyle: context.text.bodyMedium?.copyWith(
+            fontSize: 15,
+            color: colors.muted,
+          ),
+          prefixIcon: Icon(LucideIcons.search, color: colors.muted, size: 22),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -132,8 +137,7 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final cardColor = colors.cardSurface;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

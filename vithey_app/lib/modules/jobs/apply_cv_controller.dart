@@ -1,7 +1,9 @@
-import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_args.dart';
+import 'package:aub_connect_app/modules/jobs/widgets/choose_saved_cv_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -42,6 +44,7 @@ class ApplyCvController extends GetxController {
   final job = Rxn<FeedPost>();
   final eligibility = Rxn<JobEligibilityResult>();
   final savedCv = Rxn<CvMetadataModel>();
+  final savedCvs = <CvMetadataModel>[].obs;
   final localCv = Rxn<LocalCvFile>();
   final selectionMode = CvSelectionMode.none.obs;
   final saveAsDefault = false.obs;
@@ -54,6 +57,11 @@ class ApplyCvController extends GetxController {
   final descriptionController = TextEditingController();
 
   String? _jobPostId;
+
+  /// Exposed for the AI match card on the Review step (Block 5).
+  String? get jobPostId => _jobPostId;
+  String? _preferredCvFileId;
+  bool _openOnReview = false;
   String? _uploadedFileId;
   bool _submitLocked = false;
 
@@ -97,7 +105,15 @@ class ApplyCvController extends GetxController {
   String get jobTitle =>
       job.value?.jobMeta.title ?? job.value?.content ?? 'this role';
 
-  String get organizationName => job.value?.author.fullName ?? '';
+  String get organizationName {
+    final company = job.value?.jobMeta.description?.trim();
+    if (company != null && company.isNotEmpty) {
+      // Prefer the company segment before " · " when description is enriched.
+      final companyOnly = company.split(' · ').first.trim();
+      return companyOnly.isNotEmpty ? companyOnly : company;
+    }
+    return job.value?.author.fullName ?? '';
+  }
 
   String get positionLabel => selectedPosition.value ?? '';
 
@@ -129,6 +145,8 @@ class ApplyCvController extends GetxController {
     super.onInit();
     final args = ApplyCvArgs.from(Get.arguments);
     _jobPostId = args.jobPostId;
+    _preferredCvFileId = args.preferredCvFileId;
+    _openOnReview = args.openOnReview;
     if (args.jobPreview != null) job.value = args.jobPreview;
     _loadInitialData();
   }
@@ -140,27 +158,88 @@ class ApplyCvController extends GetxController {
       final results = await Future.wait([
         _jobApplicationRepository.loadJobEligibility(_jobPostId!),
         _cvRepository.getSavedCv(),
+        _cvRepository.listSavedCvs(),
       ]);
       final eligibilityResult = results[0] as JobEligibilityResult;
       final saved = results[1] as CvMetadataModel?;
+      final library = results[2] as List<CvMetadataModel>;
 
       eligibility.value = eligibilityResult;
       job.value = eligibilityResult.job ?? job.value;
+      savedCvs.assignAll(library);
       savedCv.value = saved;
 
       final detectedPosition = job.value?.jobMeta.title?.trim();
       selectedPosition.value =
           detectedPosition?.isNotEmpty == true ? detectedPosition : null;
 
-      // Keep a saved CV as an explicit shortcut. A new application starts
-      // with no selection so the applicant confirms which file to submit.
-      selectionMode.value = CvSelectionMode.none;
+      final preferredId = _preferredCvFileId;
+      if (preferredId != null && preferredId.isNotEmpty) {
+        CvMetadataModel? preferred;
+        for (final c in library) {
+          if (c.fileId == preferredId) {
+            preferred = c;
+            break;
+          }
+        }
+        if (preferred != null) {
+          savedCv.value = preferred;
+          selectionMode.value = CvSelectionMode.saved;
+        } else if (saved != null && saved.fileId == preferredId) {
+          selectionMode.value = CvSelectionMode.saved;
+        } else if (_cvRepository.useMockApi && saved != null) {
+          selectionMode.value = CvSelectionMode.saved;
+        } else {
+          selectionMode.value = CvSelectionMode.none;
+        }
+      } else if (_cvRepository.useMockApi && saved != null) {
+        selectionMode.value = CvSelectionMode.saved;
+      } else {
+        selectionMode.value = CvSelectionMode.none;
+      }
 
       phase.value = ApplyCvPhase.ready;
+
+      if (_openOnReview && canContinue) {
+        currentStep.value = ApplyCvStep.review;
+      }
     } catch (e) {
       phase.value = ApplyCvPhase.error;
       submitError.value = AppStrings.applyJobLoadError;
     }
+  }
+
+  void openAiCvCreator() {
+    final jobPostId = _jobPostId;
+    if (jobPostId == null) return;
+    Get.offNamed(
+      AppRoutes.applyCvTemplates,
+      arguments: AiCvArgs(
+        jobPostId: jobPostId,
+        jobPreview: job.value,
+        returnToApply: true,
+      ),
+    );
+  }
+
+  Future<void> openChooseSavedCv(BuildContext context) async {
+    if (savedCvs.isEmpty) return;
+    final picked = await ChooseSavedCvSheet.show(
+      context,
+      cvs: List<CvMetadataModel>.from(savedCvs),
+      draftFor: _cvRepository.draftForFile,
+      selectedFileId: savedCv.value?.fileId,
+    );
+    if (picked == null) return;
+    selectSavedCv(picked);
+  }
+
+  void selectSavedCv(CvMetadataModel cv) {
+    savedCv.value = cv;
+    localCv.value = null;
+    fileError.value = '';
+    selectionMode.value = CvSelectionMode.saved;
+    saveAsDefault.value = false;
   }
 
   Future<void> retryLoad() => _loadInitialData();

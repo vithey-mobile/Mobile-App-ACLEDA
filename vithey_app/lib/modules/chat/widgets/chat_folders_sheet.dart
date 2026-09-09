@@ -6,12 +6,14 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_dialog.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/chat_folder.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:get/get.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Folder tab context menu: add chats or remove folder.
 Future<void> showFolderTabMenu(BuildContext context, ChatFolder folder) async {
   final controller = Get.find<ChatListController>();
@@ -25,7 +27,7 @@ Future<void> showFolderTabMenu(BuildContext context, ChatFolder folder) async {
   final value = await showMenu<String>(
     context: context,
     color: colors.cardSurface,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     position: RelativeRect.fromLTRB(
       position.dx,
       position.dy + box.size.height + 4,
@@ -37,7 +39,7 @@ Future<void> showFolderTabMenu(BuildContext context, ChatFolder folder) async {
         value: 'add',
         child: Row(
           children: [
-            const Icon(Icons.add, size: 20, color: AppColors.primary),
+            const VitheyIcon(LucideIcons.plus, size: 20, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -52,7 +54,7 @@ Future<void> showFolderTabMenu(BuildContext context, ChatFolder folder) async {
         value: 'remove',
         child: Row(
           children: [
-            const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+            const VitheyIcon(LucideIcons.trash2, size: 20, color: AppColors.error),
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
@@ -87,7 +89,7 @@ Future<void> showManageFoldersSheet(BuildContext context) {
         height: height,
         decoration: BoxDecoration(
           color: colors.cardSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           children: [
@@ -107,11 +109,7 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                   Expanded(
                     child: Text(
                       AppStrings.chatManageFolders,
-                      style: TextStyle(
-                        color: colors.heading,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: context.text.titleLarge,
                     ),
                   ),
                   VitheyTextLink(
@@ -124,9 +122,11 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                       controller.startCreatingFolder();
                     },
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    icon: Icon(Icons.close_rounded, color: colors.muted),
+                  VitheyIconButton(
+                    icon: LucideIcons.x,
+                    variant: VitheyIconButtonVariant.neutral,
+                    tooltip: 'Close',
+                    onTap: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
@@ -142,7 +142,8 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                       child: Text(
                         'Create folders to organize your chats.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: colors.muted, fontSize: 14),
+                        style: context.text.bodyMedium
+                            ?.copyWith(color: colors.muted),
                       ),
                     ),
                   );
@@ -156,23 +157,20 @@ Future<void> showManageFoldersSheet(BuildContext context) {
                     final count = controller.countForFolder(folder.id);
                     return ListTile(
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         side: BorderSide(color: colors.border),
                       ),
-                      leading: const Icon(
-                        Icons.folder_outlined,
+                      leading: const VitheyIcon(
+                        LucideIcons.folder,
                         color: AppColors.primary,
                       ),
                       title: Text(
                         folder.name,
-                        style: TextStyle(
-                          color: colors.heading,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: context.text.labelLarge,
                       ),
                       subtitle: Text(
                         '$count chats',
-                        style: TextStyle(color: colors.muted, fontSize: 12),
+                        style: context.text.labelMedium,
                       ),
                       trailing: PopupMenuButton<String>(
                         onSelected: (value) async {
@@ -277,7 +275,7 @@ class _AddChatsToFolderSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -297,11 +295,7 @@ class _AddChatsToFolderSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     AppStrings.chatAddChatsToFolder,
-                    style: TextStyle(
-                      color: colors.heading,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: context.text.titleLarge?.copyWith(fontSize: 17),
                   ),
                 ),
                 Obx(() {
@@ -322,9 +316,11 @@ class _AddChatsToFolderSheet extends StatelessWidget {
                     variant: CustomButtonVariant.ghost,
                   );
                 }),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(Icons.close_rounded, color: colors.muted),
+                VitheyIconButton(
+                  icon: LucideIcons.x,
+                  variant: VitheyIconButtonVariant.neutral,
+                  tooltip: 'Close',
+                  onTap: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
@@ -377,16 +373,14 @@ class _AddChatsToFolderSheet extends StatelessWidget {
                       ),
                       title: Text(
                         chat.participant.fullName,
-                        style: TextStyle(
-                          color: colors.heading,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: context.text.labelLarge,
                       ),
                       subtitle: Text(
                         chat.lastMessagePreview,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: colors.muted, fontSize: 13),
+                        style: context.text.bodySmall
+                            ?.copyWith(color: colors.muted),
                       ),
                       activeColor: AppColors.primary,
                       controlAffinity: ListTileControlAffinity.trailing,
@@ -415,7 +409,7 @@ Future<void> showMoveToFolderSheet(
       return Container(
         decoration: BoxDecoration(
           color: colors.cardSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: SafeArea(
@@ -440,15 +434,12 @@ Future<void> showMoveToFolderSheet(
                 const SizedBox(height: 14),
                 Text(
                   AppStrings.chatMoveToFolder,
-                  style: TextStyle(
-                    color: colors.heading,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: context.text.titleLarge,
                 ),
                 Text(
                   conversation.participant.fullName,
-                  style: TextStyle(color: colors.muted, fontSize: 13),
+                  style: context.text.bodySmall
+                      ?.copyWith(color: colors.muted),
                 ),
                 const SizedBox(height: 12),
                 if (folders.isEmpty)
@@ -461,8 +452,8 @@ Future<void> showMoveToFolderSheet(
                     final inFolder = inFolders.any((f) => f.id == folder.id);
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        inFolder ? Icons.folder : Icons.folder_outlined,
+                      leading: VitheyIcon(
+                        inFolder ? LucideIcons.folder : LucideIcons.folder,
                         color: AppColors.primary,
                       ),
                       title: Text(folder.name),
@@ -533,18 +524,13 @@ Future<String?> _promptFolderName(
     context: context,
     child: Builder(
       builder: (ctx) {
-        final colors = ctx.appColors;
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.heading,
-              ),
+              style: context.text.titleLarge,
             ),
             const SizedBox(height: 16),
             VitheyField(

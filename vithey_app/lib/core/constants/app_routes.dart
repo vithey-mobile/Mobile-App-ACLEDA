@@ -17,7 +17,10 @@ class AppRoutes {
   static const reels = '/reels';
   static const createPost = '/create-post';
   static const postDetail = '/posts/detail';
+  static const postAnalytics = '/posts/analytics';
   static const applyCv = '/apply-cv';
+  static const applyCvTemplates = '/apply-cv/templates';
+  static const applyCvAiCreate = '/apply-cv/ai-create';
   static const applySuccess = '/apply-cv/success';
   static const applicationStatus = '/apply-cv/status';
   static const profile = '/profile';
@@ -50,5 +53,4 @@ class AppRoutes {
   static const settingsHelpCenter = '/settings/help-center';
   static const settingsAbout = '/settings/about';
   static const map = '/map';
-  static const addPlace = '/add-place';
 }

@@ -35,6 +35,14 @@ class SearchSeeAllScreen extends GetView<SearchSeeAllController> {
       appBar: AppBar(
         title: Text(args.title),
         backgroundColor: context.appColors.bodyBackground,
+        foregroundColor: context.appColors.heading,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: context.appColors.border),
+        ),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {

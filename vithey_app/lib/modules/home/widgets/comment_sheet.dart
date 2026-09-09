@@ -5,12 +5,16 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
-import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class CommentSheet extends StatefulWidget {
   const CommentSheet({
@@ -35,6 +39,7 @@ class _CommentSheetState extends State<CommentSheet> {
   final _isLoading = true.obs;
   final _isSending = false.obs;
   final _likedIds = <String>{}.obs;
+  final _dislikedIds = <String>{}.obs;
   final _likeCounts = <String, int>{}.obs;
   final _repo = Get.find<PostRepository>();
   final _currentUser = Get.find<CurrentUserService>();
@@ -208,6 +213,7 @@ class _CommentSheetState extends State<CommentSheet> {
   void _toggleLike(CommentModel comment) {
     final id = comment.id;
     final liked = _likedIds.contains(id);
+    _dislikedIds.remove(id);
     if (liked) {
       _likedIds.remove(id);
       _likeCounts[id] = ((_likeCounts[id] ?? 1) - 1).clamp(0, 999999);
@@ -215,6 +221,21 @@ class _CommentSheetState extends State<CommentSheet> {
     } else {
       _likedIds.add(id);
       _likeCounts[id] = (_likeCounts[id] ?? 0) + 1;
+    }
+  }
+
+  void _toggleDislike(CommentModel comment) {
+    final id = comment.id;
+    final disliked = _dislikedIds.contains(id);
+    if (_likedIds.contains(id)) {
+      _likedIds.remove(id);
+      _likeCounts[id] = ((_likeCounts[id] ?? 1) - 1).clamp(0, 999999);
+      if ((_likeCounts[id] ?? 0) == 0) _likeCounts.remove(id);
+    }
+    if (disliked) {
+      _dislikedIds.remove(id);
+    } else {
+      _dislikedIds.add(id);
     }
   }
 
@@ -264,8 +285,9 @@ class _CommentSheetState extends State<CommentSheet> {
           return Container(
             decoration: BoxDecoration(
               color: colors.cardSurface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(18)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(VitheyRadii.sheet),
+              ),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -290,8 +312,8 @@ class _CommentSheetState extends State<CommentSheet> {
                           color: AppColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.thumb_up,
+                        child: const VitheyIcon(
+                          LucideIcons.thumbsUp,
                           size: 12,
                           color: Colors.white,
                         ),
@@ -300,22 +322,15 @@ class _CommentSheetState extends State<CommentSheet> {
                       Expanded(
                         child: Text(
                           'Comments',
-                          style: TextStyle(
-                            color: colors.heading,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: context.text.titleLarge?.copyWith(fontSize: 16),
                         ),
                       ),
                       Text(
                         widget.post.shareCount > 0
                             ? '${widget.post.shareCount} shares'
                             : '${widget.post.commentCount} comments',
-                        style: TextStyle(
-                          color: colors.muted,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: context.text.bodySmall
+                            ?.copyWith(fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -329,11 +344,10 @@ class _CommentSheetState extends State<CommentSheet> {
                       );
                     }
                     if (_comments.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No comments yet. Be the first to comment.',
-                          style: TextStyle(color: colors.muted, fontSize: 14),
-                        ),
+                      return EmptyStateWidget(
+                        title: 'No comments yet',
+                        subtitle: 'Be the first to comment.',
+                        icon: LucideIcons.messageCircle,
                       );
                     }
                     return ListView.builder(
@@ -361,6 +375,7 @@ class _CommentSheetState extends State<CommentSheet> {
 
     return Obx(() {
       final liked = _likedIds.contains(comment.id);
+      final disliked = _dislikedIds.contains(comment.id);
       final likeCount = _likeCounts[comment.id] ?? 0;
 
       return Padding(
@@ -390,18 +405,17 @@ class _CommentSheetState extends State<CommentSheet> {
                                 children: [
                                   TextSpan(
                                     text: comment.author.fullName,
-                                    style: TextStyle(
+                                    style: context.text.bodyMedium?.copyWith(
                                       color: colors.heading,
-                                      fontWeight: FontWeight.w700,
                                       fontSize: isReply ? 13.5 : 14.5,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                   TextSpan(
                                     text:
                                         '  ·  ${_compactTime(comment.createdAt)}',
-                                    style: TextStyle(
+                                    style: context.text.bodyMedium?.copyWith(
                                       color: colors.muted,
-                                      fontWeight: FontWeight.w400,
                                       fontSize: 12.5,
                                     ),
                                   ),
@@ -437,10 +451,8 @@ class _CommentSheetState extends State<CommentSheet> {
                                   const SizedBox(width: 14),
                                   Text(
                                     'Sending…',
-                                    style: TextStyle(
-                                      color: colors.muted,
-                                      fontSize: 12,
-                                    ),
+                                    style: context.text.bodyMedium
+                                        ?.copyWith(color: colors.muted, fontSize: 12),
                                   ),
                                 ],
                                 if (likeCount > 0) ...[
@@ -452,23 +464,24 @@ class _CommentSheetState extends State<CommentSheet> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: colors.inputFill,
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius:
+                                          BorderRadius.circular(VitheyRadii.pill),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(
-                                          Icons.thumb_up,
+                                        const VitheyIcon(
+                                          LucideIcons.thumbsUp,
                                           size: 12,
                                           color: AppColors.primary,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           '$likeCount',
-                                          style: TextStyle(
-                                            color: colors.heading,
+                                          style: context.text.labelLarge
+                                              ?.copyWith(
                                             fontSize: 12,
-                                            fontWeight: FontWeight.w600,
+                                            color: colors.heading,
                                           ),
                                         ),
                                       ],
@@ -484,33 +497,25 @@ class _CommentSheetState extends State<CommentSheet> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 34,
-                              minHeight: 34,
-                            ),
-                            onPressed: () => _toggleLike(comment),
-                            icon: Icon(
-                              liked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                              size: 18,
-                              color: liked ? AppColors.primary : colors.muted,
-                            ),
+                          VitheyIconButton(
+                            icon: liked
+                                ? LucideIcons.thumbsUp
+                                : LucideIcons.thumbsUp,
+                            color: liked
+                                ? AppColors.primary
+                                : colors.muted,
+                            tooltip: 'Like',
+                            onTap: () => _toggleLike(comment),
                           ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 34,
-                              minHeight: 34,
-                            ),
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.thumb_down_outlined,
-                              size: 18,
-                              color: colors.muted,
-                            ),
+                          VitheyIconButton(
+                            icon: disliked
+                                ? LucideIcons.thumbsDown
+                                : LucideIcons.thumbsDown,
+                            color: disliked
+                                ? colors.heading
+                                : colors.muted,
+                            tooltip: 'Dislike',
+                            onTap: () => _toggleDislike(comment),
                           ),
                         ],
                       ),
@@ -538,7 +543,7 @@ class _CommentSheetState extends State<CommentSheet> {
         : 'Comment as ${me.fullName.split(' ').first}';
 
     // Avatar diameter == single-line input height (focus keeps same height).
-    const fieldHeight = 40.0;
+    const fieldHeight = 36.0;
     const avatarRadius = fieldHeight / 2;
     const maxLines = 5;
 
@@ -550,7 +555,7 @@ class _CommentSheetState extends State<CommentSheet> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -562,11 +567,7 @@ class _CommentSheetState extends State<CommentSheet> {
                       Expanded(
                         child: Text(
                           modeLabel,
-                          style: TextStyle(
-                            color: colors.muted,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: context.text.labelMedium?.copyWith(fontSize: 12.5),
                         ),
                       ),
                       VitheyTextLink(
@@ -580,7 +581,6 @@ class _CommentSheetState extends State<CommentSheet> {
                         },
                         color: colors.muted,
                         fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
@@ -588,65 +588,95 @@ class _CommentSheetState extends State<CommentSheet> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Padding(
-                    // Keep avatar visually centered with the single-line pill.
-                    padding: const EdgeInsets.only(bottom: 0),
-                    child: UserAvatar(
-                      name: me.fullName,
-                      imageUrl: me.avatarUrl,
-                      radius: avatarRadius,
-                    ),
+                  UserAvatar(
+                    name: me.fullName,
+                    imageUrl: me.avatarUrl,
+                    radius: avatarRadius,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _controller,
                       builder: (context, value, _) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: VitheyField(
-                                controller: _controller,
-                                focusNode: _focusNode,
-                                hint: hint,
-                                minLines: 1,
-                                maxLines: maxLines,
-                                keyboardType: TextInputType.multiline,
+                        return Obx(() {
+                          final canSend = value.text.trim().isNotEmpty &&
+                              !_isSending.value;
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: colors.inputFill,
+                              borderRadius:
+                                  BorderRadius.circular(VitheyRadii.pill),
+                              border: Border.all(
+                                color: colors.border.withValues(alpha: 0.6),
                               ),
                             ),
-                            Obx(() {
-                              final canSend = value.text.trim().isNotEmpty &&
-                                  !_isSending.value;
-                              return SizedBox(
-                                width: fieldHeight,
-                                height: fieldHeight,
-                                child: IconButton(
-                                  tooltip:
-                                      _editingComment != null ? 'Save' : 'Send',
-                                  onPressed: canSend ? _send : null,
-                                  padding: EdgeInsets.zero,
-                                  icon: _isSending.value
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : Icon(
-                                          Icons.send_rounded,
-                                          size: 22,
-                                          color: canSend
-                                              ? AppColors.primary
-                                              : colors.muted
-                                                  .withValues(alpha: 0.45),
+                            padding: const EdgeInsets.only(left: 12, right: 2),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      minHeight: fieldHeight,
+                                      maxHeight: 100,
+                                    ),
+                                    child: TextField(
+                                      controller: _controller,
+                                      focusNode: _focusNode,
+                                      minLines: 1,
+                                      maxLines: maxLines,
+                                      keyboardType: TextInputType.multiline,
+                                      cursorColor: AppColors.primary,
+                                      style: context.text.bodyMedium
+                                          ?.copyWith(height: 1.3),
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        filled: false,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        hintText: hint,
+                                        hintStyle: context.text.bodyMedium
+                                            ?.copyWith(color: colors.muted),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          vertical: 8,
                                         ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              );
-                            }),
-                          ],
-                        );
+                                SizedBox(
+                                  width: fieldHeight,
+                                  height: fieldHeight,
+                                  child: IconButton(
+                                    tooltip: _editingComment != null
+                                        ? 'Save'
+                                        : 'Send',
+                                    onPressed: canSend ? _send : null,
+                                    padding: EdgeInsets.zero,
+                                    icon: _isSending.value
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : VitheyIcon(
+                                            LucideIcons.send,
+                                            size: 18,
+                                            color: canSend
+                                                ? AppColors.primary
+                                                : colors.muted
+                                                    .withValues(alpha: 0.45),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        });
                       },
                     ),
                   ),
@@ -678,10 +708,10 @@ class _ActionLabel extends StatelessWidget {
       borderRadius: BorderRadius.circular(4),
       child: Text(
         label,
-        style: TextStyle(
-          color: color ?? context.appColors.muted,
+        style: context.text.bodyMedium?.copyWith(
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
+          color: color ?? context.appColors.muted,
         ),
       ),
     );
@@ -721,10 +751,10 @@ class _CommentText extends StatelessWidget {
 
     return Text.rich(
       TextSpan(
-        style: TextStyle(
-          color: colors.heading,
+        style: context.text.bodyMedium?.copyWith(
           fontSize: fontSize,
           height: 1.35,
+          color: colors.heading,
         ),
         children: spans.isEmpty ? [TextSpan(text: text)] : spans,
       ),

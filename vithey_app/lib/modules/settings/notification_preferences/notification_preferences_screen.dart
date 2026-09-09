@@ -8,6 +8,8 @@ import 'package:aub_connect_app/modules/settings/notification_preferences/widget
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_tile_divider.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class NotificationPreferencesScreen
     extends GetView<NotificationPreferencesController> {
   const NotificationPreferencesScreen({super.key});
@@ -35,7 +37,7 @@ class NotificationPreferencesScreen
             NotificationPreferenceCard(
               children: [
                 NotificationPreferenceTile(
-                  icon: Icons.chat_bubble_outline,
+                  icon: LucideIcons.messageCircle,
                   title: 'Chat Messages',
                   subtitle: 'Replies and new conversations',
                   value: settings.chatMessages,
@@ -44,7 +46,7 @@ class NotificationPreferencesScreen
                 ),
                 const SettingsTileDivider(),
                 NotificationPreferenceTile(
-                  icon: Icons.schedule_outlined,
+                  icon: LucideIcons.clock,
                   title: 'Reminders',
                   subtitle: 'Study sessions and due dates',
                   value: settings.reminders,
@@ -57,7 +59,7 @@ class NotificationPreferencesScreen
             NotificationPreferenceCard(
               children: [
                 NotificationPreferenceTile(
-                  icon: Icons.campaign_outlined,
+                  icon: LucideIcons.megaphone,
                   title: 'Announcements',
                   subtitle: 'News and important updates',
                   value: settings.announcements,
@@ -66,7 +68,7 @@ class NotificationPreferencesScreen
                 ),
                 const SettingsTileDivider(),
                 NotificationPreferenceTile(
-                  icon: Icons.auto_stories_outlined,
+                  icon: LucideIcons.bookOpen,
                   title: 'App Updates',
                   subtitle: 'New features and improvements',
                   value: settings.appUpdates,
@@ -93,9 +95,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 24, 4, 10),
       child: Text(
         label,
-        style: TextStyle(
-          color: context.appColors.muted,
-          fontSize: 13,
+        style: context.text.bodySmall?.copyWith(
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
         ),

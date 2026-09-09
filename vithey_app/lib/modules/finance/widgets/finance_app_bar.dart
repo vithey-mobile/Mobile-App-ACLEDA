@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/modules/finance/finance_controller.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class FinanceAppBar extends GetView<FinanceController>
     implements PreferredSizeWidget {
   const FinanceAppBar({super.key});
@@ -27,10 +29,11 @@ class FinanceAppBar extends GetView<FinanceController>
         titleSpacing: canPop ? 0 : 16,
         automaticallyImplyLeading: canPop && !isSearchActive,
         leading: isSearchActive
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+            ? VitheyIconButton(
+                icon: LucideIcons.arrowLeft,
+                variant: VitheyIconButtonVariant.neutral,
                 tooltip: 'Back',
-                onPressed: controller.closeSearch,
+                onTap: controller.closeSearch,
               )
             : null,
         title: isSearchActive
@@ -41,17 +44,16 @@ class FinanceAppBar extends GetView<FinanceController>
                 onChanged: controller.onSearchChanged,
                 onClear: controller.clearSearch,
               )
-            : const Text(
+            : Text(
                 'Finance',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: context.text.titleLarge,
               ),
         actions: [
-          IconButton(
-            icon: Icon(
-              isSearchActive ? Icons.close_rounded : Icons.search_rounded,
-            ),
+          VitheyIconButton(
+            icon: isSearchActive ? LucideIcons.x : LucideIcons.search,
+            variant: VitheyIconButtonVariant.neutral,
             tooltip: AppStrings.financeSearchHint,
-            onPressed: controller.toggleSearch,
+            onTap: controller.toggleSearch,
           ),
         ],
         bottom: PreferredSize(
@@ -89,28 +91,21 @@ class _FinanceSearchField extends StatelessWidget {
         autofocus: true,
         textInputAction: TextInputAction.search,
         onChanged: onChanged,
-        style: TextStyle(
-          color: colors.heading,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
+        style: context.text.titleSmall?.copyWith(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: AppStrings.financeSearchHint,
-          hintStyle: TextStyle(
-            color: colors.muted,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
+          hintStyle: context.text.titleSmall
+              ?.copyWith(fontWeight: FontWeight.w500, color: colors.muted),
           isDense: true,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           filled: true,
           fillColor: colors.inputFill,
           prefixIcon:
-              Icon(Icons.search_rounded, color: colors.muted, size: 20),
+              VitheyIcon(LucideIcons.search, color: colors.muted, size: 20),
           suffixIcon: hasQuery
               ? IconButton(
-                  icon: Icon(Icons.close_rounded, color: colors.muted, size: 18),
+                  icon: VitheyIcon(LucideIcons.x, color: colors.muted, size: 18),
                   onPressed: onClear,
                   tooltip: AppStrings.clearSearch,
                 )

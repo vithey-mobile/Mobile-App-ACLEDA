@@ -7,6 +7,8 @@ import 'package:aub_connect_app/modules/settings/about/widgets/about_header.dart
 import 'package:aub_connect_app/modules/settings/about/widgets/about_info_card.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class AboutScreen extends GetView<AboutController> {
   const AboutScreen({super.key});
 
@@ -50,25 +52,25 @@ class AboutScreen extends GetView<AboutController> {
             AboutContactCard(
               items: [
                 AboutContactItem(
-                  icon: Icons.phone_outlined,
+                  icon: LucideIcons.phone,
                   label: 'Phone',
                   value: AboutController.contactPhone,
                   onTap: controller.callPhone,
                 ),
                 AboutContactItem(
-                  icon: Icons.email_outlined,
+                  icon: LucideIcons.mail,
                   label: 'Email',
                   value: AboutController.contactEmail,
                   onTap: controller.sendEmail,
                 ),
                 AboutContactItem(
-                  icon: Icons.language_outlined,
+                  icon: LucideIcons.languages,
                   label: 'Website',
                   value: AboutController.contactWebsite,
                   onTap: controller.openWebsite,
                 ),
                 const AboutContactItem(
-                  icon: Icons.location_on_outlined,
+                  icon: LucideIcons.mapPin,
                   label: 'Location',
                   value: AboutController.contactLocation,
                 ),

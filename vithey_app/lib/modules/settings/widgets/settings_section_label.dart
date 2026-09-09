@@ -12,11 +12,7 @@ class SettingsSectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: context.appColors.muted,
-        ),
+        style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
       ),
     );
   }

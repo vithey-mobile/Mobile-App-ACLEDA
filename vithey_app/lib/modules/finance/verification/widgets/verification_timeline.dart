@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/status_badge.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class VerificationTimeline extends StatelessWidget {
   const VerificationTimeline({super.key, this.submittedAt});
 
@@ -14,11 +16,7 @@ class VerificationTimeline extends StatelessWidget {
       children: [
         Text(
           'Verification Status',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: context.appColors.heading,
-          ),
+          style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         _TimelineStep(
@@ -78,17 +76,25 @@ class _TimelineStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color iconColor;
+    final Color badgeColor;
+    final String badgeLabel;
     final IconData icon;
     switch (tone) {
       case _StepTone.completed:
         iconColor = AppColors.success;
-        icon = Icons.check_circle_outline;
+        badgeColor = AppColors.success;
+        badgeLabel = 'Completed';
+        icon = LucideIcons.circleCheck;
       case _StepTone.active:
-        iconColor = const Color(0xFFFF8A50);
-        icon = Icons.access_time_outlined;
+        iconColor = AppColors.pending;
+        badgeColor = AppColors.pending;
+        badgeLabel = 'In Review';
+        icon = LucideIcons.clock;
       case _StepTone.idle:
         iconColor = context.appColors.muted;
-        icon = Icons.info_outline;
+        badgeColor = context.appColors.muted;
+        badgeLabel = 'Pending';
+        icon = LucideIcons.info;
     }
 
     return Row(
@@ -99,7 +105,7 @@ class _TimelineStep extends StatelessWidget {
             SizedBox(
               width: 28,
               height: 28,
-              child: Icon(icon, color: iconColor, size: 24),
+              child: VitheyIcon(icon, color: iconColor, size: 24),
             ),
             if (!isLast)
               Container(
@@ -117,20 +123,22 @@ class _TimelineStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: context.appColors.heading,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w700, color: context.appColors.heading),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(label: badgeLabel, color: badgeColor),
+                  ],
                 ),
-                const SizedBox(height: 1),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    color: context.appColors.muted,
-                    fontSize: 13,
-                  ),
+                  style: context.text.bodySmall,
                 ),
               ],
             ),

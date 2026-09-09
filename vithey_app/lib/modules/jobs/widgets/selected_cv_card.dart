@@ -4,7 +4,9 @@ import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SavedCvOption extends StatelessWidget {
   const SavedCvOption({
     super.key,
@@ -26,7 +28,7 @@ class SavedCvOption extends StatelessWidget {
       child: CustomButton(
         label: 'Use saved CV: ${savedCv.fileName}',
         onPressed: enabled ? onSelect : null,
-        icon: selected ? Icons.check_circle : Icons.description_outlined,
+        icon: selected ? LucideIcons.circleCheck : LucideIcons.fileText,
         variant: CustomButtonVariant.outline,
       ),
     );
@@ -66,45 +68,58 @@ class SelectedCvCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: context.appColors.inputFill,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: errorText.isEmpty ? context.appColors.border : AppColors.error),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.picture_as_pdf, color: AppColors.primary, size: 36),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
-                      Text(fileName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text(sizeLabel, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
-                    ],
+          Opacity(
+            opacity: enabled ? 1 : 0.55,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: context.appColors.inputFill,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: errorText.isEmpty ? context.appColors.border : AppColors.error),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const VitheyIcon(LucideIcons.fileText, color: AppColors.primary, size: 26),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Replace',
-                  onPressed: enabled ? onReplace : null,
-                  icon: const Icon(Icons.swap_horiz),
-                ),
-                IconButton(
-                  tooltip: 'Remove',
-                  onPressed: enabled ? onRemove : null,
-                  icon: const Icon(Icons.close),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(label, style: context.text.bodySmall?.copyWith(fontSize: 12)),
+                        Text(fileName, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.labelLarge),
+                        Text(sizeLabel, style: context.text.bodySmall?.copyWith(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  VitheyIconButton(
+                    icon: LucideIcons.arrowLeftRight,
+                    variant: VitheyIconButtonVariant.neutral,
+                    tooltip: 'Replace',
+                    onTap: enabled ? onReplace : null,
+                  ),
+                  VitheyIconButton(
+                    icon: LucideIcons.x,
+                    variant: VitheyIconButtonVariant.destructive,
+                    tooltip: 'Remove',
+                    onTap: enabled ? onRemove : null,
+                  ),
+                ],
+              ),
             ),
           ),
           if (errorText.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(errorText, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+              child: Text(errorText, style: context.text.bodySmall?.copyWith(color: AppColors.error)),
             ),
           if (showSaveAsDefault)
             CheckboxListTile(

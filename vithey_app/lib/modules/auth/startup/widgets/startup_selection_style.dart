@@ -8,9 +8,10 @@ class StartupSelectionStyle {
   const StartupSelectionStyle._();
 
   static Color fill(BuildContext context, {required bool selected}) {
-    return selected
-        ? AppColors.primary.withValues(alpha: 0.12)
-        : context.appColors.inputFill;
+    if (!selected) return context.appColors.inputFill;
+    // Slightly stronger wash in dark mode so selection reads clearly.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AppColors.primary.withValues(alpha: isDark ? 0.18 : 0.12);
   }
 
   static Color border(BuildContext context, {required bool selected}) {

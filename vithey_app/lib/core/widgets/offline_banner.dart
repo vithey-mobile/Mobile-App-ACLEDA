@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 /// Top banner shown when device is offline.
 class OfflineBanner extends StatelessWidget {
@@ -17,9 +18,9 @@ class OfflineBanner extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: const Text(
+          child: Text(
             AppStrings.offline,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: Colors.white),
             textAlign: TextAlign.center,
           ),
         ),

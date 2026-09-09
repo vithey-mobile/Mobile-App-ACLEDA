@@ -28,10 +28,7 @@ class CommentSection extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: Text(
                 'No comments yet. Be the first to comment.',
-                style: TextStyle(
-                  color: context.appColors.muted,
-                  fontSize: 13,
-                ),
+                style: context.text.bodySmall,
               ),
             );
           }
@@ -67,7 +64,7 @@ class CommentSection extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
                             decoration: BoxDecoration(
                               color: context.appColors.cardSurface,
-                              borderRadius: BorderRadius.circular(9),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: context.appColors.border,
                               ),
@@ -77,11 +74,8 @@ class CommentSection extends StatelessWidget {
                               children: [
                                 Text(
                                   comment.author.fullName,
-                                  style: TextStyle(
-                                    color: context.appColors.heading,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: isReply ? 13 : 14,
-                                  ),
+                                  style: context.text.labelLarge
+                                      ?.copyWith(fontSize: isReply ? 13 : 14),
                                 ),
                                 const SizedBox(height: 4),
                                 _MentionText(text: comment.text),
@@ -117,18 +111,14 @@ class CommentSection extends StatelessWidget {
                                 ],
                                 Text(
                                   RelativeTime.format(comment.createdAt),
-                                  style: TextStyle(
-                                    color: context.appColors.muted,
-                                    fontSize: 11.5,
-                                  ),
+                                  style: context.text.bodySmall
+                                      ?.copyWith(fontSize: 11.5),
                                 ),
                                 if (comment.isPending)
                                   Text(
                                     'Sending…',
-                                    style: TextStyle(
-                                      color: context.appColors.muted,
-                                      fontSize: 11.5,
-                                    ),
+                                    style: context.text.bodySmall
+                                        ?.copyWith(fontSize: 11.5),
                                   ),
                                 if (comment.isFailed)
                                   _CommentAction(
@@ -173,10 +163,9 @@ class _CommentAction extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Text(
           label,
-          style: TextStyle(
-            color: color ?? context.appColors.muted,
+          style: context.text.labelSmall?.copyWith(
             fontSize: 11.5,
-            fontWeight: FontWeight.w500,
+            color: color ?? context.appColors.muted,
           ),
         ),
       ),

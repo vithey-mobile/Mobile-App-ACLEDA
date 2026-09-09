@@ -239,9 +239,12 @@ class ProfileSkill {
     this.colorValue,
     this.iconKey,
     this.iconPath,
-  });
+    List<String>? attachmentPaths,
+  }) : _attachmentPaths = attachmentPaths;
 
   final String name;
+
+  /// AI-estimated proficiency (0–100). Set when the skill is created/updated.
   final int proficiency;
 
   /// ARGB color chosen by the user. `null` = auto / random from palette.
@@ -253,13 +256,39 @@ class ProfileSkill {
   /// Optional local custom icon path (Other / user-uploaded).
   final String? iconPath;
 
+  final List<String>? _attachmentPaths;
+
+  /// Linked proof files — never null (guards hot-reload / legacy payloads).
+  List<String> get attachmentPaths => _attachmentPaths ?? const [];
+
+  ProfileSkill copyWith({
+    String? name,
+    int? proficiency,
+    int? colorValue,
+    String? iconKey,
+    String? iconPath,
+    List<String>? attachmentPaths,
+    bool clearColorValue = false,
+  }) {
+    return ProfileSkill(
+      name: name ?? this.name,
+      proficiency: proficiency ?? this.proficiency,
+      colorValue: clearColorValue ? null : (colorValue ?? this.colorValue),
+      iconKey: iconKey ?? this.iconKey,
+      iconPath: iconPath ?? this.iconPath,
+      attachmentPaths: attachmentPaths ?? this.attachmentPaths,
+    );
+  }
+
   factory ProfileSkill.fromJson(Map<String, dynamic> json) {
+    final rawAttachments = json['attachmentPaths'] ?? json['attachment_paths'];
     return ProfileSkill(
       name: json['name'] as String? ?? '',
       proficiency: json['proficiency'] as int? ?? 0,
-      colorValue: json['colorValue'] as int?,
-      iconKey: json['iconKey'] as String?,
-      iconPath: json['iconPath'] as String?,
+      colorValue: json['colorValue'] as int? ?? json['color_value'] as int?,
+      iconKey: json['iconKey'] as String? ?? json['icon_key'] as String?,
+      iconPath: json['iconPath'] as String? ?? json['icon_path'] as String?,
+      attachmentPaths: _stringListFromJson(rawAttachments),
     );
   }
 
@@ -269,7 +298,16 @@ class ProfileSkill {
         if (colorValue != null) 'colorValue': colorValue,
         if (iconKey != null) 'iconKey': iconKey,
         if (iconPath != null) 'iconPath': iconPath,
+        if (attachmentPaths.isNotEmpty) 'attachmentPaths': attachmentPaths,
       };
+}
+
+List<String> _stringListFromJson(dynamic raw) {
+  if (raw is! List) return const [];
+  return [
+    for (final item in raw)
+      if (item != null) item.toString(),
+  ];
 }
 
 class ProfileWorkEntry {
@@ -364,6 +402,10 @@ class CvMetadataModel {
     required this.fileName,
     required this.mimeType,
     this.downloadUrl,
+    this.templateId,
+    this.createdAt,
+    this.isDefault = false,
+    this.isAiGenerated = false,
   });
 
   final String fileId;
@@ -371,7 +413,35 @@ class CvMetadataModel {
   final String mimeType;
   final String? downloadUrl;
 
+  /// Gallery template used when this CV was generated / blank-created.
+  final String? templateId;
+  final DateTime? createdAt;
+  final bool isDefault;
+  final bool isAiGenerated;
+
   bool get isPdf => mimeType.contains('pdf');
+
+  CvMetadataModel copyWith({
+    String? fileId,
+    String? fileName,
+    String? mimeType,
+    String? downloadUrl,
+    String? templateId,
+    DateTime? createdAt,
+    bool? isDefault,
+    bool? isAiGenerated,
+  }) {
+    return CvMetadataModel(
+      fileId: fileId ?? this.fileId,
+      fileName: fileName ?? this.fileName,
+      mimeType: mimeType ?? this.mimeType,
+      downloadUrl: downloadUrl ?? this.downloadUrl,
+      templateId: templateId ?? this.templateId,
+      createdAt: createdAt ?? this.createdAt,
+      isDefault: isDefault ?? this.isDefault,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
+    );
+  }
 }
 
 enum ApplicationStatus { pending, reviewed, accepted, rejected }

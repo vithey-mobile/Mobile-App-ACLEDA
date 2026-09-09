@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/data/models/ai_feed_recommendation.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/post_mutation_result.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
+import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/modules/jobs/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/jobs/models/apply_cv_result.dart';
+import 'package:aub_connect_app/data/repositories/ai_repository.dart';
 import 'package:aub_connect_app/data/repositories/job_application_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -41,6 +45,23 @@ class HomeController extends GetxController {
   final _mutationAuthors = <String>{};
 
   PostAuthor get currentUser => Get.find<CurrentUserService>().postAuthor;
+
+  /// Optional AI collaborators — resolved lazily so HomeBinding stays simple.
+  FeatureFlags? get _featureFlags {
+    try {
+      return Get.find<FeatureFlags>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  AiRepository? get _aiRepository {
+    try {
+      return Get.find<AiRepository>();
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Media circles for the flexible home header (Telegram-style).
   List<HomeMediaItem> get mediaStories {
@@ -114,7 +135,8 @@ class HomeController extends GetxController {
     _page = 1;
     try {
       final result = await _postRepository.fetchFeed(page: _page);
-      posts.assignAll(await _applyLocalState(result.posts));
+      final normalized = await _applyLocalState(result.posts);
+      posts.assignAll(await _applySmartRanking(normalized));
       hasMore.value = result.hasMore;
     } catch (e) {
       hasError.value = true;
@@ -130,7 +152,8 @@ class HomeController extends GetxController {
     _page = 1;
     try {
       final result = await _postRepository.fetchFeed(page: _page);
-      posts.assignAll(await _applyLocalState(result.posts));
+      final normalized = await _applyLocalState(result.posts);
+      posts.assignAll(await _applySmartRanking(normalized));
       hasMore.value = result.hasMore;
       hasError.value = false;
     } catch (e) {
@@ -162,14 +185,59 @@ class HomeController extends GetxController {
 
   Future<void> retryFeed() => fetchInitialFeed();
 
+  /// Ranks the page-1 feed using mock AI recommendations (AI-FEED-02/03),
+  /// boosting apply-eligible skill-matched jobs near the top (AI-FEED-04).
+  /// Falls back to the chronological order when AI is off/empty/fails
+  /// (AI-FEED-07). Pagination pages stay chronological so dedupe works.
+  Future<List<FeedPost>> _applySmartRanking(List<FeedPost> posts) async {
+    if (posts.length < 2) return posts;
+
+    final flags = _featureFlags;
+    final ai = _aiRepository;
+    if (flags == null || ai == null || !flags.useAiFeed) return posts;
+
+    final List<AiFeedRecommendation> recs;
+    try {
+      recs = await ai.feedRecommendations();
+    } catch (_) {
+      return posts; // AI-FEED-07 chronological fallback.
+    }
+    if (recs.isEmpty) return posts;
+
+    final byId = {for (final post in posts) post.id: post};
+    final ranked = <FeedPost>[];
+    final rankedIds = <String>{};
+    for (final rec in recs) {
+      final post = byId[rec.postId];
+      if (post == null || !rankedIds.add(rec.postId)) continue;
+      ranked.add(post);
+    }
+    if (ranked.isEmpty) return posts;
+
+    // Enforce the job boost: open, apply-eligible jobs that exist in the feed
+    // but were not in the recommendation block are promoted right below it
+    // (AI-FEED-04). Own posts and already-applied jobs stay where they are.
+    final promotedJobs = posts.where((post) {
+      if (rankedIds.contains(post.id)) return false;
+      if (post.type != PostType.job || post.isOwnPost) return false;
+      if (post.lifecycleState != JobLifecycleState.open) return false;
+      return post.applicationState != JobApplicationState.applied;
+    }).toList();
+    final promotedIds = promotedJobs.map((p) => p.id).toSet();
+    final rest = posts
+        .where((post) =>
+            !rankedIds.contains(post.id) && !promotedIds.contains(post.id))
+        .toList();
+
+    return [...ranked, ...promotedJobs, ...rest];
+  }
+
   Future<List<FeedPost>> _applyLocalState(List<FeedPost> items) async {
     Set<String> appliedJobIds = {};
-    if (!_jobApplicationRepository.useMockApi) {
-      try {
-        appliedJobIds = await _jobApplicationRepository.getAppliedJobPostIds();
-      } catch (_) {
-        appliedJobIds = {};
-      }
+    try {
+      appliedJobIds = await _jobApplicationRepository.getAppliedJobPostIds();
+    } catch (_) {
+      appliedJobIds = {};
     }
 
     return items.map((post) {
@@ -382,10 +450,10 @@ class HomeController extends GetxController {
     MainTabNavigation.handle(index, currentIndex: currentTab.value);
   }
 
-  void openJobApplication(String jobPostId) {
+  void openJobApplication(FeedPost jobPost) {
     Get.toNamed(
       AppRoutes.applyCv,
-      arguments: ApplyCvArgs(jobPostId: jobPostId),
+      arguments: ApplyCvArgs(jobPostId: jobPost.id, jobPreview: jobPost),
     )?.then((result) {
       if (result is ApplyCvResult) {
         _updatePostsById(
@@ -394,5 +462,15 @@ class HomeController extends GetxController {
         );
       }
     });
+  }
+
+  void openJobApplicants(FeedPost jobPost) {
+    Get.toNamed(
+      AppRoutes.jobApplicants,
+      arguments: JobApplicantsArgs(
+        jobPostId: jobPost.id,
+        jobTitle: jobPost.jobMeta.title,
+      ),
+    );
   }
 }

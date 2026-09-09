@@ -93,7 +93,7 @@ class _SplashTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       AppStrings.appName.split(' ').first,
-      style: const TextStyle(
+      style: context.text.titleLarge?.copyWith(
         color: AppColors.accentLight,
         fontSize: 30,
         fontWeight: FontWeight.w600,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
 
 /// v1 Outstanding Balance card — wallet on right, Due under amount, Pay Now CTA.
+/// GenZ soft card: token radius + tinted border + subtle shadow (dark-mode safe).
 class FinanceBalanceCard extends StatelessWidget {
   const FinanceBalanceCard({
     super.key,
@@ -17,20 +20,28 @@ class FinanceBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(22, 22, 20, 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
-            AppColors.primaryLight,
-            AppColors.primary,
-            Color(0xFF079A95),
+            colors.cardSurface,
+            AppColors.primary.withValues(alpha: 0.10),
           ],
         ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.subtleShadow,
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,15 +55,12 @@ class FinanceBalanceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Outstanding Balance',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                        ),
+                        style: context.text.bodySmall
+                            ?.copyWith(fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(height: 10),
                       FittedBox(
@@ -62,12 +70,8 @@ class FinanceBalanceCard extends StatelessWidget {
                           dashboard.totalDue.formatted,
                           maxLines: 1,
                           softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            height: 1.1,
-                          ),
+                          style: context.text.headlineSmall
+                              ?.copyWith(fontSize: 32, height: 1.1),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -77,16 +81,16 @@ class FinanceBalanceCard extends StatelessWidget {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius:
+                              BorderRadius.circular(VitheyRadii.pill),
                         ),
                         child: Text(
                           dashboard.dueBadgeLabel,
                           maxLines: 1,
                           softWrap: false,
-                          style: const TextStyle(
+                          style: context.text.labelMedium?.copyWith(
                             color: AppColors.primary,
-                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -95,21 +99,31 @@ class FinanceBalanceCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Image.asset(
-                  AppAssets.walletIcon,
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
-                  gaplessPlayback: true,
+                Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.10),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const VitheyIcon(
+                    LucideIcons.wallet,
+                    size: 36,
+                    color: AppColors.primary,
+                  ),
                 ),
+
               ],
             ),
           ),
           const SizedBox(height: 20),
           CustomButton(
             label: 'Pay Now',
-            variant: CustomButtonVariant.secondary,
+            variant: CustomButtonVariant.primary,
             onPressed: onPayNow,
           ),
         ],

@@ -9,6 +9,7 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Mock accounts for the UI chooser (dev / demo).
 const _mockGoogleAccounts = <GoogleAccountSummary>[
   GoogleAccountSummary(
@@ -135,11 +136,8 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                                     ? 'Update email with Google'
                                     : 'Sign in with Google',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: heading,
-                                ),
+                                style: context.text.headlineSmall
+                                    ?.copyWith(fontSize: 24),
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -148,17 +146,15 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                                     ? 'Choose a Google account to update your Vithey email'
                                     : 'To continue to Vithey',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: secondary,
-                                  fontSize: 14,
-                                ),
+                                style: context.text.bodyMedium
+                                    ?.copyWith(color: secondary),
                               ),
                               const SizedBox(height: 28),
                               DecoratedBox(
                                 decoration: BoxDecoration(
                                   color: Theme.of(context)
                                       .scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: border),
                                 ),
                                 child: Column(
@@ -215,9 +211,9 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                               Text(
                                 'To continue, Google will share your name, email address, language preference, and profile picture with Vithey.',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: secondary,
+                                style: context.text.bodySmall?.copyWith(
                                   fontSize: 12,
+                                  color: secondary,
                                   height: 1.4,
                                 ),
                               ),
@@ -232,9 +228,8 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
                     child: Text(
                       'Privacy Policy - Terms of Service',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: context.text.bodySmall?.copyWith(
                         color: secondary,
-                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -256,7 +251,6 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     final account = controller.selectedGoogleAccount;
-    final heading = context.appColors.heading;
     final secondary = _secondaryText(context);
     final border = context.appColors.border;
     final firstName = account?.firstName ?? 'User';
@@ -272,7 +266,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: border),
                 ),
                 child: Padding(
@@ -291,11 +285,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                             ? 'Update Vithey email'
                             : 'Continue to Vithey',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: heading,
-                        ),
+                        style: context.text.titleLarge,
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -303,11 +293,8 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                             ? 'Google will share this account’s email address with Vithey to update your account email.'
                             : 'To continue, Google will share your name, email address, and profile picture with Vithey.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: secondary,
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
+                        style: context.text.bodySmall
+                            ?.copyWith(color: secondary, height: 1.4),
                       ),
                       const SizedBox(height: 28),
                       UserAvatar(
@@ -319,17 +306,14 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                       Text(
                         account?.displayName ?? '',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: heading,
-                        ),
+                        style: context.text.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         account?.email ?? '',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: secondary, fontSize: 14),
+                        style: context.text.bodyMedium
+                            ?.copyWith(color: secondary),
                       ),
                       const SizedBox(height: 28),
                       Obx(() {
@@ -364,7 +348,8 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
                           children: [
                             Text(
                               'Already have an account. ',
-                              style: TextStyle(color: secondary, fontSize: 13),
+                              style: context.text.bodySmall
+                                  ?.copyWith(color: secondary),
                             ),
                             CustomButton(
                               label: AppStrings.signIn,
@@ -419,16 +404,12 @@ class _AccountTile extends StatelessWidget {
                 children: [
                   Text(
                     account.displayName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: context.appColors.heading,
-                      fontSize: 15,
-                    ),
+                    style: context.text.titleSmall,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     account.email,
-                    style: TextStyle(color: secondary, fontSize: 13),
+                    style: context.text.bodySmall?.copyWith(color: secondary),
                   ),
                 ],
               ),
@@ -462,12 +443,12 @@ class _AddAccountRow extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: context.appColors.inputFill,
-              child: Icon(Icons.add, color: secondary),
+              child: VitheyIcon(LucideIcons.plus, color: secondary),
             ),
             const SizedBox(width: 12),
             Text(
               'Add another account',
-              style: TextStyle(color: heading, fontSize: 15),
+              style: context.text.bodyLarge?.copyWith(fontSize: 15),
             ),
           ],
         ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/widgets/status_badge.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SubmittedDocumentCard extends StatelessWidget {
   const SubmittedDocumentCard({super.key, this.fileName});
 
@@ -19,8 +22,8 @@ class SubmittedDocumentCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: context.appColors.cardSurface,
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         border: Border.all(color: context.appColors.border),
       ),
       child: Column(
@@ -28,16 +31,13 @@ class SubmittedDocumentCard extends StatelessWidget {
         children: [
           Text(
             'Submitted Documents',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: context.appColors.heading),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.badge_outlined,
+              VitheyIcon(
+                LucideIcons.badge,
                 color: context.appColors.muted,
                 size: 22,
               ),
@@ -45,19 +45,10 @@ class SubmittedDocumentCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Student ID Card',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: context.appColors.heading,
-                  ),
+                  style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: context.appColors.heading),
                 ),
               ),
-              const Text(
-                'Uploaded',
-                style: TextStyle(
-                  color: AppColors.success,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              const StatusBadge(label: 'Uploaded', color: AppColors.success),
             ],
           ),
           if (hasUploadedFile) ...[
@@ -66,7 +57,7 @@ class SubmittedDocumentCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
+                VitheyIcon(
                   _iconForName(uploadedName),
                   color: AppColors.primary,
                   size: 22,
@@ -77,10 +68,7 @@ class SubmittedDocumentCard extends StatelessWidget {
                     uploadedName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: context.appColors.heading),
                   ),
                 ),
               ],
@@ -93,16 +81,16 @@ class SubmittedDocumentCard extends StatelessWidget {
 
   IconData _iconForName(String name) {
     final lower = name.toLowerCase();
-    if (lower.endsWith('.pdf')) return Icons.picture_as_pdf_outlined;
+    if (lower.endsWith('.pdf')) return LucideIcons.fileText;
     if (lower.endsWith('.doc') || lower.endsWith('.docx')) {
-      return Icons.description_outlined;
+      return LucideIcons.fileText;
     }
     if (lower.endsWith('.png') ||
         lower.endsWith('.jpg') ||
         lower.endsWith('.jpeg') ||
         lower.endsWith('.webp')) {
-      return Icons.image_outlined;
+      return LucideIcons.image;
     }
-    return Icons.insert_drive_file_outlined;
+    return LucideIcons.fileText;
   }
 }

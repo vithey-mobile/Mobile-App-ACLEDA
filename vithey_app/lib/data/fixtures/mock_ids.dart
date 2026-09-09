@@ -35,6 +35,12 @@ abstract final class MockIds {
   static const post14 = 'post-14';
   static const post15 = 'post-15';
   static const post16 = 'post-16';
+  /// Other posters' jobs — seeded as Applied Jobs for the logged-in HR user.
+  static const post17 = 'post-17';
+  static const post18 = 'post-18';
+  /// Extra open jobs for Apply CV UI testing (not seeded as applied).
+  static const post19 = 'post-19';
+  static const post20 = 'post-20';
 
   static const convHeng = 'conv-heng';
   static const convBora = 'conv-bora';
@@ -60,6 +66,11 @@ abstract final class MockIds {
   static const appMy4 = 'app-my-4';
   static const appMy5 = 'app-my-5';
   static const appMy6 = 'app-my-6';
+  /// Logged-in user (Poster) Applied Jobs — 4 statuses for Profile tab demos.
+  static const appHr1 = 'app-hr-1';
+  static const appHr2 = 'app-hr-2';
+  static const appHr3 = 'app-hr-3';
+  static const appHr4 = 'app-hr-4';
 
   static const pay1 = 'pay-1';
   static const pay2 = 'pay-2';
@@ -82,5 +93,6 @@ abstract final class MockIds {
   static const aiSession3 = 'ai-session-3';
 
   static const cvFile = 'cv-1';
+  static const cvFileAi = 'cv-ai-1';
   static const verification = 'ver-mock-1';
 }

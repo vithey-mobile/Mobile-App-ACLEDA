@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ReplyPreviewBar extends StatelessWidget {
   const ReplyPreviewBar({
     super.key,
@@ -37,9 +40,8 @@ class ReplyPreviewBar extends StatelessWidget {
               children: [
                 Text(
                   'Replying to',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  style: context.text.labelMedium?.copyWith(
+                    fontWeight: VitheyWeight.semibold,
                     color: AppColors.primary,
                   ),
                 ),
@@ -47,15 +49,17 @@ class ReplyPreviewBar extends StatelessWidget {
                   preview,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, color: context.appColors.muted),
+                  style: context.text.bodySmall,
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: onCancel,
-            icon: const Icon(Icons.close, size: 18),
-            color: context.appColors.muted,
+          VitheyIconButton(
+            icon: LucideIcons.x,
+            iconSize: 20,
+            variant: VitheyIconButtonVariant.neutral,
+            tooltip: 'Cancel reply',
+            onTap: onCancel,
           ),
         ],
       ),

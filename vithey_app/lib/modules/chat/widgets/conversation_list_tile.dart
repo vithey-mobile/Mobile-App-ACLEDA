@@ -3,8 +3,12 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class ConversationListTile extends StatelessWidget {
   const ConversationListTile({
@@ -48,7 +52,7 @@ class ConversationListTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,10 +79,9 @@ class ConversationListTile extends StatelessWidget {
                     text: conversation.participant.fullName,
                     query: query,
                     maxLines: 1,
-                    style: TextStyle(
-                      fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
-                      fontSize: 16,
-                      color: context.appColors.heading,
+                    style: context.text.titleMedium?.copyWith(
+                      fontWeight:
+                          hasUnread ? VitheyWeight.bold : VitheyWeight.semibold,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -86,14 +89,14 @@ class ConversationListTile extends StatelessWidget {
                     text: _subtitleText,
                     query: query,
                     maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: context.text.bodyMedium?.copyWith(
                       color: conversation.isTyping && searchSubtitle == null
                           ? AppColors.primary
                           : context.appColors.muted,
-                      fontWeight: conversation.isTyping && searchSubtitle == null
-                          ? FontWeight.w500
-                          : FontWeight.normal,
+                      fontWeight:
+                          conversation.isTyping && searchSubtitle == null
+                              ? VitheyWeight.medium
+                              : VitheyWeight.regular,
                     ),
                     highlightColor: AppColors.primary,
                   ),
@@ -105,26 +108,35 @@ class ConversationListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (hasUnread)
-                  CircleAvatar(
-                    radius: 11,
-                    backgroundColor: AppColors.primary,
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 26),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                    ),
+                    alignment: Alignment.center,
                     child: Text(
                       conversation.unreadCount > 99
                           ? '99+'
                           : '${conversation.unreadCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      style: context.text.labelSmall?.copyWith(
+                        color: context.scheme.onPrimary,
+                        fontWeight: VitheyWeight.bold,
+                        height: 1,
                       ),
                     ),
                   )
                 else if (_showReadCheck)
-                  const Icon(Icons.done_all, size: 18, color: AppColors.primary),
+                  const VitheyIcon(LucideIcons.checkCheck,
+                      size: 18, color: AppColors.primary),
                 const SizedBox(height: 6),
                 Text(
                   RelativeTime.formatChatList(conversation.updatedAt),
-                  style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                  style: context.text.labelMedium,
                 ),
               ],
             ),
@@ -146,7 +158,7 @@ class _HighlightedText extends StatelessWidget {
 
   final String text;
   final String query;
-  final TextStyle style;
+  final TextStyle? style;
   final int maxLines;
   final Color highlightColor;
 
@@ -181,7 +193,7 @@ class _HighlightedText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(index, index + trimmed.length),
-          style: style.copyWith(
+          style: style?.copyWith(
             color: highlightColor,
             fontWeight: FontWeight.w700,
           ),

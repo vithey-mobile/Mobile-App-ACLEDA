@@ -1,10 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
+import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_highlight_text.dart';
+import 'package:aub_connect_app/modules/search/widgets/search_result_tile_shell.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SearchPostTile extends StatelessWidget {
   const SearchPostTile({
     super.key,
@@ -22,39 +27,49 @@ class SearchPostTile extends StatelessWidget {
     final colors = context.appColors;
     final meta = _metaLabel(post);
 
-    return InkWell(
+    return SearchResultTileCard(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            _Thumbnail(url: post.thumbnailUrl, colors: colors),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SearchHighlightText(
-                    text: post.title,
-                    query: query,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: colors.heading,
-                    ),
-                    maxLines: 2,
-                  ),
-                  if (meta != null) ...[
-                    const SizedBox(height: 4),
-                    Text(meta,
-                        style: TextStyle(fontSize: 12, color: colors.muted)),
-                  ],
+      onLongPress: () => _showActionSheet(context),
+      child: Row(
+        children: [
+          _Thumbnail(url: post.thumbnailUrl, colors: colors),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SearchHighlightText(
+                  text: post.title,
+                  query: query,
+                  style: context.text.bodyMedium!
+                      .copyWith(fontWeight: VitheyWeight.medium),
+                  maxLines: 2,
+                ),
+                if (meta != null) ...[
+                  const SizedBox(height: 4),
+                  Text(meta,
+                      style: context.text.bodySmall?.copyWith(fontSize: 12)),
                 ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Future<void> _showActionSheet(BuildContext context) {
+    return showVitheyActionSheet<void>(
+      context: context,
+      title: post.title,
+      actions: [
+        VitheyActionSheetItem(
+          label: 'Open post',
+          icon: LucideIcons.externalLink,
+          onTap: onTap,
+        ),
+      ],
+      cancelLabel: 'Cancel',
     );
   }
 
@@ -84,14 +99,14 @@ class _Thumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(VitheyRadii.media),
       child: Container(
         width: 56,
         height: 56,
         color: colors.inputFill,
         child: url != null
             ? CachedNetworkImage(imageUrl: url!, fit: BoxFit.cover)
-            : Icon(Icons.image_outlined, color: colors.muted),
+            : VitheyIcon(LucideIcons.image, color: colors.muted),
       ),
     );
   }

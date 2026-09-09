@@ -13,7 +13,9 @@ String aiApiErrorMessage(Object error) {
     if (message.contains('unauthorized') || message.contains('401')) {
       return 'Please sign in to use Vithey AI.';
     }
-    if (message.contains('upstream') || message.contains('502') || message.contains('503')) {
+    if (message.contains('upstream') ||
+        message.contains('502') ||
+        message.contains('503')) {
       return 'Vithey AI is temporarily unavailable. Please try again shortly.';
     }
     if (message.contains('session not found') || message.contains('404')) {

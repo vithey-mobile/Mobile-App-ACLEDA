@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 
-/// ChatGPT-style pill composer with photo / video / file attachments.
+/// ChatGPT-style expanding composer: text on top, `+` and send on a bottom row.
+/// No voice / mic control.
 class ChatbotComposer extends StatelessWidget {
   const ChatbotComposer({
     super.key,
@@ -26,14 +29,17 @@ class ChatbotComposer extends StatelessWidget {
   final VoidCallback onAddAttachment;
   final ValueChanged<ChatAttachment> onRemoveAttachment;
 
-  static const _noBorder = InputBorder.none;
+  static const double _sendSize = 36;
+  static const double _plusTap = 40;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
         child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
           builder: (context, value, _) {
@@ -41,121 +47,161 @@ class ChatbotComposer extends StatelessWidget {
             final canSend =
                 (hasText || attachments.isNotEmpty) && !isGenerating;
 
-            return Container(
-              decoration: BoxDecoration(
-                color: context.appColors.cardSurface,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: context.appColors.border.withValues(alpha: 0.7),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.fromLTRB(6, 8, 6, 6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (attachments.isNotEmpty)
-                    SizedBox(
-                      height: 72,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                        itemCount: attachments.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (_, index) {
-                          final item = attachments[index];
-                          return _AttachmentChip(
-                            attachment: item,
-                            onRemove: () => onRemoveAttachment(item),
-                          );
-                        },
-                      ),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (attachments.isNotEmpty)
+                  SizedBox(
+                    height: 64,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                      itemCount: attachments.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (_, index) {
+                        final item = attachments[index];
+                        return _AttachmentChip(
+                          attachment: item,
+                          onRemove: () => onRemoveAttachment(item),
+                        );
+                      },
                     ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _RoundIcon(
-                        icon: Icons.add_rounded,
-                        color: context.appColors.heading,
-                        onTap: isGenerating ? null : onAddAttachment,
-                        tooltip: 'Add photo, video, or file',
-                      ),
-                      Expanded(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minHeight: 40,
-                            maxHeight: 160,
-                          ),
-                          child: Theme(
-                            data: Theme.of(context).copyWith(
-                              inputDecorationTheme: const InputDecorationTheme(
-                                border: _noBorder,
-                                enabledBorder: _noBorder,
-                                focusedBorder: _noBorder,
-                                disabledBorder: _noBorder,
-                                errorBorder: _noBorder,
-                                focusedErrorBorder: _noBorder,
-                                filled: false,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: controller,
-                              minLines: 1,
-                              maxLines: 8,
-                              enabled: !isGenerating,
-                              keyboardType: TextInputType.multiline,
-                              textInputAction: TextInputAction.newline,
-                              cursorColor: AppColors.primary,
-                              style: TextStyle(
-                                fontSize: 16,
-                                height: 1.35,
-                                color: context.appColors.heading,
-                              ),
-                              decoration: InputDecoration(
-                                isDense: true,
-                                filled: false,
-                                hintText: 'Ask Vithey AI',
-                                hintStyle: TextStyle(
-                                  color: context.appColors.muted,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                border: _noBorder,
-                                enabledBorder: _noBorder,
-                                focusedBorder: _noBorder,
-                                disabledBorder: _noBorder,
-                                errorBorder: _noBorder,
-                                focusedErrorBorder: _noBorder,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 10,
-                                ),
-                              ),
-                              onSubmitted: canSend ? (_) => onSend() : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      _ActionButton(
-                        isGenerating: isGenerating,
-                        enabled: canSend || isGenerating,
-                        onTap: isGenerating
-                            ? onStop
-                            : (canSend ? onSend : null),
+                  ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.cardSurface,
+                    borderRadius: BorderRadius.circular(VitheyRadii.sheet),
+                    border: Border.all(
+                      color: colors.border.withValues(alpha: 0.7),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.subtleShadow,
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 10, 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minHeight: 44,
+                            maxHeight: 160,
+                          ),
+                          child: TextField(
+                            controller: controller,
+                            minLines: 1,
+                            maxLines: 8,
+                            enabled: !isGenerating,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                            cursorColor: AppColors.primary,
+                            style: context.text.bodyLarge
+                                ?.copyWith(height: 1.35),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: false,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              hintText: 'Ask Vithey AI',
+                              hintStyle: context.text.bodyLarge
+                                  ?.copyWith(color: colors.muted),
+                              contentPadding: const EdgeInsets.fromLTRB(
+                                4,
+                                6,
+                                4,
+                                8,
+                              ),
+                            ),
+                            onSubmitted: canSend ? (_) => onSend() : null,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Tooltip(
+                              message: 'Add photo, video, or file',
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: isGenerating ? null : onAddAttachment,
+                                  customBorder: const CircleBorder(),
+                                  child: SizedBox(
+                                    width: _plusTap,
+                                    height: _plusTap,
+                                    child: VitheyIcon(
+                                      LucideIcons.plus,
+                                      size: 22,
+                                      color: colors.heading,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            _SendCircle(
+                              enabled: canSend || isGenerating,
+                              isStop: isGenerating,
+                              onPressed: isGenerating
+                                  ? onStop
+                                  : (canSend ? onSend : null),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _SendCircle extends StatelessWidget {
+  const _SendCircle({
+    required this.enabled,
+    required this.isStop,
+    required this.onPressed,
+  });
+
+  final bool enabled;
+  final bool isStop;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final active = enabled && onPressed != null;
+
+    return Tooltip(
+      message: isStop ? 'Stop' : 'Send',
+      child: Material(
+        color: active ? AppColors.primary : colors.inputFill,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox(
+            width: ChatbotComposer._sendSize,
+            height: ChatbotComposer._sendSize,
+            child: VitheyIcon(
+              isStop ? LucideIcons.square : LucideIcons.arrowUp,
+              size: isStop ? 14 : 20,
+              color: active
+                  ? context.scheme.onPrimary
+                  : colors.muted.withValues(alpha: 0.5),
+            ),
+          ),
         ),
       ),
     );
@@ -180,8 +226,8 @@ class _AttachmentChip extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: context.appColors.inputFill,
-            borderRadius: BorderRadius.circular(14),
+            color: context.appColors.cardSurface,
+            borderRadius: BorderRadius.circular(VitheyRadii.media),
             border: Border.all(
               color: context.appColors.border.withValues(alpha: 0.7),
             ),
@@ -191,18 +237,18 @@ class _AttachmentChip extends StatelessWidget {
               ? Image.file(
                   File(attachment.path),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.broken_image_outlined,
+                  errorBuilder: (_, __, ___) => VitheyIcon(
+                    LucideIcons.imageOff,
                     color: context.appColors.muted,
                   ),
                 )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    VitheyIcon(
                       attachment.isVideo
-                          ? Icons.videocam_outlined
-                          : Icons.insert_drive_file_outlined,
+                          ? LucideIcons.video
+                          : LucideIcons.fileText,
                       color: AppColors.primary,
                       size: 22,
                     ),
@@ -214,10 +260,8 @@ class _AttachmentChip extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: context.appColors.muted,
-                        ),
+                        style:
+                            context.text.labelMedium?.copyWith(fontSize: 9),
                       ),
                     ),
                   ],
@@ -235,85 +279,12 @@ class _AttachmentChip extends StatelessWidget {
               child: const SizedBox(
                 width: 20,
                 height: 20,
-                child: Icon(Icons.close, size: 12, color: Colors.white),
+                child: VitheyIcon(LucideIcons.x, size: 12, color: Colors.white),
               ),
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _RoundIcon extends StatelessWidget {
-  const _RoundIcon({
-    required this.icon,
-    required this.color,
-    required this.tooltip,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String tooltip;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: Icon(icon, size: 26, color: color),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.isGenerating,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  final bool isGenerating;
-  final bool enabled;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isGenerating
-        ? context.appColors.heading
-        : (enabled
-            ? AppColors.primary
-            : AppColors.primary.withValues(alpha: 0.35));
-
-    return Material(
-      color: color,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            isGenerating ? Icons.stop_rounded : Icons.arrow_upward_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-      ),
     );
   }
 }

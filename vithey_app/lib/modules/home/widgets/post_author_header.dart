@@ -41,18 +41,12 @@ class PostAuthorHeader extends StatelessWidget {
                     post.author.fullName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: context.appColors.heading,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                    style: context.text.titleSmall,
                   ),
                   Text(
                     RelativeTime.format(post.createdAt),
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 12,
-                    ),
+                    style: context.text.bodyMedium
+                        ?.copyWith(color: context.appColors.muted, fontSize: 12),
                   ),
                 ],
               ),

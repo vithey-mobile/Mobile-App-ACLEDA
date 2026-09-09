@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/auth/startup/widgets/startup_selection_style.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Startup 1 pill chip — unique shape; shared selection chrome.
 class SelectableSkillChip extends StatelessWidget {
   const SelectableSkillChip({
@@ -27,28 +29,25 @@ class SelectableSkillChip extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: fill,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: iconColor),
+              VitheyIcon(icon, size: 16, color: iconColor),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: labelColor,
-                ),
+                style: context.text.labelMedium
+                    ?.copyWith(fontSize: 13, color: labelColor),
               ),
             ],
           ),

@@ -4,7 +4,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
-import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/post_detail/post_detail_controller.dart';
@@ -13,6 +13,9 @@ import 'package:aub_connect_app/modules/home/post_detail/widgets/mention_user_bo
 import 'package:aub_connect_app/modules/home/post_detail/widgets/post_detail_header.dart';
 import 'package:aub_connect_app/modules/home/post_detail/widgets/post_detail_media.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class PostDetailScreen extends GetView<PostDetailController> {
   const PostDetailScreen({super.key});
@@ -34,13 +37,12 @@ class PostDetailScreen extends GetView<PostDetailController> {
           scrolledUnderElevation: 0,
           backgroundColor: context.appColors.cardSurface,
           surfaceTintColor: Colors.transparent,
-          title: const Text(
-            'Back',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Get.back(result: controller.post.value),
+          title: Text('Back', style: context.text.titleLarge),
+          leading: VitheyIconButton(
+            icon: LucideIcons.arrowLeft,
+            variant: VitheyIconButtonVariant.neutral,
+            tooltip: 'Back',
+            onTap: () => Get.back(result: controller.post.value),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
@@ -120,12 +122,14 @@ class _PostDetailCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 1),
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        border: Border.all(color: context.appColors.border),
-        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: context.appColors.border.withValues(alpha: 0.8),
+        ),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +144,7 @@ class _PostDetailCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               post.content,
-              style: TextStyle(
+              style: context.text.bodySmall?.copyWith(
                 color: context.appColors.heading,
                 fontSize: 13.5,
                 height: 1.28,
@@ -150,7 +154,7 @@ class _PostDetailCard extends StatelessWidget {
           if (hasMedia) ...[
             const SizedBox(height: 12),
             ClipRRect(
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(VitheyRadii.media),
               child: PostDetailMedia(post: post),
             ),
           ],
@@ -181,8 +185,8 @@ class _DetailEngagementBar extends StatelessWidget {
         children: [
           _DetailAction(
             icon: post.userReacted
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
+                ? LucideIcons.heart
+                : LucideIcons.heart,
             count: post.reactionCount,
             color: post.userReacted
                 ? context.scheme.primary
@@ -190,12 +194,12 @@ class _DetailEngagementBar extends StatelessWidget {
             onTap: onReact,
           ),
           _DetailAction(
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: LucideIcons.messageCircle,
             count: post.commentCount,
             onTap: onComment,
           ),
           _DetailAction(
-            icon: Icons.bookmark_border_rounded,
+            icon: LucideIcons.bookmark,
             count: post.shareCount,
             onTap: () {},
           ),
@@ -223,18 +227,19 @@ class _DetailAction extends StatelessWidget {
     final foreground = color ?? context.appColors.muted;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(14),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 52, minHeight: 44),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 20, color: foreground),
+            VitheyIcon(icon, size: 20, color: foreground),
             const SizedBox(width: 5),
             Text(
               '$count',
-              style: TextStyle(color: foreground, fontSize: 12),
+              style: context.text.bodyMedium
+                  ?.copyWith(color: foreground, fontSize: 12),
             ),
             const SizedBox(width: 8),
           ],
@@ -301,11 +306,7 @@ class _CommentComposer extends StatelessWidget {
                       Expanded(
                         child: Text(
                           label,
-                          style: TextStyle(
-                            color: context.appColors.muted,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: context.text.labelMedium?.copyWith(fontSize: 12.5),
                         ),
                       ),
                       VitheyTextLink(
@@ -315,7 +316,6 @@ class _CommentComposer extends StatelessWidget {
                             : controller.cancelReply,
                         color: context.appColors.muted,
                         fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
@@ -325,60 +325,96 @@ class _CommentComposer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: VitheyField(
-                      controller: controller.commentController,
-                      focusNode: controller.commentFocus,
-                      hint: 'Amazing!',
-                      minLines: 1,
-                      maxLines: 3,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => controller.submitComment(),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(2, 4, 4, 4),
                     child: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: controller.commentController,
-                      builder: (_, value, __) => Obx(
-                        () {
+                      builder: (context, value, _) {
+                        return Obx(() {
                           final canSend = value.text.trim().isNotEmpty &&
                               !controller.isSending.value;
-                          return SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: IconButton(
-                              tooltip: controller.editingComment.value != null
-                                  ? 'Save comment'
-                                  : 'Send comment',
-                              onPressed:
-                                  canSend ? controller.submitComment : null,
-                              style: IconButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                shape: const CircleBorder(),
-                                backgroundColor: context.scheme.primary,
-                                foregroundColor: context.scheme.onPrimary,
-                                disabledBackgroundColor:
-                                    context.appColors.inputFill,
-                                disabledForegroundColor:
-                                    context.appColors.muted,
+                          final colors = context.appColors;
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: colors.inputFill,
+                              borderRadius:
+                                  BorderRadius.circular(VitheyRadii.pill),
+                              border: Border.all(
+                                color: colors.border.withValues(alpha: 0.6),
                               ),
-                              icon: controller.isSending.value
-                                  ? SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: context.scheme.onPrimary,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.send_rounded,
-                                      size: 20,
+                            ),
+                            padding: const EdgeInsets.only(left: 12, right: 2),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 36,
+                                      maxHeight: 90,
                                     ),
+                                    child: TextField(
+                                      controller: controller.commentController,
+                                      focusNode: controller.commentFocus,
+                                      minLines: 1,
+                                      maxLines: 3,
+                                      textInputAction: TextInputAction.send,
+                                      onSubmitted: (_) =>
+                                          controller.submitComment(),
+                                      cursorColor: AppColors.primary,
+                                      style: context.text.bodyMedium
+                                          ?.copyWith(height: 1.3),
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        filled: false,
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        hintText: 'Amazing!',
+                                        hintStyle: context.text.bodyMedium
+                                            ?.copyWith(color: colors.muted),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: IconButton(
+                                    tooltip:
+                                        controller.editingComment.value != null
+                                            ? 'Save comment'
+                                            : 'Send comment',
+                                    onPressed: canSend
+                                        ? controller.submitComment
+                                        : null,
+                                    padding: EdgeInsets.zero,
+                                    icon: controller.isSending.value
+                                        ? SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.primary,
+                                            ),
+                                          )
+                                        : VitheyIcon(
+                                            LucideIcons.send,
+                                            size: 18,
+                                            color: canSend
+                                                ? AppColors.primary
+                                                : colors.muted
+                                                    .withValues(alpha: 0.45),
+                                          ),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
-                        },
-                      ),
+                        });
+                      },
                     ),
                   ),
                 ],
@@ -411,8 +447,7 @@ class _JobDetailBlock extends StatelessWidget {
         children: [
           if (meta.title != null)
             Text(meta.title!,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                style: context.text.titleLarge),
           if (meta.description != null) ...[
             const SizedBox(height: 8),
             Text(meta.description!,
@@ -424,13 +459,13 @@ class _JobDetailBlock extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           if (post.applicationState == JobApplicationState.applied)
-            const Text('Applied',
-                style: TextStyle(
-                    color: AppColors.success, fontWeight: FontWeight.w600))
+            Text('Applied',
+                style: context.text.labelLarge
+                    ?.copyWith(color: AppColors.success))
           else if (canApply)
             CustomButton(
                 label: 'Apply CV',
-                icon: Icons.description_outlined,
+                icon: LucideIcons.fileText,
                 onPressed: onApply)
           else if (!post.isOwnPost)
             Text('Applications closed',

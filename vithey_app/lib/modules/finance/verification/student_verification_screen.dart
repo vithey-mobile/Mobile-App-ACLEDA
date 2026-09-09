@@ -6,14 +6,13 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/finance/verification/widgets/student_id_upload_box.dart';
 import 'package:aub_connect_app/modules/finance/verification/widgets/verification_app_bar.dart';
-import 'package:aub_connect_app/modules/finance/verification/widgets/verification_info_card.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class StudentVerificationController extends GetxController {
   StudentVerificationController(this._repository);
 
@@ -143,28 +142,11 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
                 children: [
-                  Text(
-                    'Student Verification',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: context.appColors.heading,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Please fill in your student's information.",
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                   CustomTextField(
                     controller: controller.studentIdController,
                     label: 'Student ID',
                     hint: 'Enter your Student ID',
-                    prefixIcon: Icons.person_outline,
+                    prefixIcon: LucideIcons.user,
                     textInputAction: TextInputAction.next,
                     validator: controller.validateStudentId,
                   ),
@@ -173,7 +155,7 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
                     controller: controller.emailController,
                     label: 'Student Email',
                     hint: 'your.email@university',
-                    prefixIcon: Icons.mail_outline,
+                    prefixIcon: LucideIcons.mail,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     validator: controller.validateEmail,
@@ -183,7 +165,7 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
                     controller: controller.passwordController,
                     label: 'Password',
                     hint: 'Enter your password',
-                    prefixIcon: Icons.lock_outline,
+                    prefixIcon: LucideIcons.lock,
                     obscureText: true,
                     textInputAction: TextInputAction.done,
                   ),
@@ -211,15 +193,13 @@ class StudentVerificationScreen extends GetView<StudentVerificationController> {
                   Obx(
                     () => CustomButton(
                       label: 'Verify Student Status',
-                      icon: Icons.verified_user_outlined,
+                      icon: LucideIcons.shieldCheck,
                       isLoading: controller.isSubmitting.value,
                       onPressed: controller.isSubmitting.value
                           ? null
                           : controller.submit,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const VerificationInfoCard(),
                 ],
               ),
             ),

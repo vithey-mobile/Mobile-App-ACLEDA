@@ -89,7 +89,6 @@ class ProfileRepository {
   Future<List<AppliedJobSummary>> getMyAppliedJobs() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      return ApplicationFixtures.myAppliedJobs();
     }
     return _jobApplicationRepository.getMyAppliedJobs();
   }

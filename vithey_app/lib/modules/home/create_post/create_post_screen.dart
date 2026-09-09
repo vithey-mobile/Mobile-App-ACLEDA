@@ -6,15 +6,18 @@ import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_area.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/data/services/upload_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/modules/home/create_post/create_post_controller.dart';
 import 'package:aub_connect_app/modules/home/create_post/widgets/create_post_media_zone.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class CreatePostScreen extends GetView<CreatePostController> {
   const CreatePostScreen({super.key});
 
@@ -102,7 +105,7 @@ class CreatePostScreen extends GetView<CreatePostController> {
       backgroundColor: context.appColors.cardSurface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -112,7 +115,7 @@ class CreatePostScreen extends GetView<CreatePostController> {
       _CategorySheet(controller: controller),
       backgroundColor: context.appColors.cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -123,7 +126,7 @@ class CreatePostScreen extends GetView<CreatePostController> {
       isScrollControlled: true,
       backgroundColor: context.appColors.cardSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -140,11 +143,8 @@ class _AdaptiveEditor extends StatelessWidget {
       final mediaPath = controller.mediaPreviewPath;
       final isUploading = controller.isUploadingMedia.value;
       final error = controller.errorMessage.value;
-      // Jobs (and any edit with media) use the media composer so the poster
-      // is visible and replaceable — not the text-only expanded editor.
-      final useMediaForm = mediaPath != null || controller.isJob;
 
-      if (!useMediaForm) {
+      if (mediaPath == null) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -170,63 +170,24 @@ class _AdaptiveEditor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (controller.isJob) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: VitheyField(
-                  controller: controller.jobTitleController,
-                  label: 'Job title',
-                  hint: 'e.g. Web Developer',
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) => controller.contentRevision.value++,
+            VitheyTextArea(
+              key: const ValueKey('media-composer-editor'),
+              controller: controller.contentController,
+              minLines: 4,
+              maxLines: 12,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(VitheyRadii.media),
+                child: CreatePostMediaZone(
+                  mediaPath: mediaPath,
+                  isVideo: controller.isVideo,
+                  isUploading: isUploading,
+                  onPick: controller.showMediaSourceSheet,
+                  onClear: controller.clearMedia,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: VitheyField(
-                  controller: controller.jobCompanyController,
-                  label: 'Company',
-                  hint: 'Company or organization',
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) => controller.contentRevision.value++,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: VitheyField(
-                  controller: controller.jobRequirementController,
-                  label: 'Employment type',
-                  hint: 'Full-time, Part-time, Internship…',
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) => controller.contentRevision.value++,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: VitheyTextArea(
-                  key: const ValueKey('job-location-editor'),
-                  controller: controller.contentController,
-                  label: 'Location',
-                  hint: 'City, street, office…',
-                  minLines: 3,
-                  maxLines: 6,
-                ),
-              ),
-            ] else ...[
-              VitheyTextArea(
-                key: const ValueKey('media-composer-editor'),
-                controller: controller.contentController,
-                hint: 'What\'s on your mind?',
-                minLines: 4,
-                maxLines: 12,
-              ),
-            ],
-            CreatePostMediaZone(
-              mediaPath: mediaPath,
-              isVideo: controller.isVideo,
-              isUploading: isUploading,
-              onPick: controller.showMediaSourceSheet,
-              onClear: controller.clearMedia,
             ),
             if (error.isNotEmpty) _ComposerError(message: error),
             const SizedBox(height: 8),
@@ -236,8 +197,8 @@ class _AdaptiveEditor extends StatelessWidget {
     });
   }
 
-  TextStyle _editorStyle(BuildContext context) {
-    return TextStyle(
+  TextStyle? _editorStyle(BuildContext context) {
+    return context.text.bodyMedium?.copyWith(
       color: context.appColors.heading,
       fontSize: 15,
       height: 1.4,
@@ -247,10 +208,8 @@ class _AdaptiveEditor extends StatelessWidget {
   InputDecoration _editorDecoration(BuildContext context) {
     return InputDecoration(
       hintText: 'What\'s on your mind?',
-      hintStyle: TextStyle(
-        color: context.appColors.muted,
-        fontSize: 15,
-      ),
+      hintStyle: context.text.bodyMedium
+          ?.copyWith(color: context.appColors.muted, fontSize: 15),
       filled: true,
       fillColor: context.appColors.cardSurface,
       border: InputBorder.none,
@@ -274,10 +233,8 @@ class _ComposerError extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         message,
-        style: TextStyle(
-          color: context.scheme.onErrorContainer,
-          fontSize: 12,
-        ),
+        style: context.text.bodyMedium
+            ?.copyWith(color: context.scheme.onErrorContainer, fontSize: 12),
       ),
     );
   }
@@ -320,20 +277,11 @@ class _CreatePostHeader extends GetView<CreatePostController> {
 
                 return Row(
                   children: [
-                    IconButton(
+                    VitheyIconButton(
+                      icon: LucideIcons.arrowLeft,
+                      variant: VitheyIconButtonVariant.neutral,
                       tooltip: 'Back to home',
-                      onPressed: onBack,
-                      visualDensity: VisualDensity.compact,
-                      constraints: const BoxConstraints(
-                        minWidth: 40,
-                        minHeight: 40,
-                      ),
-                      padding: EdgeInsets.zero,
-                      icon: Icon(
-                        Icons.arrow_back_rounded,
-                        size: 22,
-                        color: colors.heading,
-                      ),
+                      onTap: onBack,
                     ),
                     UserAvatar(
                       name: currentUser.displayName,
@@ -343,7 +291,7 @@ class _CreatePostHeader extends GetView<CreatePostController> {
                     const SizedBox(width: 6),
                     InkWell(
                       onTap: onAudienceTap,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(VitheyRadii.pill),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 2,
@@ -356,14 +304,11 @@ class _CreatePostHeader extends GetView<CreatePostController> {
                               controller.audienceLabel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: colors.muted,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: context.text.labelLarge
+                                  ?.copyWith(color: colors.muted),
                             ),
-                            Icon(
-                              Icons.arrow_drop_down_rounded,
+                            VitheyIcon(
+                              LucideIcons.chevronDown,
                               color: colors.muted,
                               size: 20,
                             ),
@@ -407,14 +352,14 @@ class _PublishAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: enabled ? context.scheme.primary : context.appColors.inputFill,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(VitheyRadii.pill),
       child: InkWell(
         onTap: enabled && !loading ? onPressed : null,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(VitheyRadii.pill),
         child: SizedBox(
-          height: 28,
+          height: 32,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: loading
                   ? SizedBox(
@@ -427,11 +372,10 @@ class _PublishAction extends StatelessWidget {
                     )
                   : Text(
                       label,
-                      style: TextStyle(
+                      style: context.text.bodySmall?.copyWith(
                         color: enabled
                             ? context.scheme.onPrimary
                             : context.appColors.muted,
-                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         height: 1,
                       ),
@@ -466,8 +410,8 @@ class _ScheduleBanner extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 9, 6, 9),
           child: Row(
             children: [
-              Icon(
-                Icons.public_rounded,
+              VitheyIcon(
+                LucideIcons.globe,
                 color: context.scheme.primary,
                 size: 17,
               ),
@@ -483,17 +427,16 @@ class _ScheduleBanner extends StatelessWidget {
                       ),
                     ],
                   ),
-                  style: TextStyle(
-                    color: context.appColors.heading,
-                    fontSize: 11,
-                  ),
+                  style: context.text.bodyMedium
+                      ?.copyWith(color: context.appColors.heading, fontSize: 11),
                 ),
               ),
-              IconButton(
-                onPressed: onClear,
+              VitheyIconButton(
+                icon: LucideIcons.x,
+                iconSize: 20,
+                variant: VitheyIconButtonVariant.neutral,
                 tooltip: 'Clear schedule',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close_rounded, size: 17),
+                onTap: onClear,
               ),
             ],
           ),
@@ -537,25 +480,25 @@ class _ComposerToolbar extends GetView<CreatePostController> {
               child: Row(
                 children: [
                   _ToolbarAction(
-                    icon: Icons.image_outlined,
+                    icon: LucideIcons.image,
                     label: 'Media',
                     onTap: onMedia,
                   ),
                   _ToolbarAction(
-                    icon: Icons.schedule_outlined,
+                    icon: LucideIcons.clock,
                     label: 'Schedule',
                     onTap: onSchedule,
                   ),
                   if (controller.isJob)
                     _ToolbarAction(
-                      icon: Icons.badge_outlined,
+                      icon: LucideIcons.badge,
                       label: '${controller.cvLimit.value}',
                       onTap: onCvLimit,
                     ),
                   const Spacer(),
                   InkWell(
                     onTap: onCategory,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(14),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -566,16 +509,15 @@ class _ComposerToolbar extends GetView<CreatePostController> {
                         children: [
                           Text(
                             controller.categoryLabel,
-                            style: TextStyle(
+                            style: context.text.labelSmall?.copyWith(
                               color: context.scheme.primary,
-                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Icon(
+                          VitheyIcon(
                             onCategory == null
-                                ? Icons.lock_outline_rounded
-                                : Icons.arrow_drop_down_rounded,
+                                ? LucideIcons.lock
+                                : LucideIcons.chevronDown,
                             color: context.scheme.primary,
                             size: 18,
                           ),
@@ -614,14 +556,12 @@ class _ToolbarAction extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 19, color: context.appColors.muted),
+            VitheyIcon(icon, size: 19, color: context.appColors.muted),
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(
-                color: context.appColors.muted,
-                fontSize: 9.5,
-              ),
+              style: context.text.bodyMedium
+                  ?.copyWith(color: context.appColors.muted, fontSize: 9.5),
             ),
           ],
         ),
@@ -648,18 +588,14 @@ class _AudienceSheet extends StatelessWidget {
             const SizedBox(height: 15),
             Text(
               'Who can see your post?',
-              style: TextStyle(
-                color: context.appColors.heading,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
+              style: context.text.titleLarge?.copyWith(fontSize: 17),
             ),
             const SizedBox(height: 10),
             Obx(
               () => Column(
                 children: [
                   _ChoiceRow(
-                    icon: Icons.public_rounded,
+                    icon: LucideIcons.globe,
                     title: 'Public',
                     subtitle: 'Visible for everyone',
                     selected: controller.audience.value == PostAudience.public,
@@ -669,7 +605,7 @@ class _AudienceSheet extends StatelessWidget {
                     },
                   ),
                   _ChoiceRow(
-                    icon: Icons.people_outline_rounded,
+                    icon: LucideIcons.users,
                     title: 'Friends',
                     subtitle: controller.isJob
                         ? 'Job posts must be Public'
@@ -682,7 +618,7 @@ class _AudienceSheet extends StatelessWidget {
                     },
                   ),
                   _ChoiceRow(
-                    icon: Icons.lock_outline_rounded,
+                    icon: LucideIcons.lock,
                     title: 'Only Me',
                     subtitle: controller.isJob
                         ? 'Job posts must be Public'
@@ -722,18 +658,14 @@ class _CategorySheet extends StatelessWidget {
             const SizedBox(height: 15),
             Text(
               'What is your post type?',
-              style: TextStyle(
-                color: context.appColors.heading,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
+              style: context.text.titleLarge?.copyWith(fontSize: 17),
             ),
             const SizedBox(height: 10),
             Obx(
               () => Column(
                 children: [
                   _ChoiceRow(
-                    icon: Icons.image_outlined,
+                    icon: LucideIcons.image,
                     title: 'General',
                     subtitle: 'Community or social post',
                     selected: controller.selectedType.value == PostType.poster,
@@ -743,7 +675,7 @@ class _CategorySheet extends StatelessWidget {
                     },
                   ),
                   _ChoiceRow(
-                    icon: Icons.work_outline_rounded,
+                    icon: LucideIcons.briefcase,
                     title: 'Job',
                     subtitle: 'Job announcement with Apply action',
                     selected: controller.selectedType.value == PostType.job,
@@ -753,7 +685,7 @@ class _CategorySheet extends StatelessWidget {
                     },
                   ),
                   _ChoiceRow(
-                    icon: Icons.videocam_outlined,
+                    icon: LucideIcons.video,
                     title: 'Video',
                     subtitle: 'Share a video',
                     selected: controller.selectedType.value == PostType.video,
@@ -834,7 +766,6 @@ class _CvLimitSheetState extends State<_CvLimitSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return SafeArea(
@@ -849,11 +780,7 @@ class _CvLimitSheetState extends State<_CvLimitSheet> {
               const SizedBox(height: 12),
               Text(
                 'Limit CV',
-                style: TextStyle(
-                  color: colors.heading,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: context.text.titleLarge?.copyWith(fontSize: 17),
               ),
               const SizedBox(height: 4),
               for (final limit in CreatePostController.cvLimitPresets)
@@ -901,7 +828,7 @@ class _CvLimitOptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(VitheyRadii.field),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 11),
         child: Row(
@@ -909,17 +836,14 @@ class _CvLimitOptionRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  color: context.appColors.heading,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: context.text.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w500),
               ),
             ),
-            Icon(
+            VitheyIcon(
               selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
+                  ? LucideIcons.circleDot
+                  : LucideIcons.circle,
               color:
                   selected ? context.scheme.primary : context.appColors.muted,
               size: 22,
@@ -956,23 +880,16 @@ class _ChoiceRow extends StatelessWidget {
         enabled: enabled,
         onTap: enabled ? onTap : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 2),
-        leading: Icon(icon, color: context.appColors.muted),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: context.appColors.heading,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        leading: VitheyIcon(icon, color: context.appColors.muted),
+        title: Text(title, style: context.text.labelLarge),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: context.appColors.muted, fontSize: 11.5),
+          style: context.text.bodySmall?.copyWith(fontSize: 11.5),
         ),
-        trailing: Icon(
+        trailing: VitheyIcon(
           selected
-              ? Icons.radio_button_checked_rounded
-              : Icons.radio_button_off_rounded,
+              ? LucideIcons.circleDot
+              : LucideIcons.circle,
           color: selected ? context.scheme.primary : context.appColors.muted,
         ),
       ),

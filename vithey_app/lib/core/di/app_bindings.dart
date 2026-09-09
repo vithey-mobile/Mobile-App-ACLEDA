@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/alerts/in_app_alert_service.dart';
 import 'package:aub_connect_app/core/config/app_config.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
@@ -55,6 +56,7 @@ class AppBindings {
     Get.put<FeatureFlags>(featureFlags, permanent: true);
     Get.put<SecureStorageService>(secureStorage, permanent: true);
     Get.put<LocalStorageService>(localStorage, permanent: true);
+    Get.put<InAppAlertService>(InAppAlertService(localStorage), permanent: true);
     Get.put<DioClient>(dioClient, permanent: true);
     Get.put<ApiService>(ApiService(dioClient), permanent: true);
 

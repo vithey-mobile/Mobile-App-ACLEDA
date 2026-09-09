@@ -222,6 +222,11 @@ class ProfileViewController extends GetxController
     });
   }
 
+  @override
+  void openPostAnalytics(FeedPost post) {
+    // Analytics is only for the signed-in user's own profile.
+  }
+
   void _replacePost(FeedPost updated) {
     final posts = tabPosts[updated.type]!;
     final index = posts.indexWhere((post) => post.id == updated.id);

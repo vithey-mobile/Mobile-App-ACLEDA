@@ -1,4 +1,5 @@
 export 'app_app_bar.dart';
+export 'package:aub_connect_app/core/icons/vithey_icons.dart';
 export 'app_bottom_navigation.dart';
 export 'app_error_widget.dart';
 export 'app_logo.dart';
@@ -17,6 +18,7 @@ export 'vithey_card.dart';
 export 'vithey_action_sheet.dart';
 export 'vithey_dialog.dart';
 export 'vithey_field.dart';
+export 'vithey_icon_button.dart';
 export 'vithey_filter_chips.dart';
 export 'vithey_list_tile.dart';
 export 'vithey_search_pill.dart';

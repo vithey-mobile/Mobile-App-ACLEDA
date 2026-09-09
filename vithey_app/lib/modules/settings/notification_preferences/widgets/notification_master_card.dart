@@ -3,6 +3,8 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_preference_card.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class NotificationMasterCard extends StatelessWidget {
   const NotificationMasterCard({
     super.key,
@@ -32,7 +34,7 @@ class NotificationMasterCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.notifications_outlined,
+                      LucideIcons.bell,
                       color: primary,
                       size: 24,
                     ),
@@ -43,19 +45,14 @@ class NotificationMasterCard extends StatelessWidget {
                         children: [
                           Text(
                             'Allow Notifications',
-                            style: TextStyle(
-                              color: context.appColors.heading,
-                              fontSize: 16,
+                            style: context.text.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             'Receive alerts from Vithey',
-                            style: TextStyle(
-                              color: context.appColors.muted,
-                              fontSize: 13,
-                            ),
+                            style: context.text.bodySmall,
                           ),
                         ],
                       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
@@ -29,6 +30,7 @@ class AppBottomNavigation extends StatelessWidget {
   static const barHeight = 64.0;
   static const bottomMargin = 10.0;
   static const _radius = 32.0;
+  static const _inactive = Color(0xFF9AA0A6);
 
   /// Bottom inset so scroll content clears the floating pill.
   ///
@@ -42,6 +44,7 @@ class AppBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final user = Get.isRegistered<CurrentUserService>()
         ? Get.find<CurrentUserService>()
         : null;
@@ -52,28 +55,28 @@ class AppBottomNavigation extends StatelessWidget {
       minimum: const EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: context.appColors.cardSurface,
+          color: colors.cardSurface.withValues(alpha: 0.96),
           borderRadius: BorderRadius.circular(_radius),
           border: Border.all(
-            color: context.appColors.subtleShadow.withValues(alpha: 0.35),
+            color: colors.border.withValues(alpha: 0.55),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.10),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+              color: AppColors.primary.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: SizedBox(
           height: barHeight,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Row(
               children: [
                 _ProfileNavItem(
@@ -83,19 +86,19 @@ class AppBottomNavigation extends StatelessWidget {
                   onTap: () => onTap(0),
                 ),
                 _NavIcon(
-                  icon: Icons.home_outlined,
+                  icon: LucideIcons.house,
                   selected: currentIndex == 1,
                   onTap: () => onTap(1),
                 ),
                 _NavIcon(
-                  icon: Icons.video_collection_outlined,
+                  icon: LucideIcons.clapperboard,
                   selected: currentIndex == 2,
                   onTap: () => onTap(2),
                 ),
                 _NavIcon(
                   icon: messagesMode
-                      ? Icons.chat_bubble_outline_rounded
-                      : Icons.lightbulb_outline_rounded,
+                      ? LucideIcons.messageCircle
+                      : LucideIcons.sparkles,
                   selected: currentIndex == 3,
                   onTap: () => onTap(3),
                 ),
@@ -125,25 +128,29 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inactive = context.appColors.muted;
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        customBorder: const CircleBorder(),
         child: Center(
-          child: Container(
-            width: selected ? 52 : 40,
-            height: 44,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected
-                  ? AppColors.primary.withValues(alpha: 0.14)
+                  ? AppColors.primary.withValues(alpha: 0.12)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: VitheyIcon(
               icon,
-              size: 24,
-              color: selected ? AppColors.primary : inactive,
+              size: 22,
+              color: selected
+                  ? AppColors.primary
+                  : AppBottomNavigation._inactive,
             ),
           ),
         ),
@@ -163,7 +170,6 @@ class _NotificationNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inactive = context.appColors.muted;
     final repo = Get.isRegistered<NotificationRepository>()
         ? Get.find<NotificationRepository>()
         : null;
@@ -171,33 +177,47 @@ class _NotificationNavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        customBorder: const CircleBorder(),
         child: Center(
-          child: Container(
-            width: selected ? 52 : 40,
-            height: 44,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            width: 42,
+            height: 42,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected
-                  ? AppColors.primary.withValues(alpha: 0.14)
+                  ? AppColors.primary.withValues(alpha: 0.12)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
             ),
             child: repo == null
-                ? Icon(
-                    Icons.notifications_outlined,
-                    size: 24,
-                    color: selected ? AppColors.primary : inactive,
+                ? VitheyIcon(
+                    LucideIcons.bell,
+                    size: 22,
+                    color: selected
+                        ? AppColors.primary
+                        : AppBottomNavigation._inactive,
                   )
                 : Obx(() {
                     final count = repo.unreadCount.value;
                     return Badge(
                       isLabelVisible: count > 0,
-                      label: Text(count > 99 ? '99+' : '$count'),
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        size: 24,
-                        color: selected ? AppColors.primary : inactive,
+                      backgroundColor: AppColors.error,
+                      label: Text(
+                        count > 99 ? '99+' : '$count',
+                        style: context.text.bodyMedium
+                            ?.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      child: VitheyIcon(
+                        LucideIcons.bell,
+                        size: 22,
+                        color: selected
+                            ? AppColors.primary
+                            : AppBottomNavigation._inactive,
                       ),
                     );
                   }),
@@ -226,34 +246,25 @@ class _ProfileNavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        customBorder: const CircleBorder(),
         child: Center(
-          child: Container(
-            width: selected ? 52 : 40,
-            height: 44,
-            alignment: Alignment.center,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: selected
-                  ? AppColors.primary.withValues(alpha: 0.14)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: selected
+                    ? AppColors.primary
+                    : AppBottomNavigation._inactive.withValues(alpha: 0.35),
+                width: selected ? 2 : 1.25,
+              ),
             ),
-            child: Container(
-              padding: const EdgeInsets.all(1.5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected
-                      ? AppColors.primary
-                      : context.appColors.muted.withValues(alpha: 0.45),
-                  width: selected ? 2 : 1.2,
-                ),
-              ),
-              child: UserAvatar(
-                imageUrl: avatarUrl,
-                name: avatarName,
-                radius: 13,
-              ),
+            child: UserAvatar(
+              imageUrl: avatarUrl,
+              name: avatarName,
+              radius: 14,
             ),
           ),
         ),

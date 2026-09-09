@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplicationSubmittedHero extends StatelessWidget {
   const ApplicationSubmittedHero({super.key});
 
@@ -34,8 +35,8 @@ class ApplicationSubmittedHero extends StatelessWidget {
             top: 32,
             child: Transform.rotate(
               angle: -0.08,
-              child: Icon(
-                Icons.description,
+              child: VitheyIcon(
+                LucideIcons.fileText,
                 size: 76,
                 color: AppColors.info.withValues(alpha: 0.18),
               ),
@@ -44,7 +45,7 @@ class ApplicationSubmittedHero extends StatelessWidget {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Icon(Icons.description,
+              VitheyIcon(LucideIcons.fileText,
                   size: 88, color: AppColors.info.withValues(alpha: 0.85)),
               Positioned(
                 right: -4,
@@ -56,7 +57,7 @@ class ApplicationSubmittedHero extends StatelessWidget {
                     color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check, color: Colors.white, size: 18),
+                  child: const VitheyIcon(LucideIcons.check, color: Colors.white, size: 18),
                 ),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/alerts/in_app_alert_service.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
@@ -40,6 +41,29 @@ class ChatRepository {
   final _mockMessages = <String, List<ChatMessage>>{};
   final _mockConversations = <ConversationModel>[];
 
+  /// Total unread messages across conversations (home chat icon badge).
+  final unreadCount = 0.obs;
+
+  void _refreshUnreadCount([List<ConversationModel>? conversations]) {
+    final list = conversations ?? _mockConversations;
+    unreadCount.value = list.fold<int>(0, (sum, c) => sum + c.unreadCount);
+  }
+
+  /// Seeds mock (if needed) and refreshes [unreadCount] for the home badge.
+  Future<void> ensureUnreadBadge() async {
+    if (useMockApi) {
+      await _ensureMockSeed();
+      _refreshUnreadCount();
+      return;
+    }
+    try {
+      final list = await fetchConversations();
+      _refreshUnreadCount(list);
+    } catch (_) {
+      // Keep last known count on failure.
+    }
+  }
+
   Stream<List<ConversationModel>> watchConversations() {
     return _isar.watchConversations().map(
           (list) => list.map(ChatIsarMapper.fromLocalConversation).toList(),
@@ -74,6 +98,9 @@ class ChatRepository {
       case ChatStompEventType.message:
         await _ingestInboundMessage(payload);
         return;
+      case ChatStompEventType.callInvite:
+        await _handleIncomingCall(payload);
+        return;
     }
   }
 
@@ -90,11 +117,66 @@ class ChatRepository {
       isOwn: isOwn,
     );
     await _isar.upsertMessage(ChatIsarMapper.toLocalMessage(message));
+    final shouldAlert =
+        !isOwn && _stomp.shouldIncrementUnread(payload.conversationId);
     await _upsertConversationPreview(
       payload.conversationId,
       preview: message.text,
       isOwn: isOwn,
-      incrementUnread: !isOwn && _stomp.shouldIncrementUnread(payload.conversationId),
+      incrementUnread: shouldAlert,
+    );
+    if (shouldAlert) {
+      await _showMessageAlert(payload);
+    }
+  }
+
+  Future<void> _showMessageAlert(ChatStompPayload payload) async {
+    if (!Get.isRegistered<InAppAlertService>()) return;
+    final conversation = await getConversation(payload.conversationId);
+    final participant = conversation?.participant;
+    final senderName = participant?.fullName ??
+        (payload.senderId != null && payload.senderId!.isNotEmpty
+            ? payload.senderId!
+            : 'New message');
+    await Get.find<InAppAlertService>().showChatMessage(
+      conversationId: payload.conversationId,
+      senderName: senderName,
+      text: payload.text ?? '',
+      senderAvatarUrl: participant?.avatarUrl,
+      participantId: participant?.id ?? payload.senderId,
+      createdAt: payload.createdAt,
+    );
+  }
+
+  Future<void> _handleIncomingCall(ChatStompPayload payload) async {
+    if (payload.conversationId.isEmpty) return;
+    if (!Get.isRegistered<InAppAlertService>()) return;
+    final conversation = await getConversation(payload.conversationId);
+    final participant = conversation?.participant ??
+        ChatParticipant(
+          id: payload.senderId ?? 'unknown',
+          fullName: 'Incoming call',
+        );
+    await Get.find<InAppAlertService>().showIncomingCall(
+      participant: participant,
+      conversationId: payload.conversationId,
+      isVideo: payload.isVideoCall ?? false,
+    );
+  }
+
+  /// Mock helper — rings an incoming call banner for [conversationId].
+  Future<void> simulateIncomingCall(
+    String conversationId, {
+    bool isVideo = false,
+  }) async {
+    if (!useMockApi) return;
+    await _ensureMockSeed();
+    final conversation = await getConversation(conversationId);
+    if (conversation == null) return;
+    _stomp.simulateIncomingCall(
+      conversationId: conversationId,
+      senderId: conversation.participant.id,
+      isVideo: isVideo,
     );
   }
 
@@ -125,6 +207,7 @@ class ChatRepository {
       remote = await _chatService.fetchConversations(page: page);
     }
     await _isar.upsertConversations(remote.map(ChatIsarMapper.toLocalConversation).toList());
+    _refreshUnreadCount(remote);
     return remote;
   }
 
@@ -254,6 +337,21 @@ class ChatRepository {
         ),
       );
     });
+    // Second ping after the user likely left the thread — guarantees a heads-up demo.
+    Future<void>.delayed(const Duration(seconds: 6), () {
+      if (!_stomp.shouldIncrementUnread(conversationId)) return;
+      _stomp.simulateInbound(
+        ChatStompPayload(
+          type: ChatStompEventType.message,
+          conversationId: conversationId,
+          messageId: 'msg-${DateTime.now().millisecondsSinceEpoch}-ping',
+          senderId: participant.id,
+          text: 'Are you free for a quick call?',
+          status: 'DELIVERED',
+          createdAt: DateTime.now(),
+        ),
+      );
+    });
   }
 
   Future<void> deleteMessage(String messageId) async {
@@ -304,6 +402,7 @@ class ChatRepository {
         phone: _phoneFor(p.id),
         location: p.id == 'author-1' ? 'Phnom Penh' : null,
         isOnline: p.isOnline,
+        lastSeenAt: p.lastSeenAt,
       );
     }
     return null;
@@ -336,6 +435,9 @@ class ChatRepository {
       if (index >= 0) {
         _mockConversations[index] = _mockConversations[index].copyWith(unreadCount: 0);
       }
+      _refreshUnreadCount();
+    } else {
+      await ensureUnreadBadge();
     }
   }
 
@@ -399,6 +501,23 @@ class ChatRepository {
       existing.isTyping = false;
       if (incrementUnread) existing.unreadCount += 1;
       await _isar.upsertConversation(existing);
+      if (incrementUnread) {
+        if (useMockApi) {
+          final index =
+              _mockConversations.indexWhere((c) => c.id == conversationId);
+          if (index >= 0) {
+            _mockConversations[index] = _mockConversations[index].copyWith(
+              unreadCount: _mockConversations[index].unreadCount + 1,
+              lastMessagePreview: preview,
+              updatedAt: DateTime.now(),
+              lastMessageIsOwn: isOwn,
+            );
+          }
+          _refreshUnreadCount();
+        } else {
+          unreadCount.value = unreadCount.value + 1;
+        }
+      }
       return;
     }
     if (useMockApi) {
