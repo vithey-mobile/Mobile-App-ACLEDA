@@ -33,7 +33,7 @@ class _DeleteMessageSheet extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Material(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: EdgeInsets.fromLTRB(20, 22, 20, 16 + bottom),
@@ -43,20 +43,17 @@ class _DeleteMessageSheet extends StatelessWidget {
             children: [
               Text(
                 AppStrings.deleteMessageTitle,
-                style: TextStyle(
+                style: context.text.headlineSmall?.copyWith(
                   fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: colors.heading,
                   height: 1.2,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 AppStrings.deleteMessageBody,
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.45,
+                style: context.text.bodyMedium?.copyWith(
                   color: colors.muted,
+                  height: 1.45,
                   fontFamily: 'monospace',
                 ),
               ),

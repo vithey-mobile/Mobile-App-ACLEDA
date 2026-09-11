@@ -42,4 +42,19 @@ class RelativeTime {
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
+
+  /// Chat header subtitle when offline — e.g. `last seen 2 hours ago`.
+  static String formatLastSeen(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final time =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+
+    if (day == today) return 'last seen today at $time';
+    if (day == today.subtract(const Duration(days: 1))) {
+      return 'last seen yesterday at $time';
+    }
+    return 'last seen ${format(dateTime)}';
+  }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
@@ -16,74 +16,210 @@ import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_backg
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
 /// Full auth frame: ribbon wave + logo + form + back.
-class AuthRibbonFrame extends StatelessWidget {
+///
+/// When [enableForgotMorph] is true (Sign In), Forgot Password morphs in-place:
+/// form fades out → teal wave moves down → logo recenters → forgot form fades in.
+///
+/// When [omitFixedChrome] is true, wave + form still slide with the page; logo
+/// and Back are owned by [IntroRibbonScreen] (logo slides in with Sign In, then
+/// only moves vertically on Sign In ↔ Sign Up).
+class AuthRibbonFrame extends StatefulWidget {
   const AuthRibbonFrame({
     super.key,
     required this.profile,
     required this.form,
     required this.onBack,
+    this.enableForgotMorph = false,
+    this.startOnForgot = false,
+    this.omitFixedChrome = false,
+    this.forgotMorphListenable,
   });
 
   final WaveRibbonProfile profile;
   final Widget form;
   final VoidCallback onBack;
+  final bool enableForgotMorph;
+  final bool startOnForgot;
+
+  /// Hide local logo + Back; keep sliding wave + form (intro continuum).
+  final bool omitFixedChrome;
+
+  /// Shared forgot-password morph (0 = sign-in, 1 = forgot) for logo sync.
+  final Animation<double>? forgotMorphListenable;
+
+  @override
+  State<AuthRibbonFrame> createState() => _AuthRibbonFrameState();
+}
+
+class _AuthRibbonFrameState extends State<AuthRibbonFrame>
+    with SingleTickerProviderStateMixin {
+  static const _morphDuration = Duration(milliseconds: 560);
+
+  AnimationController? _ownedMorph;
+  Worker? _forgotWorker;
+
+  Animation<double> get _morph =>
+      widget.forgotMorphListenable ?? _ownedMorph!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.forgotMorphListenable == null) {
+      _ownedMorph = AnimationController(vsync: this, duration: _morphDuration);
+      if (widget.startOnForgot) {
+        _ownedMorph!.value = 1;
+      }
+      if (widget.enableForgotMorph && Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        if (auth.showForgotPassword.value || widget.startOnForgot) {
+          _ownedMorph!.value = 1;
+          auth.showForgotPassword.value = true;
+        }
+        _forgotWorker = ever<bool>(auth.showForgotPassword, (show) {
+          if (!mounted || _ownedMorph == null) return;
+          if (show) {
+            FocusManager.instance.primaryFocus?.unfocus();
+            _ownedMorph!.forward();
+          } else {
+            FocusManager.instance.primaryFocus?.unfocus();
+            _ownedMorph!.reverse();
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _forgotWorker?.dispose();
+    _ownedMorph?.dispose();
+    super.dispose();
+  }
+
+  void _handleBack() {
+    if (widget.enableForgotMorph &&
+        Get.isRegistered<AuthController>() &&
+        Get.find<AuthController>().showForgotPassword.value) {
+      Get.find<AuthController>().closeForgotPassword();
+      return;
+    }
+    widget.onBack();
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenH = MediaQuery.sizeOf(context).height;
     final screenW = MediaQuery.sizeOf(context).width;
-    final tealBandH =
-        screenH * OnboardingBackground.tealBandHeightFraction(profile);
     final formWidth = screenW < 420 ? screenW : 420.0;
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        OnboardingBackground(profile: profile),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: tealBandH,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-              FormErrorHost.clearAll();
-            },
-            child: const Center(
-              child: AppLogo(
-                size: 100,
-                onWhiteCircle: true,
+    return AnimatedBuilder(
+      animation: _morph,
+      builder: (context, _) {
+        final t = _morph.value;
+        final waveT = Curves.easeInOutCubic.transform(
+          const Interval(0.12, 0.88).transform(t),
+        );
+        final activeProfile = widget.enableForgotMorph
+            ? widget.profile.lerp(WaveRibbon.forgotPassword, waveT)
+            : widget.profile;
+
+        final signOut = Curves.easeIn.transform(
+          const Interval(0.0, 0.32).transform(t),
+        );
+        final forgotIn = Curves.easeOut.transform(
+          const Interval(0.52, 1.0).transform(t),
+        );
+        final signOpacity =
+            widget.enableForgotMorph ? (1.0 - signOut).clamp(0.0, 1.0) : 1.0;
+        final forgotOpacity =
+            widget.enableForgotMorph ? forgotIn.clamp(0.0, 1.0) : 0.0;
+
+        final tealBandH = screenH *
+            OnboardingBackground.tealBandHeightFraction(activeProfile);
+
+        final formStack = Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: formWidth,
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                if (signOpacity > 0.01)
+                  IgnorePointer(
+                    ignoring: signOpacity < 0.05,
+                    child: Opacity(
+                      opacity: signOpacity,
+                      child: widget.form,
+                    ),
+                  ),
+                if (widget.enableForgotMorph && forgotOpacity > 0.01)
+                  IgnorePointer(
+                    ignoring: forgotOpacity < 0.05,
+                    child: Opacity(
+                      opacity: forgotOpacity,
+                      child: const AuthForgotPasswordForm(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            OnboardingBackground(profile: activeProfile),
+            if (!widget.omitFixedChrome)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: tealBandH,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    FormErrorHost.clearAll();
+                  },
+                  child: const Center(
+                    child: AppLogo(
+                      size: 100,
+                      onWhiteCircle: true,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: tealBandH,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    FormErrorHost.clearAll();
+                  },
+                ),
               ),
-            ),
-          ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              width: formWidth,
-              child: form,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          left: 0,
-          child: SafeArea(
-            child: CustomButton(
-              label: AppStrings.back,
-              variant: CustomButtonVariant.ghost,
-              foregroundColor: AppColors.accentLight,
-              onPressed: onBack,
-            ),
-          ),
-        ),
-      ],
+            Positioned(left: 0, right: 0, bottom: 0, child: formStack),
+            if (!widget.omitFixedChrome)
+              Positioned(
+                top: 0,
+                left: 0,
+                child: SafeArea(
+                  child: CustomButton(
+                    label: AppStrings.back,
+                    variant: CustomButtonVariant.ghost,
+                    foregroundColor: AppColors.accentLight,
+                    onPressed: _handleBack,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -99,7 +235,7 @@ class AuthSignInForm extends GetView<AuthController> {
         24,
         28,
         24,
-        20 + MediaQuery.paddingOf(context).bottom,
+        8 + MediaQuery.paddingOf(context).bottom,
       ),
       child: FormErrorHost(
         formKey: controller.loginFormKey,
@@ -110,17 +246,14 @@ class AuthSignInForm extends GetView<AuthController> {
             children: [
               Text(
                 AppStrings.welcomeBack,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: context.appColors.heading,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: context.text.headlineSmall,
               ),
               const SizedBox(height: 20),
               CustomTextField(
                 controller: controller.emailController,
                 label: AppStrings.emailAddress,
                 hint: 'Email',
-                prefixIcon: Icons.email_outlined,
+                prefixIcon: LucideIcons.mail,
                 keyboardType: TextInputType.emailAddress,
                 validator: Validators.email,
                 onChanged: (_) => controller.clearError(),
@@ -131,7 +264,7 @@ class AuthSignInForm extends GetView<AuthController> {
                 controller: controller.passwordController,
                 label: AppStrings.password,
                 hint: 'Password',
-                prefixIcon: Icons.lock_outline,
+                prefixIcon: LucideIcons.lock,
                 obscureText: true,
                 validator: Validators.password,
                 onChanged: (_) => controller.clearError(),
@@ -145,11 +278,11 @@ class AuthSignInForm extends GetView<AuthController> {
                   foregroundColor: context.scheme.primary,
                   onPressed: () {
                     FormErrorHost.clearAll();
-                    Get.toNamed(AppRoutes.forgotPassword);
+                    controller.openForgotPassword();
                   },
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Obx(() {
                 if (controller.errorMessage.isEmpty) {
                   return const SizedBox.shrink();
@@ -158,14 +291,15 @@ class AuthSignInForm extends GetView<AuthController> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     controller.errorMessage.value,
-                    style: const TextStyle(color: AppColors.error, fontSize: 13),
+                    style:
+                        context.text.bodySmall?.copyWith(color: AppColors.error),
                   ),
                 );
               }),
               Obx(
                 () => _AuthPrimaryButton(
                   label: AppStrings.signIn,
-                  icon: Icons.login,
+                  icon: LucideIcons.logIn,
                   isLoading: controller.isLoading.value,
                   onPressed: controller.login,
                 ),
@@ -189,10 +323,7 @@ class AuthSignInForm extends GetView<AuthController> {
                 children: [
                   Text(
                     AppStrings.noAccount,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.appColors.muted,
-                    ),
+                    style: context.text.labelMedium,
                   ),
                   CustomButton(
                     label: AppStrings.signUp,
@@ -224,17 +355,14 @@ class AuthSignUpForm extends GetView<AuthController> {
         24,
         28,
         24,
-        20 + MediaQuery.paddingOf(context).bottom,
+        8 + MediaQuery.paddingOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             AppStrings.createAccount,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: context.appColors.heading,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: context.text.headlineSmall,
           ),
           const SizedBox(height: 16),
           RegisterStepSlider(
@@ -262,7 +390,7 @@ class AuthSignUpForm extends GetView<AuthController> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 controller.errorMessage.value,
-                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                style: context.text.bodySmall?.copyWith(color: AppColors.error),
               ),
             );
           }),
@@ -272,14 +400,14 @@ class AuthSignUpForm extends GetView<AuthController> {
             if (step == 0) {
               return _AuthPrimaryButton(
                 label: AppStrings.next,
-                icon: Icons.arrow_forward,
+                icon: LucideIcons.chevronRight,
                 isLoading: false,
                 onPressed: controller.goToRegisterPart2,
               );
             }
             return _AuthPrimaryButton(
               label: AppStrings.signUp,
-              icon: Icons.person_add_alt_1,
+              icon: LucideIcons.userPlus,
               isLoading: loading,
               onPressed: controller.register,
             );
@@ -311,8 +439,8 @@ class AuthSignUpForm extends GetView<AuthController> {
                 FormErrorHost.clearAll();
                 controller.goToRegisterPart1();
               },
-              leading: Icon(
-                Icons.arrow_back,
+              leading: VitheyIcon(
+                LucideIcons.arrowLeft,
                 size: 20,
                 color: context.appColors.heading,
               ),
@@ -324,10 +452,7 @@ class AuthSignUpForm extends GetView<AuthController> {
             children: [
               Text(
                 AppStrings.hasAccount,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.appColors.muted,
-                ),
+                style: context.text.labelMedium,
               ),
               CustomButton(
                 label: AppStrings.signIn,
@@ -358,7 +483,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.emailController,
           label: AppStrings.emailAddress,
           hint: 'Email',
-          prefixIcon: Icons.email_outlined,
+          prefixIcon: LucideIcons.mail,
           keyboardType: TextInputType.emailAddress,
           validator: Validators.email,
           onChanged: (_) => controller.clearError(),
@@ -369,7 +494,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.passwordController,
           label: AppStrings.password,
           hint: 'Password',
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: LucideIcons.lock,
           obscureText: true,
           validator: Validators.password,
           onChanged: (_) => controller.clearError(),
@@ -380,7 +505,7 @@ class _RegisterPart1Fields extends GetView<AuthController> {
           controller: controller.confirmPasswordController,
           label: AppStrings.confirmPassword,
           hint: 'Confirm Password',
-          prefixIcon: Icons.lock_outline,
+          prefixIcon: LucideIcons.lock,
           obscureText: true,
           validator: controller.confirmPasswordValidator,
           onChanged: (_) => controller.clearError(),
@@ -403,7 +528,7 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.fullNameController,
           label: AppStrings.fullName,
           hint: 'Username',
-          prefixIcon: Icons.person_outline,
+          prefixIcon: LucideIcons.user,
           validator: Validators.fullName,
           onChanged: (_) => controller.clearError(),
           textInputAction: TextInputAction.next,
@@ -413,7 +538,7 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.phoneController,
           label: AppStrings.phoneNumber,
           hint: '012345678',
-          prefixIcon: Icons.phone_outlined,
+          prefixIcon: LucideIcons.phone,
           keyboardType: TextInputType.phone,
           validator: Validators.phone,
           onChanged: (_) => controller.clearError(),
@@ -424,13 +549,135 @@ class _RegisterPart2Fields extends GetView<AuthController> {
           controller: controller.dateOfBirthController,
           label: AppStrings.dateOfBirth,
           hint: 'Date of Birth',
-          prefixIcon: Icons.calendar_today_outlined,
+          prefixIcon: LucideIcons.calendar,
           readOnly: true,
           validator: Validators.dateOfBirth,
           onTap: () => controller.pickDateOfBirth(context),
           textInputAction: TextInputAction.done,
         ),
       ],
+    );
+  }
+}
+
+/// Forgot-password form shown inside [AuthRibbonFrame] after teal morph.
+class AuthForgotPasswordForm extends GetView<AuthController> {
+  const AuthForgotPasswordForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        28,
+        24,
+        20 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: Obx(() {
+        if (controller.forgotPasswordSuccess.value) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark
+                        ? 0.18
+                        : 0.12,
+                  ),
+                ),
+                child: const VitheyIcon(
+                  LucideIcons.mailCheck,
+                  size: 44,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppStrings.resetLinkSent,
+                textAlign: TextAlign.center,
+                style: context.text.titleMedium,
+              ),
+              const SizedBox(height: 24),
+              _AuthPrimaryButton(
+                label: AppStrings.back,
+                icon: LucideIcons.arrowLeft,
+                onPressed: controller.closeForgotPassword,
+              ),
+            ],
+          );
+        }
+
+        return FormErrorHost(
+          formKey: controller.forgotPasswordFormKey,
+          child: Form(
+            key: controller.forgotPasswordFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  AppStrings.forgotPasswordTitle,
+                  style: context.text.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppStrings.forgotPasswordSubtitle,
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: context.appColors.muted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                CustomTextField(
+                  controller: controller.forgotPasswordEmailController,
+                  label: AppStrings.emailAddress,
+                  hint: 'Email',
+                  prefixIcon: LucideIcons.mail,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.email,
+                  onChanged: (_) {
+                    if (controller.forgotPasswordError.isNotEmpty) {
+                      controller.forgotPasswordError.value = '';
+                    }
+                  },
+                  textInputAction: TextInputAction.done,
+                ),
+                Obx(() {
+                  if (controller.forgotPasswordError.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      controller.forgotPasswordError.value,
+                      style: context.text.bodySmall
+                          ?.copyWith(color: AppColors.error),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+                Obx(
+                  () => _AuthPrimaryButton(
+                    label: AppStrings.sendResetLink,
+                    icon: LucideIcons.send,
+                    isLoading: controller.isForgotPasswordLoading.value,
+                    onPressed: () async {
+                      final ok = await FormErrorHost.submit(
+                        controller.forgotPasswordFormKey,
+                      );
+                      if (ok) controller.requestPasswordReset();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 }

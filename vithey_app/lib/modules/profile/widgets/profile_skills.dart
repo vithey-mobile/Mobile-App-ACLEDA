@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/skill_assets.dart';
+import 'package:aub_connect_app/data/models/ai_skill_scorer.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/profile/widgets/skill_icon.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileSkillRing extends StatelessWidget {
   const ProfileSkillRing({
     super.key,
@@ -37,7 +39,8 @@ class ProfileSkillRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = colorFor(skill);
-    final progress = (skill.proficiency.clamp(0, 100)) / 100;
+    final aiPercent = AiSkillScorer.scoreSkill(skill);
+    final progress = (aiPercent.clamp(0, 100)) / 100;
     final watermarkSize = size * 0.55;
     final percentSize = size >= 88 ? 20.0 : 14.0;
 
@@ -62,11 +65,9 @@ class ProfileSkillRing extends StatelessWidget {
             opacity: 0.3,
           ),
           Text(
-            '${skill.proficiency}%',
-            style: TextStyle(
+            '$aiPercent%',
+            style: context.text.titleLarge?.copyWith(
               fontSize: percentSize,
-              fontWeight: FontWeight.w700,
-              color: context.appColors.heading,
             ),
           ),
         ],
@@ -85,8 +86,7 @@ class ProfileSkillRing extends StatelessWidget {
             skill.name,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
+            style: context.text.bodySmall?.copyWith(
               height: 1.15,
               color: context.appColors.heading,
             ),
@@ -139,8 +139,8 @@ class ProfileAddSkillCircle extends StatelessWidget {
                     color: primary,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.add,
+                  child: VitheyIcon(
+                    LucideIcons.plus,
                     color: Theme.of(context).colorScheme.onPrimary,
                     size: inner * 0.62,
                   ),
@@ -153,8 +153,7 @@ class ProfileAddSkillCircle extends StatelessWidget {
             'Add Skill',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
+            style: context.text.bodySmall?.copyWith(
               height: 1.15,
               color: context.appColors.heading,
             ),
@@ -167,37 +166,63 @@ class ProfileAddSkillCircle extends StatelessWidget {
 }
 
 class ProfileSkillsRow extends StatelessWidget {
-  const ProfileSkillsRow({super.key, required this.skills});
+  const ProfileSkillsRow({
+    super.key,
+    required this.skills,
+    this.canEdit = false,
+    this.onAdd,
+    this.onEdit,
+  });
 
   final List<ProfileSkill> skills;
+  final bool canEdit;
+  final VoidCallback? onAdd;
+  final ValueChanged<int>? onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final visible = skills
-        .where(
-          (s) => SkillAssets.hasAsset(iconKey: s.iconKey, label: s.name),
-        )
-        .toList();
-    if (visible.isEmpty) return const SizedBox.shrink();
+    // Keep original order so [onEdit] indexes match the profile skills list.
+    final entries = <({int index, ProfileSkill skill})>[
+      for (var i = 0; i < skills.length; i++)
+        if (SkillAssets.hasAsset(
+              iconKey: skills[i].iconKey,
+              label: skills[i].name,
+            ) ||
+            canEdit)
+          (index: i, skill: skills[i]),
+    ];
+
+    if (!canEdit && entries.isEmpty) return const SizedBox.shrink();
+
+    final itemCount = entries.length + (canEdit ? 1 : 0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Skills',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: context.appColors.heading,
-          ),
+          style: context.text.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12),
         SizedBox(
           height: 124,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: visible.length,
+            itemCount: itemCount,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (_, index) => ProfileSkillRing(skill: visible[index]),
+            itemBuilder: (_, i) {
+              if (canEdit && i == 0) {
+                return ProfileAddSkillCircle(onTap: onAdd ?? () {});
+              }
+              final entry = entries[canEdit ? i - 1 : i];
+              final ring = ProfileSkillRing(skill: entry.skill);
+              if (!canEdit || onEdit == null) return ring;
+              return GestureDetector(
+                onTap: () => onEdit!(entry.index),
+                child: ring,
+              );
+            },
           ),
         ),
       ],

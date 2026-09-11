@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 
 class AccountStatsRow extends StatelessWidget {
   const AccountStatsRow({
@@ -22,7 +23,7 @@ class AccountStatsRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         boxShadow: [
           BoxShadow(color: context.appColors.subtleShadow, blurRadius: 12, offset: const Offset(0, 4)),
         ],
@@ -52,14 +53,10 @@ class _StatItem extends StatelessWidget {
         children: [
           Text(
             _formatCount(value),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.titleLarge?.copyWith(fontSize: 16),
           ),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+          Text(label, style: context.text.bodySmall?.copyWith(fontSize: 12)),
         ],
       ),
     );

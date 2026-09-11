@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// API error display with retry.
 class AppErrorWidget extends StatelessWidget {
   const AppErrorWidget({
@@ -21,7 +22,7 @@ class AppErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 56, color: Theme.of(context).colorScheme.error),
+            VitheyIcon(LucideIcons.circleAlert, size: 56, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[

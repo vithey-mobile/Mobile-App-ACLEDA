@@ -4,6 +4,8 @@ import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Settings shell with iOS-style large title:
 /// - At rest / top: big left title under the back button
 /// - On scroll: title collapses to the centered app-bar position
@@ -54,7 +56,7 @@ class SettingsScaffold extends StatelessWidget {
                 forceElevated: false,
                 leading: IconButton(
                   icon: Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    LucideIcons.arrowLeft,
                     size: 20,
                     color: colors.heading,
                   ),
@@ -66,19 +68,12 @@ class SettingsScaffold extends StatelessWidget {
                   duration: const Duration(milliseconds: 120),
                   child: Text(
                     title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                      color: colors.heading,
-                    ),
+                    style: context.text.titleLarge?.copyWith(fontSize: 17),
                   ),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
                   collapseMode: CollapseMode.pin,
-                  background: _SettingsLargeTitle(
-                    title: title,
-                    color: colors.heading,
-                  ),
+                  background: _SettingsLargeTitle(title: title),
                 ),
               ),
             ];
@@ -91,13 +86,9 @@ class SettingsScaffold extends StatelessWidget {
 }
 
 class _SettingsLargeTitle extends StatelessWidget {
-  const _SettingsLargeTitle({
-    required this.title,
-    required this.color,
-  });
+  const _SettingsLargeTitle({required this.title});
 
   final String title;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +114,11 @@ class _SettingsLargeTitle extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
+            style: context.text.headlineSmall?.copyWith(
               fontSize: 28,
+              fontWeight: FontWeight.w800,
               height: 1.1,
               letterSpacing: -0.3,
-              color: color,
             ),
           ),
         ),

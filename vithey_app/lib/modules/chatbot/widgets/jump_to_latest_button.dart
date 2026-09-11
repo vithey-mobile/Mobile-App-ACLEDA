@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class JumpToLatestButton extends StatelessWidget {
   const JumpToLatestButton({super.key, required this.onTap});
 
@@ -11,7 +12,7 @@ class JumpToLatestButton extends StatelessWidget {
     return CustomButton(
       label: 'Jump to latest',
       onPressed: onTap,
-      icon: Icons.arrow_downward,
+      icon: LucideIcons.arrowDown,
       variant: CustomButtonVariant.secondary,
     );
   }

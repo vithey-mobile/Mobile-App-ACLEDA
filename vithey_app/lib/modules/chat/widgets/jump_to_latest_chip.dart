@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class JumpToLatestChip extends StatelessWidget {
   const JumpToLatestChip({super.key, required this.onTap});
 
@@ -28,18 +29,19 @@ class JumpToLatestChip extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: colors.border),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.keyboard_arrow_down,
+                  const VitheyIcon(
+                    LucideIcons.chevronDown,
                     size: 18,
                     color: AppColors.primary,
                   ),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
                     'Jump to latest',
-                    style: TextStyle(fontSize: 13, color: AppColors.primary),
+                    style: context.text.bodySmall
+                        ?.copyWith(color: AppColors.primary),
                   ),
                 ],
               ),

@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/modules/profile/widgets/qr_scan_corner_frame.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Live camera QR scanner — matches `Scan QR.png`.
 class ScanQrScreen extends StatefulWidget {
   const ScanQrScreen({super.key});
@@ -122,7 +124,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                           ? 'Camera permission is required to scan QR codes.'
                           : 'Unable to open the camera.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: context.text.bodyLarge?.copyWith(
                         color: Colors.white,
                         fontSize: 15,
                         height: 1.4,
@@ -142,7 +144,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                   left: 4,
                   child: IconButton(
                     onPressed: () => Get.back<void>(),
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const VitheyIcon(LucideIcons.arrowLeft, color: Colors.white),
                     tooltip: 'Back',
                   ),
                 ),
@@ -151,10 +153,10 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'Scan QR Code',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: context.text.titleLarge?.copyWith(
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.w500,
@@ -202,8 +204,8 @@ class _TorchButton extends StatelessWidget {
         child: SizedBox(
           width: 52,
           height: 52,
-          child: Icon(
-            enabled ? Icons.flashlight_on : Icons.flashlight_on_outlined,
+          child: VitheyIcon(
+            enabled ? LucideIcons.flashlight : LucideIcons.flashlight,
             color: Colors.white,
             size: 24,
           ),

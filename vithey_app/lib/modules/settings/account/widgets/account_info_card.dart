@@ -3,6 +3,8 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class AccountInfoCard extends StatelessWidget {
   const AccountInfoCard({
     super.key,
@@ -38,14 +40,13 @@ class AccountInfoCard extends StatelessWidget {
           if (trailing != null) trailing!,
           if (isLink) ...[
             const SizedBox(width: 8),
-            Icon(Icons.open_in_new, size: 16, color: primary),
+            VitheyIcon(LucideIcons.externalLink, size: 16, color: primary),
           ],
         ],
       ),
       child: Text(
         displayValue,
-        style: TextStyle(
-          fontSize: 16,
+        style: context.text.bodyLarge?.copyWith(
           fontWeight: FontWeight.w500,
           color: _hasValue
               ? (isLink ? AppColors.primary : colors.heading)
@@ -79,7 +80,7 @@ class AccountListInfoCard extends StatelessWidget {
       icon: icon,
       label: label,
       child: !hasItems
-          ? Text(emptyHint, style: TextStyle(fontSize: 16, color: colors.muted))
+          ? Text(emptyHint, style: context.text.bodyLarge?.copyWith(color: colors.muted))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -88,10 +89,8 @@ class AccountListInfoCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       '• $item',
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: context.text.titleSmall?.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: colors.heading,
                       ),
                     ),
                   ),
@@ -112,11 +111,7 @@ class AccountSectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: context.appColors.muted,
-        ),
+        style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }

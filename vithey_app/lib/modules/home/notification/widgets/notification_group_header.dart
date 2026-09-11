@@ -14,17 +14,13 @@ class NotificationGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: TextStyle(
-                color: context.appColors.heading,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
+              style: context.text.titleSmall,
             ),
           ),
           if (trailing != null) trailing!,

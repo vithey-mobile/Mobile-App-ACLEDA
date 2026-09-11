@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/modules/settings/about/widgets/about_info_card.dart';
+import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
 
 class AboutContactItem {
   const AboutContactItem({
@@ -30,26 +31,25 @@ class AboutContactCard extends StatelessWidget {
           for (final item in items)
             InkWell(
               onTap: item.onTap,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Icon(item.icon, color: context.scheme.primary, size: 22),
-                    const SizedBox(width: 14),
+                    SquircleIcon(icon: item.icon, radius: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             item.label,
-                            style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                            style: context.text.bodySmall?.copyWith(fontSize: 12),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             item.value,
-                            style: TextStyle(
-                              fontSize: 14,
+                            style: context.text.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                               color: item.onTap != null
                                   ? context.scheme.primary

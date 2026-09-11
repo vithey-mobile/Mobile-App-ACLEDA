@@ -9,6 +9,8 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart'
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_switch_tile.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class SettingsHomeScreen extends GetView<SettingsController> {
   const SettingsHomeScreen({super.key});
 
@@ -27,17 +29,17 @@ class SettingsHomeScreen extends GetView<SettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.person_outline,
+                  icon: LucideIcons.user,
                   label: 'Account',
                   onTap: () => Get.toNamed(AppRoutes.settingsAccount),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.lock_outline,
+                  icon: LucideIcons.lock,
                   label: 'Privacy',
                   onTap: () => Get.toNamed(AppRoutes.settingsPrivacy),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.language_outlined,
+                  icon: LucideIcons.languages,
                   label: 'Language',
                   subtitle: controller.languageLabel,
                   onTap: controller.openLanguagePicker,
@@ -48,17 +50,17 @@ class SettingsHomeScreen extends GetView<SettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.notifications_outlined,
+                  icon: LucideIcons.bell,
                   label: 'Notifications',
                   onTap: () => Get.toNamed(AppRoutes.settingsNotifications),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.security,
+                  icon: LucideIcons.shield,
                   label: 'Security',
                   onTap: () => Get.toNamed(AppRoutes.settingsSecurity),
                 ),
                 SettingsSwitchTile(
-                  icon: Icons.dark_mode_outlined,
+                  icon: LucideIcons.moon,
                   label: 'Dark Mode',
                   value: controller.isDarkMode.value,
                   onChanged: controller.toggleDarkMode,
@@ -69,12 +71,12 @@ class SettingsHomeScreen extends GetView<SettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.help_outline,
+                  icon: LucideIcons.circleHelp,
                   label: 'Help Center',
                   onTap: () => Get.toNamed(AppRoutes.settingsHelpCenter),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.info_outline,
+                  icon: LucideIcons.info,
                   label: 'About',
                   onTap: () => Get.toNamed(AppRoutes.settingsAbout),
                 ),
@@ -84,7 +86,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.storage_outlined,
+                  icon: LucideIcons.database,
                   label: 'Data & storage',
                   onTap: () => Get.snackbar(
                     'Settings',
@@ -92,7 +94,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
                   ),
                 ),
                 SettingsMenuTile(
-                  icon: Icons.accessibility_new_outlined,
+                  icon: LucideIcons.accessibility,
                   label: 'Accessibility',
                   onTap: () => Get.snackbar(
                     'Settings',
@@ -116,8 +118,7 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final cardColor = colors.cardSurface;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

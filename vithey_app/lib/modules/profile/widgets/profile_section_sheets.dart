@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/data/models/ai_skill_scorer.dart';
 import 'package:aub_connect_app/data/models/profile_skill_catalog.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/widgets/edit_profile_bottom_sheet.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_skills.dart';
 import 'package:aub_connect_app/modules/profile/widgets/skill_icon.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Typed Add/Edit sheets. Controllers live inside each form State so drag-dismiss
 /// and Submit never dispose listeners while TextFields are still mounted.
 
@@ -44,14 +48,12 @@ Widget Function(BuildContext) _removeTrailing<T>({
           Navigator.pop(ctx, ProfileSheetResult<T>.deleted());
         },
         behavior: HitTestBehavior.opaque,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Text(
             'Remove',
-            style: TextStyle(
+            style: ctx.text.labelLarge?.copyWith(
               color: AppColors.error,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
             ),
           ),
         ),
@@ -230,23 +232,31 @@ class _SkillFormState extends State<_SkillForm> {
   String? _selected;
   String? _iconKey;
   String? _iconPath;
-  late int _proficiency;
+  final List<String> _attachmentPaths = [];
 
   /// `null` = Auto (random by skill name).
   int? _colorValue;
 
   bool get _isOther => _selected == _other;
 
+  String get _skillName {
+    if (_isOther) return _customName.text.trim();
+    return _selected?.trim() ?? '';
+  }
+
   ProfileSkill get _previewSkill {
-    final name = _isOther
-        ? _customName.text.trim()
-        : (_selected?.trim() ?? '');
+    final name = _skillName;
+    final attachments = List<String>.from(_attachmentPaths);
     return ProfileSkill(
       name: name.isEmpty ? 'Skill' : name,
-      proficiency: _proficiency,
+      proficiency: AiSkillScorer.score(
+        name: name.isEmpty ? 'Skill' : name,
+        attachmentPaths: attachments,
+      ),
       colorValue: _colorValue,
       iconKey: _iconKey,
       iconPath: _iconPath,
+      attachmentPaths: attachments,
     );
   }
 
@@ -257,9 +267,11 @@ class _SkillFormState extends State<_SkillForm> {
     super.initState();
     final existing = widget.existing;
     final existingName = existing?.name.trim() ?? '';
-    _proficiency = (existing?.proficiency ?? 0).clamp(0, 100);
     _colorValue = existing?.colorValue;
     _iconPath = existing?.iconPath;
+    if (existing != null) {
+      _attachmentPaths.addAll(existing.attachmentPaths);
+    }
 
     if (existingName.isEmpty) {
       _selected = null;
@@ -414,6 +426,34 @@ class _SkillFormState extends State<_SkillForm> {
     });
   }
 
+  Future<void> _linkAttachments() async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: const [
+        'pdf',
+        'png',
+        'jpg',
+        'jpeg',
+        'webp',
+        'doc',
+        'docx',
+      ],
+    );
+    if (!mounted || result == null) return;
+    final paths = result.paths.whereType<String>().where((p) => p.isNotEmpty);
+    setState(() {
+      for (final path in paths) {
+        if (!_attachmentPaths.contains(path)) _attachmentPaths.add(path);
+      }
+    });
+  }
+
+  String _attachmentLabel(String path) {
+    final parts = path.replaceAll('\\', '/').split('/');
+    return parts.isEmpty ? path : parts.last;
+  }
+
   Future<void> _openCustomColorPicker() async {
     final initial =
         _colorValue != null ? Color(_colorValue!) : _previewColor;
@@ -435,7 +475,6 @@ class _SkillFormState extends State<_SkillForm> {
     final muted = context.appColors.muted;
     final heading = context.appColors.heading;
     final fill = context.appColors.inputFill;
-    final accent = _previewColor;
     final preview = _previewSkill;
 
     return Column(
@@ -448,19 +487,15 @@ class _SkillFormState extends State<_SkillForm> {
             children: [
               Text(
                 'Skill*',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: muted,
-                ),
+                style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 6),
               Material(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(VitheyRadii.field),
                 child: InkWell(
                   onTap: _pickSkill,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(VitheyRadii.field),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -468,7 +503,7 @@ class _SkillFormState extends State<_SkillForm> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(VitheyRadii.field),
                       border: Border.all(color: context.appColors.border),
                     ),
                     child: Row(
@@ -480,14 +515,14 @@ class _SkillFormState extends State<_SkillForm> {
                         Expanded(
                           child: Text(
                             _selected ?? 'Select a skill',
-                            style: TextStyle(
+                            style: context.text.bodyLarge?.copyWith(
                               fontSize: 15,
                               color: _selected == null ? muted : heading,
                             ),
                           ),
                         ),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
+                        VitheyIcon(
+                          LucideIcons.chevronDown,
                           color: muted,
                         ),
                       ],
@@ -511,11 +546,7 @@ class _SkillFormState extends State<_SkillForm> {
               children: [
                 Text(
                   'Skill icon (optional)',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: muted,
-                  ),
+                  style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -525,7 +556,7 @@ class _SkillFormState extends State<_SkillForm> {
                       height: 48,
                       decoration: BoxDecoration(
                         color: fill,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(VitheyRadii.field),
                         border: Border.all(color: context.appColors.border),
                       ),
                       alignment: Alignment.center,
@@ -544,9 +575,8 @@ class _SkillFormState extends State<_SkillForm> {
                               _iconKey != null && _iconPath == null
                                   ? 'Change icon'
                                   : 'Choose icon',
-                              style: TextStyle(
+                              style: context.text.labelLarge?.copyWith(
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -557,9 +587,8 @@ class _SkillFormState extends State<_SkillForm> {
                               _iconPath == null
                                   ? 'Choose image'
                                   : 'Change image',
-                              style: TextStyle(
+                              style: context.text.labelLarge?.copyWith(
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -567,11 +596,10 @@ class _SkillFormState extends State<_SkillForm> {
                             GestureDetector(
                               onTap: _clearCustomIcon,
                               behavior: HitTestBehavior.opaque,
-                              child: const Text(
+                              child: Text(
                                 'Remove',
-                                style: TextStyle(
+                                style: context.text.labelLarge?.copyWith(
                                   color: AppColors.error,
-                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -591,11 +619,7 @@ class _SkillFormState extends State<_SkillForm> {
             children: [
               Text(
                 'Color',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: muted,
-                ),
+                style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 12),
               _SkillColorPicker(
@@ -613,48 +637,98 @@ class _SkillFormState extends State<_SkillForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Skill level',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: muted,
-                ),
+                'Proof attachments',
+                style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 4),
               Text(
-                'Set automatically by the system',
-                style: TextStyle(fontSize: 12, color: muted),
+                'Link certificates or work samples — AI uses them to set your score.',
+                style: context.text.labelMedium,
               ),
-              const SizedBox(height: 12),
-              Center(
-                child: Opacity(
-                  opacity: 0.85,
-                  child: ProfileSkillRing(
-                    skill: preview,
-                    size: 88,
-                    showLabel: false,
+              const SizedBox(height: 10),
+              for (final path in _attachmentPaths)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      VitheyIcon(
+                        LucideIcons.paperclip,
+                        size: 16,
+                        color: muted,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _attachmentLabel(path),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.text.bodySmall?.copyWith(color: heading),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() => _attachmentPaths.remove(path)),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Text(
+                            'Remove',
+                            style: context.text.labelMedium?.copyWith(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _linkAttachments,
+                  icon: const VitheyIcon(
+                    LucideIcons.link,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    _attachmentPaths.isEmpty
+                        ? 'Link attachment'
+                        : 'Add another',
+                    style: context.text.labelLarge?.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: accent.withValues(alpha: 0.55),
-                  inactiveTrackColor: fill,
-                  disabledActiveTrackColor: accent.withValues(alpha: 0.55),
-                  disabledInactiveTrackColor: fill,
-                  thumbColor: accent.withValues(alpha: 0.7),
-                  disabledThumbColor: accent.withValues(alpha: 0.7),
-                  overlayColor: Colors.transparent,
-                  trackHeight: 6,
-                ),
-                child: Slider(
-                  value: _proficiency.toDouble(),
-                  min: 0,
-                  max: 100,
-                  divisions: 100,
-                  label: '$_proficiency%',
-                  onChanged: null,
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'AI skill score',
+                style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Updated automatically when you save this skill.',
+                style: context.text.labelMedium,
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: ProfileSkillRing(
+                  skill: preview,
+                  size: 88,
+                  showLabel: false,
                 ),
               ),
             ],
@@ -663,19 +737,23 @@ class _SkillFormState extends State<_SkillForm> {
         EditProfileSheetActions(
           onCancel: () => Navigator.pop(widget.sheetContext),
           onSubmit: () {
-            final name = _isOther
-                ? _customName.text.trim()
-                : (_selected?.trim() ?? '');
+            final name = _skillName;
             if (name.isEmpty || name == _other) return;
+            final attachments = List<String>.from(_attachmentPaths);
+            final proficiency = AiSkillScorer.score(
+              name: name,
+              attachmentPaths: attachments,
+            );
             Navigator.pop(
               widget.sheetContext,
               ProfileSheetResult.saved(
                 ProfileSkill(
                   name: name,
-                  proficiency: _proficiency,
+                  proficiency: proficiency,
                   colorValue: _colorValue,
                   iconKey: _iconKey,
                   iconPath: _iconPath,
+                  attachmentPaths: attachments,
                 ),
               ),
             );
@@ -724,8 +802,8 @@ class _SkillColorPicker extends StatelessWidget {
                     color: customColor,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.check_rounded,
+                  child: const VitheyIcon(
+                    LucideIcons.check,
                     color: Colors.white,
                     size: 18,
                   ),
@@ -753,8 +831,8 @@ class _SkillColorPicker extends StatelessWidget {
                         color: Theme.of(context).scaffoldBackgroundColor,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.colorize_rounded,
+                      child: VitheyIcon(
+                        LucideIcons.pipette,
                         size: 12,
                         color: context.appColors.heading,
                       ),
@@ -773,7 +851,7 @@ class _SkillColorPicker extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: selected == color.toARGB32()
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                  ? const VitheyIcon(LucideIcons.check, color: Colors.white, size: 18)
                   : null,
             ),
           ),
@@ -843,7 +921,6 @@ class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
   @override
   Widget build(BuildContext context) {
     final color = _hsv.toColor();
-    final muted = context.appColors.muted;
     final heading = context.appColors.heading;
     final border = context.appColors.border;
     final hueColor = HSVColor.fromAHSV(1, _hsv.hue, 1, 1).toColor();
@@ -947,7 +1024,7 @@ class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
               height: 44,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(VitheyRadii.field),
                 border: Border.all(color: border),
               ),
             ),
@@ -956,10 +1033,8 @@ class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
               child: TextField(
                 controller: _hex,
                 textCapitalization: TextCapitalization.characters,
-                style: TextStyle(
+                style: context.text.titleSmall?.copyWith(
                   color: heading,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
                 ),
                 decoration: InputDecoration(
@@ -972,15 +1047,15 @@ class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
                     vertical: 12,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(VitheyRadii.field),
                     borderSide: BorderSide(color: border),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(VitheyRadii.field),
                     borderSide: BorderSide(color: border),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(VitheyRadii.field),
                     borderSide: BorderSide(color: color, width: 1.5),
                   ),
                 ),
@@ -996,7 +1071,7 @@ class _SkillHsvColorPickerState extends State<_SkillHsvColorPicker> {
         const SizedBox(height: 4),
         Text(
           'Drag the square & sliders, or type a HEX value',
-          style: TextStyle(fontSize: 12, color: muted),
+          style: context.text.labelMedium,
         ),
         EditProfileSheetActions(
           onCancel: widget.onCancel,
@@ -1086,7 +1161,7 @@ class _CheckerboardPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const cell = 6.0;
-    final light = Paint()..color = const Color(0xFFE0E0E0);
+    final light = Paint()..color = AppColors.borderLight;
     final dark = Paint()..color = const Color(0xFFBDBDBD);
     for (var y = 0.0; y < size.height; y += cell) {
       for (var x = 0.0; x < size.width; x += cell) {
@@ -1191,14 +1266,13 @@ class _SkillPickerList extends StatelessWidget {
           ),
           title: Text(
             option.label,
-            style: TextStyle(
-              fontSize: 15,
+            style: context.text.titleSmall?.copyWith(
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               color: isSelected ? primary : heading,
             ),
           ),
           trailing: isSelected
-              ? Icon(Icons.check_rounded, color: primary, size: 22)
+              ? VitheyIcon(LucideIcons.check, color: primary, size: 22)
               : null,
           onTap: () => onPick(option),
         );
@@ -1263,8 +1337,7 @@ class _SkillIconPickerGrid extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: context.text.labelSmall?.copyWith(
                       fontWeight:
                           selected ? FontWeight.w600 : FontWeight.w500,
                       color: selected ? primary : context.appColors.heading,
@@ -1400,7 +1473,7 @@ class _PersonalFormState extends State<_PersonalForm> {
           label: 'Date of birth',
           controller: _dob,
           readOnly: true,
-          suffix: const Icon(Icons.calendar_today_outlined),
+          suffix: const VitheyIcon(LucideIcons.calendar),
           onTap: _pickDob,
         ),
         EditProfileSheetActions(

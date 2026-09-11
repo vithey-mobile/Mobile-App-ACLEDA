@@ -16,11 +16,7 @@ class AboutHeader extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           'Vithey',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: context.appColors.heading,
-          ),
+          style: context.text.headlineSmall?.copyWith(fontSize: 24),
         ),
         const SizedBox(height: 4),
         Text(
@@ -31,7 +27,7 @@ class AboutHeader extends StatelessWidget {
         if (isLoading)
           const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
         else
-          Text(version, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
+          Text(version, style: context.text.bodySmall),
       ],
     );
   }

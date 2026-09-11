@@ -11,6 +11,8 @@ import 'package:aub_connect_app/modules/settings/widgets/settings_menu_tile.dart
 import 'package:aub_connect_app/modules/settings/widgets/settings_scaffold.dart';
 import 'package:aub_connect_app/modules/settings/widgets/settings_section_label.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Account settings — private personal identity only.
 /// Professional fields (skills, bio, work, links) live in Edit Profile.
 class AccountSettingsScreen extends GetView<AccountSettingsController> {
@@ -89,7 +91,7 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
                                 child: const Padding(
                                   padding: EdgeInsets.all(6),
                                   child: Icon(
-                                    Icons.camera_alt,
+                                    LucideIcons.camera,
                                     color: Colors.white,
                                     size: 16,
                                   ),
@@ -102,24 +104,17 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
                       const SizedBox(height: 12),
                       Text(
                         profile.fullName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: colors.heading,
-                        ),
+                        style: context.text.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Private account information',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colors.muted,
-                        ),
+                        style: context.text.bodySmall,
                       ),
                       const SizedBox(height: 16),
                       CustomButton(
                         label: 'Edit personal info',
-                        icon: Icons.edit_outlined,
+                        icon: LucideIcons.pencil,
                         variant: CustomButtonVariant.outline,
                         onPressed: controller.openEditInfo,
                       ),
@@ -132,25 +127,25 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.person_outline,
+                  icon: LucideIcons.user,
                   label: 'Full name',
                   subtitle: _valueOrNotSet(profile.fullName),
                   showChevron: false,
                 ),
                 SettingsMenuTile(
-                  icon: Icons.email_outlined,
+                  icon: LucideIcons.mail,
                   label: 'Email',
                   subtitle: _valueOrNotSet(profile.email),
                   showChevron: false,
                 ),
                 SettingsMenuTile(
-                  icon: Icons.phone_outlined,
+                  icon: LucideIcons.phone,
                   label: 'Phone',
                   subtitle: _valueOrNotSet(profile.phone),
                   showChevron: false,
                 ),
                 SettingsMenuTile(
-                  icon: Icons.cake_outlined,
+                  icon: LucideIcons.cake,
                   label: 'Date of birth',
                   subtitle: _valueOrNotSet(
                     controller.formatDateOfBirth(profile.dateOfBirth),
@@ -158,13 +153,13 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
                   showChevron: false,
                 ),
                 SettingsMenuTile(
-                  icon: Icons.wc_outlined,
+                  icon: LucideIcons.venusAndMars,
                   label: 'Gender',
                   subtitle: _valueOrNotSet(profile.gender),
                   showChevron: false,
                 ),
                 SettingsMenuTile(
-                  icon: Icons.location_on_outlined,
+                  icon: LucideIcons.mapPin,
                   label: 'Location',
                   subtitle: _valueOrNotSet(profile.location),
                   showChevron: false,
@@ -175,7 +170,7 @@ class AccountSettingsScreen extends GetView<AccountSettingsController> {
             _CardGroup(
               children: [
                 SettingsMenuTile(
-                  icon: Icons.verified_outlined,
+                  icon: LucideIcons.badgeCheck,
                   label: 'Student verification',
                   subtitle: profile.isStudentVerified
                       ? 'Verified student'
@@ -203,8 +198,7 @@ class _CardGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final cardColor = colors.cardSurface;
+    final cardColor = context.appColors.cardSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

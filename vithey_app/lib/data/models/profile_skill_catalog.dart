@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/skill_assets.dart';
 import 'package:aub_connect_app/data/models/startup_profile_draft.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// A selectable skill leaf or category entry with optional logo / icon.
 class CatalogSkill {
   const CatalogSkill({
@@ -23,9 +24,9 @@ class CatalogSkill {
 
 /// Coding subcategory after selecting Coding.
 const codingCategories = [
-  CatalogSkill(id: 'frontend', label: 'Frontend', icon: Icons.web_outlined),
-  CatalogSkill(id: 'backend', label: 'Backend', icon: Icons.dns_outlined),
-  CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
+  CatalogSkill(id: 'frontend', label: 'Frontend', icon: LucideIcons.globe),
+  CatalogSkill(id: 'backend', label: 'Backend', icon: LucideIcons.server),
+  CatalogSkill(id: 'other', label: 'Other', icon: LucideIcons.ellipsis),
 ];
 
 CatalogSkill _assetSkill(String id, String label, {IconData? icon}) =>
@@ -41,7 +42,7 @@ final codingFrontendSkills = <CatalogSkill>[
   _assetSkill('vuejs', 'Vue.js'),
   _assetSkill('angular', 'Angular'),
   _assetSkill('dart', 'Dart'),
-  const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
+  const CatalogSkill(id: 'other', label: 'Other', icon: LucideIcons.ellipsis),
 ];
 
 final codingBackendSkills = <CatalogSkill>[
@@ -60,7 +61,7 @@ final codingBackendSkills = <CatalogSkill>[
   _assetSkill('mongodb', 'MongoDB'),
   _assetSkill('firebase', 'Firebase'),
   _assetSkill('docker', 'Docker'),
-  const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
+  const CatalogSkill(id: 'other', label: 'Other', icon: LucideIcons.ellipsis),
 ];
 
 /// Top-level profile skill categories (same labels as startup skills).
@@ -71,7 +72,7 @@ List<CatalogSkill> get topLevelSkillCatalog => [
           label: s.label,
           icon: s.icon,
         ),
-      const CatalogSkill(id: 'other', label: 'Other', icon: Icons.more_horiz),
+      const CatalogSkill(id: 'other', label: 'Other', icon: LucideIcons.ellipsis),
     ];
 
 /// All known catalog entries for icon lookup by label / id.
@@ -82,50 +83,50 @@ List<CatalogSkill> get allCatalogSkills => [
 
 /// Extra Material icons available in the “Choose Icon” picker (custom skills).
 const pickableMaterialIcons = <CatalogSkill>[
-  CatalogSkill(id: 'icon_star', label: 'Star', icon: Icons.star_outline),
-  CatalogSkill(id: 'icon_favorite', label: 'Favorite', icon: Icons.favorite_border),
-  CatalogSkill(id: 'icon_bolt', label: 'Bolt', icon: Icons.bolt_outlined),
-  CatalogSkill(id: 'icon_lightbulb', label: 'Idea', icon: Icons.lightbulb_outline),
-  CatalogSkill(id: 'icon_psychology', label: 'Mind', icon: Icons.psychology_outlined),
-  CatalogSkill(id: 'icon_school', label: 'School', icon: Icons.school_outlined),
-  CatalogSkill(id: 'icon_work', label: 'Work', icon: Icons.work_outline),
-  CatalogSkill(id: 'icon_build', label: 'Build', icon: Icons.build_outlined),
-  CatalogSkill(id: 'icon_handyman', label: 'Tools', icon: Icons.handyman_outlined),
-  CatalogSkill(id: 'icon_science', label: 'Science', icon: Icons.science_outlined),
-  CatalogSkill(id: 'icon_biotech', label: 'Biotech', icon: Icons.biotech_outlined),
-  CatalogSkill(id: 'icon_memory', label: 'Chip', icon: Icons.memory),
-  CatalogSkill(id: 'icon_terminal', label: 'Terminal', icon: Icons.terminal),
-  CatalogSkill(id: 'icon_cloud', label: 'Cloud', icon: Icons.cloud_outlined),
-  CatalogSkill(id: 'icon_security', label: 'Security', icon: Icons.security),
-  CatalogSkill(id: 'icon_wifi', label: 'Network', icon: Icons.wifi),
-  CatalogSkill(id: 'icon_storage', label: 'Storage', icon: Icons.storage_outlined),
-  CatalogSkill(id: 'icon_database', label: 'Database', icon: Icons.data_object),
-  CatalogSkill(id: 'icon_phone', label: 'Mobile', icon: Icons.phone_iphone),
-  CatalogSkill(id: 'icon_laptop', label: 'Laptop', icon: Icons.laptop_mac),
-  CatalogSkill(id: 'icon_desktop', label: 'Desktop', icon: Icons.desktop_windows_outlined),
-  CatalogSkill(id: 'icon_palette', label: 'Palette', icon: Icons.palette_outlined),
-  CatalogSkill(id: 'icon_brush', label: 'Brush', icon: Icons.brush_outlined),
-  CatalogSkill(id: 'icon_design', label: 'Design', icon: Icons.design_services_outlined),
-  CatalogSkill(id: 'icon_architecture', label: 'Architecture', icon: Icons.architecture),
-  CatalogSkill(id: 'icon_camera', label: 'Camera', icon: Icons.photo_camera_outlined),
-  CatalogSkill(id: 'icon_videocam', label: 'Video', icon: Icons.videocam_outlined),
-  CatalogSkill(id: 'icon_music', label: 'Music', icon: Icons.music_note_outlined),
-  CatalogSkill(id: 'icon_mic', label: 'Mic', icon: Icons.mic_none),
-  CatalogSkill(id: 'icon_edit', label: 'Write', icon: Icons.edit_outlined),
-  CatalogSkill(id: 'icon_article', label: 'Article', icon: Icons.article_outlined),
-  CatalogSkill(id: 'icon_translate', label: 'Language', icon: Icons.translate),
-  CatalogSkill(id: 'icon_campaign', label: 'Marketing', icon: Icons.campaign_outlined),
-  CatalogSkill(id: 'icon_trending', label: 'Growth', icon: Icons.trending_up),
-  CatalogSkill(id: 'icon_analytics', label: 'Analytics', icon: Icons.analytics_outlined),
-  CatalogSkill(id: 'icon_insights', label: 'Insights', icon: Icons.insights),
-  CatalogSkill(id: 'icon_groups', label: 'Team', icon: Icons.groups_outlined),
-  CatalogSkill(id: 'icon_handshake', label: 'Deal', icon: Icons.handshake_outlined),
-  CatalogSkill(id: 'icon_sports', label: 'Sports', icon: Icons.sports_soccer_outlined),
-  CatalogSkill(id: 'icon_fitness', label: 'Fitness', icon: Icons.fitness_center),
-  CatalogSkill(id: 'icon_restaurant', label: 'Food', icon: Icons.restaurant_outlined),
-  CatalogSkill(id: 'icon_flight', label: 'Travel', icon: Icons.flight_outlined),
-  CatalogSkill(id: 'icon_public', label: 'Globe', icon: Icons.public),
-  CatalogSkill(id: 'icon_auto_awesome', label: 'Sparkle', icon: Icons.auto_awesome),
+  CatalogSkill(id: 'icon_star', label: 'Star', icon: LucideIcons.star),
+  CatalogSkill(id: 'icon_favorite', label: 'Favorite', icon: LucideIcons.heart),
+  CatalogSkill(id: 'icon_bolt', label: 'Bolt', icon: LucideIcons.zap),
+  CatalogSkill(id: 'icon_lightbulb', label: 'Idea', icon: LucideIcons.lightbulb),
+  CatalogSkill(id: 'icon_psychology', label: 'Mind', icon: LucideIcons.brain),
+  CatalogSkill(id: 'icon_school', label: 'School', icon: LucideIcons.graduationCap),
+  CatalogSkill(id: 'icon_work', label: 'Work', icon: LucideIcons.briefcase),
+  CatalogSkill(id: 'icon_build', label: 'Build', icon: LucideIcons.wrench),
+  CatalogSkill(id: 'icon_handyman', label: 'Tools', icon: LucideIcons.wrench),
+  CatalogSkill(id: 'icon_science', label: 'Science', icon: LucideIcons.flaskConical),
+  CatalogSkill(id: 'icon_biotech', label: 'Biotech', icon: LucideIcons.microscope),
+  CatalogSkill(id: 'icon_memory', label: 'Chip', icon: LucideIcons.cpu),
+  CatalogSkill(id: 'icon_terminal', label: 'Terminal', icon: LucideIcons.terminal),
+  CatalogSkill(id: 'icon_cloud', label: 'Cloud', icon: LucideIcons.cloud),
+  CatalogSkill(id: 'icon_security', label: 'Security', icon: LucideIcons.shield),
+  CatalogSkill(id: 'icon_wifi', label: 'Network', icon: LucideIcons.wifi),
+  CatalogSkill(id: 'icon_storage', label: 'Storage', icon: LucideIcons.database),
+  CatalogSkill(id: 'icon_database', label: 'Database', icon: LucideIcons.braces),
+  CatalogSkill(id: 'icon_phone', label: 'Mobile', icon: LucideIcons.smartphone),
+  CatalogSkill(id: 'icon_laptop', label: 'Laptop', icon: LucideIcons.laptop),
+  CatalogSkill(id: 'icon_desktop', label: 'Desktop', icon: LucideIcons.monitor),
+  CatalogSkill(id: 'icon_palette', label: 'Palette', icon: LucideIcons.palette),
+  CatalogSkill(id: 'icon_brush', label: 'Brush', icon: LucideIcons.brush),
+  CatalogSkill(id: 'icon_design', label: 'Design', icon: LucideIcons.penTool),
+  CatalogSkill(id: 'icon_architecture', label: 'Architecture', icon: LucideIcons.pencilRuler),
+  CatalogSkill(id: 'icon_camera', label: 'Camera', icon: LucideIcons.camera),
+  CatalogSkill(id: 'icon_videocam', label: 'Video', icon: LucideIcons.video),
+  CatalogSkill(id: 'icon_music', label: 'Music', icon: LucideIcons.music),
+  CatalogSkill(id: 'icon_mic', label: 'Mic', icon: LucideIcons.mic),
+  CatalogSkill(id: 'icon_edit', label: 'Write', icon: LucideIcons.pencil),
+  CatalogSkill(id: 'icon_article', label: 'Article', icon: LucideIcons.fileText),
+  CatalogSkill(id: 'icon_translate', label: 'Language', icon: LucideIcons.languages),
+  CatalogSkill(id: 'icon_campaign', label: 'Marketing', icon: LucideIcons.megaphone),
+  CatalogSkill(id: 'icon_trending', label: 'Growth', icon: LucideIcons.trendingUp),
+  CatalogSkill(id: 'icon_analytics', label: 'Analytics', icon: LucideIcons.chartLine),
+  CatalogSkill(id: 'icon_insights', label: 'Insights', icon: LucideIcons.chartLine),
+  CatalogSkill(id: 'icon_groups', label: 'Team', icon: LucideIcons.users),
+  CatalogSkill(id: 'icon_handshake', label: 'Deal', icon: LucideIcons.handshake),
+  CatalogSkill(id: 'icon_sports', label: 'Sports', icon: LucideIcons.volleyball),
+  CatalogSkill(id: 'icon_fitness', label: 'Fitness', icon: LucideIcons.dumbbell),
+  CatalogSkill(id: 'icon_restaurant', label: 'Food', icon: LucideIcons.utensils),
+  CatalogSkill(id: 'icon_flight', label: 'Travel', icon: LucideIcons.plane),
+  CatalogSkill(id: 'icon_public', label: 'Globe', icon: LucideIcons.globe),
+  CatalogSkill(id: 'icon_auto_awesome', label: 'Sparkle', icon: LucideIcons.sparkles),
 ];
 
 /// Icons shown in the custom-skill “Choose Icon” sheet.

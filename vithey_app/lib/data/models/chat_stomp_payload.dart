@@ -1,4 +1,4 @@
-enum ChatStompEventType { message, readReceipt, typing }
+enum ChatStompEventType { message, readReceipt, typing, callInvite }
 
 class ChatStompPayload {
   const ChatStompPayload({
@@ -11,6 +11,7 @@ class ChatStompPayload {
     this.createdAt,
     this.isTyping,
     this.readerId,
+    this.isVideoCall,
   });
 
   final ChatStompEventType type;
@@ -22,12 +23,14 @@ class ChatStompPayload {
   final DateTime? createdAt;
   final bool? isTyping;
   final String? readerId;
+  final bool? isVideoCall;
 
   factory ChatStompPayload.fromJson(Map<String, dynamic> json) {
     final typeRaw = json['type'] as String? ?? 'MESSAGE';
     final type = switch (typeRaw.toUpperCase()) {
       'READ_RECEIPT' => ChatStompEventType.readReceipt,
       'TYPING' => ChatStompEventType.typing,
+      'CALL_INVITE' || 'INCOMING_CALL' => ChatStompEventType.callInvite,
       _ => ChatStompEventType.message,
     };
     return ChatStompPayload(
@@ -40,6 +43,7 @@ class ChatStompPayload {
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
       isTyping: json['is_typing'] as bool?,
       readerId: json['reader_id']?.toString(),
+      isVideoCall: json['is_video'] as bool? ?? json['is_video_call'] as bool?,
     );
   }
 }

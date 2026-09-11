@@ -3,12 +3,15 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_app_bar.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 /// Home-style chat list header: title · search · inbox.
 class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,8 +21,7 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const double _barHeight = kToolbarHeight;
 
   @override
-  Size get preferredSize =>
-      const Size.fromHeight(_barHeight + _extraTop + 1);
+  Size get preferredSize => const Size.fromHeight(_barHeight + _extraTop + 1);
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +49,7 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.heading,
+                      style: context.text.headlineSmall?.copyWith(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -56,7 +57,7 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                   HomeAppBarAction(
-                    icon: const Icon(Icons.search_rounded),
+                    icon: const VitheyIcon(LucideIcons.search),
                     onPressed: () => Get.toNamed(AppRoutes.search),
                     tooltip: 'Search',
                   ),
@@ -66,7 +67,7 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
                       clipBehavior: Clip.none,
                       children: [
                         HomeAppBarAction(
-                          icon: const Icon(Icons.mark_email_unread_outlined),
+                          icon: const VitheyIcon(LucideIcons.mail),
                           onPressed: () => showMessageRequestsSheet(context),
                           tooltip: AppStrings.chatMessageRequests,
                         ),
@@ -89,10 +90,10 @@ class ChatListAppBar extends StatelessWidget implements PreferredSizeWidget {
                               alignment: Alignment.center,
                               child: Text(
                                 count > 9 ? '9+' : '$count',
-                                style: const TextStyle(
+                                style: context.text.labelSmall?.copyWith(
                                   fontSize: 9,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
+                                  color: context.scheme.onPrimary,
+                                  fontWeight: VitheyWeight.bold,
                                   height: 1,
                                 ),
                               ),
@@ -126,7 +127,7 @@ Future<void> showMessageRequestsSheet(BuildContext context) {
         height: height,
         decoration: BoxDecoration(
           color: colors.cardSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           children: [
@@ -146,16 +147,14 @@ Future<void> showMessageRequestsSheet(BuildContext context) {
                   Expanded(
                     child: Text(
                       AppStrings.chatMessageRequests,
-                      style: TextStyle(
-                        color: colors.heading,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: context.text.titleLarge,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    icon: Icon(Icons.close_rounded, color: colors.muted),
+                  VitheyIconButton(
+                    icon: LucideIcons.x,
+                    variant: VitheyIconButtonVariant.neutral,
+                    tooltip: 'Close',
+                    onTap: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
@@ -171,7 +170,8 @@ Future<void> showMessageRequestsSheet(BuildContext context) {
                       child: Text(
                         'No message requests right now.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: colors.muted, fontSize: 14),
+                        style: context.text.bodyMedium
+                            ?.copyWith(color: colors.muted),
                       ),
                     ),
                   );
@@ -221,7 +221,7 @@ class _InboxRequestTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border),
       ),
       child: Column(
@@ -243,16 +243,13 @@ class _InboxRequestTile extends StatelessWidget {
                       request.requester.fullName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.heading,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
+                      style: context.text.titleSmall
+                          ?.copyWith(fontWeight: VitheyWeight.bold),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Wants to message you',
-                      style: TextStyle(color: colors.muted, fontSize: 12),
+                      style: context.text.labelMedium,
                     ),
                   ],
                 ),
@@ -265,11 +262,7 @@ class _InboxRequestTile extends StatelessWidget {
               request.initialMessage,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: colors.heading,
-                fontSize: 14,
-                height: 1.35,
-              ),
+              style: context.text.bodyMedium?.copyWith(height: 1.35),
             ),
           ],
           const SizedBox(height: 12),

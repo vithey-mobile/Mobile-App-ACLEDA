@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
@@ -9,6 +10,7 @@ import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_backg
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_top_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
+import 'package:aub_connect_app/modules/auth/widgets/vithey_genz.dart';
 
 /// Onboarding — each page is a full ribbon frame (wave + content) that slides L/R.
 class OnboardingScreen extends StatelessWidget {
@@ -80,10 +82,10 @@ class OnboardingScreen extends StatelessWidget {
                       child: SafeArea(
                         child: Row(
                           children: [
-                            CustomButton(
-                              label: AppStrings.back,
-                              variant: CustomButtonVariant.ghost,
-                              foregroundColor: AppColors.accentLight,
+                            VitheyIconButton(
+                              icon: LucideIcons.arrowLeft,
+                              tooltip: AppStrings.back,
+                              onTeal: true,
                               onPressed: busy ? null : controller.back,
                             ),
                             const Spacer(),

@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class OnboardingBottomSection extends StatelessWidget {
   const OnboardingBottomSection({
     super.key,
@@ -37,22 +38,14 @@ class OnboardingBottomSection extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: colors.heading,
-              height: 1.25,
-            ),
+            style: context.text.headlineSmall?.copyWith(height: 1.25),
           ),
           const SizedBox(height: 12),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: colors.muted,
-              fontSize: 14,
-              height: 1.4,
-            ),
+            style: context.text.bodyMedium
+                ?.copyWith(color: colors.muted, height: 1.4),
           ),
           const Spacer(flex: 2),
           if (showChrome) ...[
@@ -77,6 +70,7 @@ class OnboardingBottomChrome extends StatelessWidget {
     required this.onNext,
     this.isLastSlide,
     this.nextLabel,
+    this.showCta = true,
   });
 
   final int currentPage;
@@ -89,6 +83,10 @@ class OnboardingBottomChrome extends StatelessWidget {
 
   /// Overrides Next / Get Started when set (e.g. Language → Continue).
   final String? nextLabel;
+
+  /// When false, only dots are interactive; CTA slot keeps height so layout
+  /// stays put (used when Get Started lives inside the last PageView page).
+  final bool showCta;
 
   @override
   Widget build(BuildContext context) {
@@ -104,11 +102,41 @@ class OnboardingBottomChrome extends StatelessWidget {
         children: [
           _PageDots(currentPage: currentPage, totalPages: totalPages),
           const SizedBox(height: 24),
-          _OnboardingCtaButton(
-            label: label,
-            onPressed: onNext,
-          ),
+          if (showCta)
+            _OnboardingCtaButton(
+              label: label,
+              onPressed: onNext,
+            )
+          else
+            IgnorePointer(
+              child: Opacity(
+                opacity: 0,
+                child: _OnboardingCtaButton(
+                  label: AppStrings.getStarted,
+                  onPressed: () {},
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// Get Started CTA for the last onboarding page (slides with PageView).
+class OnboardingGetStartedButton extends StatelessWidget {
+  const OnboardingGetStartedButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
+      child: _OnboardingCtaButton(
+        label: AppStrings.getStarted,
+        onPressed: onPressed,
       ),
     );
   }
@@ -132,7 +160,7 @@ class _OnboardingCtaButton extends StatelessWidget {
           width: double.infinity,
           child: CustomButton(
             label: label,
-            icon: Icons.arrow_forward,
+            icon: LucideIcons.chevronRight,
             onPressed: onPressed,
           ),
         ),
@@ -158,12 +186,14 @@ class _PageDots extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(totalPages, (index) {
         final isActive = index == currentPage;
-        return Container(
-          width: 8,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          width: isActive ? 22 : 8,
           height: 8,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(4),
             color: isActive ? active : inactive,
           ),
         );

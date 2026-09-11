@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 import 'package:aub_connect_app/modules/home/notification/utils/notification_display_text.dart';
 import 'package:aub_connect_app/modules/home/notification/widgets/notification_type_badge.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class NotificationItem extends StatelessWidget {
   const NotificationItem({
     super.key,
@@ -21,21 +23,21 @@ class NotificationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUnread = !notification.isRead;
     final parts = NotificationDisplayText.parts(notification);
-    final radius = BorderRadius.circular(12);
+    final radius = BorderRadius.circular(16);
 
     return Semantics(
       label:
           '${isUnread ? 'Unread. ' : ''}${NotificationDisplayText.build(notification)}',
       button: true,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
           borderRadius: radius,
           boxShadow: [
             BoxShadow(
               color: context.appColors.subtleShadow,
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -92,7 +94,7 @@ class NotificationItem extends StatelessWidget {
                               CircleAvatar(
                                 radius: 21,
                                 backgroundColor: context.appColors.inputFill,
-                                child: Icon(
+                                child: VitheyIcon(
                                   NotificationTypeBadge.iconFor(
                                       notification.type),
                                   color: NotificationTypeBadge.colorFor(
@@ -109,16 +111,11 @@ class NotificationItem extends StatelessWidget {
                                 createdAt: notification.createdAt,
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.more_horiz, size: 20),
-                              color: context.appColors.muted,
+                            VitheyIconButton(
+                              icon: LucideIcons.ellipsis,
+                              variant: VitheyIconButtonVariant.neutral,
                               tooltip: 'More options',
-                              onPressed: onMore,
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints(
-                                minWidth: 44,
-                                minHeight: 44,
-                              ),
+                              onTap: onMore,
                             ),
                           ],
                         ),
@@ -159,11 +156,8 @@ class _NotificationText extends StatelessWidget {
             actorName!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: context.appColors.heading,
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-            ),
+            style: context.text.labelLarge
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 2),
         ],
@@ -171,10 +165,9 @@ class _NotificationText extends StatelessWidget {
           actionText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
+          style: context.text.bodySmall?.copyWith(
             color: context.appColors.heading,
             fontWeight: isUnread ? FontWeight.w600 : FontWeight.w400,
-            fontSize: 13,
             height: 1.25,
           ),
         ),
@@ -183,10 +176,7 @@ class _NotificationText extends StatelessWidget {
           NotificationDisplayText.formatRelativeTime(createdAt),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 11.5,
-            color: context.appColors.muted,
-          ),
+          style: context.text.bodySmall?.copyWith(fontSize: 11.5),
         ),
       ],
     );

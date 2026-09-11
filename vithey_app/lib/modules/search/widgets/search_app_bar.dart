@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SearchAppBar({
     super.key,
@@ -32,10 +34,11 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       backgroundColor: colors.cardSurface,
       foregroundColor: colors.heading,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.of(context).maybePop(),
+      leading: VitheyIconButton(
+        icon: LucideIcons.arrowLeft,
+        variant: VitheyIconButtonVariant.neutral,
         tooltip: 'Back',
+        onTap: () => Navigator.of(context).maybePop(),
       ),
       titleSpacing: 0,
       title: Padding(

@@ -2,6 +2,8 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class PasswordRequirementCard extends StatelessWidget {
   const PasswordRequirementCard({super.key, required this.requirements});
 
@@ -18,10 +20,7 @@ class PasswordRequirementCard extends StatelessWidget {
         children: [
           Text(
             'Requirements',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: context.appColors.heading,
-            ),
+            style: context.text.labelLarge,
           ),
           const SizedBox(height: 12),
           for (final entry in requirements.entries)
@@ -40,15 +39,28 @@ class _RequirementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = met ? context.scheme.primary : context.appColors.muted;
+    final colors = context.appColors;
+    final color = met ? context.scheme.primary : colors.muted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(Icons.circle, size: 8, color: color),
+          VitheyIcon(
+            met ? LucideIcons.circleCheck : LucideIcons.circle,
+            size: 16,
+            color: color,
+          ),
           const SizedBox(width: 10),
-          Text(text, style: TextStyle(color: color)),
+          Expanded(
+            child: Text(
+              text,
+              style: context.text.labelLarge?.copyWith(
+                color: color,
+                fontWeight: met ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/utils/relative_time.dart';
 
 class ChatDetailHeader extends StatelessWidget {
   const ChatDetailHeader({
@@ -41,9 +46,12 @@ class ChatDetailHeader extends StatelessWidget {
       elevation: 0,
       backgroundColor: colors.cardSurface,
       foregroundColor: colors.heading,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: onBack,
+      leading: Center(
+        child: VitheyIconButton(
+          icon: LucideIcons.arrowLeft,
+          onTap: onBack,
+          tooltip: 'Back',
+        ),
       ),
       title: isSearchActive
           ? _ThreadSearchField(
@@ -58,9 +66,9 @@ class ChatDetailHeader extends StatelessWidget {
               onProfileTap: onProfileTap,
             ),
       actions: [
-        IconButton(
-          icon: Icon(isSearchActive ? Icons.close_rounded : Icons.search_outlined),
-          onPressed: onToggleSearch,
+        VitheyIconButton(
+          icon: isSearchActive ? LucideIcons.x : LucideIcons.search,
+          onTap: onToggleSearch,
           tooltip: AppStrings.chatThreadSearchHint,
         ),
         PopupMenuButton<String>(
@@ -120,18 +128,16 @@ class _HeaderTitle extends StatelessWidget {
                   p.fullName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: context.text.titleMedium?.copyWith(
+                    fontWeight: VitheyWeight.bold,
                     color: context.appColors.heading,
                   ),
                 ),
                 Text(
-                  isTyping
-                      ? AppStrings.chatTyping
-                      : (p.isOnline ? AppStrings.chatActiveNow : ''),
-                  style: TextStyle(
-                    fontSize: 12,
+                  _subtitle(p),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.labelMedium?.copyWith(
                     color: isTyping || p.isOnline
                         ? AppColors.primary
                         : context.appColors.muted,
@@ -143,6 +149,15 @@ class _HeaderTitle extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _subtitle(ChatParticipant p) {
+    if (isTyping) return AppStrings.chatTyping;
+    if (p.isOnline) return AppStrings.chatActiveNow;
+    if (p.lastSeenAt != null) {
+      return RelativeTime.formatLastSeen(p.lastSeenAt!);
+    }
+    return AppStrings.chatLastSeenRecently;
   }
 }
 
@@ -167,26 +182,23 @@ class _ThreadSearchField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       textInputAction: TextInputAction.search,
-      style: TextStyle(
-        color: colors.heading,
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
-      ),
+      style: context.text.titleSmall
+          ?.copyWith(fontWeight: VitheyWeight.medium),
       decoration: InputDecoration(
         hintText: AppStrings.chatThreadSearchHint,
-        hintStyle: TextStyle(
+        hintStyle: context.text.titleSmall?.copyWith(
+          fontWeight: VitheyWeight.medium,
           color: colors.muted,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
         ),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         filled: true,
         fillColor: colors.inputFill,
-        prefixIcon: Icon(Icons.search_rounded, color: colors.muted, size: 20),
+        prefixIcon: VitheyIcon(LucideIcons.search, color: colors.muted, size: 20),
         suffixIcon: hasQuery
             ? IconButton(
-                icon: Icon(Icons.close_rounded, color: colors.muted, size: 18),
+                icon: VitheyIcon(LucideIcons.x, color: colors.muted, size: 18),
                 onPressed: onClear,
                 tooltip: AppStrings.clearSearch,
               )

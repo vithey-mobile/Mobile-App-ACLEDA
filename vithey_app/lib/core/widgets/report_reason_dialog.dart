@@ -34,11 +34,8 @@ Future<String?> showReportReasonDialog({
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.titleLarge
+                    ?.copyWith(color: context.appColors.heading),
               ),
               const SizedBox(height: 16),
               VitheyField(

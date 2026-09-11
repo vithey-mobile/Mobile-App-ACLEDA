@@ -15,11 +15,7 @@ class PrivacyPracticesScreen extends StatelessWidget {
         children: [
           Text(
             'How Vithey protects your data',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: context.appColors.heading,
-            ),
+            style: context.text.headlineSmall?.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 16),
           _Section(
@@ -70,7 +66,7 @@ class _Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+          Text(title, style: context.text.titleMedium),
           const SizedBox(height: 6),
           Text(body, style: TextStyle(color: context.appColors.muted, height: 1.45)),
         ],

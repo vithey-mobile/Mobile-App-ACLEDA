@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/profile/utils/profile_format.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileStats extends StatelessWidget {
   const ProfileStats({super.key, required this.profile});
 
@@ -16,7 +17,7 @@ class ProfileStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
       child: Row(
         children: [
           Expanded(
@@ -51,27 +52,19 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heading = context.appColors.heading;
-    final muted = context.appColors.muted;
     return Column(
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
+          style: context.text.titleLarge?.copyWith(
             fontSize: 17,
-            color: heading,
             height: 1.15,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            color: muted,
-            fontSize: 13,
-            height: 1.1,
-          ),
+          style: context.text.bodySmall?.copyWith(height: 1.1),
         ),
       ],
     );
@@ -152,10 +145,12 @@ class ProfileActionRow extends StatelessWidget {
           ),
         ],
         const SizedBox(width: _buttonGap),
-        IconButton(
-          onPressed: onShare,
-          color: AppColors.primary,
-          icon: const Icon(Icons.ios_share, size: 18),
+        // GenZ round icon chrome — 48px tap target.
+        VitheyIconButton(
+          icon: LucideIcons.share,
+          onTap: onShare,
+          tooltip: 'Share profile',
+          circle: true,
         ),
       ],
       ),

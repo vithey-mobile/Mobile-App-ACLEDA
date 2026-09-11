@@ -1,6 +1,7 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/fixtures/application_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
@@ -47,7 +48,7 @@ class JobApplicationRepository {
   static final _mockAppliedJobs = <String>{};
   static final _mockApplicationDetails = <String, ApplicationDetailModel>{};
   static final _mockSubmittedApplicationIds = <String>{};
-  static const _mockSeedVersion = 4;
+  static const _mockSeedVersion = 5;
   static int _loadedMockSeedVersion = 0;
   static Future<void>? _mockSeedFuture;
 
@@ -308,6 +309,7 @@ class JobApplicationRepository {
         status: ApplicationStatus.pending,
         appliedAt: now,
         cvFileName: cvFileName,
+        applicantUserId: MockIds.currentUser,
       );
       _mockSubmittedApplicationIds.add(applicationId);
       await _persistAppliedJobs();
@@ -398,7 +400,36 @@ class JobApplicationRepository {
   Future<List<AppliedJobSummary>> getMyAppliedJobs() async {
     if (useMockApi) {
       await _ensureMockSeed();
-      return ApplicationFixtures.myAppliedJobs();
+      final byId = <String, AppliedJobSummary>{
+        for (final summary in ApplicationFixtures.myAppliedJobs())
+          summary.id: summary,
+      };
+      for (final jobPostId in _mockAppliedJobs) {
+        final applicationId = _mockApplicationIdForJob(jobPostId);
+        if (applicationId == null || byId.containsKey(applicationId)) continue;
+        final detail = _mockApplicationDetails[applicationId];
+        if (detail == null) continue;
+        final job = await _postRepository.fetchPost(jobPostId);
+        byId[applicationId] = AppliedJobSummary(
+          id: applicationId,
+          jobPostId: jobPostId,
+          jobTitle: detail.jobTitle,
+          company: detail.organization ??
+              job?.jobMeta.description ??
+              job?.author.fullName ??
+              '',
+          employmentType: job?.jobMeta.requirement,
+          location: job?.content.isNotEmpty == true
+              ? job!.content.split('\n').first
+              : null,
+          mediaUrl: job?.mediaUrl,
+          status: detail.status,
+          appliedAt: detail.appliedAt,
+        );
+      }
+      final summaries = byId.values.toList()
+        ..sort((a, b) => b.appliedAt.compareTo(a.appliedAt));
+      return summaries;
     }
     final applications = await _applicationService.listApplications();
     final summaries = <AppliedJobSummary>[];
@@ -451,6 +482,15 @@ class JobApplicationRepository {
   }
 
   String? _mockApplicationIdForJob(String jobPostId) {
+    // Prefer the logged-in user's application when several people applied.
+    for (final entry in _mockApplicationDetails.entries) {
+      final detail = entry.value;
+      if (detail.jobPostId != jobPostId) continue;
+      if (detail.applicantUserId == null ||
+          detail.applicantUserId == MockIds.currentUser) {
+        return entry.key;
+      }
+    }
     for (final entry in _mockApplicationDetails.entries) {
       if (entry.value.jobPostId == jobPostId) return entry.key;
     }

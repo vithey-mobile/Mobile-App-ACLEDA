@@ -4,9 +4,12 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileJobCard extends StatelessWidget {
   const ProfileJobCard({
     super.key,
@@ -59,14 +62,13 @@ class ProfileJobCard extends StatelessWidget {
     final location =
         post.content.isNotEmpty ? post.content.split('\n').first : 'Phnom Penh';
 
-    return Card(
+    return VitheyCard(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 0,
-      color: context.appColors.cardSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.appColors.border),
-      ),
+      bordered: true,
+      elevated: false,
+      borderRadius: VitheyRadii.card,
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           Padding(
@@ -80,7 +82,7 @@ class ProfileJobCard extends StatelessWidget {
                     GestureDetector(
                       onTap: () => _openPosterPreview(context),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(VitheyRadii.media),
                         child: SizedBox(
                           width: 72,
                           height: 72,
@@ -97,10 +99,7 @@ class ProfileJobCard extends StatelessWidget {
                       child: Text(
                         RelativeTime.format(post.createdAt),
                         textAlign: TextAlign.start,
-                        style: TextStyle(
-                          color: context.appColors.muted,
-                          fontSize: 11,
-                        ),
+                        style: context.text.labelSmall,
                       ),
                     ),
                   ],
@@ -109,7 +108,7 @@ class ProfileJobCard extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: isOwnProfile ? onOpenApplicants : onOpenPost,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(VitheyRadii.field),
                     child: Padding(
                       padding: const EdgeInsets.only(right: 4, bottom: 4),
                       child: Column(
@@ -117,24 +116,19 @@ class ProfileJobCard extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
+                            style: context.text.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '$company ( $employment )',
-                            style: TextStyle(
-                              color: context.appColors.muted,
-                              fontSize: 13,
-                            ),
+                            style: context.text.bodySmall,
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              Icon(
-                                Icons.location_on_outlined,
+                              VitheyIcon(
+                                LucideIcons.mapPin,
                                 size: 14,
                                 color: context.appColors.muted,
                               ),
@@ -144,10 +138,7 @@ class ProfileJobCard extends StatelessWidget {
                                   location,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: context.appColors.muted,
-                                    fontSize: 12,
-                                  ),
+                                  style: context.text.labelMedium,
                                 ),
                               ),
                             ],
@@ -185,9 +176,8 @@ class ProfileJobCard extends StatelessWidget {
                           ),
                           child: Text(
                             '${post.applicantCount} Application',
-                            style: const TextStyle(
+                            style: context.text.labelMedium?.copyWith(
                               color: AppColors.primary,
-                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -199,9 +189,8 @@ class ProfileJobCard extends StatelessWidget {
                         behavior: HitTestBehavior.opaque,
                         child: Text(
                           'View List >',
-                          style: TextStyle(
+                          style: context.text.labelLarge?.copyWith(
                             color: context.appColors.muted,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -212,7 +201,7 @@ class ProfileJobCard extends StatelessWidget {
                     child: post.applicationState == JobApplicationState.applied
                         ? Text(
                             'Applied',
-                            style: TextStyle(
+                            style: context.text.labelLarge?.copyWith(
                               color: context.appColors.muted,
                               fontWeight: FontWeight.w600,
                             ),
@@ -270,7 +259,7 @@ class _JobPosterFullscreen extends StatelessWidget {
                 backgroundColor: Colors.black54,
                 foregroundColor: Colors.white,
               ),
-              icon: const Icon(Icons.close),
+              icon: const VitheyIcon(LucideIcons.x),
             ),
           ),
           Positioned(
@@ -297,25 +286,22 @@ class _JobPosterFullscreen extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: context.text.titleLarge?.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       companyLine,
-                      style: TextStyle(
+                      style: context.text.bodyMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Icon(
-                          Icons.location_on_outlined,
+                        VitheyIcon(
+                          LucideIcons.mapPin,
                           size: 16,
                           color: Colors.white.withValues(alpha: 0.65),
                         ),
@@ -323,9 +309,8 @@ class _JobPosterFullscreen extends StatelessWidget {
                         Expanded(
                           child: Text(
                             location,
-                            style: TextStyle(
+                            style: context.text.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.65),
-                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -334,9 +319,8 @@ class _JobPosterFullscreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       postedAt,
-                      style: TextStyle(
+                      style: context.text.labelMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -361,7 +345,7 @@ class _PosterImage extends StatelessWidget {
     if (url == null || url!.isEmpty) {
       return ColoredBox(
         color: context.appColors.inputFill,
-        child: const Icon(Icons.work_outline),
+        child: const VitheyIcon(LucideIcons.briefcase),
       );
     }
     if (url!.startsWith('assets/')) {
@@ -373,7 +357,7 @@ class _PosterImage extends StatelessWidget {
       placeholder: (_, __) => ColoredBox(color: context.appColors.inputFill),
       errorWidget: (_, __, ___) => ColoredBox(
         color: context.appColors.inputFill,
-        child: const Icon(Icons.broken_image_outlined),
+        child: const VitheyIcon(LucideIcons.imageOff),
       ),
     );
   }

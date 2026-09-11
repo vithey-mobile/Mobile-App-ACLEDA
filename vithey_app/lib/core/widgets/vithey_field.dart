@@ -1,10 +1,13 @@
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// App-wide text field built on [shad.TextField].
 ///
 /// Labels use [FontWeight.w600]. Works with [FormErrorHost] / [FieldErrors]
@@ -169,16 +172,16 @@ class _VitheyFieldState extends State<VitheyField> {
     final features = <shad.InputFeature>[
       if (widget.prefixIcon != null)
         shad.InputFeature.leading(
-          Icon(widget.prefixIcon, size: 20, color: chrome),
+          VitheyIcon(widget.prefixIcon!, size: 22, color: chrome),
         ),
       if (widget.obscureText)
         shad.InputFeature.trailing(
           shad.IconButton.text(
-            icon: Icon(
+            icon: VitheyIcon(
               _obscure
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              size: 18,
+                  ? LucideIcons.eye
+                  : LucideIcons.eyeOff,
+              size: 20,
               color: chrome,
             ),
             onPressed: () {
@@ -203,40 +206,41 @@ class _VitheyFieldState extends State<VitheyField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  widget.label!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: labelColor,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.label!,
+                    style:
+                        context.text.titleSmall?.copyWith(color: labelColor),
                   ),
                 ),
-              ),
-              if (hasError)
-                Text(
-                  _inlineErrorLabel(externalError ?? _errorText!),
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                if (hasError)
+                  Text(
+                    _inlineErrorLabel(externalError ?? _errorText!),
+                    style: context.text.bodySmall?.copyWith(
+                      color: AppColors.error,
+                      fontWeight: VitheyWeight.medium,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 6),
         ] else if (hasError) ...[
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              _inlineErrorLabel(externalError ?? _errorText!),
-              style: const TextStyle(
-                color: AppColors.error,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                _inlineErrorLabel(externalError ?? _errorText!),
+                style: context.text.bodySmall?.copyWith(
+                  color: AppColors.error,
+                  fontWeight: VitheyWeight.medium,
+                ),
               ),
             ),
           ),
@@ -253,50 +257,57 @@ class _VitheyFieldState extends State<VitheyField> {
             return error;
           },
           builder: (field) {
-            return shad.TextField(
-              controller: widget.controller,
-              focusNode: _focusNode,
-              autofocus: widget.autofocus,
-              enabled: widget.enabled,
-              readOnly: widget.readOnly,
-              obscureText: effectiveObscure,
-              maxLines: widget.maxLines,
-              minLines: widget.minLines,
-              maxLength: widget.maxLength,
-              keyboardType: widget.keyboardType,
-              textInputAction: widget.textInputAction,
-              onTap: widget.onTap,
-              inputFormatters: widget.inputFormatters,
-              filled: widget.filled,
-              border: Border.all(
-                color: chrome,
-                width: 1,
-                strokeAlign: BorderSide.strokeAlignInside,
+            return Padding(
+              // Inset so shad FocusOutline (~3px outside) is not clipped
+              // by parent ClipRect / hardEdge (auth step slider, sheets).
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 3,
               ),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: widget.readOnly || !widget.enabled ? muted : heading,
-              ),
-              placeholder: widget.hint == null
-                  ? null
-                  : Text(
-                      widget.hint!,
-                      style: TextStyle(
-                        color: chrome,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
+              child: shad.TextField(
+                controller: widget.controller,
+                focusNode: _focusNode,
+                autofocus: widget.autofocus,
+                enabled: widget.enabled,
+                readOnly: widget.readOnly,
+                obscureText: effectiveObscure,
+                maxLines: widget.maxLines,
+                minLines: widget.minLines,
+                maxLength: widget.maxLength,
+                keyboardType: widget.keyboardType,
+                textInputAction: widget.textInputAction,
+                onTap: widget.onTap,
+                inputFormatters: widget.inputFormatters,
+                filled: widget.filled,
+                borderRadius: BorderRadius.circular(VitheyRadii.field),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                style: context.text.bodyMedium?.copyWith(
+                  fontWeight: VitheyWeight.medium,
+                  height: 1.2,
+                  color: widget.readOnly || !widget.enabled ? muted : heading,
+                ),
+                placeholder: widget.hint == null
+                    ? null
+                    : Text(
+                        widget.hint!,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: chrome,
+                          height: 1.2,
+                        ),
                       ),
-                    ),
-              features: features,
-              onChanged: (value) {
-                field.didChange(value);
-                if (hasError) {
-                  FieldErrors.clear(context);
-                }
-                widget.onChanged?.call(value);
-              },
-              onSubmitted: widget.onSubmitted,
+                features: features,
+                onChanged: (value) {
+                  field.didChange(value);
+                  if (hasError) {
+                    FieldErrors.clear(context);
+                  }
+                  widget.onChanged?.call(value);
+                },
+                onSubmitted: widget.onSubmitted,
+              ),
             );
           },
         ),
@@ -307,7 +318,7 @@ class _VitheyFieldState extends State<VitheyField> {
   /// Empty-field messages → compact "Required" (right of label; no extra height).
   static String _inlineErrorLabel(String error) {
     final t = error.trim().toLowerCase();
-    if (t == 'required' || t.endsWith('is required')) {
+    if (t == 'required' || t.endsWith(' is required')) {
       return 'Required';
     }
     return error.trim();

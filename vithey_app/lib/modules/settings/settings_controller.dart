@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/theme/app_theme.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -73,7 +74,7 @@ class SettingsController extends GetxController {
       isDismissible: true,
       enableDrag: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }

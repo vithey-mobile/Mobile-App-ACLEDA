@@ -7,8 +7,11 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// Opens poster image / video in an immersive detail stage (TikTok-style).
 Future<void> showMediaFullscreen(
   BuildContext context,
@@ -216,10 +219,17 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
               ),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon:
-                      const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black26,
+                      shape: const CircleBorder(),
+                    ),
+                    icon: const VitheyIcon(LucideIcons.arrowLeft,
+                        color: Colors.white),
+                  ),
                 ),
               ),
             ),
@@ -234,8 +244,8 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
               children: [
                 _SideAction(
                   icon: _post.userReacted
-                      ? Icons.thumb_up
-                      : Icons.thumb_up_outlined,
+                      ? LucideIcons.thumbsUp
+                      : LucideIcons.thumbsUp,
                   label:
                       _post.reactionCount > 0 ? '${_post.reactionCount}' : '',
                   active: _post.userReacted,
@@ -243,20 +253,14 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                 ),
                 const SizedBox(height: 18),
                 _SideAction(
-                  icon: Icons.chat_bubble_outline_rounded,
+                  icon: LucideIcons.messageCircle,
                   label: _post.commentCount > 0 ? '${_post.commentCount}' : '',
                   onTap: _onComment,
-                ),
-                const SizedBox(height: 18),
-                _SideAction(
-                  icon: Icons.repeat_rounded,
-                  label: _post.shareCount > 0 ? '${_post.shareCount}' : '',
-                  onTap: _onShare,
                 ),
                 if (widget.showShareAction) ...[
                   const SizedBox(height: 18),
                   _SideAction(
-                    icon: Icons.send_rounded,
+                    icon: LucideIcons.share2,
                     onTap: _onShare,
                   ),
                 ],
@@ -332,13 +336,9 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                                               _post.isFollowingAuthor
                                                   ? 'Following'
                                                   : 'Follow',
-                                              style: TextStyle(
-                                                color: _post.isFollowingAuthor
+                                              style: context.text.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: _post.isFollowingAuthor
                                                     ? Colors.white70
-                                                    : AppColors.primaryLight,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
+                                                    : AppColors.primaryLight),
                                             ),
                                           ),
                                         ],
@@ -349,11 +349,8 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                                         _subtitle!,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.65),
-                                          fontSize: 12,
-                                        ),
+                                        style: context.text.bodySmall?.copyWith(fontSize: 12, color: Colors.white
+                                              .withValues(alpha: 0.65)),
                                       ),
                                   ],
                                 ),
@@ -399,44 +396,25 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                   ),
                   IconButton(
                     onPressed: () {
-                      showModalBottomSheet<void>(
+                      showVitheyActionSheet<void>(
                         context: context,
-                        backgroundColor: const Color(0xFF1C1C1E),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16),
+                        title: 'Post actions',
+                        actions: [
+                          VitheyActionSheetItem(
+                            label: 'Share',
+                            icon: LucideIcons.share2,
+                            onTap: _onShare,
                           ),
-                        ),
-                        builder: (ctx) => SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.share_outlined,
-                                    color: Colors.white),
-                                title: const Text('Share',
-                                    style: TextStyle(color: Colors.white)),
-                                onTap: () {
-                                  Navigator.pop(ctx);
-                                  _onShare();
-                                },
-                              ),
-                              ListTile(
-                                leading: const Icon(Icons.person_outline,
-                                    color: Colors.white),
-                                title: const Text('View profile',
-                                    style: TextStyle(color: Colors.white)),
-                                onTap: () {
-                                  Navigator.pop(ctx);
-                                  widget.onAuthorTap?.call();
-                                },
-                              ),
-                            ],
+                          VitheyActionSheetItem(
+                            label: 'View profile',
+                            icon: LucideIcons.user,
+                            onTap: widget.onAuthorTap,
                           ),
-                        ),
+                        ],
+                        cancelLabel: 'Cancel',
                       );
                     },
-                    icon: const Icon(Icons.more_horiz, color: Colors.white),
+                    icon: const VitheyIcon(LucideIcons.ellipsis, color: Colors.white),
                   ),
                 ],
               ),
@@ -476,8 +454,8 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
               children: [
                 VideoPlayer(controller),
                 if (!controller.value.isPlaying)
-                  const Icon(
-                    Icons.play_circle_fill_rounded,
+                  const VitheyIcon(
+                    LucideIcons.circlePlay,
                     color: Colors.white70,
                     size: 72,
                   ),
@@ -503,7 +481,7 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
               : IconButton(
                   iconSize: 72,
                   color: Colors.white70,
-                  icon: const Icon(Icons.play_circle_fill_rounded),
+                  icon: const VitheyIcon(LucideIcons.circlePlay),
                   onPressed: _initPlayer,
                 ),
         ),
@@ -538,32 +516,38 @@ class _SideAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 48px circular hit target, TikTok-style rail.
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        children: [
-          Icon(
-            icon,
-            color: active ? AppColors.primaryLight : Colors.white,
-            size: 30,
-            shadows: const [
-              Shadow(blurRadius: 8, color: Colors.black54),
-            ],
-          ),
-          if (label.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                shadows: [Shadow(blurRadius: 6, color: Colors.black54)],
-              ),
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            VitheyIcon(
+              icon,
+              color: active ? AppColors.primaryLight : Colors.white,
+              size: 28,
+              shadows: const [
+                Shadow(blurRadius: 8, color: Colors.black54),
+              ],
             ),
+            if (label.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  shadows: [Shadow(blurRadius: 6, color: Colors.black54)],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -578,8 +562,8 @@ class _FullscreenImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
-      return const Icon(
-        Icons.image_not_supported_outlined,
+      return const VitheyIcon(
+        LucideIcons.imageOff,
         color: Colors.white54,
         size: 48,
       );
@@ -591,8 +575,8 @@ class _FullscreenImage extends StatelessWidget {
       return Image.file(
         File(url!),
         fit: fit,
-        errorBuilder: (_, __, ___) => const Icon(
-          Icons.broken_image_outlined,
+        errorBuilder: (_, __, ___) => const VitheyIcon(
+          LucideIcons.imageOff,
           color: Colors.white54,
           size: 48,
         ),
@@ -604,8 +588,8 @@ class _FullscreenImage extends StatelessWidget {
       placeholder: (_, __) => const Center(
         child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2),
       ),
-      errorWidget: (_, __, ___) => const Icon(
-        Icons.broken_image_outlined,
+      errorWidget: (_, __, ___) => const VitheyIcon(
+        LucideIcons.imageOff,
         color: Colors.white54,
         size: 48,
       ),

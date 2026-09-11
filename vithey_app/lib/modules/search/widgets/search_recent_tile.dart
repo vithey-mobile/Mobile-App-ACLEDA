@@ -1,8 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
+import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
+import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SearchRecentTile extends StatelessWidget {
   const SearchRecentTile({
     super.key,
@@ -51,8 +55,8 @@ class SearchRecentTile extends StatelessWidget {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: colors.inputFill,
-                    child: Icon(
-                      Icons.history_rounded,
+                    child: VitheyIcon(
+                      LucideIcons.history,
                       color: colors.muted,
                       size: 21,
                     ),
@@ -67,43 +71,30 @@ class SearchRecentTile extends StatelessWidget {
                         item.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: context.text.bodyMedium?.copyWith(
                           fontSize: 15.5,
-                          fontWeight: FontWeight.w500,
-                          color: colors.heading,
+                          fontWeight: VitheyWeight.medium,
                         ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           subtitle,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: colors.muted,
-                          ),
+                          style: context.text.bodySmall
+                              ?.copyWith(fontSize: 12.5),
                         ),
                       ],
                     ],
                   ),
                 ),
                 if (showActions)
-                  IconButton(
-                    tooltip: 'More options for ${item.title}',
-                    onPressed: () => _showActions(context),
+                  VitheyIconButton(
                     icon: item.isPinned
-                        ? Transform.rotate(
-                            angle: -0.55,
-                            child: Icon(
-                              Icons.push_pin_rounded,
-                              color: colors.muted,
-                              size: 22,
-                            ),
-                          )
-                        : Icon(
-                            Icons.more_vert_rounded,
-                            color: colors.muted,
-                            size: 21,
-                          ),
+                        ? LucideIcons.pin
+                        : LucideIcons.ellipsisVertical,
+                    variant: VitheyIconButtonVariant.neutral,
+                    tooltip: 'More options for ${item.title}',
+                    onTap: () => _showActions(context),
                   ),
               ],
             ),
@@ -114,77 +105,24 @@ class SearchRecentTile extends StatelessWidget {
   }
 
   Future<void> _showActions(BuildContext context) {
-    return showModalBottomSheet<void>(
+    return showVitheyActionSheet<void>(
       context: context,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        final colors = sheetContext.appColors;
-        return Container(
-          decoration: BoxDecoration(
-            color: colors.cardSurface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(22),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 42,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: colors.border,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      item.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.heading,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _RecentSheetAction(
-                    icon: item.isPinned
-                        ? Icons.push_pin_rounded
-                        : Icons.push_pin_outlined,
-                    label: item.isPinned ? 'Unpin' : 'Pin',
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      onTogglePin();
-                    },
-                  ),
-                  _RecentSheetAction(
-                    icon: Icons.delete_outline_rounded,
-                    label: 'Remove from recent',
-                    color: sheetContext.scheme.error,
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      onRemove();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      title: item.title,
+      message: item.isUser ? 'Followers ${_formatCount(item.followerCount)}' : null,
+      actions: [
+        VitheyActionSheetItem(
+          label: item.isPinned ? 'Unpin' : 'Pin',
+          icon: item.isPinned ? LucideIcons.pin : LucideIcons.pin,
+          onTap: onTogglePin,
+        ),
+        VitheyActionSheetItem(
+          label: 'Remove from recent',
+          icon: LucideIcons.trash2,
+          isDestructive: true,
+          onTap: onRemove,
+        ),
+      ],
+      cancelLabel: 'Cancel',
     );
   }
 
@@ -197,60 +135,5 @@ class SearchRecentTile extends StatelessWidget {
       return '${(count / 1000).toStringAsFixed(count % 1000 == 0 ? 0 : 1)}K';
     }
     return '$count';
-  }
-}
-
-class _RecentSheetAction extends StatelessWidget {
-  const _RecentSheetAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final foreground = color ?? context.appColors.heading;
-    final iconWidget =
-        icon == Icons.push_pin_rounded || icon == Icons.push_pin_outlined
-            ? Transform.rotate(
-                angle: -0.55,
-                child: Icon(icon, color: foreground, size: 23),
-              )
-            : Icon(icon, color: foreground, size: 23);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 54),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                iconWidget,
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: foreground,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

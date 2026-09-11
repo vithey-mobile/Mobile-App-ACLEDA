@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/alerts/in_app_alert_host.dart';
 import 'package:aub_connect_app/core/theme/app_theme.dart';
 import 'package:aub_connect_app/core/theme/vithey_scroll_behavior.dart';
 import 'package:aub_connect_app/core/utils/connectivity_wrapper.dart';
@@ -47,7 +48,9 @@ class VitheyApp extends StatelessWidget {
             // ~20–24px corners on primary/destructive buttons (radiusXl).
             radius: 1.0,
           ),
-          child: ConnectivityWrapper(child: child ?? const SizedBox.shrink()),
+          child: ConnectivityWrapper(
+            child: InAppAlertHost(child: child ?? const SizedBox.shrink()),
+          ),
         );
       },
     );

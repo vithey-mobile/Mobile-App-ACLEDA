@@ -6,6 +6,7 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/jobs/models/application_detail_model.dart';
 import 'package:intl/intl.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplicationStatusHero extends StatelessWidget {
   const ApplicationStatusHero({
     super.key,
@@ -31,16 +32,13 @@ class ApplicationStatusHero extends StatelessWidget {
             color: AppColors.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
-          child: Icon(_iconFor(detail), size: 36, color: AppColors.primary),
+          child: VitheyIcon(_iconFor(detail), size: 36, color: AppColors.primary),
         ),
         const SizedBox(height: 16),
         Text(
           detail.heroTitle,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: context.appColors.heading,
-              ),
+          style: context.text.titleLarge,
         ),
         const SizedBox(height: 8),
         Padding(
@@ -58,9 +56,9 @@ class ApplicationStatusHero extends StatelessWidget {
   IconData _iconFor(ApplicationDetailModel detail) {
     if (detail.status == ApplicationStatus.reviewed ||
         (detail.status == ApplicationStatus.pending && detail.reviewStartedAt != null)) {
-      return Icons.people_outline;
+      return LucideIcons.users;
     }
-    return Icons.send_outlined;
+    return LucideIcons.send;
   }
 }
 
@@ -78,7 +76,7 @@ class _DecisionCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: context.appColors.border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -97,8 +95,8 @@ class _DecisionCard extends StatelessWidget {
                     color: accepted ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    accepted ? Icons.check_circle : Icons.cancel,
+                  child: VitheyIcon(
+                    accepted ? LucideIcons.circleCheck : LucideIcons.circleX,
                     color: titleColor,
                     size: accepted ? 28 : 32,
                   ),
@@ -110,16 +108,12 @@ class _DecisionCard extends StatelessWidget {
                     children: [
                       Text(
                         detail.heroTitle,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: titleColor,
-                        ),
+                        style: context.text.titleLarge?.copyWith(color: titleColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         detail.heroSubtitle,
-                        style: TextStyle(fontSize: 13, color: context.appColors.heading, height: 1.3),
+                        style: context.text.bodySmall?.copyWith(color: context.appColors.heading, height: 1.3),
                       ),
                     ],
                   ),
@@ -173,7 +167,13 @@ class _TimelineRow extends StatelessWidget {
               _TimelineNode(step: step),
               if (!isLast)
                 Expanded(
-                  child: Container(width: 2, color: context.appColors.border),
+                  child: Container(
+                    width: 2,
+                    decoration: BoxDecoration(
+                      color: context.appColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -184,13 +184,13 @@ class _TimelineRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(step.label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(step.label, style: context.text.labelLarge),
                   const SizedBox(height: 4),
                   Text(
                     step.completedAt != null
                         ? dateFormat.format(step.completedAt!)
                         : (step.statusText ?? AppStrings.statusReviewBanner),
-                    style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                    style: context.text.bodySmall?.copyWith(fontSize: 12),
                   ),
                 ],
               ),
@@ -211,36 +211,50 @@ class _TimelineNode extends StatelessWidget {
   Widget build(BuildContext context) {
     if (step.isRejectedDecision) {
       return Container(
-        width: 22,
-        height: 22,
+        width: 24,
+        height: 24,
         decoration: BoxDecoration(
           color: AppColors.error.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.flag, size: 12, color: AppColors.error),
+        child: const VitheyIcon(LucideIcons.flag, size: 13, color: AppColors.error),
       );
     }
     if (step.isAcceptedDecision) {
       return Container(
-        width: 22,
-        height: 22,
-        decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-        child: const Icon(Icons.flag, size: 12, color: Colors.white),
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.25),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: const VitheyIcon(LucideIcons.flag, size: 13, color: Colors.white),
       );
     }
     if (step.isComplete) {
       return Container(
-        width: 22,
-        height: 22,
-        decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-        child: const Icon(Icons.check, size: 14, color: Colors.white),
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+        child: const VitheyIcon(LucideIcons.check, size: 14, color: Colors.white),
       );
     }
     return Container(
-      width: 22,
-      height: 22,
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        color: context.appColors.cardSurface,
         border: Border.all(color: context.appColors.border, width: 2),
       ),
     );
@@ -260,12 +274,12 @@ class StatusBannerCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.notifications_outlined, color: AppColors.primary, size: 20),
+          const VitheyIcon(LucideIcons.bell, color: AppColors.primary, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(message, style: TextStyle(color: context.appColors.heading, height: 1.35)),
@@ -287,13 +301,13 @@ class StatusMessageCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.appColors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
+          const VitheyIcon(LucideIcons.user, color: AppColors.primary, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

@@ -24,6 +24,7 @@ class AiService {
         return AiChatResponse(
           sessionId: data['session_id']?.toString() ?? sessionId ?? '',
           reply: data['reply'] as String? ?? '',
+          reasoning: data['reasoning'] as String?,
           messageId: data['message_id']?.toString(),
           requestId: data['request_id']?.toString(),
         );
@@ -96,6 +97,7 @@ class AiService {
       sessionId: sessionId,
       role: _parseRole(json['role']),
       content: json['content'] as String? ?? json['text'] as String? ?? '',
+      reasoning: json['reasoning'] as String?,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
     );
   }

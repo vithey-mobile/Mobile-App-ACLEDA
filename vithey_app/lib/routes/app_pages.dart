@@ -15,10 +15,14 @@ import 'package:aub_connect_app/modules/home/reels/reels_binding.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_screen.dart';
 import 'package:aub_connect_app/modules/jobs/apply_cv_binding.dart';
 import 'package:aub_connect_app/modules/jobs/apply_cv_screen.dart';
+import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_binding.dart';
+import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_screen.dart';
+import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_template_gallery_screen.dart';
 import 'package:aub_connect_app/modules/jobs/apply_success_screen.dart';
 import 'package:aub_connect_app/modules/jobs/application_status_screen.dart';
 import 'package:aub_connect_app/modules/home/post_detail/post_detail_binding.dart';
 import 'package:aub_connect_app/modules/home/post_detail/post_detail_screen.dart';
+import 'package:aub_connect_app/modules/profile/post_analytics_screen.dart';
 import 'package:aub_connect_app/modules/profile/applicant_detail_screen.dart';
 import 'package:aub_connect_app/modules/profile/cv_screens.dart';
 import 'package:aub_connect_app/modules/profile/edit_profile_screen.dart';
@@ -71,8 +75,6 @@ import 'package:aub_connect_app/modules/auth/startup/startup_binding.dart';
 import 'package:aub_connect_app/modules/auth/startup/startup_screen.dart';
 import 'package:aub_connect_app/modules/map/map_binding.dart';
 import 'package:aub_connect_app/modules/map/map_screen.dart';
-import 'package:aub_connect_app/modules/map/add_place/add_place_binding.dart';
-import 'package:aub_connect_app/modules/map/add_place/add_place_screen.dart';
 class SplashBinding extends Bindings {
   @override
   void dependencies() {
@@ -192,9 +194,23 @@ class AppPages {
       binding: PostDetailBinding(),
     ),
     GetPage(
+      name: AppRoutes.postAnalytics,
+      page: () => const PostAnalyticsScreen(),
+    ),
+    GetPage(
       name: AppRoutes.applyCv,
       page: () => const ApplyCvScreen(),
       binding: ApplyCvBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.applyCvTemplates,
+      page: () => const CvTemplateGalleryScreen(),
+      binding: CvTemplateGalleryBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.applyCvAiCreate,
+      page: () => const AiCvScreen(),
+      binding: AiCvBinding(),
     ),
     GetPage(
       name: AppRoutes.applySuccess,
@@ -351,11 +367,6 @@ class AppPages {
       name: AppRoutes.map,
       page: () => const MapScreen(),
       binding: MapBinding(),
-    ),
-    GetPage(
-      name: AppRoutes.addPlace,
-      page: () => const AddPlaceScreen(),
-      binding: AddPlaceBinding(),
     ),
   ];
 }

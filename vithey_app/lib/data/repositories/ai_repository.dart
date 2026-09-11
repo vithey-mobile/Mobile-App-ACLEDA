@@ -1,6 +1,18 @@
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
+import 'package:aub_connect_app/data/fixtures/ai_cv_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/ai_feed_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/ai_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/ai_job_match_fixtures.dart';
+import 'package:aub_connect_app/data/fixtures/ai_skill_fixtures.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
+import 'package:aub_connect_app/data/models/ai_cv_draft.dart';
+import 'package:aub_connect_app/data/models/ai_career_readiness.dart';
+import 'package:aub_connect_app/data/models/ai_feed_recommendation.dart';
+import 'package:aub_connect_app/data/models/ai_job_match_result.dart';
+import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 
 import 'package:aub_connect_app/data/services/ai_service.dart';
 
@@ -12,9 +24,76 @@ class AiRepository {
 
   bool get useMockApi => _flags.useMockAi;
 
+  /// AI-BOT-04: finance answers may use user context only when the current
+  /// user is student-verified (mock: StudentVerificationRepository.isVerified).
+  bool get _studentVerified {
+    if (!Get.isRegistered<StudentVerificationRepository>()) return false;
+    return Get.find<StudentVerificationRepository>().isVerified.value;
+  }
+
   final _mockSessions = <AiSession>[];
   final _mockMessages = <String, List<AiMessage>>{};
   int _sessionCounter = 0;
+
+  /// Mock-first Auto-Create CV. Live `/ai/cv/generate` can plug in later.
+  Future<AiCvDraft> generateCvDraft() async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      return AiCvFixtures.draftForCurrentUser();
+    }
+    // Backend generate endpoint not wired yet — fall back to fixture shape.
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    return AiCvFixtures.draftForCurrentUser();
+  }
+
+  /// Mock “Regenerate summary”: reshuffles fixture wording built only from
+  /// profile facts (AI-CV-07). Live: `/ai/cv/generate` with `section: summary`.
+  Future<String> regenerateCvSummary({required int variant}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return AiCvFixtures.regeneratedSummary(variant: variant);
+  }
+
+  /// Block 5 — Job Apply Match Score (AI-JOB-01…06, mock rule-based overlap).
+  /// Uses the current user as applicant; `cvFileId` reserved for live matching.
+  /// Live: POST /ai/jobs/{jobPostId}/match
+  ///
+  /// `applicantUserId` targets another applicant (poster-side applicants
+  /// list / detail — AI-JOB-08/09); omit it to match the current user.
+  Future<AiJobMatchResult> matchJob({
+    required String jobPostId,
+    String? cvFileId,
+    String? applicantUserId,
+  }) async {
+    // Live endpoint not wired yet — mock always (USE_MOCK_AI contract).
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (applicantUserId != null && applicantUserId != MockIds.currentUser) {
+      return AiJobMatchFixtures.match(
+        jobPostId: jobPostId,
+        applicantUserId: applicantUserId,
+      );
+    }
+    return AiJobMatchFixtures.matchForJob(
+      jobPostId: jobPostId,
+      cvFileId: cvFileId,
+    );
+  }
+
+  /// Block 4 — Skill Score / Career readiness (AI-SK-02…04, mock rules).
+  /// Live: GET /ai/skills/score
+  ///
+  /// Pass [skills] from the live profile so create/update + attachments
+  /// refresh the career readiness card.
+  Future<AiCareerReadiness> skillScores({List<ProfileSkill>? skills}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    return AiSkillFixtures.readinessForCurrentUser(skills);
+  }
+
+  /// Block 2 — Personalized feed ranking (AI-FEED-02…06, mock ordering).
+  /// Live: GET /ai/feed/recommendations?limit=
+  Future<List<AiFeedRecommendation>> feedRecommendations({int limit = 20}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return AiFeedFixtures.forYou(limit: limit);
+  }
 
   Future<List<AiSession>> fetchSessions({int page = 1}) async {
     if (useMockApi) {
@@ -45,7 +124,7 @@ class AiRepository {
     AiTopic? topic,
   }) async {
     if (useMockApi) {
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       final sid = sessionId ?? _createMockSession(message, topic);
       final userMsg = AiMessage(
         id: 'u-${DateTime.now().millisecondsSinceEpoch}',
@@ -55,17 +134,28 @@ class AiRepository {
         createdAt: DateTime.now(),
       );
       _mockMessages.putIfAbsent(sid, () => []).add(userMsg);
-      final reply = AiFixtures.mockReply(message, topic);
+      final reply = AiFixtures.mockReply(
+        message,
+        topic,
+        isStudentVerified: _studentVerified,
+      );
+      final reasoning = AiFixtures.mockReasoning(message, topic);
       final assistantMsg = AiMessage(
         id: 'a-${DateTime.now().millisecondsSinceEpoch}',
         sessionId: sid,
         role: AiMessageRole.assistant,
         content: reply,
+        reasoning: reasoning,
         createdAt: DateTime.now(),
       );
       _mockMessages[sid]!.add(assistantMsg);
       _updateSessionPreview(sid, message, reply);
-      return AiChatResponse(sessionId: sid, reply: reply, messageId: assistantMsg.id);
+      return AiChatResponse(
+        sessionId: sid,
+        reply: reply,
+        reasoning: reasoning,
+        messageId: assistantMsg.id,
+      );
     }
     return _aiService.sendChat(
       message: message,
@@ -111,7 +201,7 @@ class AiRepository {
     required String assistantMessageId,
   }) async {
     if (useMockApi) {
-      await Future<void>.delayed(const Duration(milliseconds: 900));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       final history = _mockMessages[sessionId];
       if (history == null) throw AiServiceException('Session not found');
       final index = history.indexWhere((m) => m.id == assistantMessageId);
@@ -124,17 +214,27 @@ class AiRepository {
         }
       }
       if (userMessage == null) throw AiServiceException('No user message to regenerate from');
-      final reply = AiFixtures.mockRegenerateReply(userMessage.content);
+      final reply = AiFixtures.mockRegenerateReply(
+        userMessage.content,
+        isStudentVerified: _studentVerified,
+      );
+      final reasoning = AiFixtures.mockReasoning(userMessage.content, null);
       final assistantMsg = AiMessage(
         id: 'a-${DateTime.now().millisecondsSinceEpoch}',
         sessionId: sessionId,
         role: AiMessageRole.assistant,
         content: reply,
+        reasoning: reasoning,
         createdAt: DateTime.now(),
       );
       history[index] = assistantMsg;
       _updateSessionPreview(sessionId, userMessage.content, reply);
-      return AiChatResponse(sessionId: sessionId, reply: reply, messageId: assistantMsg.id);
+      return AiChatResponse(
+        sessionId: sessionId,
+        reply: reply,
+        reasoning: reasoning,
+        messageId: assistantMsg.id,
+      );
     }
     throw AiServiceException('Regenerate is not available yet');
   }
@@ -170,6 +270,9 @@ class AiRepository {
     final lower = message.toLowerCase();
     if (RegExp(r'\b(cv|resume)\b').hasMatch(lower)) return AiTopic.cv;
     if (lower.contains('interview')) return AiTopic.interview;
+    if (lower.contains('poster') || lower.contains('media') || lower.contains('video')) {
+      return AiTopic.media;
+    }
     if (RegExp(r'\b(job|apply|application)\b').hasMatch(lower)) return AiTopic.job;
     if (RegExp(r'\b(finance|fee|payment|balance)\b').hasMatch(lower)) return AiTopic.finance;
     if (lower.contains('student')) return AiTopic.student;

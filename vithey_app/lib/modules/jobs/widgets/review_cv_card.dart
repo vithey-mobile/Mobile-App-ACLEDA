@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ReviewCvCard extends StatelessWidget {
   const ReviewCvCard({
     super.key,
@@ -26,17 +28,25 @@ class ReviewCvCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: context.appColors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.picture_as_pdf, color: AppColors.error, size: 36),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const VitheyIcon(LucideIcons.fileText, color: AppColors.primary, size: 26),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -46,21 +56,18 @@ class ReviewCvCard extends StatelessWidget {
                         fileName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: context.text.labelLarge,
                       ),
                       if (sizeLabel.isNotEmpty)
-                        Text(sizeLabel, style: TextStyle(fontSize: 12, color: context.appColors.muted)),
+                        Text(sizeLabel, style: context.text.bodySmall?.copyWith(fontSize: 12)),
                     ],
                   ),
                 ),
-                IconButton(
+                VitheyIconButton(
+                  icon: LucideIcons.x,
+                  variant: VitheyIconButtonVariant.destructive,
                   tooltip: 'Remove',
-                  onPressed: enabled ? onRemove : null,
-                  icon: Icon(Icons.close, color: context.appColors.muted, size: 20),
-                  style: IconButton.styleFrom(
-                    backgroundColor: context.appColors.inputFill,
-                    minimumSize: const Size(32, 32),
-                  ),
+                  onTap: enabled ? onRemove : null,
                 ),
               ],
             ),

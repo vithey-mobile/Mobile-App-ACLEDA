@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
+import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
 
 class NotificationPreferenceTile extends StatelessWidget {
   const NotificationPreferenceTile({
@@ -22,9 +23,6 @@ class NotificationPreferenceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heading = context.appColors.heading;
-    final muted = context.appColors.muted;
-
     return Semantics(
       toggled: value,
       enabled: enabled,
@@ -40,24 +38,20 @@ class NotificationPreferenceTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Icon(icon, color: context.scheme.primary, size: 24),
-                  const SizedBox(width: 14),
+                  SquircleIcon(icon: icon, radius: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
-                            color: heading,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: context.text.titleSmall,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           subtitle,
-                          style: TextStyle(color: muted, fontSize: 12),
+                          style: context.text.bodySmall?.copyWith(fontSize: 12),
                         ),
                       ],
                     ),

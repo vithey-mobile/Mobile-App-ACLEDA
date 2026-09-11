@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
@@ -113,8 +115,7 @@ class _ChatListHeaderDelegate extends SliverPersistentHeaderDelegate {
                           alignment: Alignment.topCenter,
                           maxHeight: ChatListFlexibleHeader.contactsHeight,
                           child: Obx(() {
-                            final contacts =
-                                controller.recentContacts.toList();
+                            final contacts = controller.recentContacts.toList();
                             return AddChatContactsRow(
                               contacts: contacts,
                               onAddChat: controller.openAddChat,
@@ -157,7 +158,6 @@ class _ChatToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
     return Obx(() {
       final isSearchActive = chatController.isSearchActive.value;
 
@@ -182,8 +182,7 @@ class _ChatToolbar extends StatelessWidget {
                               padding: const EdgeInsets.only(left: 8),
                               child: Text(
                                 title,
-                                style: TextStyle(
-                                  color: colors.heading,
+                                style: context.text.headlineSmall?.copyWith(
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: -0.3,
@@ -210,11 +209,7 @@ class _ChatToolbar extends StatelessWidget {
                                     title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: colors.heading,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: context.text.titleLarge,
                                   ),
                                 ),
                               ],
@@ -225,9 +220,7 @@ class _ChatToolbar extends StatelessWidget {
                     ),
             ),
             HomeAppBarAction(
-              icon: Icon(
-                isSearchActive ? Icons.close_rounded : Icons.search_rounded,
-              ),
+              icon: VitheyIcon(isSearchActive ? LucideIcons.x : LucideIcons.search),
               onPressed: chatController.toggleSearch,
               tooltip: AppStrings.chatSearchHint,
             ),
@@ -235,7 +228,7 @@ class _ChatToolbar extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 HomeAppBarAction(
-                  icon: const Icon(Icons.mark_email_unread_outlined),
+                  icon: const VitheyIcon(LucideIcons.mail),
                   onPressed: onInbox,
                   tooltip: AppStrings.chatMessageRequests,
                 ),
@@ -256,10 +249,10 @@ class _ChatToolbar extends StatelessWidget {
                       alignment: Alignment.center,
                       child: Text(
                         inboxCount > 9 ? '9+' : '$inboxCount',
-                        style: const TextStyle(
+                        style: context.text.labelSmall?.copyWith(
                           fontSize: 9,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                          color: context.scheme.onPrimary,
+                          fontWeight: VitheyWeight.bold,
                           height: 1,
                         ),
                       ),

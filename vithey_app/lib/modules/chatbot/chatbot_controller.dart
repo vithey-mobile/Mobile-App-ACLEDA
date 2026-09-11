@@ -11,8 +11,11 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
+import 'package:aub_connect_app/modules/chatbot/chatbot_args.dart';
 import 'package:aub_connect_app/modules/chatbot/utils/ai_api_error.dart';
+import 'package:aub_connect_app/modules/chatbot/widgets/streaming_markdown.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ChatbotController extends GetxController {
   ChatbotController(this._aiRepository);
 
@@ -38,11 +41,9 @@ class ChatbotController extends GetxController {
   bool _sendLocked = false;
 
   static const starterPrompts = [
-    'Help me improve my CV for campus jobs',
-    'Practice interview questions for a marketing role',
-    'How do I apply for jobs on Vithey?',
-    'What student services does AUB offer?',
-    'Explain how Vithey Finance verification works',
+    'Help me write a CV',
+    'How do I apply for this job?',
+    'Test my Flutter skills',
   ];
 
   bool get hasMessages => messages.isNotEmpty;
@@ -65,9 +66,24 @@ class ChatbotController extends GetxController {
     super.onInit();
     loadSessions();
     scrollController.addListener(_onScroll);
-    final initialPrompt = Get.arguments;
-    if (initialPrompt is String && initialPrompt.trim().isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => fillStarterPrompt(initialPrompt.trim()));
+    _applyNavigationArguments(Get.arguments);
+  }
+
+  /// Accepts [ChatbotArgs] (typed deep-link from Profile/Apply "Improve")
+  /// or a plain String prompt for backwards compatibility.
+  void _applyNavigationArguments(dynamic args) {
+    String? prompt;
+    AiTopic? topic;
+    if (args is ChatbotArgs) {
+      prompt = args.initialPrompt?.trim();
+      topic = args.topic;
+    } else if (args is String) {
+      prompt = args.trim();
+    }
+    if (topic != null) _selectedTopic = topic;
+    if (prompt != null && prompt.isNotEmpty) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => fillStarterPrompt(prompt!));
     }
   }
 
@@ -129,17 +145,17 @@ class ChatbotController extends GetxController {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.photo_outlined),
+                leading: const VitheyIcon(LucideIcons.image),
                 title: const Text('Photo'),
                 onTap: () => Get.back(result: 'photo'),
               ),
               ListTile(
-                leading: const Icon(Icons.videocam_outlined),
+                leading: const VitheyIcon(LucideIcons.video),
                 title: const Text('Video'),
                 onTap: () => Get.back(result: 'video'),
               ),
               ListTile(
-                leading: const Icon(Icons.attach_file_rounded),
+                leading: const VitheyIcon(LucideIcons.paperclip),
                 title: const Text('File'),
                 onTap: () => Get.back(result: 'file'),
               ),
@@ -243,12 +259,19 @@ class ChatbotController extends GetxController {
   void clearPendingAttachments() => pendingAttachments.clear();
 
   void newChat() {
+    // Cancel any in-flight stream so the empty chat can send again.
+    if (isGenerating.value) {
+      _requestToken++;
+      isGenerating.value = false;
+      _sendLocked = false;
+    }
     _saveDraft();
     _currentSessionId = null;
     _selectedTopic = null;
     messages.clear();
     inputController.clear();
     clearPendingAttachments();
+    isLoadingMessages.value = false;
     closeDrawer();
   }
 
@@ -281,6 +304,11 @@ class ChatbotController extends GetxController {
   void fillStarterPrompt(String prompt) {
     inputController.text = prompt;
     inputController.selection = TextSelection.collapsed(offset: prompt.length);
+  }
+
+  Future<void> sendStarterPrompt(String prompt) async {
+    fillStarterPrompt(prompt);
+    await sendMessage();
   }
 
   Future<void> sendMessage() async {
@@ -335,17 +363,15 @@ class ChatbotController extends GetxController {
       if (token != _requestToken) return;
 
       _currentSessionId = response.sessionId;
-      messages.removeWhere((m) => m.id == thinking.id);
-      messages.add(
-        AiMessage(
-          id: response.messageId ?? 'a-$clientId',
-          sessionId: response.sessionId,
-          role: AiMessageRole.assistant,
-          content: response.reply,
-          status: AiMessageStatus.complete,
-          createdAt: DateTime.now(),
-        ),
+      final streamed = await _playChatGptStream(
+        token: token,
+        index: messages.indexWhere((m) => m.id == thinking.id),
+        messageId: response.messageId ?? 'a-$clientId',
+        sessionId: response.sessionId,
+        reasoning: response.reasoning,
+        reply: response.reply,
       );
+      if (token != _requestToken || !streamed) return;
       await loadSessions();
       scrollToBottom();
     } catch (e) {
@@ -386,14 +412,110 @@ class ChatbotController extends GetxController {
     return '$text\n\nAttached:\n$labels';
   }
 
+  /// Streams reasoning (the “dream”) then the reply, one word at a time.
+  /// Returns false if the user stopped or navigated away.
+  Future<bool> _playChatGptStream({
+    required int token,
+    required int index,
+    required String messageId,
+    required String sessionId,
+    required String? reasoning,
+    required String reply,
+  }) async {
+    if (index < 0) return false;
+    final createdAt = messages[index].createdAt;
+
+    messages[index] = AiMessage(
+      id: messageId,
+      sessionId: sessionId,
+      role: AiMessageRole.assistant,
+      content: '',
+      reasoning: '',
+      status: AiMessageStatus.thinking,
+      createdAt: createdAt,
+    );
+
+    final thought = reasoning?.trim() ?? '';
+    if (thought.isNotEmpty) {
+      final ok = await _streamField(
+        token: token,
+        index: index,
+        fullText: thought,
+        intoReasoning: true,
+        status: AiMessageStatus.thinking,
+      );
+      if (!ok) return false;
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+    }
+
+    if (token != _requestToken || !isGenerating.value || isClosed) return false;
+    messages[index] = messages[index].copyWith(
+      status: AiMessageStatus.streaming,
+    );
+
+    final ok = await _streamField(
+      token: token,
+      index: index,
+      fullText: reply,
+      intoReasoning: false,
+      status: AiMessageStatus.streaming,
+    );
+    if (!ok) return false;
+
+    messages[index] = messages[index].copyWith(
+      content: reply,
+      reasoning: thought.isEmpty ? null : thought,
+      status: AiMessageStatus.complete,
+    );
+    return true;
+  }
+
+  Future<bool> _streamField({
+    required int token,
+    required int index,
+    required String fullText,
+    required bool intoReasoning,
+    required AiMessageStatus status,
+  }) async {
+    final units = tokenizeForStream(fullText);
+    final buffer = StringBuffer();
+    var emitted = 0;
+    for (final unit in units) {
+      if (token != _requestToken || !isGenerating.value || isClosed) {
+        return false;
+      }
+      buffer.write(unit);
+      emitted++;
+      final snapshot = buffer.toString();
+      final current = messages[index];
+      messages[index] = current.copyWith(
+        reasoning: intoReasoning ? snapshot : current.reasoning,
+        content: intoReasoning ? current.content : snapshot,
+        status: status,
+      );
+      if (emitted % 3 == 0) scrollToBottom();
+      final isTable = isGfmTableStreamUnit(unit);
+      if (isTable || unit.trim().isEmpty) continue;
+      await Future<void>.delayed(const Duration(milliseconds: 22));
+    }
+    scrollToBottom();
+    return token == _requestToken && isGenerating.value && !isClosed;
+  }
+
   void stopGenerating() {
     if (!isGenerating.value) return;
+    _requestToken++;
     isGenerating.value = false;
     _sendLocked = false;
-    final thinkingIndex = messages.indexWhere((m) => m.status == AiMessageStatus.thinking);
-    if (thinkingIndex >= 0) {
-      messages[thinkingIndex] = messages[thinkingIndex].copyWith(
-        content: 'Response stopped.',
+    final index = messages.indexWhere(
+      (m) => m.isThinking || m.isStreaming,
+    );
+    if (index >= 0) {
+      final current = messages[index];
+      messages[index] = current.copyWith(
+        content: current.content.trim().isEmpty
+            ? 'Response stopped.'
+            : current.content,
         status: AiMessageStatus.stopped,
       );
     }
@@ -421,14 +543,15 @@ class ChatbotController extends GetxController {
       );
       if (token != _requestToken) return;
 
-      messages[index] = AiMessage(
-        id: response.messageId ?? assistantMessage.id,
+      final streamed = await _playChatGptStream(
+        token: token,
+        index: index,
+        messageId: response.messageId ?? assistantMessage.id,
         sessionId: response.sessionId,
-        role: AiMessageRole.assistant,
-        content: response.reply,
-        status: AiMessageStatus.complete,
-        createdAt: DateTime.now(),
+        reasoning: response.reasoning,
+        reply: response.reply,
       );
+      if (token != _requestToken || !streamed) return;
       await loadSessions();
       scrollToBottom();
     } catch (_) {
@@ -467,11 +590,7 @@ class ChatbotController extends GetxController {
                     Text(
                       'Rename chat',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colors.heading,
-                      ),
+                      style: dialogContext.text.titleLarge,
                     ),
                     const SizedBox(height: 16),
                     VitheyField(
@@ -547,26 +666,20 @@ class ChatbotController extends GetxController {
   }
 
   void scrollToBottom() {
+    if (isClosed) return;
     if (!_isNearBottom && messages.length > 2) return;
     if (!scrollController.hasClients) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!scrollController.hasClients) return;
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+      if (isClosed || !scrollController.hasClients) return;
+      final max = scrollController.position.maxScrollExtent;
+      scrollController.jumpTo(max);
       showJumpToLatest.value = false;
     });
   }
 
   void forceScrollToBottom() {
-    if (!scrollController.hasClients) return;
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
+    if (isClosed || !scrollController.hasClients) return;
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
     showJumpToLatest.value = false;
   }
 
@@ -596,6 +709,9 @@ class ChatbotController extends GetxController {
 
   @override
   void onClose() {
+    _requestToken++;
+    isGenerating.value = false;
+    _sendLocked = false;
     inputController.dispose();
     scrollController.dispose();
     super.onClose();

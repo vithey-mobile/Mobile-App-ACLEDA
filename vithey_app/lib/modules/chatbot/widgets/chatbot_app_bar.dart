@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 PreferredSizeWidget buildChatbotAppBar({
   required VoidCallback onMenu,
   required VoidCallback onBackHome,
@@ -11,29 +13,15 @@ PreferredSizeWidget buildChatbotAppBar({
     scrolledUnderElevation: 0,
     centerTitle: true,
     backgroundColor: Colors.transparent,
-    leading: _CircleIconButton(
-      icon: Icons.menu_rounded,
+    leading: _AppBarAction(
+      icon: LucideIcons.menu,
       tooltip: 'Menu',
       onPressed: onMenu,
     ),
-    title: Material(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.circular(22),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          'Vithey AI',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 15,
-          ),
-        ),
-      ),
-    ),
+    title: _VitheyAiBadge(),
     actions: [
-      _CircleIconButton(
-        icon: Icons.arrow_back_rounded,
+      _AppBarAction(
+        icon: LucideIcons.arrowLeft,
         tooltip: 'Back to home',
         onPressed: onBackHome,
       ),
@@ -42,8 +30,8 @@ PreferredSizeWidget buildChatbotAppBar({
   );
 }
 
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({
+class _AppBarAction extends StatelessWidget {
+  const _AppBarAction({
     required this.icon,
     required this.onPressed,
     required this.tooltip,
@@ -57,13 +45,51 @@ class _CircleIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Material(
-        color: context.appColors.inputFill,
-        shape: const CircleBorder(),
-        child: IconButton(
-          icon: Icon(icon, size: 22, color: context.appColors.heading),
-          tooltip: tooltip,
-          onPressed: onPressed,
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: VitheyIcon(icon, size: 22, color: context.appColors.heading),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VitheyAiBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            VitheyIcon(
+              LucideIcons.sparkles,
+              size: 15,
+              color: context.scheme.onPrimary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Vithey AI',
+              style: context.text.titleSmall?.copyWith(
+                color: context.scheme.onPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

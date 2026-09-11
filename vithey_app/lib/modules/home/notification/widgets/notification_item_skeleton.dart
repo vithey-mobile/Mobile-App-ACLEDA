@@ -8,15 +8,15 @@ class NotificationItemSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 78,
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: context.appColors.subtleShadow,
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),

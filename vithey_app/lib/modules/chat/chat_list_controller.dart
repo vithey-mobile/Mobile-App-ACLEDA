@@ -32,6 +32,7 @@ class ChatListController extends GetxController {
   final searchQuery = ''.obs;
   final isSearchActive = false.obs;
   final messageSearchSnippets = <String, String>{}.obs;
+
   /// True when contacts header is collapsed (scrolled) — used to hide folder border.
   final headerCollapsed = false.obs;
 
@@ -159,7 +160,9 @@ class ChatListController extends GetxController {
 
     final snippet = messageSearchSnippets[conversation.id];
     if (snippet != null &&
-        !conversation.lastMessagePreview.toLowerCase().contains(query.toLowerCase())) {
+        !conversation.lastMessagePreview
+            .toLowerCase()
+            .contains(query.toLowerCase())) {
       return snippet;
     }
     return null;
@@ -203,9 +206,7 @@ class ChatListController extends GetxController {
 
     final query = searchQuery.value.trim().toLowerCase();
     if (query.isNotEmpty) {
-      list = list
-          .where((c) => conversationMatchesSearch(c, query))
-          .toList();
+      list = list.where((c) => conversationMatchesSearch(c, query)).toList();
     }
     return list;
   }

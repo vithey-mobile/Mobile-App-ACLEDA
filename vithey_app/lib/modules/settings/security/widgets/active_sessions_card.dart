@@ -1,13 +1,17 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
 import 'package:flutter/material.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class ActiveSessionsCard extends StatelessWidget {
   const ActiveSessionsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
+    final colors = context.appColors;
 
     return VitheyCard(
       child: Column(
@@ -15,22 +19,23 @@ class ActiveSessionsCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.shield_outlined, color: primary),
-              const SizedBox(width: 8),
+              const SquircleIcon(icon: LucideIcons.shield, radius: 16),
+              const SizedBox(width: 12),
               Text(
                 'Active Sessions',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.titleMedium,
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.smartphone_outlined, color: primary, size: 22),
+              SquircleIcon(
+                icon: LucideIcons.smartphone,
+                size: 40,
+                radius: 16,
+                color: colors.heading,
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -38,36 +43,29 @@ class ActiveSessionsCard extends StatelessWidget {
                   children: [
                     Text(
                       'Current Device',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: context.appColors.heading,
-                      ),
+                      style: context.text.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Last active: Just now',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.appColors.muted,
-                      ),
+                      style: context.text.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  color: context.scheme.primary.withValues(
+                    alpha: context.isDarkMode ? 0.20 : 0.12,
+                  ),
+                  borderRadius: BorderRadius.circular(VitheyRadii.pill),
                 ),
                 child: Text(
                   'Active',
-                  style: TextStyle(
-                    color: primary,
+                  style: context.text.labelMedium?.copyWith(
+                    color: context.scheme.primary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 12,
                   ),
                 ),
               ),

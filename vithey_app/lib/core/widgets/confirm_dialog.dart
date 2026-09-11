@@ -105,21 +105,14 @@ class ConfirmDialog extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.start,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colors.heading,
-                ),
+                style: context.text.titleLarge?.copyWith(color: colors.heading),
               ),
               const SizedBox(height: 12),
               Text(
                 message,
                 textAlign: TextAlign.start,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colors.muted,
-                  height: 1.4,
-                ),
+                style: context.text.bodyMedium
+                    ?.copyWith(color: colors.muted, height: 1.4),
               ),
               const SizedBox(height: 24),
               Row(

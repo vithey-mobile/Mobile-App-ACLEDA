@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -12,12 +13,14 @@ import 'package:aub_connect_app/modules/jobs/widgets/application_submitted_hero.
 import 'package:aub_connect_app/modules/jobs/widgets/apply_job_context.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/apply_job_stepper.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/cv_upload_zone.dart';
+import 'package:aub_connect_app/modules/jobs/widgets/job_match_score_card.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/privacy_footer_note.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/position_selector.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/review_cv_card.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/selected_cv_card.dart';
 import 'package:aub_connect_app/modules/jobs/widgets/what_happens_next_list.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ApplyCvScreen extends GetView<ApplyCvController> {
   const ApplyCvScreen({super.key});
 
@@ -39,9 +42,9 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
           backgroundColor: context.appColors.cardSurface,
           foregroundColor: context.appColors.heading,
           surfaceTintColor: Colors.transparent,
-          title: const Text(
+          title: Text(
             AppStrings.applyJobTitle,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           leading: BackButton(
             onPressed: () async {
@@ -102,11 +105,7 @@ class _AlreadyAppliedView extends StatelessWidget {
             Text(
               'Application Already Submitted!',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.appColors.heading,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+              style: context.text.headlineSmall,
             ),
             const SizedBox(height: 12),
             ConstrainedBox(
@@ -115,22 +114,15 @@ class _AlreadyAppliedView extends StatelessWidget {
                 'Your application for ${controller.jobTitle} has already been '
                 'submitted. View its latest status and updates.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: context.appColors.muted,
-                  fontSize: 14,
-                  height: 1.45,
-                ),
+                style: context.text.bodyMedium?.copyWith(color: context.appColors.muted, height: 1.45),
               ),
             ),
             const SizedBox(height: 22),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 250),
-              child: CustomButton(
-                label: AppStrings.viewApplicationStatus,
-                variant: CustomButtonVariant.outline,
-                icon: Icons.visibility_outlined,
-                onPressed: controller.viewApplicationStatus,
-              ),
+            CustomButton(
+              label: AppStrings.viewApplicationStatus,
+              variant: CustomButtonVariant.outline,
+              icon: LucideIcons.eye,
+              onPressed: controller.viewApplicationStatus,
             ),
           ],
         ),
@@ -161,21 +153,14 @@ class _UploadStep extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
                     AppStrings.uploadYourCv,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.titleLarge,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
                     AppStrings.uploadCvSubtitle,
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 13,
-                    ),
+                    style: context.text.bodySmall,
                   ),
                 ),
                 if (!eligible)
@@ -190,7 +175,7 @@ class _UploadStep extends StatelessWidget {
                   PositionSelector(
                     position: controller.positionLabel,
                   ),
-                  _buildCvSection(enabled),
+                  _buildCvSection(context, enabled),
                 ],
               ],
             ),
@@ -199,11 +184,12 @@ class _UploadStep extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (controller.isAlreadyApplied)
                 CustomButton(
                   label: AppStrings.viewApplicationStatus,
-                  icon: Icons.visibility_outlined,
+                  icon: LucideIcons.eye,
                   onPressed: controller.viewApplicationStatus,
                 )
               else if (!eligible)
@@ -226,7 +212,7 @@ class _UploadStep extends StatelessWidget {
     );
   }
 
-  Widget _buildCvSection(bool enabled) {
+  Widget _buildCvSection(BuildContext context, bool enabled) {
     final saved = controller.savedCv.value;
     final local = controller.localCv.value;
     final mode = controller.selectionMode.value;
@@ -265,16 +251,45 @@ class _UploadStep extends StatelessWidget {
             child: CustomButton(
               label: '${AppStrings.useSavedCv}: ${saved.fileName}',
               onPressed: enabled ? controller.useSavedCv : null,
-              icon: Icons.description_outlined,
+              icon: LucideIcons.fileText,
               variant: CustomButtonVariant.outline,
             ),
           ),
+        if (controller.savedCvs.length > 1)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: CustomButton(
+              label: 'Choose CV (${controller.savedCvs.length})',
+              onPressed: enabled
+                  ? () => controller.openChooseSavedCv(context)
+                  : null,
+              icon: LucideIcons.layoutTemplate,
+              variant: CustomButtonVariant.outline,
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          child: CustomButton(
+            label: 'Create CV with AI',
+            icon: LucideIcons.sparkles,
+            variant: CustomButtonVariant.outline,
+            onPressed: enabled ? controller.openAiCvCreator : null,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Text(
+            'Or upload / update a CV manually above.',
+            textAlign: TextAlign.center,
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
+          ),
+        ),
         if (controller.fileError.value.isNotEmpty && local == null)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Text(
               controller.fileError.value,
-              style: const TextStyle(color: AppColors.error, fontSize: 13),
+              style: context.text.bodySmall?.copyWith(color: AppColors.error),
             ),
           ),
       ],
@@ -302,21 +317,14 @@ class _ReviewStep extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
                     AppStrings.reviewYourCv,
-                    style: TextStyle(
-                      color: context.appColors.heading,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: context.text.titleLarge,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
                     AppStrings.reviewCvSubtitle,
-                    style: TextStyle(
-                      color: context.appColors.muted,
-                      fontSize: 13,
-                    ),
+                    style: context.text.bodySmall,
                   ),
                 ),
                 ReviewCvCard(
@@ -333,8 +341,19 @@ class _ReviewStep extends StatelessWidget {
                     child: Text(
                       'Applying for ${controller.positionLabel}'
                       '${controller.organizationName.isNotEmpty ? ' at ${controller.organizationName}' : ''}',
-                      style: TextStyle(
-                          fontSize: 13, color: context.appColors.muted),
+                      style: context.text.bodySmall,
+                    ),
+                  ),
+                ],
+                // Block 5 — AI match card, review step only (AI-JOB-07).
+                if (controller.jobPostId != null &&
+                    Get.find<FeatureFlags>().useAiJobMatch) ...[
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: JobMatchScoreCard(
+                      jobPostId: controller.jobPostId!,
+                      jobTitle: controller.jobTitle,
                     ),
                   ),
                 ],
@@ -355,6 +374,7 @@ class _ReviewStep extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CustomButton(
                 label: controller.submitLabel.value,
@@ -365,7 +385,7 @@ class _ReviewStep extends StatelessWidget {
               CustomButton(
                 label: AppStrings.back,
                 variant: CustomButtonVariant.outline,
-                icon: Icons.arrow_back,
+                icon: LucideIcons.arrowLeft,
                 onPressed: enabled ? controller.goToUpload : null,
               ),
             ],

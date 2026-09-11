@@ -7,6 +7,7 @@ import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_backg
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Visual-only Select Language for Splash handoff.
 /// Must NOT use GetX — Splash deletes/replaces routes around this widget.
 class SelectLanguagePreview extends StatelessWidget {
@@ -21,7 +22,6 @@ class SelectLanguagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heading = context.appColors.heading;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final secondary =
         isDark ? const Color(0xFFB0B0BE) : const Color(0xFF5A5A68);
@@ -82,21 +82,17 @@ class SelectLanguagePreview extends StatelessWidget {
                                           Text(
                                             'Select Language',
                                             textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: heading,
-                                              height: 1.25,
-                                            ),
+                                            style: context.text.headlineSmall
+                                                ?.copyWith(height: 1.25),
                                           ),
                                           const SizedBox(height: 12),
                                           Text(
                                             'Choose your preferred language for the app.',
                                             textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              height: 1.4,
+                                            style: context.text.bodyMedium
+                                                ?.copyWith(
                                               color: secondary,
+                                              height: 1.4,
                                             ),
                                           ),
                                           const SizedBox(height: 40),
@@ -105,7 +101,7 @@ class SelectLanguagePreview extends StatelessWidget {
                                               color: Theme.of(context)
                                                   .scaffoldBackgroundColor,
                                               borderRadius:
-                                                  BorderRadius.circular(14),
+                                                  BorderRadius.circular(18),
                                               border: Border.all(color: border),
                                             ),
                                             child: Column(
@@ -202,22 +198,19 @@ class _PreviewRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: context.appColors.heading,
-                  ),
+                  style: context.text.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 13, color: secondary),
+                  style: context.text.bodySmall?.copyWith(color: secondary),
                 ),
               ],
             ),
           ),
           if (selected)
-            const Icon(Icons.check, color: AppColors.primary, size: 24)
+            const VitheyIcon(LucideIcons.check, color: AppColors.primary, size: 24)
           else
             const SizedBox(width: 24),
         ],

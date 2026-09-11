@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 
 /// Status chip for payments, messages, etc.
 class StatusBadge extends StatelessWidget {
@@ -21,7 +23,11 @@ class StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(
+        label,
+        style: context.text.labelMedium
+            ?.copyWith(fontWeight: VitheyWeight.semibold, color: color),
+      ),
     );
   }
 }

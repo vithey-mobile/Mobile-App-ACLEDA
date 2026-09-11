@@ -8,6 +8,7 @@ import 'package:aub_connect_app/data/models/search_args.dart';
 import 'package:aub_connect_app/data/models/search_result_models.dart';
 import 'package:aub_connect_app/data/repositories/search_repository.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_empty_state.dart';
+import 'package:aub_connect_app/modules/search/widgets/search_filter_bar.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_job_tile.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_loading_skeleton.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_person_tile.dart';
@@ -15,8 +16,7 @@ import 'package:aub_connect_app/modules/search/widgets/search_post_tile.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_section_header.dart';
 import 'package:aub_connect_app/modules/search/widgets/search_video_tile.dart';
 
-void _noop() {}
-
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class SearchResultsView extends StatelessWidget {
   const SearchResultsView({
     super.key,
@@ -33,6 +33,7 @@ class SearchResultsView extends StatelessWidget {
     required this.onPostTap,
     required this.onSeeAll,
     this.peopleOnly = false,
+    this.filter = SearchResultFilters.all,
   });
 
   final String query;
@@ -48,6 +49,7 @@ class SearchResultsView extends StatelessWidget {
   final ValueChanged<PostSearchResult> onPostTap;
   final ValueChanged<SearchSeeAllCategory> onSeeAll;
   final bool peopleOnly;
+  final String filter;
 
   bool get _hasAny =>
       people.isNotEmpty ||
@@ -78,46 +80,31 @@ class SearchResultsView extends StatelessWidget {
       return SearchEmptyState(query: peopleOnly ? 'people' : query);
     }
 
-    if (peopleOnly) {
-      return ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          if (error != null) _ErrorBanner(message: error!, onRetry: onRetry),
-          if (people.isNotEmpty) ...[
-            const SearchSectionHeader(
-                title: 'People', showSeeAll: false, onSeeAll: _noop),
-            ...people.map(
-              (person) => SearchPersonTile(
-                person: person,
-                query: query,
-                onTap: () => onPersonTap(person),
-                onMessage: () => onPersonMessage(person),
-              ),
-            ),
-          ],
-        ],
-      );
+    final showPeople = peopleOnly ||
+        filter == SearchResultFilters.all ||
+        filter == SearchResultFilters.people;
+    final showPosts =
+        !peopleOnly && filter == SearchResultFilters.posts;
+    final showJobs = !peopleOnly && filter == SearchResultFilters.jobs;
+    final showVideos =
+        !peopleOnly && filter == SearchResultFilters.videos;
+    final showPlaces = !peopleOnly && filter == SearchResultFilters.all;
+
+    if (!showPeople && !showPosts && !showJobs && !showVideos) {
+      return SearchEmptyState(query: query);
     }
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         if (error != null) _ErrorBanner(message: error!, onRetry: onRetry),
-        if (query.trim().length >= 2)
-          ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0x1A03B4AC),
-              child: Icon(Icons.map_outlined, color: AppColors.primary),
-            ),
-            title: const Text('Places on map'),
-            subtitle: Text('Search "$query" near you'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.toNamed(AppRoutes.map, arguments: query.trim()),
-          ),
-        if (people.isNotEmpty) ...[
+        if (showPlaces && query.trim().length >= 2)
+          _PlacesOnMapTile(query: query.trim()),
+        if (showPeople && people.isNotEmpty) ...[
           SearchSectionHeader(
             title: 'People',
-            showSeeAll: people.length >= SearchRepository.previewLimit,
+            showSeeAll:
+                !peopleOnly && people.length >= SearchRepository.previewLimit,
             onSeeAll: () => onSeeAll(SearchSeeAllCategory.people),
           ),
           ...people.map(
@@ -129,7 +116,7 @@ class SearchResultsView extends StatelessWidget {
             ),
           ),
         ],
-        if (posts.isNotEmpty) ...[
+        if (showPosts && posts.isNotEmpty) ...[
           SearchSectionHeader(
             title: 'Posts',
             showSeeAll: posts.length >= SearchRepository.previewLimit,
@@ -143,7 +130,7 @@ class SearchResultsView extends StatelessWidget {
             ),
           ),
         ],
-        if (jobs.isNotEmpty) ...[
+        if (showJobs && jobs.isNotEmpty) ...[
           SearchSectionHeader(
             title: 'Jobs',
             showSeeAll: jobs.length >= SearchRepository.previewLimit,
@@ -157,7 +144,7 @@ class SearchResultsView extends StatelessWidget {
             ),
           ),
         ],
-        if (videos.isNotEmpty) ...[
+        if (showVideos && videos.isNotEmpty) ...[
           SearchSectionHeader(
             title: 'Videos',
             showSeeAll: videos.length >= SearchRepository.previewLimit,
@@ -176,6 +163,72 @@ class SearchResultsView extends StatelessWidget {
   }
 }
 
+/// "Places on map" entry — GenZ card with a tinted squircle lead icon.
+class _PlacesOnMapTile extends StatelessWidget {
+  const _PlacesOnMapTile({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 5, 12, 5),
+      child: Material(
+        color: colors.cardSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Get.toNamed(AppRoutes.map, arguments: query),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child:
+                      const VitheyIcon(LucideIcons.map, color: AppColors.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Places on map',
+                        style: context.text.labelLarge,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Search "$query" near you',
+                        style: context.text.bodySmall
+                            ?.copyWith(fontSize: 12.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                VitheyIcon(LucideIcons.chevronRight, color: colors.muted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message, required this.onRetry});
 
@@ -186,21 +239,34 @@ class _ErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
       decoration: BoxDecoration(
         color: colors.cardSurface,
         border: Border.all(color: colors.border),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: VitheyIcon(
+              LucideIcons.circleAlert,
+              size: 20,
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: colors.heading, fontSize: 13.5),
+              style: context.text.bodySmall
+                  ?.copyWith(fontSize: 13.5, color: colors.heading),
             ),
           ),
           VitheyTextLink(label: 'Retry', onPressed: onRetry),

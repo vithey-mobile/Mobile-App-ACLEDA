@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/data/models/ai_skill_scorer.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class AccountSkillsSection extends StatelessWidget {
   const AccountSkillsSection({super.key, required this.skills});
@@ -18,7 +22,7 @@ class AccountSkillsSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(VitheyRadii.card),
         boxShadow: [
           BoxShadow(color: colors.subtleShadow, blurRadius: 12, offset: const Offset(0, 4)),
         ],
@@ -28,14 +32,14 @@ class AccountSkillsSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.psychology_outlined, size: 18, color: primary),
+              VitheyIcon(LucideIcons.brain, size: 18, color: primary),
               const SizedBox(width: 8),
-              Text('Skills', style: TextStyle(color: colors.muted, fontSize: 13)),
+              Text('Skills', style: context.text.bodySmall),
             ],
           ),
           const SizedBox(height: 12),
           if (skills.isEmpty)
-            Text('No skills added', style: TextStyle(fontSize: 16, color: colors.muted))
+            Text('No skills added', style: context.text.bodyLarge?.copyWith(color: colors.muted))
           else
             Wrap(
               spacing: 8,
@@ -55,11 +59,12 @@ class _SkillChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final aiPercent = AiSkillScorer.scoreSkill(skill);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(VitheyRadii.pill),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
@@ -67,16 +72,15 @@ class _SkillChip extends StatelessWidget {
         children: [
           Text(
             skill.name,
-            style: TextStyle(
-              fontSize: 13,
+            style: context.text.bodySmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: context.appColors.heading,
             ),
           ),
           const SizedBox(width: 6),
           Text(
-            '${skill.proficiency}%',
-            style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500),
+            'AI $aiPercent%',
+            style: context.text.labelMedium?.copyWith(color: AppColors.primary),
           ),
         ],
       ),

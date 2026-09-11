@@ -1,38 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
+
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class PasswordHeader extends StatelessWidget {
   const PasswordHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.scheme.primary;
+    final colors = context.appColors;
 
     return Column(
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: primary.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.lock_outline, color: primary, size: 32),
-        ),
+        const SquircleIcon(icon: LucideIcons.lock, size: 72),
         const SizedBox(height: 16),
         Text(
           'Update your password',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: context.appColors.heading,
-          ),
+          style: context.text.headlineSmall?.copyWith(fontSize: 20),
         ),
         const SizedBox(height: 4),
         Text(
           'Choose a strong password to keep your account safe',
           textAlign: TextAlign.center,
-          style: TextStyle(color: context.appColors.muted),
+          style: TextStyle(color: colors.muted),
         ),
       ],
     );

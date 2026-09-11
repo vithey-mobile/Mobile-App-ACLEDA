@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
+import 'package:aub_connect_app/data/fixtures/ai_job_match_fixtures.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/core/widgets/status_badge.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
+import 'package:aub_connect_app/modules/profile/widgets/ai_match_badge.dart';
 import 'package:aub_connect_app/modules/profile/widgets/application_feedback_success.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class JobApplicantsController extends GetxController {
   JobApplicantsController(this._repository);
 
@@ -34,7 +41,19 @@ class JobApplicantsController extends GetxController {
     if (_jobPostId == null) return;
     isLoading.value = true;
     try {
-      applicants.assignAll(await _repository.getJobApplicants(_jobPostId!));
+      final loaded = await _repository.getJobApplicants(_jobPostId!);
+      if (Get.find<FeatureFlags>().useAiJobMatch && _jobPostId != null) {
+        // AI-JOB-09: poster sees highest AI match first (mock, rule-based).
+        loaded.sort((a, b) => AiJobMatchFixtures.scoreForApplicant(
+                  jobPostId: _jobPostId!,
+                  applicantUserId: b.applicantUserId,
+                )
+                .compareTo(AiJobMatchFixtures.scoreForApplicant(
+                  jobPostId: _jobPostId!,
+                  applicantUserId: a.applicantUserId,
+                )));
+      }
+      applicants.assignAll(loaded);
     } finally {
       isLoading.value = false;
     }
@@ -90,7 +109,7 @@ class JobApplicantsScreen extends GetView<JobApplicantsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Application list', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Application list', style: context.text.titleLarge),
       ),
       body: Obx(() {
         if (controller.isLoading.value) return const LoadingWidget();
@@ -136,12 +155,21 @@ class _ApplicantCard extends StatelessWidget {
         _ => '${application.rank}th',
       };
 
+  (String, Color) get _status => switch (application.status) {
+        ApplicationStatus.pending => ('Pending', AppColors.pending),
+        ApplicationStatus.reviewed => ('Review', AppColors.info),
+        ApplicationStatus.accepted => ('Accepted', AppColors.success),
+        ApplicationStatus.rejected => ('Rejected', AppColors.error),
+      };
+
   @override
   Widget build(BuildContext context) {
+    final (statusLabel, statusColor) = _status;
     return VitheyCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       bordered: true,
-      elevated: false,
+      elevated: true,
+      borderRadius: VitheyRadii.card,
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -152,36 +180,47 @@ class _ApplicantCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(application.applicantName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(application.applicantName,
+                          style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                       if (application.headline != null)
-                        Text(application.headline!, style: TextStyle(color: context.appColors.muted, fontSize: 13)),
+                        Text(application.headline!, style: context.text.bodySmall),
                     ],
                   ),
                 ),
+                StatusBadge(label: statusLabel, color: statusColor),
+                const SizedBox(width: 8),
                 CircleAvatar(
                   radius: 14,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   child: Text(
                     _rankLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: context.text.bodyLarge
+                        ?.copyWith(color: context.scheme.onPrimary, fontSize: 10),
                   ),
                 ),
               ],
             ),
+            // AI-JOB-08/09: mock AI match badge on each applicant card.
+            if (Get.find<FeatureFlags>().useAiJobMatch)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: AiMatchBadge(
+                  score: AiJobMatchFixtures.scoreForApplicant(
+                    jobPostId: application.jobPostId,
+                    applicantUserId: application.applicantUserId,
+                  ),
+                ),
+              ),
             const SizedBox(height: 10),
             if (application.location != null)
-              _InfoLine(icon: Icons.location_on_outlined, text: application.location!),
+              _InfoLine(icon: LucideIcons.mapPin, text: application.location!),
             if (application.email != null)
-              _InfoLine(icon: Icons.email_outlined, text: application.email!),
+              _InfoLine(icon: LucideIcons.mail, text: application.email!),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
                 RelativeTime.format(application.appliedAt),
-                style: TextStyle(fontSize: 12, color: context.appColors.muted),
+                style: context.text.labelMedium,
               ),
             ),
             const Divider(height: 20),
@@ -233,9 +272,9 @@ class _InfoLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: context.appColors.muted),
+          VitheyIcon(icon, size: 16, color: context.appColors.muted),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(color: context.appColors.muted, fontSize: 13))),
+          Expanded(child: Text(text, style: context.text.bodySmall)),
         ],
       ),
     );

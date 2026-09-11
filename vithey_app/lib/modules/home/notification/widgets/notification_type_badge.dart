@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class NotificationTypeBadge extends StatelessWidget {
   const NotificationTypeBadge({super.key, required this.type});
 
@@ -10,15 +12,24 @@ class NotificationTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 20,
-      height: 20,
+      width: 22,
+      height: 22,
       decoration: BoxDecoration(
         color: colorFor(type),
         shape: BoxShape.circle,
-        border:
-            Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+        border: Border.all(
+          color: context.appColors.cardSurface,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: context.appColors.subtleShadow,
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
-      child: Icon(iconFor(type), size: 11, color: Colors.white),
+      child: VitheyIcon(iconFor(type), size: 12, color: Colors.white),
     );
   }
 
@@ -47,24 +58,24 @@ class NotificationTypeBadge extends StatelessWidget {
 
   static IconData iconFor(NotificationType type) {
     return switch (type) {
-      NotificationType.postLike => Icons.favorite,
+      NotificationType.postLike => LucideIcons.heart,
       NotificationType.postComment ||
       NotificationType.postMention =>
-        Icons.mode_comment,
-      NotificationType.postShare => Icons.share,
-      NotificationType.newFollower => Icons.person_add,
+        LucideIcons.messageSquare,
+      NotificationType.postShare => LucideIcons.share2,
+      NotificationType.newFollower => LucideIcons.userPlus,
       NotificationType.jobApplicationReceived ||
       NotificationType.jobApplicationStatus =>
-        Icons.work_outline,
+        LucideIcons.briefcase,
       NotificationType.chatRequest ||
       NotificationType.chatMessage =>
-        Icons.chat_bubble,
+        LucideIcons.messageCircle,
       NotificationType.paymentDue ||
       NotificationType.paymentOverdue =>
-        Icons.payments,
-      NotificationType.aiAssistantResponse => Icons.auto_awesome,
-      NotificationType.studentVerification => Icons.verified_user,
-      NotificationType.system => Icons.campaign,
+        LucideIcons.creditCard,
+      NotificationType.aiAssistantResponse => LucideIcons.sparkles,
+      NotificationType.studentVerification => LucideIcons.shieldCheck,
+      NotificationType.system => LucideIcons.megaphone,
     };
   }
 }

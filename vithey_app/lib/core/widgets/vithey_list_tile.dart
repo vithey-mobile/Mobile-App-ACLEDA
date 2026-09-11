@@ -1,8 +1,10 @@
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Settings-style row on a [VitheyCard] surface.
 ///
 /// Icon in a tinted 12-radius square, title + optional subtitle, and a
@@ -59,9 +61,9 @@ class VitheyListTile extends StatelessWidget {
               height: 40,
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(VitheyRadii.iconSquircle),
               ),
-              child: Icon(icon, size: 20, color: iconColor),
+              child: VitheyIcon(icon, size: 20, color: iconColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -71,21 +73,13 @@ class VitheyListTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: titleColor,
-                    ),
+                    style: context.text.titleSmall?.copyWith(color: titleColor),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colors.muted,
-                        height: 1.3,
-                      ),
+                      style: context.text.bodySmall?.copyWith(height: 1.3),
                     ),
                   ],
                 ],
@@ -94,7 +88,7 @@ class VitheyListTile extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (showChevron)
-              Icon(Icons.chevron_right_rounded, color: colors.muted),
+              VitheyIcon(LucideIcons.chevronRight, color: colors.muted),
           ],
         ),
       ),

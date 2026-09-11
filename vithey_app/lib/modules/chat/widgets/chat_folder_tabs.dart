@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/data/models/chat_folder.dart';
 import 'package:aub_connect_app/modules/chat/chat_list_controller.dart';
 import 'package:aub_connect_app/modules/chat/widgets/chat_folders_sheet.dart';
 import 'package:get/get.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Pinned Telegram-style folder navigation bar with bordered capsule track.
 class ChatFolderTabs extends StatefulWidget {
   const ChatFolderTabs({super.key});
@@ -132,8 +134,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                     inactiveLabel: inactiveLabel,
                     badgeBg: badgeBg,
                     badgeFg: badgeFg,
-                    onTap: (_) =>
-                        controller.selectFolder(ChatFolderIds.unread),
+                    onTap: (_) => controller.selectFolder(ChatFolderIds.unread),
                   ),
                   ...folders.map(
                     (folder) => _FolderNavTab(
@@ -248,17 +249,15 @@ class _InlineCreateFolderFieldState extends State<_InlineCreateFolderField> {
           enabled: !_saving,
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: VitheyWeight.semibold,
             color: context.appColors.heading,
           ),
           decoration: InputDecoration(
             hintText: AppStrings.chatFolderNameHint,
-            hintStyle: TextStyle(
-              color: context.appColors.muted.withValues(alpha: 0.65),
+            hintStyle: context.text.labelMedium?.copyWith(
               fontSize: 13,
-              fontWeight: FontWeight.w500,
+              color: widget.inactiveLabel.withValues(alpha: 0.65),
             ),
             isDense: true,
             contentPadding:
@@ -315,9 +314,8 @@ class _FolderNavTab extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: GestureDetector(
-            onDoubleTap: onShowMenu != null
-                ? () => onShowMenu!(tabContext)
-                : null,
+            onDoubleTap:
+                onShowMenu != null ? () => onShowMenu!(tabContext) : null,
             child: Material(
               color: selected
                   ? AppColors.primary.withValues(alpha: 0.20)
@@ -325,50 +323,52 @@ class _FolderNavTab extends StatelessWidget {
               borderRadius: BorderRadius.circular(99),
               child: InkWell(
                 onTap: () => onTap(tabContext),
-                onLongPress: onShowMenu != null
-                    ? () => onShowMenu!(tabContext)
-                    : null,
+                onLongPress:
+                    onShowMenu != null ? () => onShowMenu!(tabContext) : null,
                 borderRadius: BorderRadius.circular(99),
                 child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: selected ? AppColors.primary : inactiveLabel,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Container(
-                      height: 16,
-                      constraints: const BoxConstraints(minWidth: 18),
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.primary : badgeBg,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '$count',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : badgeFg,
-                          height: 1,
+                  padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: context.text.bodySmall?.copyWith(
+                          color: selected
+                              ? AppColors.primaryLight
+                              : inactiveLabel,
+                          fontWeight: VitheyWeight.semibold,
+                          height: 1.1,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 5),
+                      Container(
+                        height: 16,
+                        constraints: const BoxConstraints(minWidth: 18),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        decoration: BoxDecoration(
+                          color: selected ? AppColors.primaryLight : badgeBg,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$count',
+                          style: context.text.labelSmall?.copyWith(
+                            fontSize: VitheyType.micro,
+                            fontWeight: VitheyWeight.bold,
+                            color: selected
+                                ? context.scheme.onPrimary
+                                : badgeFg,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         );
       },
     );
@@ -396,9 +396,9 @@ class _ManageFolderNavTab extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.folder_outlined, size: 16, color: color),
+              VitheyIcon(LucideIcons.folder, size: 16, color: color),
               const SizedBox(width: 2),
-              Icon(Icons.add, size: 14, color: color),
+              VitheyIcon(LucideIcons.plus, size: 14, color: color),
             ],
           ),
         ),

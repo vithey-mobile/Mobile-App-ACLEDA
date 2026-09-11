@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/profile_args.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/data/repositories/profile_repository.dart';
 import 'package:aub_connect_app/modules/profile/widgets/secure_cv_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PreviewOwnCvScreen extends StatefulWidget {
   const PreviewOwnCvScreen({super.key});
 
@@ -43,9 +47,11 @@ class _PreviewOwnCvScreenState extends State<PreviewOwnCvScreen> {
         title: Text(_cv?.fileName ?? 'Preview CV'),
         actions: [
           if (_cv?.downloadUrl != null)
-            IconButton(
-              icon: const Icon(Icons.download_outlined),
-              onPressed: () => launchUrl(Uri.parse(_cv!.downloadUrl!), mode: LaunchMode.externalApplication),
+            VitheyIconButton(
+              icon: LucideIcons.download,
+              variant: VitheyIconButtonVariant.neutral,
+              tooltip: 'Download CV',
+              onTap: () => launchUrl(Uri.parse(_cv!.downloadUrl!), mode: LaunchMode.externalApplication),
             ),
         ],
       ),
@@ -98,7 +104,8 @@ class ApplicantCvScreen extends GetView<ApplicantCvController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(args?.applicantName ?? 'Applicant', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(args?.applicantName ?? 'Applicant',
+                  style: context.text.titleLarge?.copyWith(fontSize: 20)),
               const SizedBox(height: 8),
               Text(args?.cvFileName ?? 'CV document'),
               const SizedBox(height: 16),
@@ -108,14 +115,14 @@ class ApplicantCvScreen extends GetView<ApplicantCvController> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.picture_as_pdf, size: 72, color: AppColors.primary),
+                            VitheyIcon(LucideIcons.fileText, size: 72, color: AppColors.primary),
                             SizedBox(height: 12),
                             Text('CV preview is not available for this application'),
                           ],
                         ),
                       )
                     : ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(VitheyRadii.card),
                         child: SecureCvPreview(
                           previewUrl: controller.previewUrl.value!,
                         ),

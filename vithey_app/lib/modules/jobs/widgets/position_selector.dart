@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PositionSelector extends StatelessWidget {
   const PositionSelector({
     super.key,
@@ -21,8 +22,7 @@ class PositionSelector extends StatelessWidget {
         children: [
           Text(
             AppStrings.position,
-            style: TextStyle(
-                fontWeight: FontWeight.w500, color: context.appColors.heading),
+            style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           Semantics(
@@ -34,13 +34,13 @@ class PositionSelector extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               decoration: BoxDecoration(
                 color: context.appColors.inputFill,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: context.appColors.border),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.work_outline_rounded,
+                  VitheyIcon(
+                    LucideIcons.briefcase,
                     size: 19,
                     color: context.appColors.muted,
                   ),
@@ -50,16 +50,12 @@ class PositionSelector extends StatelessWidget {
                       position,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: context.appColors.heading,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: context.text.labelLarge,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(
-                    Icons.check_circle_outline_rounded,
+                  VitheyIcon(
+                    LucideIcons.circleCheck,
                     size: 18,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -70,10 +66,7 @@ class PositionSelector extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Auto-selected from this job post',
-            style: TextStyle(
-              color: context.appColors.muted,
-              fontSize: 12,
-            ),
+            style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
         ],
       ),

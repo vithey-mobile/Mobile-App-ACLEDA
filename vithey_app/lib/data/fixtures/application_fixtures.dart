@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/constants/app_assets.dart';
+import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/data/fixtures/mock_clock.dart';
 import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/models/applicant_detail_model.dart';
@@ -6,16 +7,26 @@ import 'package:aub_connect_app/data/models/user_profile_model.dart';
 import 'package:aub_connect_app/modules/jobs/models/application_detail_model.dart';
 
 /// Mock job-application usage (no role picker — usage-shaped):
-/// - Logged-in user (Khorn Molika) = **Poster (HR)**: owns JOB posts; **no** Applied Jobs.
+/// - Logged-in user (Khorn Molika) = **Poster (HR)**: owns JOB posts; Applied Jobs
+///   seeds **4** rows (Pending / Review / Accepted / Rejected) for UI demos.
+/// - `post-10` stays open (not seeded) so Home → Apply CV still works.
 /// - `author-1` (Heng Liza) = **Applier (Student)**: applies to jobs; has no JOB posts.
 abstract final class ApplicationFixtures {
   static const _lizaCvFileName = 'Heng_Liza_CV.pdf';
+  static final _hrCvFileName =
+      '${MockIdentities.mockUserFullName.replaceAll(' ', '_')}_CV.pdf';
 
-  /// Logged-in HR user has not applied to any jobs (feed Apply stays available on others' posts).
-  static Set<String> seedAppliedJobPostIds() => const {};
+  /// Job posts the logged-in user has already applied to (excludes Apply CV demo).
+  static Set<String> seedAppliedJobPostIds() => {
+        MockIds.post3,
+        MockIds.post4,
+        MockIds.post17,
+        MockIds.post18,
+      };
 
   static Map<String, ApplicationDetailModel> buildApplicationDetails() {
     return {
+      // —— Applicants on Poster-owned jobs ——
       MockIds.app1: ApplicationDetailModel(
         applicationId: MockIds.app1,
         jobPostId: MockIds.post7,
@@ -71,8 +82,8 @@ abstract final class ApplicationFixtures {
       MockIds.appMy3: ApplicationDetailModel(
         applicationId: MockIds.appMy3,
         jobPostId: MockIds.post3,
-        jobTitle: 'Web Developer',
-        organization: 'Aeon Mall',
+        jobTitle: 'Frontend Developer',
+        organization: 'Chip Mong Group',
         status: ApplicationStatus.pending,
         appliedAt: MockClock.hoursAgo(20),
         cvFileName: _lizaCvFileName,
@@ -100,8 +111,8 @@ abstract final class ApplicationFixtures {
       MockIds.appMy5: ApplicationDetailModel(
         applicationId: MockIds.appMy5,
         jobPostId: MockIds.post3,
-        jobTitle: 'Web Developer',
-        organization: 'Aeon Mall',
+        jobTitle: 'Frontend Developer',
+        organization: 'Chip Mong Group',
         status: ApplicationStatus.accepted,
         appliedAt: MockClock.daysAgo(10),
         reviewStartedAt: MockClock.daysAgo(8),
@@ -132,6 +143,73 @@ abstract final class ApplicationFixtures {
         applicantHeadline: 'Web Developer',
         applicantLocation: 'Pur Senchey, Phnom Penh',
         applicantEmail: 'hengliza81@gmail.com',
+      ),
+
+      // —— Logged-in Poster Applied Jobs (Profile tab) ——
+      MockIds.appHr1: ApplicationDetailModel(
+        applicationId: MockIds.appHr1,
+        jobPostId: MockIds.post3,
+        jobTitle: 'Frontend Developer',
+        organization: 'Chip Mong Group',
+        status: ApplicationStatus.pending,
+        appliedAt: MockClock.daysAgo(2),
+        cvFileName: _hrCvFileName,
+        applicantUserId: MockIds.currentUser,
+        applicantName: MockIdentities.mockUserFullName,
+        applicantHeadline: 'HR & Talent Lead',
+        applicantLocation: 'Phnom Penh',
+        applicantEmail: MockIdentities.mockUserEmail,
+      ),
+      MockIds.appHr2: ApplicationDetailModel(
+        applicationId: MockIds.appHr2,
+        jobPostId: MockIds.post4,
+        jobTitle: 'Sales (Credit Officer) Intern',
+        organization: 'KDSB',
+        status: ApplicationStatus.reviewed,
+        appliedAt: MockClock.daysAgo(6),
+        reviewStartedAt: MockClock.daysAgo(4),
+        cvFileName: _hrCvFileName,
+        applicantUserId: MockIds.currentUser,
+        applicantName: MockIdentities.mockUserFullName,
+        applicantHeadline: 'HR & Talent Lead',
+        applicantLocation: 'Phnom Penh',
+        applicantEmail: MockIdentities.mockUserEmail,
+      ),
+      MockIds.appHr3: ApplicationDetailModel(
+        applicationId: MockIds.appHr3,
+        jobPostId: MockIds.post17,
+        jobTitle: 'UI/UX Designer',
+        organization: 'Smart Axiata',
+        status: ApplicationStatus.accepted,
+        appliedAt: MockClock.daysAgo(12),
+        reviewStartedAt: MockClock.daysAgo(10),
+        decidedAt: MockClock.daysAgo(7),
+        reviewerNote:
+            'Thank you for your interest. Please check your email to receive interview time and location.',
+        cvFileName: _hrCvFileName,
+        applicantUserId: MockIds.currentUser,
+        applicantName: MockIdentities.mockUserFullName,
+        applicantHeadline: 'HR & Talent Lead',
+        applicantLocation: 'Phnom Penh',
+        applicantEmail: MockIdentities.mockUserEmail,
+      ),
+      MockIds.appHr4: ApplicationDetailModel(
+        applicationId: MockIds.appHr4,
+        jobPostId: MockIds.post18,
+        jobTitle: 'Content Marketing Associate',
+        organization: 'Wing Bank',
+        status: ApplicationStatus.rejected,
+        appliedAt: MockClock.daysAgo(18),
+        reviewStartedAt: MockClock.daysAgo(15),
+        decidedAt: MockClock.daysAgo(11),
+        reviewerNote:
+            "Thank you for your interest. I'm so sorry to inform you didn't pass our selection. However, we openly welcome you again next time.",
+        cvFileName: _hrCvFileName,
+        applicantUserId: MockIds.currentUser,
+        applicantName: MockIdentities.mockUserFullName,
+        applicantHeadline: 'HR & Talent Lead',
+        applicantLocation: 'Phnom Penh',
+        applicantEmail: MockIdentities.mockUserEmail,
       ),
     };
   }
@@ -205,8 +283,55 @@ abstract final class ApplicationFixtures {
     };
   }
 
-  /// HR (logged-in) — no apply history.
-  static List<AppliedJobSummary> myAppliedJobs() => const [];
+  /// Logged-in Poster — 4 Applied Jobs covering all status pills.
+  static List<AppliedJobSummary> myAppliedJobs() {
+    return [
+      AppliedJobSummary(
+        id: MockIds.appHr1,
+        jobPostId: MockIds.post3,
+        jobTitle: 'Frontend Developer',
+        company: 'Chip Mong Group',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, Head Office',
+        mediaUrl: AppAssets.jobPost1,
+        status: ApplicationStatus.pending,
+        appliedAt: MockClock.daysAgo(2),
+      ),
+      AppliedJobSummary(
+        id: MockIds.appHr2,
+        jobPostId: MockIds.post4,
+        jobTitle: 'Sales (Credit Officer) Intern',
+        company: 'KDSB',
+        employmentType: 'Internship',
+        location: 'KDSB Branches & Head Office',
+        mediaUrl: AppAssets.jobPost2,
+        status: ApplicationStatus.reviewed,
+        appliedAt: MockClock.daysAgo(6),
+      ),
+      AppliedJobSummary(
+        id: MockIds.appHr3,
+        jobPostId: MockIds.post17,
+        jobTitle: 'UI/UX Designer',
+        company: 'Smart Axiata',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh',
+        mediaUrl: AppAssets.jobPost3,
+        status: ApplicationStatus.accepted,
+        appliedAt: MockClock.daysAgo(12),
+      ),
+      AppliedJobSummary(
+        id: MockIds.appHr4,
+        jobPostId: MockIds.post18,
+        jobTitle: 'Content Marketing Associate',
+        company: 'Wing Bank',
+        employmentType: 'Full-time',
+        location: 'Phnom Penh, Toul Kork',
+        mediaUrl: AppAssets.jobPost2,
+        status: ApplicationStatus.rejected,
+        appliedAt: MockClock.daysAgo(18),
+      ),
+    ];
+  }
 
   /// Student (Heng Liza) — Applied Jobs covering all statuses for UI review.
   static List<AppliedJobSummary> applierAppliedJobs() {
@@ -236,10 +361,10 @@ abstract final class ApplicationFixtures {
       AppliedJobSummary(
         id: MockIds.appMy5,
         jobPostId: MockIds.post3,
-        jobTitle: 'Web Developer',
-        company: 'Aeon Mall',
+        jobTitle: 'Frontend Developer',
+        company: 'Chip Mong Group',
         employmentType: 'Full-time',
-        location: 'Phnom Penh, 32nd Street, SMC',
+        location: 'Phnom Penh, Head Office',
         mediaUrl: AppAssets.jobPost1,
         status: ApplicationStatus.accepted,
         appliedAt: MockClock.daysAgo(10),
@@ -260,6 +385,7 @@ abstract final class ApplicationFixtures {
 
   static List<AppliedJobSummary> appliedJobsFor(String userId) {
     if (userId == MockIds.author1) return applierAppliedJobs();
+    if (userId == MockIds.currentUser) return myAppliedJobs();
     return const [];
   }
 
@@ -280,7 +406,8 @@ abstract final class ApplicationFixtures {
         title: 'Marketing Intern',
         organization: 'Aeon Mall',
         period: '2024 - Present',
-        description: 'Supported campaign analytics and social content for youth-focused retail events.',
+        description:
+            'Supported campaign analytics and social content for youth-focused retail events.',
       ),
     ];
   }

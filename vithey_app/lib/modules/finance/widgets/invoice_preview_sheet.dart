@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/core/widgets/status_badge.dart';
 import 'package:aub_connect_app/data/models/finance_dashboard_model.dart';
-import 'package:aub_connect_app/data/models/payment_args.dart';
 import 'package:aub_connect_app/data/models/payment_invoice_model.dart';
-import 'package:aub_connect_app/modules/finance/widgets/bank_select_sheet.dart';
+import 'package:aub_connect_app/modules/finance/payment/acleda_mobile_launcher.dart';
 import 'package:aub_connect_app/modules/finance/widgets/finance_status_colors.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class InvoicePreviewSheet {
   static Future<void> show({
     required PaymentInvoice invoice,
@@ -20,7 +21,7 @@ class InvoicePreviewSheet {
       isScrollControlled: true,
       backgroundColor: context.scheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
     );
   }
@@ -48,17 +49,9 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
     }
   }
 
-  void _payWithAcleda() {
+  Future<void> _payWithAcleda() async {
     Get.back();
-    Get.toNamed(
-      AppRoutes.financePayment,
-      arguments: PaymentArgs(invoice: widget.invoice, method: PaymentMethodType.acleda),
-    );
-  }
-
-  void _payWithAnotherBank() {
-    Get.back();
-    BankSelectSheet.show(invoice: widget.invoice);
+    await AcledaMobileLauncher.open();
   }
 
   @override
@@ -95,28 +88,20 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
               Text(
                 invoice.feeName,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: context.appColors.heading,
-                ),
+                style: context.text.headlineSmall,
               ),
               const SizedBox(height: 6),
               Text(
                 invoice.invoiceReference,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: context.appColors.muted,
-                  letterSpacing: 0.6,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: context.text.bodyMedium?.copyWith(fontWeight: FontWeight.w500, color: context.appColors.muted, letterSpacing: 0.6),
               ),
               const SizedBox(height: 18),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: theme.panelFill,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(VitheyRadii.card),
                 ),
                 child: Row(
                   children: [
@@ -126,31 +111,15 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
                         children: [
                           Text(
                             'STATUS',
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: context.text.labelSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: context.appColors.muted,
                               letterSpacing: 0.4,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.pillColor,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              invoice.statusLabel.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                            ),
+                          StatusBadge(
+                            label: invoice.statusLabel,
+                            color: theme.accent,
                           ),
                         ],
                       ),
@@ -161,20 +130,17 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
                         children: [
                           Text(
                             'DATE',
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: context.text.labelSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: context.appColors.muted,
                               letterSpacing: 0.4,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             date != null ? _formatDate(date) : '—',
-                            style: TextStyle(
+                            style: context.text.labelLarge?.copyWith(
                               color: theme.accent,
                               fontWeight: FontWeight.w700,
-                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -186,12 +152,8 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
               const SizedBox(height: 20),
               Text(
                 'BREAKDOWN',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.6,
-                  fontSize: 12,
-                  color: context.appColors.muted,
-                ),
+                style: context.text.labelMedium
+                    ?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 0.6),
               ),
               const SizedBox(height: 12),
               _BreakdownRow(
@@ -212,20 +174,13 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
                 children: [
                   Text(
                     'Total Due',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: context.appColors.heading,
-                    ),
+                    style: context.text.titleLarge?.copyWith(fontSize: 17),
                   ),
                   const Spacer(),
                   Text(
                     invoice.total.formatted,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: theme.moneyAccent,
-                    ),
+                    style: context.text.headlineSmall
+                        ?.copyWith(color: theme.moneyAccent),
                   ),
                 ],
               ),
@@ -233,27 +188,22 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
               if (invoice.status == PaymentStatus.paid) ...[
                 _InvoiceActionButton(
                   label: 'Download PDF Invoice',
-                  icon: Icons.download_outlined,
+                  icon: LucideIcons.download,
                   isLoading: _downloading,
                   onPressed: _download,
                 ),
                 const SizedBox(height: 10),
                 _InvoiceActionButton(
-                  label: 'Report an Issue (coming soon)',
-                  icon: Icons.help_outline,
+                  label: 'Report an Issue (Coming Soon)',
+                  icon: LucideIcons.circleHelp,
+                  variant: CustomButtonVariant.outline,
                   onPressed: null,
                 ),
               ] else ...[
                 _InvoiceActionButton(
-                  label: 'Pay Now With Acleda',
-                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'Pay with ACLEDA',
+                  icon: LucideIcons.wallet,
                   onPressed: _payWithAcleda,
-                ),
-                const SizedBox(height: 10),
-                _InvoiceActionButton(
-                  label: 'Pay Now With Another Bank',
-                  icon: Icons.account_balance_outlined,
-                  onPressed: _payWithAnotherBank,
                 ),
               ],
             ],
@@ -275,13 +225,11 @@ class _InvoiceSheetState extends State<_InvoiceSheet> {
 class _InvoiceTheme {
   const _InvoiceTheme({
     required this.panelFill,
-    required this.pillColor,
     required this.accent,
     required this.moneyAccent,
   });
 
   final Color panelFill;
-  final Color pillColor;
   final Color accent;
   final Color moneyAccent;
 
@@ -289,7 +237,6 @@ class _InvoiceTheme {
     final color = FinanceStatusColors.invoiceAccent(status);
     return _InvoiceTheme(
       panelFill: FinanceStatusColors.invoicePanelFill(status),
-      pillColor: color,
       accent: color,
       moneyAccent: color,
     );
@@ -317,10 +264,7 @@ class _BreakdownRow extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? context.appColors.heading,
-            ),
+            style: context.text.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: valueColor ?? context.appColors.heading),
           ),
         ],
       ),
@@ -334,12 +278,14 @@ class _InvoiceActionButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.isLoading = false,
+    this.variant = CustomButtonVariant.primary,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final CustomButtonVariant variant;
 
   @override
   Widget build(BuildContext context) {
@@ -347,6 +293,7 @@ class _InvoiceActionButton extends StatelessWidget {
       label: label,
       icon: icon,
       isLoading: isLoading,
+      variant: variant,
       onPressed: isLoading ? null : onPressed,
     );
   }

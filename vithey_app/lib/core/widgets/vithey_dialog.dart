@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:flutter/material.dart';
 
 /// App-wide themed dialog shell for custom content (not yes/no confirms).
@@ -25,7 +26,9 @@ class VitheyDialog extends StatelessWidget {
       backgroundColor: colors.cardSurface,
       surfaceTintColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(VitheyRadii.sheet),
+      ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Padding(padding: padding, child: child),

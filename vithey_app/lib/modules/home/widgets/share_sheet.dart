@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
-/// Share options sheet (kit chrome on a module-owned flow).
+/// Share options: in-app share, save private, or system share (Telegram, etc.).
 class ShareSheet extends StatefulWidget {
   const ShareSheet({
     super.key,
@@ -22,16 +25,35 @@ class ShareSheet extends StatefulWidget {
 }
 
 class _ShareSheetState extends State<ShareSheet> {
-  int _selected = 0;
-  bool _isLoading = false;
+  int? _loadingOption;
   final _repo = Get.find<PostRepository>();
 
+  String get _shareText {
+    final author = widget.post.author.fullName;
+    final body = widget.post.content.trim();
+    final snippet = body.isEmpty
+        ? 'Check out this post on ${AppStrings.appName}'
+        : (body.length > 160 ? '${body.substring(0, 160)}…' : body);
+    return '$snippet\n\n— $author on ${AppStrings.appName}';
+  }
+
+  Future<void> _shareToApps() async {
+    if (_loadingOption != null) return;
+    setState(() => _loadingOption = 2);
+    try {
+      await Share.share(_shareText);
+      widget.onShared();
+      if (Get.isBottomSheetOpen ?? false) Get.back();
+    } catch (_) {
+      Get.snackbar(AppStrings.appName, 'Could not open share');
+    } finally {
+      if (mounted) setState(() => _loadingOption = null);
+    }
+  }
+
   Future<void> _submit(int option) async {
-    if (_isLoading) return;
-    setState(() {
-      _selected = option;
-      _isLoading = true;
-    });
+    if (_loadingOption != null) return;
+    setState(() => _loadingOption = option);
 
     try {
       if (option == 0) {
@@ -39,7 +61,7 @@ class _ShareSheetState extends State<ShareSheet> {
         widget.onShared();
         Get.back();
         Get.snackbar(AppStrings.appName, 'Shared for everyone');
-      } else {
+      } else if (option == 1) {
         await _repo.savePrivately(widget.post.id);
         Get.back();
         Get.snackbar(AppStrings.appName, 'Saved privately');
@@ -47,7 +69,7 @@ class _ShareSheetState extends State<ShareSheet> {
     } catch (_) {
       Get.snackbar(AppStrings.appName, 'Could not complete action');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _loadingOption = null);
     }
   }
 
@@ -57,36 +79,47 @@ class _ShareSheetState extends State<ShareSheet> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
         color: context.appColors.cardSurface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(VitheyRadii.sheet)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40,
+            width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: context.appColors.muted,
+              color: context.appColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'How do you want to share this post?',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Text(
+            'Share this post',
+            style: context.text.titleLarge?.copyWith(fontSize: 16),
           ),
           const SizedBox(height: 16),
           _ShareOption(
+            title: 'Share to apps',
+            subtitle: 'Telegram, Messages, and more',
+            icon: LucideIcons.share2,
+            loading: _loadingOption == 2,
+            onTap: _shareToApps,
+          ),
+          const SizedBox(height: 8),
+          _ShareOption(
             title: 'Share for everyone',
-            selected: _selected == 0,
-            loading: _isLoading && _selected == 0,
+            subtitle: 'Post to your Vithey feed',
+            icon: LucideIcons.globe,
+            loading: _loadingOption == 0,
             onTap: () => _submit(0),
           ),
           const SizedBox(height: 8),
           _ShareOption(
-            title: 'Save this post in private',
-            selected: _selected == 1,
-            loading: _isLoading && _selected == 1,
+            title: 'Save privately',
+            subtitle: 'Only you can see it',
+            icon: LucideIcons.bookmark,
+            loading: _loadingOption == 1,
             onTap: () => _submit(1),
           ),
         ],
@@ -98,41 +131,67 @@ class _ShareSheetState extends State<ShareSheet> {
 class _ShareOption extends StatelessWidget {
   const _ShareOption({
     required this.title,
-    required this.selected,
+    required this.subtitle,
+    required this.icon,
     required this.onTap,
     this.loading = false,
   });
 
   final String title;
-  final bool selected;
+  final String subtitle;
+  final IconData icon;
   final bool loading;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return InkWell(
       onTap: loading ? null : onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(VitheyRadii.field),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(
-              color: selected ? AppColors.primary : context.appColors.border),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colors.border),
+          borderRadius: BorderRadius.circular(VitheyRadii.field),
         ),
         child: Row(
           children: [
-            Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected ? AppColors.primary : context.appColors.muted,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: VitheyIcon(icon, size: 20, color: AppColors.primary),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(title)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: context.text.labelLarge,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: context.text.bodyMedium
+                        ?.copyWith(color: colors.muted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
             if (loading)
               const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2)),
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              VitheyIcon(LucideIcons.chevronRight, color: colors.muted, size: 20),
           ],
         ),
       ),

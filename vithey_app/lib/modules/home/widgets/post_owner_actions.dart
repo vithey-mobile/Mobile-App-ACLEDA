@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
+import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PostOwnerActions extends StatelessWidget {
   const PostOwnerActions({
     super.key,
@@ -13,11 +15,11 @@ class PostOwnerActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return VitheyIconButton(
+      icon: LucideIcons.ellipsis,
+      variant: VitheyIconButtonVariant.neutral,
       tooltip: 'Post actions',
-      visualDensity: VisualDensity.compact,
-      icon: const Icon(Icons.more_horiz_rounded, size: 22),
-      onPressed: () => _showActions(context),
+      onTap: () => _showActions(context),
     );
   }
 
@@ -30,13 +32,13 @@ class PostOwnerActions extends StatelessWidget {
           value: _PostOwnerAction.edit,
           label: 'Edit post',
           subtitle: 'Update text, media, or job details',
-          icon: Icons.edit_outlined,
+          icon: LucideIcons.pencil,
         ),
         VitheyActionSheetAction(
           value: _PostOwnerAction.delete,
           label: 'Delete post',
           subtitle: 'Permanently remove this post',
-          icon: Icons.delete_outline,
+          icon: LucideIcons.trash2,
           destructive: true,
         ),
       ],

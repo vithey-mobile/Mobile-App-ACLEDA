@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Empty list/content state with optional action.
 class EmptyStateWidget extends StatelessWidget {
   const EmptyStateWidget({
     super.key,
     this.title = AppStrings.emptyTitle,
     this.subtitle = AppStrings.emptySubtitle,
-    this.icon = Icons.inbox_outlined,
+    this.icon = LucideIcons.inbox,
     this.actionLabel,
     this.onAction,
   });
@@ -27,7 +28,7 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+            VitheyIcon(icon, size: 64, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(title, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
             const SizedBox(height: 8),

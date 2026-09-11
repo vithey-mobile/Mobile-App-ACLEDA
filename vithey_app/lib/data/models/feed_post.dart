@@ -76,6 +76,7 @@ class FeedPost {
     this.applicationState = JobApplicationState.notApplied,
     this.applicantCount = 0,
     required this.createdAt,
+    this.viewCount = 0,
     this.reactionCount = 0,
     this.commentCount = 0,
     this.shareCount = 0,
@@ -98,6 +99,7 @@ class FeedPost {
   final JobApplicationState applicationState;
   final int applicantCount;
   final DateTime createdAt;
+  final int viewCount;
   final int reactionCount;
   final int commentCount;
   final int shareCount;
@@ -107,6 +109,21 @@ class FeedPost {
   final String? currentUserId;
 
   bool get isOwnPost => currentUserId != null && currentUserId == author.id;
+
+  /// Short label for lists / analytics (job title, caption, or type fallback).
+  String get displayTitle {
+    final jobTitle = jobMeta.title?.trim();
+    if (jobTitle != null && jobTitle.isNotEmpty) return jobTitle;
+    final text = content.trim();
+    if (text.isEmpty) {
+      return switch (type) {
+        PostType.video => 'Reel',
+        PostType.job => 'Job post',
+        PostType.poster => 'Poster',
+      };
+    }
+    return text.length > 72 ? '${text.substring(0, 72)}…' : text;
+  }
 
   /// Effective reaction shown in UI (defaults to like when reacted with no type).
   PostReactionType? get activeReaction =>
@@ -118,6 +135,7 @@ class FeedPost {
     Object? thumbnailUrl = _unset,
     int? durationSeconds,
     JobMeta? jobMeta,
+    int? viewCount,
     int? reactionCount,
     int? commentCount,
     int? shareCount,
@@ -144,6 +162,7 @@ class FeedPost {
       applicationState: applicationState ?? this.applicationState,
       applicantCount: applicantCount,
       createdAt: createdAt,
+      viewCount: viewCount ?? this.viewCount,
       reactionCount: reactionCount ?? this.reactionCount,
       commentCount: commentCount ?? this.commentCount,
       shareCount: shareCount ?? this.shareCount,
@@ -222,6 +241,7 @@ class FeedPost {
       applicantCount: json['applicant_count'] as int? ?? 0,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
+      viewCount: (json['view_count'] as num?)?.toInt() ?? 0,
       reactionCount: (json['reaction_count'] as num?)?.toInt() ?? 0,
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
       shareCount: (json['share_count'] as num?)?.toInt() ?? 0,
