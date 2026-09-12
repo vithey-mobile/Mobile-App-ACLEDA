@@ -1,51 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 
-/// Fixed intro backdrop: white base + light-teal rear wave + teal front wave.
+/// Fixed intro/auth backdrop: white base + light-teal rear wave + teal front wave.
 ///
-/// [tealHeightFactor] and [lightHeightFactor] can differ so teal stays fixed while
-/// white-50% (light wave) morphs (e.g. Select Language → Onboarding).
+/// Edge shapes come from [WaveRibbonProfile] (absolute screen Y). Optional
+/// [profileFrom] + [morphT] lerps between two ribbon cuts during a handoff.
 class OnboardingBackground extends StatelessWidget {
   const OnboardingBackground({
     super.key,
-    this.waveHeightFactor = 1.0,
-    double? tealHeightFactor,
-    double? lightHeightFactor,
-    this.authMorph = 0.0,
-  })  : tealHeightFactor = tealHeightFactor ?? waveHeightFactor,
-        lightHeightFactor = lightHeightFactor ?? waveHeightFactor;
+    this.profile = WaveRibbon.onboarding1,
+    this.profileFrom,
+    this.morphT = 1.0,
+    this.solidTeal = false,
+  });
 
-  /// Convenience: sets both teal and light when separate factors are omitted.
-  final double waveHeightFactor;
+  /// Settled ribbon cut (Language … Sign Up).
+  final WaveRibbonProfile profile;
 
-  /// Front teal wave depth (1.0 = onboarding default).
-  final double tealHeightFactor;
+  /// When set with [morphT] in (0,1), edges lerp from this → [profile].
+  final WaveRibbonProfile? profileFrom;
 
-  /// Rear white-50% / light-teal wave depth.
-  final double lightHeightFactor;
+  /// 0 = [profileFrom], 1 = [profile].
+  final double morphT;
 
-  /// 0 = normal onboarding waves, 1 = solid auth teal (wave edge to bottom).
-  final double authMorph;
+  /// Forgot-password / legacy full teal (no curves).
+  final bool solidTeal;
 
-  /// Select Language default (taller white body).
-  static const languageFactor = 0.68;
-
-  /// Onboarding default.
-  static const onboardingFactor = 1.0;
+  /// Approximate teal-band bottom for logo placement.
+  static double tealBandHeightFraction(WaveRibbonProfile profile) {
+    return profile.meanTealY.clamp(0.18, 0.72);
+  }
 
   @override
   Widget build(BuildContext context) {
     final baseColor = context.appColors.cardSurface;
     final waveRearColor = AppColors.waveRearOn(baseColor);
+    final from = profileFrom;
+    final t = morphT.clamp(0.0, 1.0);
+    final edge = from == null || t >= 0.999
+        ? profile
+        : (t <= 0.001 ? from : from.lerp(profile, t));
+
     return SizedBox.expand(
       child: CustomPaint(
         painter: _OnboardingWavePainter(
           baseColor: baseColor,
           waveRearColor: waveRearColor,
-          tealHeightFactor: tealHeightFactor,
-          lightHeightFactor: lightHeightFactor,
-          authMorph: authMorph.clamp(0.0, 1.0),
+          profile: edge,
+          solidTeal: solidTeal,
         ),
       ),
     );
@@ -56,25 +60,18 @@ class _OnboardingWavePainter extends CustomPainter {
   const _OnboardingWavePainter({
     required this.baseColor,
     required this.waveRearColor,
-    required this.tealHeightFactor,
-    required this.lightHeightFactor,
-    required this.authMorph,
+    required this.profile,
+    required this.solidTeal,
   });
 
   final Color baseColor;
   final Color waveRearColor;
-  final double tealHeightFactor;
-  final double lightHeightFactor;
-  final double authMorph;
-
-  static const _tealX = [0.0, 0.20, 0.40, 0.50, 0.80, 1.0];
-  static const _lightX = [0.0, 0.20, 0.40, 0.60, 0.75, 0.95, 1.0];
-  static const _tealY = [0.510, 0.528, 0.485, 0.485, 0.525, 0.460];
-  static const _lightY = [0.535, 0.575, 0.570, 0.535, 0.535, 0.580, 0.580];
+  final WaveRibbonProfile profile;
+  final bool solidTeal;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (authMorph >= 0.999) {
+    if (solidTeal) {
       canvas.drawRect(
         Offset.zero & size,
         Paint()..color = AppColors.primaryLight,
@@ -82,40 +79,23 @@ class _OnboardingWavePainter extends CustomPainter {
       return;
     }
 
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = baseColor,
-    );
+    canvas.drawRect(Offset.zero & size, Paint()..color = baseColor);
 
-    final lightAlpha = (1.0 - authMorph).clamp(0.0, 1.0);
-    if (lightAlpha > 0.01) {
-      canvas.drawPath(
-        _layerPath(size, _lightX, _lightY, lightHeightFactor, authMorph),
-        Paint()..color = waveRearColor.withValues(alpha: lightAlpha),
-      );
-    }
     canvas.drawPath(
-      _layerPath(size, _tealX, _tealY, tealHeightFactor, authMorph),
+      _layerPath(size, profile.lightX, profile.lightY),
+      Paint()..color = waveRearColor,
+    );
+    canvas.drawPath(
+      _layerPath(size, profile.tealX, profile.tealY),
       Paint()..color = AppColors.primaryLight,
     );
   }
 
-  Path _layerPath(
-    Size size,
-    List<double> xFrac,
-    List<double> yFrac,
-    double heightFactor,
-    double morph,
-  ) {
+  Path _layerPath(Size size, List<double> xFrac, List<double> yFrac) {
     assert(xFrac.length == yFrac.length);
-    final yScale = heightFactor.clamp(0.35, 1.0);
-
     final pts = <Offset>[
       for (var i = 0; i < xFrac.length; i++)
-        Offset(
-          size.width * xFrac[i],
-          size.height * (yFrac[i] * yScale * (1.0 - morph) + 1.0 * morph),
-        ),
+        Offset(size.width * xFrac[i], size.height * yFrac[i]),
     ];
 
     final path = Path()
@@ -149,8 +129,9 @@ class _OnboardingWavePainter extends CustomPainter {
   bool shouldRepaint(covariant _OnboardingWavePainter oldDelegate) {
     return baseColor != oldDelegate.baseColor ||
         waveRearColor != oldDelegate.waveRearColor ||
-        tealHeightFactor != oldDelegate.tealHeightFactor ||
-        lightHeightFactor != oldDelegate.lightHeightFactor ||
-        authMorph != oldDelegate.authMorph;
+        solidTeal != oldDelegate.solidTeal ||
+        profile.id != oldDelegate.profile.id ||
+        profile.tealY != oldDelegate.profile.tealY ||
+        profile.lightY != oldDelegate.profile.lightY;
   }
 }

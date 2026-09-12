@@ -42,14 +42,15 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwn = message.isOwn;
     final maxWidth = MediaQuery.sizeOf(context).width * 0.78;
-    final incomingBubbleColor = context.appColors.inputFill;
+    final colors = context.appColors;
+    final incomingBubbleColor = colors.inputFill;
     final bubbleColor = isOwn ? AppColors.primary : incomingBubbleColor;
     final onPrimary = context.scheme.onPrimary;
-    final textColor = isOwn ? onPrimary : context.appColors.heading;
+    final textColor = isOwn ? onPrimary : colors.heading;
     final displayText =
         message.isDeleted ? 'This message was deleted' : message.text;
     final timeColor =
-        isOwn ? onPrimary.withValues(alpha: 0.75) : context.appColors.muted;
+        isOwn ? onPrimary.withValues(alpha: 0.75) : colors.muted;
     final timeLabel = _formatBubbleTime(message.createdAt);
 
     return Padding(
@@ -112,7 +113,7 @@ class MessageBubble extends StatelessWidget {
                               ? null
                               : [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
+                                    color: colors.subtleShadow,
                                     blurRadius: 2,
                                     offset: const Offset(0, 1),
                                   ),

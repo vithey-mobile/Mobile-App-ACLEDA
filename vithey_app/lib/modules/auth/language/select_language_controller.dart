@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
 enum AppLanguageOption { en, km }
 
@@ -17,7 +16,6 @@ class SelectLanguageController extends GetxController {
 
   final selected = AppLanguageOption.en.obs;
   final contentOpacity = 1.0.obs;
-  final waveFactor = OnboardingBackground.languageFactor.obs;
   final isBusy = false.obs;
 
   @override
@@ -26,7 +24,6 @@ class SelectLanguageController extends GetxController {
     _loadSaved();
     if (fromOnboarding) {
       contentOpacity.value = 0;
-      waveFactor.value = OnboardingBackground.onboardingFactor;
       _enterFromOnboarding();
     }
   }
@@ -39,16 +36,11 @@ class SelectLanguageController extends GetxController {
   }
 
   Future<void> _enterFromOnboarding() async {
-    final from = OnboardingBackground.onboardingFactor;
-    final to = OnboardingBackground.languageFactor;
     await IntroMorph.run(IntroMorph.duration, (t) {
       if (isClosed) return;
       contentOpacity.value = t;
-      waveFactor.value = from + (to - from) * t;
     });
-    if (isClosed) return;
-    contentOpacity.value = 1;
-    waveFactor.value = to;
+    if (!isClosed) contentOpacity.value = 1;
   }
 
   void select(AppLanguageOption option) {
@@ -78,9 +70,7 @@ class SelectLanguageController extends GetxController {
     } catch (_) {}
 
     // Navigate immediately — morph runs on Onboarding enter.
-    IntroMorph.fadeContentIn = true;
     IntroMorph.fromLanguage = true;
-    IntroMorph.initialOnboardingPage = 0;
     Get.offAllNamed(AppRoutes.onboarding);
   }
 }

@@ -3,7 +3,8 @@
 Build the **Sign Up / Register panel** for the Vithey App in Flutter.
 
 > **Pair with** `04-auth-prompt.md` — Sign Up is **not** a separate background system; it is a **panel inside the same Auth screen** that morphs (grow/shrink) with Sign In.  
-> **Wave style source of truth:** Onboarding v2 / shared teal wave family (`COMMON_CONTEXT.md`).
+> **Background:** shared Language / Onboarding mixed waves (`OnboardingBackground`) — **no** white overlay sheet.  
+> **Do not** change Language or Onboarding modules.
 
 ## Design reference
 
@@ -13,16 +14,16 @@ Build the **Sign Up / Register panel** for the Vithey App in Flutter.
 
 ## Visual reference
 
-- Reference image: `Prompt Frontend/screen image/Register Screen.png` (or `screen image/auth/` equivalent)
-- Logo: same Vithey `AppLogo` / size as Sign In (fixed size — no scale on panel toggle)
-- Form fields and labels follow this v2 two-part flow; **shell / motion** follow Auth v2 + Onboarding wave family.
+- Reference image for **form fields / two-part flow** (not for old white-sheet chrome)
+- Logo: same Vithey `AppLogo` as Sign In (fixed size — subtle opacity ease only on panel toggle)
+- Shell / background follow `04-auth-prompt.md` + `update.md`
 
 ## Quick info
 
 | Field | Value |
 | --- | --- |
 | Screen ID | `05` / legacy `03B` |
-| Host screen | Auth shell (`04-auth-prompt.md`) |
+| Host screen | Auth shell (`04-auth-prompt.md` / `login_screen.dart`) |
 | Route | Prefer panel on `AppRoutes.auth` / `login`; legacy `AppRoutes.register` may alias into the same shell |
 | Sign-in panel | Same Auth screen |
 | Flutter module | `lib/modules/auth/` |
@@ -32,7 +33,9 @@ Build the **Sign Up / Register panel** for the Vithey App in Flutter.
 
 ## Goal
 
-Let a new user create an account inside the **shared Auth shell**. Sign Up is **two parts**. Existing users tap footer **Sign In** (sheet shrinks).
+Let a new user create an account inside the **shared Auth shell** (same background as Language / Onboarding). Sign Up is **two parts**. Existing users tap footer **Sign In** (panel shrinks).
+
+Preserve all Sign Up content (fields, buttons, texts). Background/chrome only follows Auth shell v2 alignment.
 
 ### Register parts
 
@@ -44,67 +47,59 @@ Let a new user create an account inside the **shared Auth shell**. Sign Up is **
 - Heading **Create Account** and footer **Already have an account.** + **Sign In** stay fixed (do not slide).
 - Only **labels + text fields** slide between parts.
 
-## Critical difference vs Onboarding / vs older Register
+## Hosted inside Auth shell
 
-| | Older Register | Current Register |
-| --- | --- | --- |
-| Screen | Separate full route | **Panel** on one Auth screen |
-| Background | Own static wave header | Shared Auth shell: **fixed teal**, **moving** light teal + white |
-| Steps | Single form | **Part 1 → Part 2** |
-| Switch to Sign In | Navigate route | **Footer toggle** — sheet shrinks to Sign In |
+See `04-auth-prompt.md`:
 
-## Screen composition
+- Full-page `OnboardingBackground` (mixed teal + white)
+- **No** `AuthMovingWaveSheet` / white overlay container around Sign Up
+- `AuthPanelSwitcher` height morph Sign In ↔ Sign Up
+- Intro morph Onboarding ↔ Auth on shared waves
 
-### Hosted inside Auth shell
-
-See `04-auth-prompt.md` for fixed teal, moving wave sheet, content-driven height, logo on teal.
-
-### Content on white — Part 1
+### Content — Part 1 (preserve)
 
 1. **Heading** — **Create Account** (fixed, does not slide)
 2. **Email Address** — placeholder **Email**
 3. **Password** — placeholder **Password**, visibility toggle
 4. **Confirm Password** — placeholder **Confirm Password**, visibility toggle
-5. **Next** — teal primary (same style as Sign In button)
+5. **Next** — teal primary
 6. Divider **Sign in with** + **Continue with Google**
 7. Footer → Sign In panel
 
-### Content on white — Part 2
+### Content — Part 2 (preserve)
 
 1. Same fixed heading / footer chrome
 2. **Full Name** — placeholder **Username**
 3. **Phone Number** — placeholder e.g. **012345678**
 4. **Date of Birth** — read-only field + date picker
 5. **Sign Up** — teal primary (submits registration)
-6. **Back** — outline button (same size/font/chrome as Google; icon + Back) → returns to Part 1
+6. **Back** — outline button (same size/font/chrome as Google; icon + Back) → Part 1
 
-### Part 1 â†” Part 2 animation
+### Part 1 ↔ Part 2 animation
 
 - **Next:** Part 1 fields slide **left** out; Part 2 fields slide **in from the right**.
-- **Back:** reverse (Part 2 left-to-right out... actually Part 2 slides right out, Part 1 slides in from the left).
+- **Back:** reverse.
 - **Only** the field block slides — not heading, buttons, divider, or footer.
-- Clip inside the form’s horizontal padding (~24): slides **vanish at the padded lane**, not at the phone screen edge.
-- Keep a **gap (~24)** between Part 1 and Part 2 while they travel (not stuck edge-to-edge).
+- Clip inside the form’s horizontal padding (~24).
+- Keep a **gap (~24)** between Part 1 and Part 2 while they travel.
 
 ## Visual style
 
-Same tokens as Auth v2 / Onboarding wave family.
+Same tokens as Auth shell / Onboarding wave family (no separate white sheet chrome).
 
 | Token | Direction |
 | --- | --- |
-| Fixed back | Teal `#2FC5C1` |
-| Moving rear wave | Light teal `#6AD6D2` |
-| Moving body | White |
-| Primary / links | `#08B9B3` |
-| Heading | `#303236` |
+| Page background | Shared Onboarding waves |
+| Primary / links | Theme primary |
+| Heading | Semantic heading |
 | Input fill | `#F5F5F5` |
 
 ## Responsive behavior
 
-- White **hugs** Sign Up content; teal above is auto.
-- Wave band â‰ˆ 10% screen height.
-- **No vertical/horizontal scroll or swipe** for Sign In â†” Sign Up; Part change only via **Next** / **Back**.
-- Logo size identical on Sign In and Sign Up; **no scale** on panel morph (opacity ease only).
+- Forms sit on the shared background; prefer fitting without a page white sheet.
+- **No** horizontal swipe for Sign In ↔ Sign Up; panel change only via footer.
+- Part change only via **Next** / **Back**.
+- Logo size identical on Sign In and Sign Up.
 
 ## Validation and interaction
 
@@ -120,14 +115,15 @@ Registration still sends `full_name`, `email`, `phone`, `password`. DOB is colle
 
 ## Architecture
 
-`text
+```text
 lib/modules/auth/
   login_screen.dart                # shell + Sign In / Sign Up forms
   auth_controller.dart             # registerStep, part form keys, next/back
   widgets/
+    auth_panel_switcher.dart       # panel height morph (no white sheet)
     register_step_slider.dart      # clipped field slide + gap
     oauth_button.dart              # Google + AuthOutlineButton (Back)
-`
+```
 
 ## Navigation
 
@@ -141,20 +137,21 @@ lib/modules/auth/
 
 ## Testing and acceptance criteria
 
-- Part 1 = email / password / confirm; Next + Google.
-- Part 2 = full name / phone / DOB; Sign Up + Back.
-- Field-only clipped slide with gap; chrome stays put.
-- Logo same size on both auth panels; stable across toggle.
-- Validation, loading, tokens, Google (Part 1) still work.
+- [ ] Sign Up uses the same Auth shell background as Sign In / Language / Onboarding (no white overlay).
+- [ ] Part 1 = email / password / confirm; Next + Google.
+- [ ] Part 2 = full name / phone / DOB; Sign Up + Back.
+- [ ] Field-only clipped slide with gap; chrome stays put.
+- [ ] Logo same size on both auth panels.
+- [ ] Validation, loading, tokens, Google (Part 1) still work.
+- [ ] Language / Onboarding unchanged.
 
 ## Dependencies
 
-- `00-foundation-prompt.md`
-- `03-onboarding-prompt.md`
 - `04-auth-prompt.md`
-- `Prompt Frontend/COMMON_CONTEXT.md`
-- `Prompt Frontend/api-intergration/integration-contract.md`
+- `update.md`
+- Onboarding / Select Language (background reference only)
+- `Prompt Frontend/COMMON_CONTEXT.md` if present
 
 ## Output
 
-Sign Up **Part 1** and **Part 2** inside the Auth shell, with clipped field slide and outline Back matching Google chrome.
+Sign Up **Part 1** and **Part 2** inside the Auth shell on shared Onboarding waves, with clipped field slide and outline Back matching Google chrome.

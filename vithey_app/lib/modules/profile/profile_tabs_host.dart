@@ -23,7 +23,7 @@ abstract class ProfileTabsHost extends GetxController {
   void editPost(FeedPost post);
   Future<void> deletePost(BuildContext context, FeedPost post);
   void editJobPost(FeedPost jobPost);
-  void deleteJobPost(FeedPost jobPost);
+  Future<void> deleteJobPost(BuildContext context, FeedPost jobPost);
 }
 
 ProfileTabsHost resolveProfileTabsHost(ProfileTabsHost? host) =>

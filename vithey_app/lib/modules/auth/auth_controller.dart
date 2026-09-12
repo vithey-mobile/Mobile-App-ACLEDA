@@ -9,26 +9,20 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
-import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
+import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
 import 'package:intl/intl.dart';
 
 enum AuthIntent { signIn, register, changeEmail }
 
 class AuthController extends GetxController {
-  AuthController(
-    this._authRepository, {
-    this.fadeContentIn = false,
-  });
+  AuthController(this._authRepository);
 
   final AuthRepository _authRepository;
-
-  /// When true, crossfade from onboarding backdrop into Auth UI.
-  final bool fadeContentIn;
 
   final loginFormKey = GlobalKey<FormState>();
   final registerPart1FormKey = GlobalKey<FormState>();
@@ -54,26 +48,17 @@ class AuthController extends GetxController {
   final forgotPasswordFormKey = GlobalKey<FormState>();
   final forgotPasswordEmailController = TextEditingController();
 
-  /// Auth v2: 0 = Sign In, 1 = Sign Up. Switch only via footer toggle buttons.
+  /// Auth v2: 0 = Sign In, 1 = Sign Up (synced from intro ribbon).
   final authPageIndex = 0.obs;
 
-  /// True while the Sign In ↔ Sign Up height morph is running.
-  final isPanelAnimating = false.obs;
+  /// In-place Sign In → Forgot Password morph (stays on continuum).
+  final showForgotPassword = false.obs;
 
   /// Sign Up only: 0 = Part 1 (credentials), 1 = Part 2 (profile).
   final registerStep = 0.obs;
 
   /// True while Part 1 ↔ Part 2 field slide is running.
   final isRegisterStepAnimating = false.obs;
-
-  /// Intro morph: 0 = onboarding waves, 1 = full teal (Auth).
-  final bgMorph = 1.0.obs;
-
-  /// Intro morph: sheet + forms slide/fade in over teal.
-  final layoutReveal = 1.0.obs;
-
-  /// Intro morph: auth chrome + forms opacity.
-  final contentOpacity = 1.0.obs;
 
   final isBusy = false.obs;
 
@@ -87,67 +72,65 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final startOnSignUp = Get.currentRoute == AppRoutes.register;
+    final startOnSignUp =
+        Get.currentRoute == AppRoutes.register || IntroMorph.startOnSignUp;
     authPageIndex.value = startOnSignUp ? 1 : 0;
-
-    if (fadeContentIn) {
-      contentOpacity.value = 0;
-      layoutReveal.value = 0;
-      bgMorph.value = 0;
-      _enterFromOnboarding();
-    }
-  }
-
-  Future<void> _enterFromOnboarding() async {
-    await IntroMorph.run(IntroMorph.duration, (t) {
-      if (isClosed) return;
-      bgMorph.value = t;
-      layoutReveal.value = t;
-      contentOpacity.value = t;
-    });
-    if (!isClosed) {
-      layoutReveal.value = 1;
-      contentOpacity.value = 1;
-      bgMorph.value = 1;
-    }
   }
 
   void showSignIn() {
-    if (isPanelAnimating.value ||
-        isRegisterStepAnimating.value ||
-        authPageIndex.value == 0) {
-      return;
-    }
+    if (isRegisterStepAnimating.value || authPageIndex.value == 0) return;
     clearError();
     registerStep.value = 0;
+    showForgotPassword.value = false;
+    if (Get.isRegistered<IntroRibbonController>()) {
+      Get.find<IntroRibbonController>().showSignIn();
+      return;
+    }
     authPageIndex.value = 0;
   }
 
-  void showSignUp() {
-    if (isPanelAnimating.value ||
-        isRegisterStepAnimating.value ||
-        authPageIndex.value == 1) {
-      return;
+  void openForgotPassword() {
+    FormErrorHost.clearAll();
+    clearError();
+    resetForgotPasswordState();
+    final email = emailController.text.trim();
+    if (email.isNotEmpty) {
+      forgotPasswordEmailController.text = email;
     }
+    showForgotPassword.value = true;
+  }
+
+  void closeForgotPassword() {
+    FormErrorHost.clearAll();
+    resetForgotPasswordState();
+    showForgotPassword.value = false;
+  }
+
+  void showSignUp() {
+    if (isRegisterStepAnimating.value || authPageIndex.value == 1) return;
     clearError();
     registerStep.value = 0;
+    if (Get.isRegistered<IntroRibbonController>()) {
+      Get.find<IntroRibbonController>().showSignUp();
+      return;
+    }
     authPageIndex.value = 1;
   }
 
-  /// Leave Auth toward Onboarding (morph when this is the root intro route).
+  /// Leave Auth → slide back on the intro ribbon (or pop if stacked).
   Future<void> goBack() async {
     if (isBusy.value) return;
-
-    if (Get.key.currentState?.canPop() ?? false) {
-      Get.back();
+    if (showForgotPassword.value) {
+      closeForgotPassword();
       return;
     }
-
-    isBusy.value = true;
-    await Get.find<LocalStorageService>().setOnboardingCompleted(false);
-    IntroMorph.fromAuth = true;
-    IntroMorph.initialOnboardingPage = OnboardingController.totalPages - 1;
-    Get.offAllNamed(AppRoutes.onboarding);
+    if (Get.isRegistered<IntroRibbonController>()) {
+      await Get.find<IntroRibbonController>().authBack();
+      return;
+    }
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
+    }
   }
 
   void clearError() {
@@ -160,7 +143,7 @@ class AuthController extends GetxController {
 
   Future<void> goToRegisterPart2() async {
     if (isRegisterStepAnimating.value || registerStep.value == 1) return;
-    if (!(registerPart1FormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(registerPart1FormKey)) return;
     clearError();
     registerStep.value = 1;
   }
@@ -201,7 +184,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (!(loginFormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(loginFormKey)) return;
     isLoading.value = true;
     clearError();
     try {
@@ -221,7 +204,7 @@ class AuthController extends GetxController {
 
   Future<void> register() async {
     if (registerStep.value != 1) return;
-    if (!(registerPart2FormKey.currentState?.validate() ?? false)) return;
+    if (!await FormErrorHost.submit(registerPart2FormKey)) return;
     isLoading.value = true;
     clearError();
     try {
@@ -344,10 +327,15 @@ class AuthController extends GetxController {
       _finishEmailChange(null);
       return;
     }
-    Get.until((route) =>
-        route.settings.name == AppRoutes.login ||
-        route.settings.name == AppRoutes.register ||
-        route.settings.name == AppRoutes.auth);
+    Get.until((route) => _isIntroRibbonRoute(route.settings.name));
+  }
+
+  static bool _isIntroRibbonRoute(String? name) {
+    return name == AppRoutes.login ||
+        name == AppRoutes.register ||
+        name == AppRoutes.auth ||
+        name == AppRoutes.selectLanguage ||
+        name == AppRoutes.onboarding;
   }
 
   void _finishEmailChange(String? email) {
@@ -366,7 +354,6 @@ class AuthController extends GetxController {
   }
 
   Future<void> requestPasswordReset() async {
-    if (!(forgotPasswordFormKey.currentState?.validate() ?? false)) return;
     isForgotPasswordLoading.value = true;
     forgotPasswordError.value = '';
     try {

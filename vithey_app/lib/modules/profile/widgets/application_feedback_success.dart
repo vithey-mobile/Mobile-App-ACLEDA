@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/widgets/vithey_dialog.dart';
+import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 class ApplicationFeedbackSuccess {
   static Future<void> show() {
-    return showVitheyDialog<void>(
+    return showDialog<void>(
       context: Get.context!,
       barrierDismissible: false,
-      child: const _ApplicationFeedbackSuccessDialog(),
+      builder: (context) => const _ApplicationFeedbackSuccessDialog(),
     );
   }
 }
@@ -18,28 +20,73 @@ class ApplicationFeedbackSuccess {
 class _ApplicationFeedbackSuccessDialog extends StatelessWidget {
   const _ApplicationFeedbackSuccessDialog();
 
+  void _close() => Get.back<void>();
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const _FeedbackSubmittedHero(),
-        const SizedBox(height: 18),
-        Text(
-          'Feedback Submitted!',
-          style: context.text.titleLarge?.copyWith(fontSize: 20),
-          textAlign: TextAlign.center,
+    return Dialog(
+      insetPadding: EdgeInsets.zero,
+      backgroundColor: context.appColors.cardSurface,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              child: CustomButton(
+                label: AppStrings.back,
+                variant: CustomButtonVariant.ghost,
+                onPressed: _close,
+              ),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 72,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _FeedbackSubmittedHero(),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Feedback Submitted!',
+                      style: context.text.titleLarge?.copyWith(fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 310),
+                      child: Text(
+                        'Your feedback has been submitted successfully to the candidate.',
+                        style: context.text.bodyMedium?.copyWith(
+                          color: context.appColors.muted,
+                          height: 1.45,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          label: 'Done',
+                          onPressed: _close,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        Text(
-          'Your feedback has been submitted successfully to the candidate.',
-          style: context.text.bodyMedium?.copyWith(
-            color: context.appColors.muted,
-            height: 1.45,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -82,7 +129,11 @@ class _FeedbackSubmittedHero extends StatelessWidget {
                 color: AppColors.success,
                 shape: BoxShape.circle,
               ),
-              child: const VitheyIcon(LucideIcons.check, color: Colors.white, size: 20),
+              child: const VitheyIcon(
+                LucideIcons.check,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
           Positioned(

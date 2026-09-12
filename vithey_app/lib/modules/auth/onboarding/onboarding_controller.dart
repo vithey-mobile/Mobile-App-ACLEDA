@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 
 class OnboardingSlide {
   const OnboardingSlide({
@@ -34,8 +33,6 @@ class OnboardingController extends GetxController {
   late final currentPage = initialPage.obs;
 
   final contentOpacity = 1.0.obs;
-  final waveFactor = OnboardingBackground.onboardingFactor.obs;
-  final authMorph = 0.0.obs;
   final isBusy = false.obs;
 
   static const totalPages = 3;
@@ -65,41 +62,18 @@ class OnboardingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (fromLanguage) {
+    if (fromLanguage || fromAuth) {
       contentOpacity.value = 0;
-      waveFactor.value = OnboardingBackground.languageFactor;
-      authMorph.value = 0;
-      _enterFromLanguage();
-    } else if (fromAuth) {
-      contentOpacity.value = 0;
-      waveFactor.value = OnboardingBackground.onboardingFactor;
-      authMorph.value = 1;
-      _enterFromAuth();
+      _fadeContentIn();
     }
   }
 
-  Future<void> _enterFromLanguage() async {
-    final from = OnboardingBackground.languageFactor;
-    final to = OnboardingBackground.onboardingFactor;
+  Future<void> _fadeContentIn() async {
     await IntroMorph.run(IntroMorph.duration, (t) {
       if (isClosed) return;
       contentOpacity.value = t;
-      waveFactor.value = from + (to - from) * t;
     });
-    if (isClosed) return;
-    contentOpacity.value = 1;
-    waveFactor.value = to;
-  }
-
-  Future<void> _enterFromAuth() async {
-    await IntroMorph.run(IntroMorph.duration, (t) {
-      if (isClosed) return;
-      authMorph.value = 1.0 - t;
-      contentOpacity.value = t;
-    });
-    if (isClosed) return;
-    authMorph.value = 0;
-    contentOpacity.value = 1;
+    if (!isClosed) contentOpacity.value = 1;
   }
 
   void onPageChanged(int index) => currentPage.value = index;
@@ -108,7 +82,7 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     if (currentPage.value < totalPages - 1) {
       pageController.nextPage(
-        duration: 300.milliseconds,
+        duration: IntroMorph.panelDuration,
         curve: Curves.easeInOut,
       );
     } else {
@@ -120,7 +94,7 @@ class OnboardingController extends GetxController {
     if (isBusy.value) return;
     if (currentPage.value > 0) {
       pageController.previousPage(
-        duration: 300.milliseconds,
+        duration: IntroMorph.panelDuration,
         curve: Curves.easeInOut,
       );
       return;

@@ -4,11 +4,10 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
-import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
-import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
+import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ProfileJobCard extends StatelessWidget {
@@ -30,25 +29,6 @@ class ProfileJobCard extends StatelessWidget {
   final VoidCallback onOpenPost;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-
-  Future<void> _openActionsSheet(BuildContext context) async {
-    await showVitheyActionSheet<String>(
-      context: context,
-      title: 'Job post options',
-      actions: [
-        if (onEdit != null)
-          VitheyActionSheetItem(label: 'Edit', icon: LucideIcons.pencil, onTap: onEdit),
-        if (onDelete != null)
-          VitheyActionSheetItem(
-            label: 'Delete',
-            icon: LucideIcons.trash2,
-            isDestructive: true,
-            onTap: onDelete,
-          ),
-      ],
-      cancelLabel: 'Cancel',
-    );
-  }
 
   void _openPosterPreview(BuildContext context) {
     final url = post.mediaUrl;
@@ -168,12 +148,10 @@ class ProfileJobCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (isOwnProfile)
-                  VitheyIconButton(
-                    icon: LucideIcons.ellipsisVertical,
-                    variant: VitheyIconButtonVariant.neutral,
-                    tooltip: 'Job post options',
-                    onTap: () => _openActionsSheet(context),
+                if (isOwnProfile && onEdit != null && onDelete != null)
+                  PostOwnerActions(
+                    onEdit: onEdit!,
+                    onDelete: onDelete!,
                   ),
               ],
             ),
@@ -225,6 +203,7 @@ class ProfileJobCard extends StatelessWidget {
                             'Applied',
                             style: context.text.labelLarge?.copyWith(
                               color: context.appColors.muted,
+                              fontWeight: FontWeight.w600,
                             ),
                           )
                         : CustomButton(

@@ -231,7 +231,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Material(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: context.appColors.bodyBackground,
       elevation: overlapsContent ? 1 : 0,
       child: Column(
         children: [
@@ -243,6 +243,5 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
-      topInset != oldDelegate.topInset || tabBar != oldDelegate.tabBar;
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => true;
 }

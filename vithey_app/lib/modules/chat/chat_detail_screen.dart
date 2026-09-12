@@ -17,7 +17,7 @@ class ChatDetailScreen extends GetView<ChatDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.appColors.cardSurface,
+      backgroundColor: context.appColors.bodyBackground,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Obx(

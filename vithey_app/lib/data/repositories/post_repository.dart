@@ -1,5 +1,6 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
+import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/data/fixtures/comment_fixtures.dart';
 import 'package:aub_connect_app/data/fixtures/post_fixtures.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
@@ -15,21 +16,29 @@ class FeedPageResult {
 }
 
 class PostRepository {
-  PostRepository(this._postService, this._currentUser, this._flags);
+  PostRepository(
+    this._postService,
+    this._currentUser,
+    this._flags,
+    this._localStorage,
+  );
 
   final PostService _postService;
   final CurrentUserService _currentUser;
   final FeatureFlags _flags;
+  final LocalStorageService _localStorage;
 
   bool get useMockApi => _flags.useMockApi;
 
   final _mockComments = <String, List<CommentModel>>{};
   final _mockCreatedPosts = <String, FeedPost>{};
   final _mockPostOverrides = <String, FeedPost>{};
-  final _mockDeletedPostIds = <String>{};
+  /// Survives across repository recreations within the same isolate when static.
+  static final _mockDeletedPostIds = <String>{};
   final _followedAuthors = <String>{};
   final _reactedPosts = <String>{};
   var _mockSeeded = false;
+  static Future<void>? _mockPersistenceFuture;
 
   String get _mockUserId => _currentUser.userId;
 
@@ -41,6 +50,40 @@ class PostRepository {
     }
   }
 
+  Future<void> _ensureMockReady() async {
+    _ensureMockSeed();
+    if (!useMockApi) return;
+    _mockPersistenceFuture ??= _loadMockPersistence();
+    await _mockPersistenceFuture;
+  }
+
+  /// Demo: wipe persisted deletes and show all fixture posts again.
+  Future<void> restoreAllMockPosts() async {
+    _mockDeletedPostIds.clear();
+    _mockPersistenceFuture = null;
+    await _localStorage.clearMockDeletedPostIds();
+    await _ensureMockReady();
+  }
+
+  /// Loads persisted mock deletes before any feed/profile read.
+  Future<void> hydrateMockState({bool restoreCatalogIfNeeded = false}) async {
+    if (restoreCatalogIfNeeded && useMockApi) {
+      final restored = await _localStorage.consumeMockCatalogRestore();
+      if (restored) {
+        await restoreAllMockPosts();
+        return;
+      }
+    }
+    await _ensureMockReady();
+  }
+
+  Future<void> _loadMockPersistence() async {
+    final ids = await _localStorage.readMockDeletedPostIds();
+    _mockDeletedPostIds
+      ..clear()
+      ..addAll(ids);
+  }
+
   Future<FeedPageResult> fetchUserPosts({
     required String userId,
     required PostType type,
@@ -49,7 +92,7 @@ class PostRepository {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      _ensureMockSeed();
+      await _ensureMockReady();
       final all = _applyMockPostState([
         ..._mockCreatedPosts.values,
         ...PostFixtures.allPosts(
@@ -60,6 +103,7 @@ class PostRepository {
       ]);
       List<FeedPost> typed;
       if (userId == _mockUserId) {
+        // Demo profile: show full mock catalog for this tab, owned by HR user.
         typed = all.where((p) => p.type == type).map((p) {
           return FeedPost(
             id: p.id,
@@ -75,6 +119,8 @@ class PostRepository {
             reactionCount: p.reactionCount,
             commentCount: p.commentCount,
             shareCount: p.shareCount,
+            applicationState: p.applicationState,
+            lifecycleState: p.lifecycleState,
             currentUserId: _mockUserId,
           );
         }).toList();
@@ -101,8 +147,9 @@ class PostRepository {
   Future<FeedPageResult> fetchFeed({required int page, int limit = 10}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
-      _ensureMockSeed();
+      await _ensureMockReady();
       if (page < 1) return const FeedPageResult(posts: [], hasMore: false);
+      if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
       final fixturePosts = PostFixtures.feedPage(
         page: page,
         currentUserId: _mockUserId,
@@ -199,7 +246,7 @@ class PostRepository {
   Future<FeedPost?> fetchPost(String postId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      _ensureMockSeed();
+      await _ensureMockReady();
       if (_mockDeletedPostIds.contains(postId)) return null;
       final local = _mockCreatedPosts[postId] ?? _mockPostOverrides[postId];
       if (local != null) return local;
@@ -217,7 +264,7 @@ class PostRepository {
       {int page = 1}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
-      _ensureMockSeed();
+      await _ensureMockReady();
       return List<CommentModel>.from(_mockComments[postId] ?? []);
     }
     return _postService.fetchComments(postId: postId, page: page, limit: 20);
@@ -273,7 +320,7 @@ class PostRepository {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 350));
-      _ensureMockSeed();
+      await _ensureMockReady();
       final list = _mockComments[postId];
       if (list == null) {
         throw PostServiceException('Comment not found');
@@ -299,7 +346,7 @@ class PostRepository {
   }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      _ensureMockSeed();
+      await _ensureMockReady();
       final list = _mockComments[postId];
       if (list == null) return;
       list.removeWhere(
@@ -405,16 +452,19 @@ class PostRepository {
   Future<void> deletePost(String postId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 450));
+      await _ensureMockReady();
       final current = await fetchPost(postId);
       if (current == null) return;
-      if (!current.isOwnPost) {
-        throw PostServiceException('You can only delete your own post');
-      }
+      // Demo profile remaps fixture authors to the logged-in HR user, so skip
+      // real ownership checks until the API owns delete.
       _mockDeletedPostIds.add(postId);
       _mockCreatedPosts.remove(postId);
       _mockPostOverrides.remove(postId);
       _mockComments.remove(postId);
       _reactedPosts.remove(postId);
+      await _localStorage.saveMockDeletedPostIds(
+        Set<String>.from(_mockDeletedPostIds),
+      );
       return;
     }
     await _postService.deletePost(postId);

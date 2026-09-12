@@ -20,10 +20,14 @@ class CreatePostMediaZone extends StatelessWidget {
   final VoidCallback onPick;
   final VoidCallback onClear;
 
+  bool get _isRemote =>
+      mediaPath?.startsWith('http://') == true ||
+      mediaPath?.startsWith('https://') == true;
+
+  bool get _isAsset => mediaPath?.startsWith('assets/') == true;
+
   @override
   Widget build(BuildContext context) {
-    final isRemote = mediaPath?.startsWith('http://') == true ||
-        mediaPath?.startsWith('https://') == true;
     return GestureDetector(
       onTap: isUploading ? null : onPick,
       child: Container(
@@ -31,7 +35,7 @@ class CreatePostMediaZone extends StatelessWidget {
         decoration: BoxDecoration(
           color: context.appColors.inputFill,
         ),
-        child: mediaPath == null
+        child: mediaPath == null || mediaPath!.isEmpty
             ? SizedBox(
                 height: 120,
                 child: Column(
@@ -70,23 +74,7 @@ class CreatePostMediaZone extends StatelessWidget {
                   else
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 440),
-                      child: isRemote
-                          ? Image.network(
-                              mediaPath!,
-                              width: double.infinity,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const SizedBox(
-                                height: 180,
-                                child: Center(
-                                  child: VitheyIcon(LucideIcons.imageOff),
-                                ),
-                              ),
-                            )
-                          : Image.file(
-                              File(mediaPath!),
-                              width: double.infinity,
-                              fit: BoxFit.contain,
-                            ),
+                      child: _buildImage(context),
                     ),
                   if (isUploading)
                     const Positioned.fill(
@@ -107,8 +95,11 @@ class CreatePostMediaZone extends StatelessWidget {
                           shape: const CircleBorder(),
                           padding: EdgeInsets.zero,
                         ),
-                        icon: const VitheyIcon(LucideIcons.x,
-                            color: Colors.white, size: 18),
+                        icon: const VitheyIcon(
+                          LucideIcons.x,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         onPressed: isUploading ? null : onClear,
                       ),
                     ),
@@ -116,6 +107,43 @@ class CreatePostMediaZone extends StatelessWidget {
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _buildImage(BuildContext context) {
+    final path = mediaPath!;
+    final error = SizedBox(
+      height: 180,
+      width: double.infinity,
+      child: Center(
+        child: VitheyIcon(
+          LucideIcons.imageOff,
+          color: context.appColors.muted,
+        ),
+      ),
+    );
+
+    if (_isRemote) {
+      return Image.network(
+        path,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => error,
+      );
+    }
+    if (_isAsset) {
+      return Image.asset(
+        path,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => error,
+      );
+    }
+    return Image.file(
+      File(path),
+      width: double.infinity,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => error,
     );
   }
 }

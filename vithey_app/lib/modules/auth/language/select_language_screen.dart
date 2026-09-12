@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 import 'package:aub_connect_app/modules/auth/language/select_language_controller.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
@@ -37,7 +38,7 @@ class SelectLanguageScreen extends StatelessWidget {
       return Scaffold(
         backgroundColor: context.appColors.cardSurface,
         body: const OnboardingBackground(
-          waveHeightFactor: OnboardingBackground.onboardingFactor,
+          profile: WaveRibbon.language,
         ),
       );
     }
@@ -53,10 +54,9 @@ class SelectLanguageScreen extends StatelessWidget {
       body: Obx(() {
         if (!Get.isRegistered<SelectLanguageController>()) {
           return const OnboardingBackground(
-            waveHeightFactor: OnboardingBackground.onboardingFactor,
+            profile: WaveRibbon.language,
           );
         }
-        final wave = controller.waveFactor.value;
         final fade = controller.contentOpacity.value;
         final uiOpacity = (contentT * fade).clamp(0.0, 1.0);
         final busy = controller.isBusy.value;
@@ -64,7 +64,7 @@ class SelectLanguageScreen extends StatelessWidget {
         return Stack(
           fit: StackFit.expand,
           children: [
-            OnboardingBackground(waveHeightFactor: wave),
+            const OnboardingBackground(profile: WaveRibbon.language),
             Opacity(
               opacity: uiOpacity,
               child: Transform.translate(

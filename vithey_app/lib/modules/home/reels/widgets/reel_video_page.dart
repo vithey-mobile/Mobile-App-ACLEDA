@@ -264,10 +264,10 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
               ),
             ),
 
-          // Right action rail
+          // Right action rail (above bottom meta so it doesn't sit on the seek bar)
           Positioned(
             right: 8,
-            bottom: 108 + bottomPad,
+            bottom: 168 + bottomPad,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -309,13 +309,14 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
             ),
           ),
 
-          // Bottom meta + progress
+          // Bottom meta + progress — full width edge-to-edge
           Positioned(
             left: 0,
-            right: 56,
+            right: 0,
             bottom: 0,
             child: Container(
-              padding: EdgeInsets.fromLTRB(14, 40, 8, bottomPad),
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(12, 40, 12, bottomPad),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -328,7 +329,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                 ),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   GestureDetector(
@@ -341,7 +342,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                           radius: 16,
                         ),
                         const SizedBox(width: 8),
-                        Flexible(
+                        Expanded(
                           child: Text(
                             _post.author.fullName,
                             maxLines: 1,
@@ -423,28 +424,33 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 2.5,
                       thumbShape: const RoundSliderThumbShape(
                         enabledThumbRadius: 6,
                       ),
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 12,
-                      ),
+                      overlayShape: SliderComponentShape.noOverlay,
+                      trackShape: const RectangularSliderTrackShape(),
                       activeTrackColor: Colors.white,
                       inactiveTrackColor: Colors.white24,
                       thumbColor: Colors.white,
+                      // Kill Material's default side inset so the bar is full width.
+                      padding: EdgeInsets.zero,
                     ),
-                    child: Slider(
-                      value: progress,
-                      onChanged: ready
-                          ? (v) {
-                              final ms = (duration.inMilliseconds * v).round();
-                              c.seekTo(Duration(milliseconds: ms));
-                            }
-                          : null,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Slider(
+                        value: progress,
+                        onChanged: ready
+                            ? (v) {
+                                final ms =
+                                    (duration.inMilliseconds * v).round();
+                                c.seekTo(Duration(milliseconds: ms));
+                              }
+                            : null,
+                      ),
                     ),
                   ),
                 ],
@@ -458,8 +464,11 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
 
   Widget _buildStage(bool ready, VideoPlayerController? c) {
     if (_error != null) {
-      return Center(
-        child: Text(_error!, style: const TextStyle(color: Colors.white70)),
+      return ColoredBox(
+        color: Colors.black,
+        child: Center(
+          child: Text(_error!, style: const TextStyle(color: Colors.white70)),
+        ),
       );
     }
     if (_initializing || !ready) {
@@ -467,9 +476,13 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
         fit: StackFit.expand,
         children: [
           if (_post.thumbnailUrl != null)
-            CachedNetworkImage(
-              imageUrl: _post.thumbnailUrl!,
-              fit: BoxFit.cover,
+            Positioned.fill(
+              child: CachedNetworkImage(
+                imageUrl: _post.thumbnailUrl!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
             )
           else
             const ColoredBox(color: Colors.black),
@@ -480,10 +493,19 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
       );
     }
 
-    return Center(
-      child: AspectRatio(
-        aspectRatio: c!.value.aspectRatio == 0 ? 9 / 16 : c.value.aspectRatio,
-        child: VideoPlayer(c),
+    // Full-bleed cover (TikTok/IG style) so the action rail sits on the video.
+    final size = c!.value.size;
+    final w = size.width <= 0 ? 9.0 : size.width;
+    final h = size.height <= 0 ? 16.0 : size.height;
+    return ClipRect(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: w,
+          height: h,
+          child: VideoPlayer(c),
+        ),
       ),
     );
   }
@@ -574,7 +596,11 @@ class _SideAction extends StatelessWidget {
               color: active ? AppColors.primaryLight : Colors.white,
               size: 27,
               shadows: const [
-                Shadow(blurRadius: 8, color: Colors.black54),
+                Shadow(
+                  color: Color(0x99000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 1),
+                ),
               ],
             ),
             if (label.isNotEmpty) ...[
@@ -585,7 +611,13 @@ class _SideAction extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  shadows: [Shadow(blurRadius: 6, color: Colors.black54)],
+                  shadows: [
+                    Shadow(
+                      color: Color(0x99000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
             ],

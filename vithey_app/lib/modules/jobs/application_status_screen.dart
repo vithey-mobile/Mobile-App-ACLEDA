@@ -45,7 +45,7 @@ class ApplicationStatusController extends GetxController {
     }
   }
 
-  void cycleMockStatus() {
+  Future<void> cycleMockStatus() async {
     if (_applicationId == null || detail.value == null) return;
     final current = detail.value!.status;
     final next = switch (current) {
@@ -54,8 +54,8 @@ class ApplicationStatusController extends GetxController {
       ApplicationStatus.accepted => ApplicationStatus.rejected,
       ApplicationStatus.rejected => ApplicationStatus.pending,
     };
-    _repository.setMockApplicationStatus(_applicationId!, next);
-    loadStatus();
+    await _repository.setMockApplicationStatus(_applicationId!, next);
+    await loadStatus();
   }
 }
 

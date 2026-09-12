@@ -180,8 +180,8 @@ class _ProfilePostsTab extends StatelessWidget {
               onOpenApplicants: () => controller.openJobApplicants(post),
               onApply: () => controller.applyToJob(post.id),
               onOpenPost: () => controller.openPost(post.id),
-              onEdit: null, // Edit job not available yet — hide action
-              onDelete: () => controller.deleteJobPost(post),
+              onEdit: () => controller.editJobPost(post),
+              onDelete: () => controller.deleteJobPost(context, post),
             );
           },
         );

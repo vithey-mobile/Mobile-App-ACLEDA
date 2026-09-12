@@ -63,9 +63,7 @@ class SettingsController extends GetxController {
       Get.closeAllSnackbars();
     }
     final ctx = Get.context!;
-    final bg = ctx.theme.brightness == Brightness.dark
-        ? ctx.appColors.bodyBackground
-        : const Color(0xFFF2F2F2);
+    final bg = ctx.appColors.inputFill;
     Get.bottomSheet(
       LanguagePickerSheet(
         selectedCode: languageCode.value,
@@ -114,6 +112,10 @@ class SettingsController extends GetxController {
         await Get.find<SearchRecentStore>().clearAll();
       }
     } catch (_) {}
-    Get.offAllNamed(AppRoutes.auth);
+    // Close any leftover dialogs before wiping the stack.
+    while (Get.isDialogOpen ?? false) {
+      Get.back<void>();
+    }
+    Get.offAllNamed(AppRoutes.login);
   }
 }

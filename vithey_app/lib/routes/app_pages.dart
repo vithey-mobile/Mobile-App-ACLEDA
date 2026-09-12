@@ -6,7 +6,9 @@ import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/auth_binding.dart';
 import 'package:aub_connect_app/modules/auth/forgot_password_screen.dart';
 import 'package:aub_connect_app/modules/auth/google_auth_screen.dart';
-import 'package:aub_connect_app/modules/auth/login_screen.dart';
+import 'package:aub_connect_app/modules/auth/intro_ribbon_binding.dart';
+import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
+import 'package:aub_connect_app/modules/auth/intro_ribbon_screen.dart';
 import 'package:aub_connect_app/modules/home/create_post/create_post_screen.dart';
 import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_binding.dart';
@@ -30,10 +32,6 @@ import 'package:aub_connect_app/modules/profile/profile_screen.dart';
 import 'package:aub_connect_app/modules/profile/profile_view_binding.dart';
 import 'package:aub_connect_app/modules/profile/profile_view_screen.dart';
 import 'package:aub_connect_app/modules/profile/scan_qr_screen.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/onboarding_binding.dart';
-import 'package:aub_connect_app/modules/auth/onboarding/onboarding_screen.dart';
-import 'package:aub_connect_app/modules/auth/language/select_language_binding.dart';
-import 'package:aub_connect_app/modules/auth/language/select_language_screen.dart';
 import 'package:aub_connect_app/modules/auth/splash/splash_controller.dart';
 import 'package:aub_connect_app/modules/auth/splash/splash_screen.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_binding.dart';
@@ -103,32 +101,42 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.selectLanguage,
-      page: () => const SelectLanguageScreen(),
-      binding: SelectLanguageBinding(),
+      page: () => const IntroRibbonScreen(),
+      binding: IntroRibbonBinding(
+        initialPage: IntroRibbonController.pageLanguage,
+      ),
       transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.onboarding,
-      page: () => const OnboardingScreen(),
-      binding: OnboardingBinding(),
+      page: () => const IntroRibbonScreen(),
+      binding: IntroRibbonBinding(
+        initialPage: IntroRibbonController.pageOnboarding1,
+      ),
       transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.auth,
-      page: () => const LoginScreen(),
-      binding: AuthBinding(),
+      page: () => const IntroRibbonScreen(),
+      binding: IntroRibbonBinding(
+        initialPage: IntroRibbonController.pageSignIn,
+      ),
       transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.login,
-      page: () => const LoginScreen(),
-      binding: AuthBinding(),
+      page: () => const IntroRibbonScreen(),
+      binding: IntroRibbonBinding(
+        initialPage: IntroRibbonController.pageSignIn,
+      ),
       transition: Transition.noTransition,
     ),
     GetPage(
       name: AppRoutes.register,
-      page: () => const RegisterScreen(),
-      binding: AuthBinding(),
+      page: () => const IntroRibbonScreen(),
+      binding: IntroRibbonBinding(
+        initialPage: IntroRibbonController.pageSignUp,
+      ),
       transition: Transition.noTransition,
     ),
     GetPage(
