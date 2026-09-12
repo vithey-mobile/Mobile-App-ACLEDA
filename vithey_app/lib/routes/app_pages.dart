@@ -155,8 +155,8 @@ class AppPages {
       name: AppRoutes.googleAuthConfirmation,
       page: () => const GoogleAuthConfirmationScreen(),
       binding: AuthBinding(),
-      transition: Transition.downToUp,
-      transitionDuration: const Duration(milliseconds: 320),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 280),
     ),
     GetPage(
       name: AppRoutes.startupSkills,

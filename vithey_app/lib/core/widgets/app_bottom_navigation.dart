@@ -30,7 +30,6 @@ class AppBottomNavigation extends StatelessWidget {
   static const barHeight = 64.0;
   static const bottomMargin = 10.0;
   static const _radius = 32.0;
-  static const _inactive = Color(0xFF9AA0A6);
 
   /// Bottom inset so scroll content clears the floating pill.
   ///

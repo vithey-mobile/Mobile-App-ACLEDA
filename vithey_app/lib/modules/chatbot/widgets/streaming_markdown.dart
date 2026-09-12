@@ -295,20 +295,3 @@ String _closeTableRow(String row) {
   return t;
 }
 
-String _separatorRow(int columns) {
-  final cells = List.filled(columns.clamp(1, 12), '---');
-  return '| ${cells.join(' | ')} |';
-}
-
-String _padTableRow(String row, int columns) {
-  final closed = _closeTableRow(row);
-  final count = _tableColumns(closed);
-  if (count >= columns) return closed;
-  final extra = List.filled(columns - count, ' ');
-  final trimmed = closed.trimRight();
-  final core = trimmed.endsWith('|')
-      ? trimmed.substring(0, trimmed.length - 1)
-      : trimmed;
-  return '$core| ${extra.join(' | ')} |';
-}
-
