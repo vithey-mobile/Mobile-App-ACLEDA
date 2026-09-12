@@ -51,6 +51,15 @@ class FinanceRepository {
     return _financeService.fetchPaymentInvoice(paymentId);
   }
 
+  /// Fee catalog (`GET /fees`) — STUDENT role required on backend.
+  Future<List<Map<String, dynamic>>> getFees() async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      return const [];
+    }
+    return _financeService.fetchFees();
+  }
+
   Future<void> downloadInvoice(String paymentId) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 900));

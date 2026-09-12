@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/api_endpoints.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
@@ -11,6 +12,7 @@ import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
 import 'package:aub_connect_app/data/models/ai_cv_draft.dart';
 import 'package:aub_connect_app/data/models/cv_file_model.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
+import 'package:aub_connect_app/data/repositories/ai_repository.dart';
 import 'package:aub_connect_app/data/services/upload_service.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_pdf_builder.dart';
 import 'package:share_plus/share_plus.dart';
@@ -113,9 +115,16 @@ class CvRepository {
   AiCvDraft? draftForFile(String fileId) => _draftByFileId[fileId];
 
   /// Mock-first CV draft from Vithey profile data.
+  /// Live: delegates to [AiRepository.generateCvDraft] → `POST /ai/cv/generate`.
   Future<AiCvDraft> generateCvDraftFromProfile() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1100));
-    final draft = AiCvFixtures.draftForCurrentUser();
+    if (_flags.useMockAi) {
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      final draft = AiCvFixtures.draftForCurrentUser();
+      _lastAiDraft = draft;
+      return draft;
+    }
+    final ai = Get.find<AiRepository>();
+    final draft = await ai.generateCvDraft();
     _lastAiDraft = draft;
     return draft;
   }

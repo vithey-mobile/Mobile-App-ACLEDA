@@ -57,4 +57,24 @@ class AiCvDraft {
       skills.isEmpty &&
       education.isEmpty &&
       experience.isEmpty;
+
+  factory AiCvDraft.fromJson(Map<String, dynamic> json) {
+    List<String> asStringList(dynamic raw) {
+      if (raw is! List) return const [];
+      return raw.map((e) => e.toString()).where((s) => s.trim().isNotEmpty).toList();
+    }
+
+    return AiCvDraft(
+      fullName: json['full_name']?.toString() ?? '',
+      summary: json['summary']?.toString() ?? '',
+      skills: asStringList(json['skills']),
+      education: asStringList(json['education']),
+      experience: asStringList(json['experience']),
+      projects: asStringList(json['projects']),
+      contact: json['contact']?.toString() ?? '',
+      templateId: json['template_id']?.toString(),
+      incompleteProfile: json['incomplete_profile'] as bool? ?? false,
+      incompleteMessage: json['incomplete_message']?.toString(),
+    );
+  }
 }

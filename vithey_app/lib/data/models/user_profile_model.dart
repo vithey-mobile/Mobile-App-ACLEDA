@@ -217,6 +217,7 @@ class UserProfileModel {
       location: json['location'] as String?,
       gender: json['gender'] as String?,
       skills: _skillsFromJson(json['skills']),
+      isStudentVerified: json['is_student_verified'] as bool? ?? false,
     );
   }
 }

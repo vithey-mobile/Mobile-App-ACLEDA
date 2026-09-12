@@ -109,6 +109,22 @@ class PlaceService {
     return response.data!;
   }
 
+  Future<List<Map<String, dynamic>>> history() async {
+    final response = await _api.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.placesHistory,
+      fromJson: (json) {
+        final list = json as List<dynamic>? ?? [];
+        return list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      },
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw PlaceServiceException(response.error?.message ?? 'History failed');
+    }
+    return response.data!;
+  }
+
   Future<PlaceCard> saveFavorite(PlaceCard place) async {
     final response = await _api.post<PlaceCard>(
       ApiEndpoints.placesFavorites,

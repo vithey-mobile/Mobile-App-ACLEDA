@@ -311,9 +311,7 @@ class ChatListController extends GetxController {
   Future<void> acceptRequest(MessageRequestModel request) async {
     await _chatRepository.acceptMessageRequest(request.id);
     messageRequests.removeWhere((r) => r.id == request.id);
-    final conversationId =
-        await _chatRepository.findOrCreateConversation(request.requester.id);
-    openConversation(conversationId);
+    openConversation(request.id);
   }
 
   Future<void> declineRequest(MessageRequestModel request) async {

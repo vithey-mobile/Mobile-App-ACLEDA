@@ -1,7 +1,10 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
+import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/data/models/student_verification_model.dart';
+import 'package:aub_connect_app/data/services/auth_service.dart';
 import 'package:aub_connect_app/data/services/student_verification_service.dart';
 import 'package:get/get.dart';
 
@@ -37,8 +40,13 @@ class StudentVerificationRepository {
       _publishVerified(model.status);
       return model;
     }
-    const model =
-        StudentVerificationModel(status: VerificationStatus.notSubmitted);
+    final me = await _service.fetchAuthMe();
+    final model = StudentVerificationModel(
+      status: me.isStudentVerified
+          ? VerificationStatus.verified
+          : VerificationStatus.notSubmitted,
+      verifiedAt: me.isStudentVerified ? DateTime.now() : null,
+    );
     _publishVerified(model.status);
     return model;
   }
@@ -73,17 +81,40 @@ class StudentVerificationRepository {
         documentFileName: hasDocument ? normalizedDoc : null,
       );
     }
-    await _service.submitVerification(
+    final model = await _service.submitVerification(
       studentId: studentId,
       universityEmail: universityEmail,
-    );
-    final model = StudentVerificationModel(
-      status: VerificationStatus.verified,
-      studentId: studentId,
-      universityEmail: universityEmail,
-      verifiedAt: DateTime.now(),
     );
     _publishVerified(model.status);
+    if (Get.isRegistered<CurrentUserService>()) {
+      final current = Get.find<CurrentUserService>().user.value;
+      if (current != null) {
+        Get.find<CurrentUserService>().setUser(
+          current.copyWith(
+            isStudentVerified: model.status == VerificationStatus.verified,
+            role: model.status == VerificationStatus.verified ? 'STUDENT' : current.role,
+          ),
+        );
+      }
+    }
+    // JWT still carries pre-verify role until refresh — finance needs STUDENT.
+    if (model.status == VerificationStatus.verified &&
+        Get.isRegistered<AuthService>() &&
+        Get.isRegistered<SecureStorageService>()) {
+      final storage = Get.find<SecureStorageService>();
+      final refresh = await storage.readRefreshToken();
+      if (refresh != null && refresh.isNotEmpty && !refresh.startsWith('mock')) {
+        try {
+          final tokens = await Get.find<AuthService>().refresh(refreshToken: refresh);
+          await storage.saveTokens(
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+          );
+        } catch (_) {
+          // UI still shows verified; next 401 will refresh via Dio interceptor.
+        }
+      }
+    }
     return model;
   }
 

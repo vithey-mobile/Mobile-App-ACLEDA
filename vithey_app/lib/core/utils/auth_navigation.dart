@@ -8,19 +8,28 @@ import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 class AuthNavigation {
   AuthNavigation._();
 
+  /// After auth:
+  /// - New registration → startup (skills / interests) once.
+  /// - Returning login → home; mark first-run funnel done so splash
+  ///   does not show language / onboarding / startup again.
   static Future<void> goAfterAuth({bool isNewUser = false}) async {
     final localStorage = Get.find<LocalStorageService>();
     final flags =
         Get.isRegistered<FeatureFlags>() ? Get.find<FeatureFlags>() : null;
     final forceStartup =
         flags != null && (flags.forceDevFunnel || flags.forceShowStartup);
-    final startupDone = await localStorage.isStartupCompleted();
     await _bootstrapNotifications();
-    if (forceStartup || !startupDone || isNewUser) {
+
+    if (forceStartup || isNewUser) {
       Get.offAllNamed(AppRoutes.startupSkills);
-    } else {
-      Get.offAllNamed(AppRoutes.home);
+      return;
     }
+
+    // Returning user: skip first-run screens and persist so cold start is home.
+    await localStorage.setLanguageSelected(true);
+    await localStorage.setOnboardingCompleted(true);
+    await localStorage.setStartupCompleted(true);
+    Get.offAllNamed(AppRoutes.home);
   }
 
   static Future<void> bootstrapNotificationsIfNeeded() => _bootstrapNotifications();

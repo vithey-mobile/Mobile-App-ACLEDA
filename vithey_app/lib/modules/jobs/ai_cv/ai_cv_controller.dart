@@ -5,6 +5,7 @@ import 'package:aub_connect_app/data/models/cv_template.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
 import 'package:aub_connect_app/data/repositories/cv_repository.dart';
+import 'package:aub_connect_app/data/services/ai_service.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_args.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_pdf_builder.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_template_preview.dart';
@@ -89,9 +90,12 @@ class AiCvController extends GetxController {
         return;
       }
       phase.value = AiCvPhase.preview;
-    } catch (_) {
+    } catch (e) {
       phase.value = AiCvPhase.error;
-      errorMessage.value = 'Could not generate a CV draft. Please try again.';
+      final detail = e is AiServiceException ? e.message : null;
+      errorMessage.value = (detail != null && detail.trim().isNotEmpty)
+          ? detail
+          : 'Could not generate a CV draft. Please try again.';
     }
   }
 
@@ -146,6 +150,7 @@ class AiCvController extends GetxController {
     try {
       final next = await _aiRepository.regenerateCvSummary(
         variant: ++_summaryVariant,
+        originalText: draft.value?.summary,
       );
       final base = draft.value;
       if (base != null) draft.value = base.copyWith(summary: next);

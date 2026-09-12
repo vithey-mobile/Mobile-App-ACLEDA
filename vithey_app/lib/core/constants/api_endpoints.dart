@@ -5,10 +5,12 @@ class ApiEndpoints {
   static const authLogin = '/auth/login';
   static const authRefresh = '/auth/refresh';
   static const authLogout = '/auth/logout';
+  static const authMe = '/auth/me';
   static const authChangePassword = '/auth/me/password';
   static const authForgotPassword = '/auth/forgot-password';
   static const usersMeSettings = '/users/me/settings';
   static const usersMe = '/users/me';
+  static const paymentsAlerts = '/payments/alerts';
   static String userById(String id) => '/users/$id';
   static String userPosts(String id) => '/users/$id/posts';
   static const usersSearch = '/users/search';
@@ -24,6 +26,8 @@ class ApiEndpoints {
   static const payments = '/payments';
   static const studentsVerify = '/students/verify';
   static const conversations = '/conversations';
+  static const conversationsRequest = '/message-requests';
+  static const conversationsStart = '/conversations/start';
   static const messageRequests = '/message-requests';
   static String conversationMessages(String id) => '/conversations/$id/messages';
   static String conversationAccept(String id) => '/conversations/$id/accept';
@@ -38,6 +42,8 @@ class ApiEndpoints {
   static String aiSessionMessages(String id) => '/ai/sessions/$id/messages';
   static String aiRegenerateMessage(String messageId) => '/ai/messages/$messageId/regenerate';
   static String aiCancelChatRequest(String requestId) => '/ai/chat/requests/$requestId';
+  static const aiCvGenerate = '/ai/cv/generate';
+  static const aiCvSuggest = '/ai/cv/suggest';
   static const notifications = '/notifications';
   static const notificationsUnreadCount = '/notifications/unread-count';
   static const notificationsReadAll = '/notifications/read-all';

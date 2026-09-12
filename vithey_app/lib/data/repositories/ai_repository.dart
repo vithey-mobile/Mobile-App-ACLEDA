@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/data/fixtures/mock_ids.dart';
@@ -35,22 +36,41 @@ class AiRepository {
   final _mockMessages = <String, List<AiMessage>>{};
   int _sessionCounter = 0;
 
-  /// Mock-first Auto-Create CV. Live `/ai/cv/generate` can plug in later.
-  Future<AiCvDraft> generateCvDraft() async {
+  /// Auto-Create CV. Live: `POST /ai/cv/generate` via ai-service → ai_core.
+  Future<AiCvDraft> generateCvDraft({
+    String? targetRole,
+    String? language,
+    String? templateId,
+  }) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 900));
       return AiCvFixtures.draftForCurrentUser();
     }
-    // Backend generate endpoint not wired yet — fall back to fixture shape.
-    await Future<void>.delayed(const Duration(milliseconds: 900));
-    return AiCvFixtures.draftForCurrentUser();
+    return _aiService.generateCvDraft(
+      targetRole: targetRole,
+      language: language,
+      templateId: templateId,
+    );
   }
 
   /// Mock “Regenerate summary”: reshuffles fixture wording built only from
-  /// profile facts (AI-CV-07). Live: `/ai/cv/generate` with `section: summary`.
-  Future<String> regenerateCvSummary({required int variant}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return AiCvFixtures.regeneratedSummary(variant: variant);
+  /// profile facts (AI-CV-07). Live: `POST /ai/cv/suggest` with section summary.
+  Future<String> regenerateCvSummary({
+    required int variant,
+    String? originalText,
+  }) async {
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      return AiCvFixtures.regeneratedSummary(variant: variant);
+    }
+    final text = (originalText ?? '').trim();
+    if (text.isEmpty) {
+      throw AiServiceException('Summary text is required to regenerate');
+    }
+    return _aiService.suggestCvSection(
+      section: 'summary',
+      originalText: text,
+    );
   }
 
   /// Block 5 — Job Apply Match Score (AI-JOB-01…06, mock rule-based overlap).
@@ -64,35 +84,55 @@ class AiRepository {
     String? cvFileId,
     String? applicantUserId,
   }) async {
-    // Live endpoint not wired yet — mock always (USE_MOCK_AI contract).
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (applicantUserId != null && applicantUserId != MockIds.currentUser) {
-      return AiJobMatchFixtures.match(
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      if (applicantUserId != null && applicantUserId != MockIds.currentUser) {
+        return AiJobMatchFixtures.match(
+          jobPostId: jobPostId,
+          applicantUserId: applicantUserId,
+        );
+      }
+      return AiJobMatchFixtures.matchForJob(
         jobPostId: jobPostId,
-        applicantUserId: applicantUserId,
+        cvFileId: cvFileId,
       );
     }
-    return AiJobMatchFixtures.matchForJob(
+    // Backend POST /ai/jobs/{id}/match not shipped yet — no fake scores in live mode.
+    return AiJobMatchResult(
       jobPostId: jobPostId,
+      applicantUserId: applicantUserId,
       cvFileId: cvFileId,
+      score: 0,
+      label: AiJobMatchResult.labelForScore(0),
+      matchedSkills: const [],
+      gapSkills: const [],
+      reasons: const ['Job match scoring is not available on the live API yet.'],
+      incompleteProfile: true,
     );
   }
 
   /// Block 4 — Skill Score / Career readiness (AI-SK-02…04, mock rules).
-  /// Live: GET /ai/skills/score
-  ///
-  /// Pass [skills] from the live profile so create/update + attachments
-  /// refresh the career readiness card.
+  /// Live: GET /ai/skills/score (not shipped yet).
   Future<AiCareerReadiness> skillScores({List<ProfileSkill>? skills}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return AiSkillFixtures.readinessForCurrentUser(skills);
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      return AiSkillFixtures.readinessForCurrentUser(skills);
+    }
+    return const AiCareerReadiness(
+      overallScore: 0,
+      topSkills: [],
+      suggestions: [],
+    );
   }
 
-  /// Block 2 — Personalized feed ranking (AI-FEED-02…06, mock ordering).
-  /// Live: GET /ai/feed/recommendations?limit=
+  /// Block 2 — Personalized feed ranking (AI-FEED-02…06).
+  /// Live: GET /ai/feed/recommendations (not shipped yet).
   Future<List<AiFeedRecommendation>> feedRecommendations({int limit = 20}) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-    return AiFeedFixtures.forYou(limit: limit);
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      return AiFeedFixtures.forYou(limit: limit);
+    }
+    return const [];
   }
 
   Future<List<AiSession>> fetchSessions({int page = 1}) async {
@@ -236,7 +276,29 @@ class AiRepository {
         messageId: assistantMsg.id,
       );
     }
-    throw AiServiceException('Regenerate is not available yet');
+    return _aiService.regenerateMessage(assistantMessageId);
+  }
+
+  /// Live SSE chat stream. Mock callers should keep using [sendMessage].
+  Stream<AiStreamEvent> streamMessage({
+    required String message,
+    String? sessionId,
+    AiTopic? topic,
+    String? clientMessageId,
+    CancelToken? cancelToken,
+  }) {
+    return _aiService.streamChat(
+      message: message,
+      sessionId: sessionId,
+      topic: topic ?? _inferTopic(message),
+      clientMessageId: clientMessageId,
+      cancelToken: cancelToken,
+    );
+  }
+
+  Future<void> cancelChatRequest(String requestId) async {
+    if (useMockApi) return;
+    await _aiService.cancelChatRequest(requestId);
   }
 
   String _createMockSession(String firstMessage, AiTopic? topic) {

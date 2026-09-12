@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/api_endpoints.dart';
 import 'package:aub_connect_app/core/network/api_response.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
 import 'package:aub_connect_app/data/models/auth_result_model.dart';
+import 'package:aub_connect_app/data/models/auth_token_model.dart';
 import 'package:aub_connect_app/data/models/user_model.dart';
 
 class AuthService {
@@ -59,13 +60,37 @@ class AuthService {
     return response.data!;
   }
 
+  /// Auth identity (`GET /auth/me`) — includes `is_student_verified`.
   Future<UserModel> getMe() async {
     final response = await _api.get(
-      ApiEndpoints.usersMe,
+      ApiEndpoints.authMe,
       fromJson: (json) => UserModel.fromJson(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
       throw AuthServiceException(response.error?.message ?? 'Failed to load profile');
+    }
+    return response.data!;
+  }
+
+  Future<void> logout({required String refreshToken}) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.authLogout,
+      data: {'refresh_token': refreshToken},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw AuthServiceException(response.error?.message ?? 'Logout failed');
+    }
+  }
+
+  Future<AuthTokenModel> refresh({required String refreshToken}) async {
+    final response = await _api.post<AuthTokenModel>(
+      ApiEndpoints.authRefresh,
+      data: {'refresh_token': refreshToken},
+      fromJson: (json) => AuthTokenModel.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw AuthServiceException(response.error?.message ?? 'Token refresh failed');
     }
     return response.data!;
   }

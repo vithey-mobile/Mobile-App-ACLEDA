@@ -4,7 +4,9 @@ import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/data/models/auth_result_model.dart';
 import 'package:aub_connect_app/data/models/auth_token_model.dart';
 import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:get/get.dart';
 
 class AuthRepository {
   AuthRepository(
@@ -77,6 +79,16 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    if (!useMockAuth) {
+      final refresh = await _secureStorage.readRefreshToken();
+      if (refresh != null && refresh.isNotEmpty && !refresh.startsWith('mock')) {
+        try {
+          await _authService.logout(refreshToken: refresh);
+        } catch (_) {
+          // Still clear local session even if revoke fails.
+        }
+      }
+    }
     await _secureStorage.clearTokens();
     _currentUser.clear();
   }
@@ -119,6 +131,10 @@ class AuthRepository {
       refreshToken: result.tokens.refreshToken,
     );
     _currentUser.setUser(result.user);
+    if (Get.isRegistered<StudentVerificationRepository>()) {
+      Get.find<StudentVerificationRepository>().isVerified.value =
+          result.user.isStudentVerified;
+    }
   }
 
   Future<AuthResultModel> _mockAuth({
