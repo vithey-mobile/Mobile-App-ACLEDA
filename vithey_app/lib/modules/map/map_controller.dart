@@ -56,6 +56,7 @@ class MapController extends GetxController {
   Timer? _debounce;
   LatLng? _pendingLongPress;
   Marker? _searchFromHereMarker;
+  bool _locating = false;
   LatLng _cameraTarget = const LatLng(
     PlaceFixtures.defaultLat,
     PlaceFixtures.defaultLng,
@@ -69,6 +70,7 @@ class MapController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    FocusManager.instance.primaryFocus?.unfocus();
     final args = Get.arguments;
     if (args is String && args.trim().isNotEmpty) {
       textController.text = args.trim();
@@ -81,6 +83,8 @@ class MapController extends GetxController {
   void onClose() {
     textController.dispose();
     _debounce?.cancel();
+    mapController?.dispose();
+    mapController = null;
     super.onClose();
   }
 
@@ -97,7 +101,17 @@ class MapController extends GetxController {
 
   Future<void> onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-    if (isLocationGranted.value) {
+    final gps = gpsLatLng.value;
+    if (gps != null) {
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(gps, 15),
+      );
+    }
+    if (_locating) {
+      if (places.isNotEmpty) _rebuildMarkers();
+      return;
+    }
+    if (isLocationGranted.value && gps == null) {
       await goToCurrentLocation(runNearby: places.isEmpty);
     } else if (places.isEmpty) {
       await loadNearby();
@@ -107,12 +121,19 @@ class MapController extends GetxController {
   }
 
   Future<void> goToCurrentLocation({bool runNearby = true}) async {
+    if (_locating) return;
+    _locating = true;
     try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+      final position = await _readDevicePosition();
+      if (position == null) {
+        Get.snackbar(
+          AppStrings.appName,
+          'Could not get current location',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        if (runNearby && places.isEmpty) await loadNearby();
+        return;
+      }
       final latLng = LatLng(position.latitude, position.longitude);
       gpsLatLng.value = latLng;
       searchCenter.value = latLng;
@@ -128,6 +149,24 @@ class MapController extends GetxController {
         'Could not get current location',
         snackPosition: SnackPosition.BOTTOM,
       );
+      if (runNearby && places.isEmpty) await loadNearby();
+    } finally {
+      _locating = false;
+    }
+  }
+
+  Future<Position?> _readDevicePosition() async {
+    try {
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+    } on TimeoutException {
+      return Geolocator.getLastKnownPosition();
+    } catch (_) {
+      return Geolocator.getLastKnownPosition();
     }
   }
 

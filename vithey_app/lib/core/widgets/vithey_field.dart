@@ -105,6 +105,7 @@ class _VitheyFieldState extends State<VitheyField> {
 
   void _onFocusChange() {
     // Any field interaction while errors are up → back to normal.
+    if (!mounted) return;
     if (_focusNode.hasFocus) {
       FieldErrors.clear(context);
     }
@@ -300,6 +301,7 @@ class _VitheyFieldState extends State<VitheyField> {
                       ),
                 features: features,
                 onChanged: (value) {
+                  if (!field.mounted) return;
                   field.didChange(value);
                   if (hasError) {
                     FieldErrors.clear(context);

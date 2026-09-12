@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
+import 'package:aub_connect_app/data/fixtures/place_fixtures.dart';
 import 'package:aub_connect_app/data/models/place_models.dart';
 import 'package:aub_connect_app/modules/map/map_controller.dart';
 import 'package:aub_connect_app/modules/map/map_style.dart';
@@ -33,21 +34,26 @@ class MapScreen extends GetView<MapController> {
                   : hasPin
                       ? 108.0
                       : 0.0;
-              final routeLines = Set<Polyline>.of(controller.polylines);
               return GoogleMap(
+                key: const ValueKey('vithey-google-map'),
                 onMapCreated: controller.onMapCreated,
                 style: Theme.of(context).brightness == Brightness.dark
                     ? darkMapStyle
                     : null,
-                initialCameraPosition: CameraPosition(
-                  target: controller.searchCenter.value,
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(
+                    PlaceFixtures.defaultLat,
+                    PlaceFixtures.defaultLng,
+                  ),
                   zoom: 14,
                 ),
                 myLocationEnabled: controller.isLocationGranted.value,
                 myLocationButtonEnabled: false,
                 zoomControlsEnabled: false,
-                markers: controller.markers.toSet(),
-                polylines: routeLines,
+                compassEnabled: false,
+                mapToolbarEnabled: false,
+                markers: Set<Marker>.of(controller.markers),
+                polylines: Set<Polyline>.of(controller.polylines),
                 onCameraMove: controller.onCameraMove,
                 onCameraIdle: controller.onCameraIdle,
                 onLongPress: controller.onMapLongPress,
@@ -83,8 +89,13 @@ class MapScreen extends GetView<MapController> {
               ),
             );
           }),
-          SafeArea(
-            child: Padding(
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -224,6 +235,7 @@ class MapScreen extends GetView<MapController> {
                   }),
                 ],
               ),
+            ),
             ),
           ),
           Obx(() {
