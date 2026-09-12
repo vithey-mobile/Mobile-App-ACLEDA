@@ -438,6 +438,7 @@ class MapController extends GetxController {
         filter: filter.value,
       );
       places.assignAll(result.places);
+      _mergeLocalPlaces();
 
       if (places.isNotEmpty) {
         final p = places.first;

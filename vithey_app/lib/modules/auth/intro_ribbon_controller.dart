@@ -77,6 +77,9 @@ class IntroRibbonController extends GetxController {
   void _syncAuthIndex(int index) {
     if (!Get.isRegistered<AuthController>()) return;
     final auth = Get.find<AuthController>();
+    if (index != pageSignIn && auth.showForgotPassword.value) {
+      auth.closeForgotPassword();
+    }
     if (index == pageSignIn) {
       auth.authPageIndex.value = 0;
     } else if (index == pageSignUp) {
@@ -151,7 +154,10 @@ class IntroRibbonController extends GetxController {
     }
   }
 
-  Future<void> skipOnboarding() => finishOnboarding();
+  Future<void> skipOnboarding() async {
+    // Screen handles chrome exit + finish when Skip is pressed from overlay.
+    await finishOnboarding();
+  }
 
   Future<void> finishOnboarding() async {
     if (isBusy.value) return;

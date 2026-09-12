@@ -69,18 +69,18 @@ class ProfileScreen extends GetView<ProfileController> {
                 child: FloatingActionButton.extended(
                   onPressed: _openAiCreateCv,
                   backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: context.scheme.onPrimary,
                   elevation: 3,
-                  icon: const VitheyIcon(
+                  icon: VitheyIcon(
                     LucideIcons.sparkles,
                     size: 20,
-                    color: Colors.white,
+                    color: context.scheme.onPrimary,
                   ),
                   label: Text(
                     'AI Create CV',
                     style: context.text.labelLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: context.scheme.onPrimary,
                     ),
                   ),
                 ),

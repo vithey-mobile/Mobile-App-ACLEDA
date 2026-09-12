@@ -140,6 +140,16 @@ abstract final class WaveRibbon {
     lightY: [0.300, 0.265, 0.310, 0.250, 0.285, 0.255, 0.270],
   );
 
+  /// Forgot password — teal band sits lower (~58%) to match Sign In wave style.
+  static const forgotPassword = WaveRibbonProfile(
+    id: 6,
+    name: 'ForgotPassword',
+    tealX: [0.00, 0.18, 0.38, 0.62, 0.82, 1.00],
+    tealY: [0.580, 0.545, 0.610, 0.555, 0.595, 0.560],
+    lightX: [0.00, 0.16, 0.36, 0.56, 0.76, 0.90, 1.00],
+    lightY: [0.640, 0.600, 0.670, 0.610, 0.655, 0.620, 0.630],
+  );
+
   static const List<WaveRibbonProfile> all = [
     language,
     onboarding1,

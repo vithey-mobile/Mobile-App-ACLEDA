@@ -494,9 +494,9 @@ class _DroppedPinCard extends StatelessWidget {
                 Text(
                   'Dropped pin',
                   style: context.text.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: context.appColors.heading,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: context.appColors.heading,
+                  ),
                 ),
                 Obx(() {
                   final label = controller.routeDistanceLabel;
@@ -504,8 +504,8 @@ class _DroppedPinCard extends StatelessWidget {
                   return Text(
                     '$label from you',
                     style: context.text.labelMedium?.copyWith(
-                          color: context.appColors.muted,
-                        ),
+                      color: context.appColors.muted,
+                    ),
                   );
                 }),
               ],

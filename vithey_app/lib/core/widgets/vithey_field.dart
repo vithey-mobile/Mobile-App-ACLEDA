@@ -207,9 +207,40 @@ class _VitheyFieldState extends State<VitheyField> {
         if (widget.label != null) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              widget.label!,
-              style: context.text.titleSmall?.copyWith(color: labelColor),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.label!,
+                    style:
+                        context.text.titleSmall?.copyWith(color: labelColor),
+                  ),
+                ),
+                if (hasError)
+                  Text(
+                    _inlineErrorLabel(externalError ?? _errorText!),
+                    style: context.text.bodySmall?.copyWith(
+                      color: AppColors.error,
+                      fontWeight: VitheyWeight.medium,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+        ] else if (hasError) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                _inlineErrorLabel(externalError ?? _errorText!),
+                style: context.text.bodySmall?.copyWith(
+                  color: AppColors.error,
+                  fontWeight: VitheyWeight.medium,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -225,76 +256,70 @@ class _VitheyFieldState extends State<VitheyField> {
             return error;
           },
           builder: (field) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Inset so shad FocusOutline (~3px outside) is not clipped
-                // by parent ClipRect / hardEdge (auth step slider, sheets).
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 3,
-                  ),
-                  child: shad.TextField(
-                  controller: widget.controller,
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocus,
-                  enabled: widget.enabled,
-                  readOnly: widget.readOnly,
-                  obscureText: effectiveObscure,
-                  maxLines: widget.maxLines,
-                  minLines: widget.minLines,
-                  maxLength: widget.maxLength,
-                  keyboardType: widget.keyboardType,
-                  textInputAction: widget.textInputAction,
-                  onTap: widget.onTap,
-                  inputFormatters: widget.inputFormatters,
-                  filled: widget.filled,
-                  borderRadius: BorderRadius.circular(VitheyRadii.field),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
-                  ),
-                  style: context.text.bodyLarge?.copyWith(
-                    fontWeight: VitheyWeight.medium,
-                    height: 1.25,
-                    color: widget.readOnly || !widget.enabled ? muted : heading,
-                  ),
-                  placeholder: widget.hint == null
-                      ? null
-                      : Text(
-                          widget.hint!,
-                          style: context.text.bodyLarge?.copyWith(
-                            color: chrome,
-                            height: 1.25,
-                          ),
+            return Padding(
+              // Inset so shad FocusOutline (~3px outside) is not clipped
+              // by parent ClipRect / hardEdge (auth step slider, sheets).
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 3,
+              ),
+              child: shad.TextField(
+                controller: widget.controller,
+                focusNode: _focusNode,
+                autofocus: widget.autofocus,
+                enabled: widget.enabled,
+                readOnly: widget.readOnly,
+                obscureText: effectiveObscure,
+                maxLines: widget.maxLines,
+                minLines: widget.minLines,
+                maxLength: widget.maxLength,
+                keyboardType: widget.keyboardType,
+                textInputAction: widget.textInputAction,
+                onTap: widget.onTap,
+                inputFormatters: widget.inputFormatters,
+                filled: widget.filled,
+                borderRadius: BorderRadius.circular(VitheyRadii.field),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                style: context.text.bodyLarge?.copyWith(
+                  fontWeight: VitheyWeight.medium,
+                  height: 1.25,
+                  color: widget.readOnly || !widget.enabled ? muted : heading,
+                ),
+                placeholder: widget.hint == null
+                    ? null
+                    : Text(
+                        widget.hint!,
+                        style: context.text.bodyLarge?.copyWith(
+                          color: chrome,
+                          height: 1.25,
                         ),
-                  features: features,
-                  onChanged: (value) {
-                    field.didChange(value);
-                    widget.onChanged?.call(value);
-                  },
-                  onSubmitted: widget.onSubmitted,
-                ),
-                ),
-                if (hasError) ...[
-                  const SizedBox(height: 6),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(
-                      externalError ?? _errorText!,
-                      style: context.text.bodySmall?.copyWith(
-                        color: AppColors.error,
-                        fontWeight: VitheyWeight.medium,
                       ),
-                    ),
-                  ),
-                ],
-              ],
+                features: features,
+                onChanged: (value) {
+                  field.didChange(value);
+                  if (hasError) {
+                    FieldErrors.clear(context);
+                  }
+                  widget.onChanged?.call(value);
+                },
+                onSubmitted: widget.onSubmitted,
+              ),
             );
           },
         ),
       ],
     );
+  }
+
+  /// Empty-field messages → compact "Required" (right of label; no extra height).
+  static String _inlineErrorLabel(String error) {
+    final t = error.trim().toLowerCase();
+    if (t == 'required' || t.endsWith(' is required')) {
+      return 'Required';
+    }
+    return error.trim();
   }
 }

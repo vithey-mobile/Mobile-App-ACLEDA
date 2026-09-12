@@ -128,6 +128,7 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = context.appColors.muted;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -148,9 +149,7 @@ class _NavIcon extends StatelessWidget {
             child: VitheyIcon(
               icon,
               size: 22,
-              color: selected
-                  ? AppColors.primary
-                  : AppBottomNavigation._inactive,
+              color: selected ? AppColors.primary : inactive,
             ),
           ),
         ),
@@ -170,6 +169,7 @@ class _NotificationNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = context.appColors.muted;
     final repo = Get.isRegistered<NotificationRepository>()
         ? Get.find<NotificationRepository>()
         : null;
@@ -195,9 +195,7 @@ class _NotificationNavItem extends StatelessWidget {
                 ? VitheyIcon(
                     LucideIcons.bell,
                     size: 22,
-                    color: selected
-                        ? AppColors.primary
-                        : AppBottomNavigation._inactive,
+                    color: selected ? AppColors.primary : inactive,
                   )
                 : Obx(() {
                     final count = repo.unreadCount.value;
@@ -206,18 +204,15 @@ class _NotificationNavItem extends StatelessWidget {
                       backgroundColor: AppColors.error,
                       label: Text(
                         count > 99 ? '99+' : '$count',
-                        style: context.text.bodyMedium
-                            ?.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style: context.text.bodyMedium?.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       child: VitheyIcon(
                         LucideIcons.bell,
                         size: 22,
-                        color: selected
-                            ? AppColors.primary
-                            : AppBottomNavigation._inactive,
+                        color: selected ? AppColors.primary : inactive,
                       ),
                     );
                   }),
@@ -243,6 +238,7 @@ class _ProfileNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = context.appColors.muted;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -257,7 +253,7 @@ class _ProfileNavItem extends StatelessWidget {
               border: Border.all(
                 color: selected
                     ? AppColors.primary
-                    : AppBottomNavigation._inactive.withValues(alpha: 0.35),
+                    : inactive.withValues(alpha: 0.35),
                 width: selected ? 2 : 1.25,
               ),
             ),

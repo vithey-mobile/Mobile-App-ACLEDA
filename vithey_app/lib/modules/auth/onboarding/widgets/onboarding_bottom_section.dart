@@ -70,6 +70,7 @@ class OnboardingBottomChrome extends StatelessWidget {
     required this.onNext,
     this.isLastSlide,
     this.nextLabel,
+    this.showCta = true,
   });
 
   final int currentPage;
@@ -82,6 +83,10 @@ class OnboardingBottomChrome extends StatelessWidget {
 
   /// Overrides Next / Get Started when set (e.g. Language → Continue).
   final String? nextLabel;
+
+  /// When false, only dots are interactive; CTA slot keeps height so layout
+  /// stays put (used when Get Started lives inside the last PageView page).
+  final bool showCta;
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +102,41 @@ class OnboardingBottomChrome extends StatelessWidget {
         children: [
           _PageDots(currentPage: currentPage, totalPages: totalPages),
           const SizedBox(height: 24),
-          _OnboardingCtaButton(
-            label: label,
-            onPressed: onNext,
-          ),
+          if (showCta)
+            _OnboardingCtaButton(
+              label: label,
+              onPressed: onNext,
+            )
+          else
+            IgnorePointer(
+              child: Opacity(
+                opacity: 0,
+                child: _OnboardingCtaButton(
+                  label: AppStrings.getStarted,
+                  onPressed: () {},
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// Get Started CTA for the last onboarding page (slides with PageView).
+class OnboardingGetStartedButton extends StatelessWidget {
+  const OnboardingGetStartedButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
+      child: _OnboardingCtaButton(
+        label: AppStrings.getStarted,
+        onPressed: onPressed,
       ),
     );
   }

@@ -148,6 +148,7 @@ class PostRepository {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
       await _ensureMockReady();
+      if (page < 1) return const FeedPageResult(posts: [], hasMore: false);
       if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
       final fixturePosts = PostFixtures.feedPage(
         page: page,
@@ -155,11 +156,20 @@ class PostRepository {
         reactedPosts: _reactedPosts,
         followedAuthors: _followedAuthors,
       );
+      if (fixturePosts.isEmpty && page > 1) {
+        return const FeedPageResult(posts: [], hasMore: false);
+      }
       final posts = _applyMockPostState([
         if (page == 1) ..._mockCreatedPosts.values,
         ...fixturePosts,
       ]);
-      return FeedPageResult(posts: posts, hasMore: page < 2);
+      return FeedPageResult(
+        posts: posts,
+        hasMore: PostFixtures.feedHasMore(
+          page: page,
+          currentUserId: _mockUserId,
+        ),
+      );
     }
 
     final posts = await _postService.fetchFeed(

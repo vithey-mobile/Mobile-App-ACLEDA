@@ -51,6 +51,9 @@ class AuthController extends GetxController {
   /// Auth v2: 0 = Sign In, 1 = Sign Up (synced from intro ribbon).
   final authPageIndex = 0.obs;
 
+  /// In-place Sign In → Forgot Password morph (stays on continuum).
+  final showForgotPassword = false.obs;
+
   /// Sign Up only: 0 = Part 1 (credentials), 1 = Part 2 (profile).
   final registerStep = 0.obs;
 
@@ -78,11 +81,29 @@ class AuthController extends GetxController {
     if (isRegisterStepAnimating.value || authPageIndex.value == 0) return;
     clearError();
     registerStep.value = 0;
+    showForgotPassword.value = false;
     if (Get.isRegistered<IntroRibbonController>()) {
       Get.find<IntroRibbonController>().showSignIn();
       return;
     }
     authPageIndex.value = 0;
+  }
+
+  void openForgotPassword() {
+    FormErrorHost.clearAll();
+    clearError();
+    resetForgotPasswordState();
+    final email = emailController.text.trim();
+    if (email.isNotEmpty) {
+      forgotPasswordEmailController.text = email;
+    }
+    showForgotPassword.value = true;
+  }
+
+  void closeForgotPassword() {
+    FormErrorHost.clearAll();
+    resetForgotPasswordState();
+    showForgotPassword.value = false;
   }
 
   void showSignUp() {
@@ -99,6 +120,10 @@ class AuthController extends GetxController {
   /// Leave Auth → slide back on the intro ribbon (or pop if stacked).
   Future<void> goBack() async {
     if (isBusy.value) return;
+    if (showForgotPassword.value) {
+      closeForgotPassword();
+      return;
+    }
     if (Get.isRegistered<IntroRibbonController>()) {
       await Get.find<IntroRibbonController>().authBack();
       return;

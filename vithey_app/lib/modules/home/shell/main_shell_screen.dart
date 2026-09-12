@@ -86,7 +86,9 @@ class MainShellController extends GetxController {
     if (notification.metrics.axis != Axis.vertical) return false;
 
     // When scrolling completely stops (drag ends or momentum settles), bring the bar back smoothly.
-    if (notification is ScrollEndNotification || notification is UserScrollNotification && notification.direction == ScrollDirection.idle) {
+    if (notification is ScrollEndNotification ||
+        notification is UserScrollNotification &&
+            notification.direction == ScrollDirection.idle) {
       _scrollStopTimer?.cancel();
       _scrollStopTimer = Timer(const Duration(milliseconds: 160), () {
         if (!navVisible.value) navVisible.value = true;
