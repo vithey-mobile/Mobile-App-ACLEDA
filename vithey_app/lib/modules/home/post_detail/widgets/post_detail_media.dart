@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -71,6 +73,22 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
   Widget _buildImage(String? url) {
     if (url == null || url.isEmpty) {
       return _placeholder();
+    }
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _placeholder(),
+      );
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return Image.file(
+        File(url),
+        width: double.infinity,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _placeholder(),
+      );
     }
     return CachedNetworkImage(
       imageUrl: url,

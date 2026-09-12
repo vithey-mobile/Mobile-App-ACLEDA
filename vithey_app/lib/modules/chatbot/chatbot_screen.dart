@@ -129,31 +129,41 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               ],
             ),
           ),
-          Obx(
-            () => ChatbotComposer(
-              controller: controller.inputController,
-              isGenerating: controller.isGenerating.value,
-              onSend: controller.sendMessage,
-              onStop: controller.stopGenerating,
-              attachments: List<ChatAttachment>.from(
-                controller.pendingAttachments,
-              ),
-              onAddAttachment: controller.openAttachmentMenu,
-              onRemoveAttachment: controller.removePendingAttachment,
+          SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Obx(
+                  () => ChatbotComposer(
+                    controller: controller.inputController,
+                    isGenerating: controller.isGenerating.value,
+                    onSend: controller.sendMessage,
+                    onStop: controller.stopGenerating,
+                    attachments: List<ChatAttachment>.from(
+                      controller.pendingAttachments,
+                    ),
+                    onAddAttachment: controller.openAttachmentMenu,
+                    onRemoveAttachment: controller.removePendingAttachment,
+                  ),
+                ),
+                Obx(() {
+                  if (!controller.hasMessages) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+                    child: Text(
+                      'Vithey AI may make mistakes. Verify important information.',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.labelSmall
+                          ?.copyWith(color: context.scheme.onSurfaceVariant),
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
-          Obx(() {
-            if (!controller.hasMessages) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Vithey AI may make mistakes. Verify important information.',
-                textAlign: TextAlign.center,
-                style: context.text.labelSmall
-                    ?.copyWith(color: context.scheme.onSurfaceVariant),
-              ),
-            );
-          }),
         ],
       ),
     );

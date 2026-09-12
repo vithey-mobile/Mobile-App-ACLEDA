@@ -23,7 +23,7 @@ class PostCard extends StatelessWidget {
     this.onReact,
     this.onAuthorTap,
     this.caption,
-    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     this.showShareAction = true,
   });
 
@@ -85,9 +85,16 @@ class PostMediaImage extends StatelessWidget {
   final String? url;
   final double? height;
 
+  bool get _isAsset {
+    final value = url;
+    if (value == null || value.isEmpty) return false;
+    return value.startsWith('assets/');
+  }
+
   bool get _isLocalFile {
     final value = url;
     if (value == null || value.isEmpty) return false;
+    if (_isAsset) return false;
     return !value.startsWith('http://') && !value.startsWith('https://');
   }
 
@@ -96,7 +103,19 @@ class PostMediaImage extends StatelessWidget {
     if (url == null || url!.isEmpty) return const SizedBox.shrink();
 
     final Widget media;
-    if (_isLocalFile) {
+    if (_isAsset) {
+      media = Image.asset(
+        url!,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: context.appColors.inputFill,
+          alignment: Alignment.center,
+          child: const VitheyIcon(LucideIcons.imageOff),
+        ),
+      );
+    } else if (_isLocalFile) {
       media = Image.file(
         File(url!),
         width: double.infinity,

@@ -59,6 +59,36 @@ class MapScreen extends GetView<MapController> {
             },
           ),
           Obx(() {
+            if (controller.isMapReady.value) {
+              return const SizedBox.shrink();
+            }
+            return Positioned.fill(
+              child: ColoredBox(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 2.5,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Loading map...',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: colors.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+          Obx(() {
             if (!controller.isDroppingPin.value) {
               return const SizedBox.shrink();
             }
@@ -194,10 +224,21 @@ class MapScreen extends GetView<MapController> {
                               LucideIcons.mapPin,
                               color: AppColors.primary,
                             ),
-                            title: Text(s.primaryText),
+                            title: Text(
+                              s.primaryText,
+                              style: context.text.titleSmall?.copyWith(
+                                color: colors.heading,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             subtitle: s.secondaryText == null
                                 ? null
-                                : Text(s.secondaryText!),
+                                : Text(
+                                    s.secondaryText!,
+                                    style: context.text.bodySmall?.copyWith(
+                                      color: colors.muted,
+                                    ),
+                                  ),
                             onTap: () => controller.selectSuggestion(s),
                           );
                         },
@@ -396,7 +437,9 @@ class _DropPinBar extends StatelessWidget {
         children: [
           Text(
             'Drag the map to set the pin',
-            style: context.text.bodySmall,
+            style: context.text.bodySmall?.copyWith(
+              color: context.appColors.muted,
+            ),
           ),
           const SizedBox(height: 10),
           Row(
@@ -450,8 +493,9 @@ class _DroppedPinCard extends StatelessWidget {
               children: [
                 Text(
                   'Dropped pin',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  style: context.text.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: context.appColors.heading,
                       ),
                 ),
                 Obx(() {
@@ -459,7 +503,9 @@ class _DroppedPinCard extends StatelessWidget {
                   if (label.isEmpty) return const SizedBox.shrink();
                   return Text(
                     '$label from you',
-                    style: context.text.labelMedium,
+                    style: context.text.labelMedium?.copyWith(
+                          color: context.appColors.muted,
+                        ),
                   );
                 }),
               ],

@@ -22,7 +22,7 @@ class CreatePostComposer extends StatelessWidget {
 
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(color: context.appColors.border),
@@ -37,7 +37,7 @@ class CreatePostComposer extends StatelessWidget {
               radius: 20,
             ),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
           Expanded(
             child: Material(
               color: context.appColors.inputFill,
@@ -48,7 +48,7 @@ class CreatePostComposer extends StatelessWidget {
                 child: Container(
                   height: 42,
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 13),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(color: context.appColors.border),
@@ -64,7 +64,7 @@ class CreatePostComposer extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 3),
+          const SizedBox(width: 6),
           VitheyIconButton(
             icon: LucideIcons.image,
             variant: VitheyIconButtonVariant.neutral,

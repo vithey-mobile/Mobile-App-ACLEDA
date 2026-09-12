@@ -72,6 +72,8 @@ class PostDetailScreen extends GetView<PostDetailController> {
               children: [
                 _PostDetailCard(
                   post: post,
+                  onAuthorTap: () =>
+                      controller.openAuthorProfile(post.author.id),
                   onFollow: controller.toggleFollow,
                   onApply: controller.applyJob,
                   onEdit: controller.editPost,
@@ -81,6 +83,7 @@ class PostDetailScreen extends GetView<PostDetailController> {
                   post: post,
                   onReact: controller.toggleLike,
                   onComment: () => controller.commentFocus.requestFocus(),
+                  onShare: controller.openShareSheet,
                 ),
                 const CommentSection(),
               ],
@@ -103,6 +106,7 @@ class PostDetailScreen extends GetView<PostDetailController> {
 class _PostDetailCard extends StatelessWidget {
   const _PostDetailCard({
     required this.post,
+    required this.onAuthorTap,
     required this.onFollow,
     required this.onApply,
     required this.onEdit,
@@ -110,6 +114,7 @@ class _PostDetailCard extends StatelessWidget {
   });
 
   final FeedPost post;
+  final VoidCallback onAuthorTap;
   final VoidCallback onFollow;
   final VoidCallback onApply;
   final VoidCallback onEdit;
@@ -136,6 +141,7 @@ class _PostDetailCard extends StatelessWidget {
         children: [
           PostDetailHeader(
             post: post,
+            onAuthorTap: onAuthorTap,
             onFollow: onFollow,
             onEdit: onEdit,
             onDelete: onDelete,
@@ -171,11 +177,13 @@ class _DetailEngagementBar extends StatelessWidget {
     required this.post,
     required this.onReact,
     required this.onComment,
+    required this.onShare,
   });
 
   final FeedPost post;
   final VoidCallback onReact;
   final VoidCallback onComment;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -199,9 +207,9 @@ class _DetailEngagementBar extends StatelessWidget {
             onTap: onComment,
           ),
           _DetailAction(
-            icon: LucideIcons.bookmark,
+            icon: LucideIcons.share2,
             count: post.shareCount,
-            onTap: () {},
+            onTap: onShare,
           ),
         ],
       ),

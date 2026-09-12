@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/home/post_detail/post_detail_controller.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class CommentSection extends StatelessWidget {
@@ -49,10 +50,13 @@ class CommentSection extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    UserAvatar(
-                      name: comment.author.fullName,
-                      imageUrl: comment.author.avatarUrl,
-                      radius: isReply ? 15 : 18,
+                    GestureDetector(
+                      onTap: () => openUserProfile(comment.author.id),
+                      child: UserAvatar(
+                        name: comment.author.fullName,
+                        imageUrl: comment.author.avatarUrl,
+                        radius: isReply ? 15 : 18,
+                      ),
                     ),
                     const SizedBox(width: 9),
                     Expanded(
@@ -72,10 +76,14 @@ class CommentSection extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  comment.author.fullName,
-                                  style: context.text.labelLarge
-                                      ?.copyWith(fontSize: isReply ? 13 : 14),
+                                GestureDetector(
+                                  onTap: () =>
+                                      openUserProfile(comment.author.id),
+                                  child: Text(
+                                    comment.author.fullName,
+                                    style: context.text.labelLarge
+                                        ?.copyWith(fontSize: isReply ? 13 : 14),
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 _MentionText(text: comment.text),

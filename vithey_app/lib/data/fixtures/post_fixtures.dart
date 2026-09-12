@@ -133,8 +133,8 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        mediaUrl: 'assets/videos/reel_student_showcase.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_student_showcase_thumb.jpg',
       ),
       _job(
         id: MockIds.post4,
@@ -204,13 +204,13 @@ abstract final class PostFixtures {
       _video(
         id: MockIds.post5,
         authorId: MockIds.currentUser,
-        content: 'Student showcase highlights from last week.',
+        content: 'Campus life at AUB — semester project recap ✨',
         seed: 5,
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        mediaUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/post5/720/1280',
       ),
       _poster(
         id: MockIds.post16,
@@ -230,8 +230,8 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        mediaUrl: 'assets/videos/reel_aub_walk.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_aub_walk_thumb.jpg',
         commentCount: 38,
         shareCount: 354,
         reactionCount: 1200,
@@ -244,8 +244,8 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        mediaUrl: 'assets/videos/reel_interview_tip.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_interview_tip_thumb.jpg',
         commentCount: 56,
         shareCount: 89,
         reactionCount: 430,
@@ -258,8 +258,8 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        mediaUrl: 'assets/videos/reel_career_fair.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_career_fair_thumb.jpg',
         commentCount: 12,
         shareCount: 24,
         reactionCount: 210,
@@ -272,22 +272,22 @@ abstract final class PostFixtures {
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+        mediaUrl: 'assets/videos/reel_library_study.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_library_study_thumb.jpg',
         commentCount: 77,
         shareCount: 41,
         reactionCount: 890,
       ),
       _video(
         id: MockIds.post15,
-        authorId: MockIds.author1,
+        authorId: MockIds.author9,
         content: 'CCNA study notes — network topology basics',
         seed: 15,
         currentUserId: currentUserId,
         reactedPosts: reactedPosts,
         followedAuthors: followedAuthors,
-        mediaUrl:
-            'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        mediaUrl: 'assets/videos/reel_ccna_notes.mp4',
+        thumbnailUrl: 'assets/images/reels/reel_ccna_notes_thumb.jpg',
         commentCount: 24,
         shareCount: 18,
         reactionCount: 640,
@@ -380,6 +380,7 @@ abstract final class PostFixtures {
     required Set<String> reactedPosts,
     required Set<String> followedAuthors,
     String? mediaUrl,
+    String? thumbnailUrl,
     int? reactionCount,
     int? commentCount,
     int? shareCount,
@@ -389,9 +390,8 @@ abstract final class PostFixtures {
       type: PostType.video,
       author: PostAuthor(id: authorId, fullName: UserFixtures.displayName(authorId)),
       content: content,
-      mediaUrl: mediaUrl ??
-          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      thumbnailUrl: 'https://picsum.photos/seed/vthumb$seed/600/340',
+      mediaUrl: mediaUrl ?? 'assets/videos/reel_aub_walk.mp4',
+      thumbnailUrl: thumbnailUrl ?? 'assets/images/reels/reel_aub_walk_thumb.jpg',
       durationSeconds: 95 + seed,
       createdAt: MockClock.hoursAgo(seed * 3),
       viewCount: reactionCount != null

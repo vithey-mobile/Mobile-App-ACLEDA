@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
-class CreatePostMediaZone extends StatelessWidget {
+
+class CreatePostMediaZone extends StatefulWidget {
   const CreatePostMediaZone({
     super.key,
     required this.mediaPath,
@@ -21,11 +22,67 @@ class CreatePostMediaZone extends StatelessWidget {
   final VoidCallback onClear;
 
   @override
+  State<CreatePostMediaZone> createState() => _CreatePostMediaZoneState();
+}
+
+class _CreatePostMediaZoneState extends State<CreatePostMediaZone> {
+  VideoPlayerController? _videoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideoIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant CreatePostMediaZone oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mediaPath != widget.mediaPath || oldWidget.isVideo != widget.isVideo) {
+      _disposeVideo();
+      _initVideoIfNeeded();
+    }
+  }
+
+  void _initVideoIfNeeded() {
+    final path = widget.mediaPath;
+    if (widget.isVideo && path != null && path.isNotEmpty) {
+      final isRemote = path.startsWith('http://') || path.startsWith('https://');
+      final controller = isRemote
+          ? VideoPlayerController.networkUrl(Uri.parse(path))
+          : VideoPlayerController.file(File(path));
+
+      controller.initialize().then((_) {
+        if (mounted) {
+          controller.setLooping(true);
+          controller.play();
+          setState(() {
+            _videoController = controller;
+          });
+        }
+      }).catchError((_) {});
+    }
+  }
+
+  void _disposeVideo() {
+    _videoController?.pause();
+    _videoController?.dispose();
+    _videoController = null;
+  }
+
+  @override
+  void dispose() {
+    _disposeVideo();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final mediaPath = widget.mediaPath;
     final isRemote = mediaPath?.startsWith('http://') == true ||
         mediaPath?.startsWith('https://') == true;
+
     return GestureDetector(
-      onTap: isUploading ? null : onPick,
+      onTap: widget.isUploading ? null : widget.onPick,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -51,28 +108,66 @@ class CreatePostMediaZone extends StatelessWidget {
                 ),
               )
             : Stack(
+                alignment: Alignment.center,
                 children: [
-                  if (isVideo)
-                    SizedBox(
-                      height: 180,
-                      width: double.infinity,
-                      child: ColoredBox(
-                        color: Colors.black87,
-                        child: Center(
-                          child: VitheyIcon(
-                            LucideIcons.video,
-                            size: 48,
-                            color: context.scheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    )
+                  if (widget.isVideo)
+                    _videoController != null && _videoController!.value.isInitialized
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: AspectRatio(
+                              aspectRatio: _videoController!.value.aspectRatio == 0
+                                  ? 16 / 9
+                                  : _videoController!.value.aspectRatio,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  VideoPlayer(_videoController!),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_videoController!.value.isPlaying) {
+                                          _videoController!.pause();
+                                        } else {
+                                          _videoController!.play();
+                                        }
+                                      });
+                                    },
+                                    child: AnimatedOpacity(
+                                      duration: const Duration(milliseconds: 200),
+                                      opacity: _videoController!.value.isPlaying ? 0 : 0.85,
+                                      child: Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.play,
+                                          color: Colors.white,
+                                          size: 28,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Container(
+                            height: 220,
+                            width: double.infinity,
+                            color: Colors.black87,
+                            child: const Center(
+                              child: CircularProgressIndicator(color: Colors.white70),
+                            ),
+                          )
                   else
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 440),
                       child: isRemote
                           ? Image.network(
-                              mediaPath!,
+                              mediaPath,
                               width: double.infinity,
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => const SizedBox(
@@ -83,12 +178,12 @@ class CreatePostMediaZone extends StatelessWidget {
                               ),
                             )
                           : Image.file(
-                              File(mediaPath!),
+                              File(mediaPath),
                               width: double.infinity,
                               fit: BoxFit.contain,
                             ),
                     ),
-                  if (isUploading)
+                  if (widget.isUploading)
                     const Positioned.fill(
                       child: ColoredBox(
                         color: Colors.black45,
@@ -109,7 +204,7 @@ class CreatePostMediaZone extends StatelessWidget {
                         ),
                         icon: const VitheyIcon(LucideIcons.x,
                             color: Colors.white, size: 18),
-                        onPressed: isUploading ? null : onClear,
+                        onPressed: widget.isUploading ? null : widget.onClear,
                       ),
                     ),
                   ),

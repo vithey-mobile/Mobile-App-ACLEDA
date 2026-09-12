@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/modules/home/home_binding.dart';
@@ -76,29 +79,48 @@ class MainShellController extends GetxController {
     navVisible.value = true;
   }
 
-  /// Hide bar while scrolling down the feed; show again when scrolling up.
+  Timer? _scrollStopTimer;
+
+  /// Hide bar while scrolling down the feed; show again when scrolling up or when scroll stops.
   bool handleScrollNotification(ScrollNotification notification) {
-    if (notification is! ScrollUpdateNotification) return false;
     if (notification.metrics.axis != Axis.vertical) return false;
 
-    final pixels = notification.metrics.pixels;
-    final delta = notification.scrollDelta ?? 0;
-
-    if (pixels <= 48) {
-      if (!navVisible.value) navVisible.value = true;
+    // When scrolling completely stops (drag ends or momentum settles), bring the bar back smoothly.
+    if (notification is ScrollEndNotification || notification is UserScrollNotification && notification.direction == ScrollDirection.idle) {
+      _scrollStopTimer?.cancel();
+      _scrollStopTimer = Timer(const Duration(milliseconds: 160), () {
+        if (!navVisible.value) navVisible.value = true;
+      });
       return false;
     }
 
-    if (delta > _hideThreshold && navVisible.value) {
-      navVisible.value = false;
-    } else if (delta < -_hideThreshold && !navVisible.value) {
-      navVisible.value = true;
+    if (notification is ScrollUpdateNotification) {
+      final pixels = notification.metrics.pixels;
+      final delta = notification.scrollDelta ?? 0;
+
+      if (pixels <= 48) {
+        if (!navVisible.value) navVisible.value = true;
+        return false;
+      }
+
+      if (delta > _hideThreshold) {
+        _scrollStopTimer?.cancel();
+        if (navVisible.value) navVisible.value = false;
+        // Schedule auto-restore once user stops moving finger/scrolling
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (!navVisible.value) navVisible.value = true;
+        });
+      } else if (delta < -_hideThreshold) {
+        _scrollStopTimer?.cancel();
+        if (!navVisible.value) navVisible.value = true;
+      }
     }
     return false;
   }
 
   @override
   void onClose() {
+    _scrollStopTimer?.cancel();
     pageController.dispose();
     super.onClose();
   }
@@ -118,6 +140,7 @@ class MainShellScreen extends GetView<MainShellController> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
+      backgroundColor: context.appColors.bodyBackground,
       body: NotificationListener<ScrollNotification>(
         onNotification: controller.handleScrollNotification,
         child: PageView(
@@ -130,11 +153,11 @@ class MainShellScreen extends GetView<MainShellController> {
       bottomNavigationBar: Obx(() {
         final visible = controller.navVisible.value;
         return AnimatedSlide(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.fastOutSlowIn,
           offset: visible ? Offset.zero : const Offset(0, 1.4),
           child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 180),
+            duration: const Duration(milliseconds: 130),
             opacity: visible ? 1 : 0,
             child: IgnorePointer(
               ignoring: !visible,

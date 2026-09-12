@@ -19,7 +19,7 @@ class PosterPostCard extends StatelessWidget {
     required this.onDelete,
     this.onReact,
     this.onAuthorTap,
-    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    this.margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     this.showShareAction = true,
   });
 

@@ -44,6 +44,7 @@ class ProfileScreen extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.appColors.bodyBackground,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Obx(() {
         if (controller.isLoading.value ||
@@ -68,17 +69,19 @@ class ProfileScreen extends GetView<ProfileController> {
                 child: FloatingActionButton.extended(
                   onPressed: _openAiCreateCv,
                   backgroundColor: AppColors.primary,
-                  foregroundColor: context.scheme.onPrimary,
+                  foregroundColor: Colors.white,
                   elevation: 3,
-                  icon: VitheyIcon(
+                  icon: const VitheyIcon(
                     LucideIcons.sparkles,
                     size: 20,
-                    color: context.scheme.onPrimary,
+                    color: Colors.white,
                   ),
                   label: Text(
                     'AI Create CV',
-                    style: context.text.labelLarge
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: context.text.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

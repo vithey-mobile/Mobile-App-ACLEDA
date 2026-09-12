@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
-import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
-import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:intl/intl.dart';
 
@@ -154,87 +153,87 @@ class _MessageActionRowState extends State<MessageActionRow> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
         children: [
-          VitheyIconButton(
-            icon: LucideIcons.copy,
-            tooltip: 'Copy',
-            variant: VitheyIconButtonVariant.neutral,
-            iconSize: 20,
-            onTap: widget.onCopy,
-          ),
-          if (widget.onRegenerate != null) ...[
-            const SizedBox(width: 4),
-            VitheyIconButton(
-              icon: LucideIcons.refreshCw,
-              tooltip: 'Regenerate',
-              variant: VitheyIconButtonVariant.neutral,
-              iconSize: 20,
-              onTap: widget.onRegenerate,
-            ),
-          ],
-          const SizedBox(width: 4),
-          VitheyIconButton(
-            icon: LucideIcons.share2,
-            tooltip: 'Share',
-            variant: VitheyIconButtonVariant.neutral,
-            iconSize: 20,
-            onTap: widget.onShare,
-          ),
-          const SizedBox(width: 4),
-          VitheyIconButton(
-            icon: _feedback == true
-                ? LucideIcons.thumbsUp
-                : LucideIcons.thumbsUp,
-            tooltip: 'Like',
-            variant: _feedback == true
-                ? VitheyIconButtonVariant.primary
-                : VitheyIconButtonVariant.neutral,
-            iconSize: 20,
-            onTap: () => _setFeedback(true),
-          ),
-          const SizedBox(width: 4),
-          VitheyIconButton(
-            icon: _feedback == false
-                ? LucideIcons.thumbsDown
-                : LucideIcons.thumbsDown,
-            tooltip: 'Unlike',
-            variant: _feedback == false
-                ? VitheyIconButtonVariant.primary
-                : VitheyIconButtonVariant.neutral,
-            iconSize: 20,
-            onTap: () => _setFeedback(false),
-          ),
-          const SizedBox(width: 4),
-          Tooltip(
-            message: 'Sources',
-            child: Material(
-              color: context.appColors.inputFill,
-              borderRadius: BorderRadius.circular(VitheyRadii.iconSquircle),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => _showSources(context),
-                child: const SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(child: AppLogo(size: 22)),
-                ),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ChatActionButton(
+                    icon: LucideIcons.copy,
+                    tooltip: 'Copy',
+                    onTap: widget.onCopy,
+                  ),
+                  if (widget.onRegenerate != null) ...[
+                    const SizedBox(width: 2),
+                    _ChatActionButton(
+                      icon: LucideIcons.refreshCw,
+                      tooltip: 'Regenerate',
+                      onTap: widget.onRegenerate,
+                    ),
+                  ],
+                  const SizedBox(width: 2),
+                  _ChatActionButton(
+                    icon: LucideIcons.share2,
+                    tooltip: 'Share',
+                    onTap: widget.onShare,
+                  ),
+                  const SizedBox(width: 2),
+                  _ChatActionButton(
+                    icon: LucideIcons.thumbsUp,
+                    tooltip: 'Like',
+                    isActive: _feedback == true,
+                    onTap: () => _setFeedback(true),
+                  ),
+                  const SizedBox(width: 2),
+                  _ChatActionButton(
+                    icon: LucideIcons.thumbsDown,
+                    tooltip: 'Unlike',
+                    isActive: _feedback == false,
+                    onTap: () => _setFeedback(false),
+                  ),
+                  const SizedBox(width: 2),
+                  Tooltip(
+                    message: 'Sources',
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => _showSources(context),
+                        child: const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Center(child: AppLogo(size: 18)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (widget.message.status == AiMessageStatus.stopped) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      'Stopped',
+                      style: context.text.labelMedium?.copyWith(
+                        color: colors.muted,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
-          if (widget.message.status == AiMessageStatus.stopped) ...[
-            const SizedBox(width: 4),
-            Text(
-              'Stopped',
-              style: context.text.labelMedium,
-            ),
-          ],
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
             _formatTimestamp(widget.message.createdAt),
-            style: context.text.labelSmall,
+            style: context.text.labelSmall?.copyWith(
+              color: colors.muted,
+            ),
           ),
         ],
       ),
@@ -250,6 +249,49 @@ class _MessageActionRowState extends State<MessageActionRow> {
       return DateFormat('h:mm a').format(time);
     }
     return RelativeTime.format(time);
+  }
+}
+
+class _ChatActionButton extends StatelessWidget {
+  const _ChatActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.isActive = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: isActive
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Center(
+              child: VitheyIcon(
+                icon,
+                size: 16,
+                color: isActive ? AppColors.primary : colors.muted,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

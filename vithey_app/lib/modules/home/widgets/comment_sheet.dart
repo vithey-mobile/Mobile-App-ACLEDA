@@ -5,14 +5,13 @@ import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
-import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
-import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/data/models/comment_model.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -269,101 +268,284 @@ class _CommentSheetState extends State<CommentSheet> {
     super.dispose();
   }
 
+  void _insertEmoji(String emoji) {
+    final text = _controller.text;
+    final selection = _controller.selection;
+    final newText = selection.start >= 0
+        ? text.replaceRange(selection.start, selection.end, emoji)
+        : text + emoji;
+    _controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(
+        offset: selection.start >= 0
+            ? selection.start + emoji.length
+            : newText.length,
+      ),
+    );
+    _focusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.viewInsets.bottom;
+    final screenHeight = mediaQuery.size.height;
+    final topPadding = mediaQuery.padding.top;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: keyboard),
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.94,
-        minChildSize: 0.55,
-        maxChildSize: 0.98,
-        expand: false,
-        builder: (_, scrollController) {
-          return Container(
+    // GetModalBottomSheetRoute already applies padding for the keyboard bottom inset,
+    // positioning the bottom sheet flush on top of the keyboard.
+    // Constrain height so the sheet stays comfortably below the top status bar / notch.
+    final maxAvailableHeight = screenHeight - bottomInset - topPadding - 16.0;
+    final defaultHeight =
+        (screenHeight * 0.82).clamp(420.0, screenHeight - 64.0);
+    final sheetHeight = bottomInset > 0
+        ? maxAvailableHeight.clamp(260.0, screenHeight - 64.0)
+        : defaultHeight;
+
+    return Container(
+      height: sheetHeight,
+      decoration: BoxDecoration(
+        color: colors.cardSurface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(VitheyRadii.sheet),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Obx(() {
+              if (_isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AppColors.primary,
+                  ),
+                );
+              }
+              if (_comments.isEmpty) {
+                return _buildEmptyState(context);
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                physics: const BouncingScrollPhysics(),
+                itemCount: _comments.length,
+                itemBuilder: (_, index) =>
+                    _buildComment(context, _comments[index]),
+              );
+            }),
+          ),
+          _buildComposer(context, isKeyboardOpen: bottomInset > 0),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final colors = context.appColors;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 10),
+        Center(
+          child: Container(
+            width: 38,
+            height: 4.5,
             decoration: BoxDecoration(
-              color: colors.cardSurface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(VitheyRadii.sheet),
+              color: colors.muted.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+          child: Row(
+            children: [
+              Text(
+                'Comments',
+                style: context.text.titleLarge?.copyWith(
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w700,
+                  color: colors.heading,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Obx(() {
+                final count = _comments.length;
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: context.text.labelMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              }),
+              const Spacer(),
+              VitheyIconButton(
+                icon: LucideIcons.x,
+                tooltip: 'Close',
+                color: colors.muted,
+                circle: true,
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: colors.border.withValues(alpha: 0.6)),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final colors = context.appColors;
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: VitheyIcon(
+                  LucideIcons.messageCircle,
+                  size: 28,
+                  color: AppColors.primary,
+                ),
               ),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colors.muted.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 12, 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const VitheyIcon(
-                          LucideIcons.thumbsUp,
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Comments',
-                          style: context.text.titleLarge?.copyWith(fontSize: 16),
-                        ),
-                      ),
-                      Text(
-                        widget.post.shareCount > 0
-                            ? '${widget.post.shareCount} shares'
-                            : '${widget.post.commentCount} comments',
-                        style: context.text.bodySmall
-                            ?.copyWith(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(height: 1, color: colors.border),
-                Expanded(
-                  child: Obx(() {
-                    if (_isLoading.value) {
-                      return const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      );
-                    }
-                    if (_comments.isEmpty) {
-                      return EmptyStateWidget(
-                        title: 'No comments yet',
-                        subtitle: 'Be the first to comment.',
-                        icon: LucideIcons.messageCircle,
-                      );
-                    }
-                    return ListView.builder(
-                      controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(12, 10, 8, 16),
-                      itemCount: _comments.length,
-                      itemBuilder: (_, index) =>
-                          _buildComment(context, _comments[index]),
-                    );
-                  }),
-                ),
-                _buildComposer(context),
-              ],
+            const SizedBox(height: 14),
+            Text(
+              'No comments yet',
+              style: context.text.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colors.heading,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Be the first to share your thoughts!',
+              textAlign: TextAlign.center,
+              style: context.text.bodyMedium?.copyWith(
+                color: colors.muted,
+                fontSize: 13.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmojiBar(BuildContext context) {
+    const emojis = ['❤️', '🔥', '👏', '😂', '👍', '🎉', '😍', '🙌'];
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: emojis.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 4),
+        itemBuilder: (context, index) {
+          final emoji = emojis[index];
+          return InkWell(
+            onTap: () => _insertEmoji(emoji),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 18),
+              ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildReplyBanner(BuildContext context) {
+    final colors = context.appColors;
+    if (_replyTarget == null && _editingComment == null) {
+      return const SizedBox.shrink();
+    }
+    final isEditing = _editingComment != null;
+    final label = isEditing
+        ? 'Editing your comment'
+        : 'Replying to ${_replyTarget!.author.fullName}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        border: Border(
+          top: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: Row(
+        children: [
+          VitheyIcon(
+            isEditing ? LucideIcons.pencil : LucideIcons.cornerDownRight,
+            size: 14,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: context.text.bodySmall?.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _replyTarget = null;
+                _editingComment = null;
+              });
+              _controller.clear();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: VitheyIcon(
+                LucideIcons.x,
+                size: 14,
+                color: colors.muted,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -379,14 +561,20 @@ class _CommentSheetState extends State<CommentSheet> {
       final likeCount = _likeCounts[comment.id] ?? 0;
 
       return Padding(
-        padding: EdgeInsets.fromLTRB(isReply ? 36 : 4, 6, 4, 8),
+        padding: EdgeInsets.fromLTRB(isReply ? 38 : 4, 8, 4, 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UserAvatar(
-              name: comment.author.fullName,
-              imageUrl: comment.author.avatarUrl,
-              radius: isReply ? 14 : 18,
+            GestureDetector(
+              onTap: () {
+                if (Get.isBottomSheetOpen ?? false) Get.back();
+                openUserProfile(comment.author.id);
+              },
+              child: UserAvatar(
+                name: comment.author.fullName,
+                imageUrl: comment.author.avatarUrl,
+                radius: isReply ? 14 : 18,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -400,26 +588,32 @@ class _CommentSheetState extends State<CommentSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: comment.author.fullName,
-                                    style: context.text.bodyMedium?.copyWith(
-                                      color: colors.heading,
-                                      fontSize: isReply ? 13.5 : 14.5,
-                                      fontWeight: FontWeight.w700,
+                            GestureDetector(
+                              onTap: () {
+                                if (Get.isBottomSheetOpen ?? false) Get.back();
+                                openUserProfile(comment.author.id);
+                              },
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: comment.author.fullName,
+                                      style: context.text.bodyMedium?.copyWith(
+                                        color: colors.heading,
+                                        fontSize: isReply ? 13.5 : 14.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                        '  ·  ${_compactTime(comment.createdAt)}',
-                                    style: context.text.bodyMedium?.copyWith(
-                                      color: colors.muted,
-                                      fontSize: 12.5,
+                                    TextSpan(
+                                      text:
+                                          '  ·  ${_compactTime(comment.createdAt)}',
+                                      style: context.text.bodyMedium?.copyWith(
+                                        color: colors.muted,
+                                        fontSize: 12.5,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -451,8 +645,8 @@ class _CommentSheetState extends State<CommentSheet> {
                                   const SizedBox(width: 14),
                                   Text(
                                     'Sending…',
-                                    style: context.text.bodyMedium
-                                        ?.copyWith(color: colors.muted, fontSize: 12),
+                                    style: context.text.bodyMedium?.copyWith(
+                                        color: colors.muted, fontSize: 12),
                                   ),
                                 ],
                                 if (likeCount > 0) ...[
@@ -464,8 +658,8 @@ class _CommentSheetState extends State<CommentSheet> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: colors.inputFill,
-                                      borderRadius:
-                                          BorderRadius.circular(VitheyRadii.pill),
+                                      borderRadius: BorderRadius.circular(
+                                          VitheyRadii.pill),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -494,31 +688,23 @@ class _CommentSheetState extends State<CommentSheet> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          VitheyIconButton(
-                            icon: liked
-                                ? LucideIcons.thumbsUp
-                                : LucideIcons.thumbsUp,
-                            color: liked
-                                ? AppColors.primary
-                                : colors.muted,
-                            tooltip: 'Like',
-                            onTap: () => _toggleLike(comment),
-                          ),
-                          VitheyIconButton(
-                            icon: disliked
-                                ? LucideIcons.thumbsDown
-                                : LucideIcons.thumbsDown,
-                            color: disliked
-                                ? colors.heading
-                                : colors.muted,
-                            tooltip: 'Dislike',
-                            onTap: () => _toggleDislike(comment),
-                          ),
-                        ],
-                      ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _CommentRowIconButton(
+                              icon: LucideIcons.thumbsUp,
+                              color: liked ? AppColors.primary : colors.muted,
+                              tooltip: 'Like',
+                              onTap: () => _toggleLike(comment),
+                            ),
+                            _CommentRowIconButton(
+                              icon: LucideIcons.thumbsDown,
+                              color: disliked ? colors.heading : colors.muted,
+                              tooltip: 'Dislike',
+                              onTap: () => _toggleDislike(comment),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ],
@@ -530,62 +716,37 @@ class _CommentSheetState extends State<CommentSheet> {
     });
   }
 
-  Widget _buildComposer(BuildContext context) {
+  Widget _buildComposer(BuildContext context, {bool isKeyboardOpen = false}) {
     final colors = context.appColors;
     final me = _currentUser.postAuthor;
-    final modeLabel = _editingComment != null
-        ? 'Editing comment'
-        : _replyTarget != null
-            ? 'Replying to ${_replyTarget!.author.fullName}'
-            : null;
     final hint = _editingComment != null
         ? 'Edit your comment…'
-        : 'Comment as ${me.fullName.split(' ').first}';
+        : _replyTarget != null
+            ? 'Reply to ${_replyTarget!.author.fullName}…'
+            : 'Add a comment…';
 
-    // Avatar diameter == single-line input height (focus keeps same height).
-    const fieldHeight = 36.0;
-    const avatarRadius = fieldHeight / 2;
-    const maxLines = 5;
+    const fieldHeight = 38.0;
+    const avatarRadius = 17.0;
 
     return Container(
       decoration: BoxDecoration(
         color: colors.cardSurface,
-        border: Border(top: BorderSide(color: colors.border)),
+        border: Border(
+          top: BorderSide(color: colors.border.withValues(alpha: 0.5)),
+        ),
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (modeLabel != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          modeLabel,
-                          style: context.text.labelMedium?.copyWith(fontSize: 12.5),
-                        ),
-                      ),
-                      VitheyTextLink(
-                        label: 'Cancel',
-                        onPressed: () {
-                          setState(() {
-                            _replyTarget = null;
-                            _editingComment = null;
-                          });
-                          _controller.clear();
-                        },
-                        color: colors.muted,
-                        fontSize: 12.5,
-                      ),
-                    ],
-                  ),
-                ),
-              Row(
+        bottom: !isKeyboardOpen,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildReplyBanner(context),
+            const SizedBox(height: 4),
+            _buildEmojiBar(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   UserAvatar(
@@ -593,24 +754,26 @@ class _CommentSheetState extends State<CommentSheet> {
                     imageUrl: me.avatarUrl,
                     radius: avatarRadius,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _controller,
                       builder: (context, value, _) {
                         return Obx(() {
-                          final canSend = value.text.trim().isNotEmpty &&
-                              !_isSending.value;
+                          final hasText = value.text.trim().isNotEmpty;
+                          final canSend = hasText && !_isSending.value;
                           return Container(
                             decoration: BoxDecoration(
                               color: colors.inputFill,
                               borderRadius:
                                   BorderRadius.circular(VitheyRadii.pill),
                               border: Border.all(
-                                color: colors.border.withValues(alpha: 0.6),
+                                color: hasText
+                                    ? AppColors.primary.withValues(alpha: 0.5)
+                                    : colors.border.withValues(alpha: 0.6),
                               ),
                             ),
-                            padding: const EdgeInsets.only(left: 12, right: 2),
+                            padding: const EdgeInsets.fromLTRB(14, 2, 4, 2),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -618,17 +781,20 @@ class _CommentSheetState extends State<CommentSheet> {
                                   child: ConstrainedBox(
                                     constraints: const BoxConstraints(
                                       minHeight: fieldHeight,
-                                      maxHeight: 100,
+                                      maxHeight: 110,
                                     ),
                                     child: TextField(
                                       controller: _controller,
                                       focusNode: _focusNode,
                                       minLines: 1,
-                                      maxLines: maxLines,
+                                      maxLines: 5,
                                       keyboardType: TextInputType.multiline,
                                       cursorColor: AppColors.primary,
-                                      style: context.text.bodyMedium
-                                          ?.copyWith(height: 1.3),
+                                      style: context.text.bodyMedium?.copyWith(
+                                        height: 1.3,
+                                        fontSize: 14,
+                                        color: colors.heading,
+                                      ),
                                       decoration: InputDecoration(
                                         isDense: true,
                                         filled: false,
@@ -637,16 +803,20 @@ class _CommentSheetState extends State<CommentSheet> {
                                         focusedBorder: InputBorder.none,
                                         hintText: hint,
                                         hintStyle: context.text.bodyMedium
-                                            ?.copyWith(color: colors.muted),
+                                            ?.copyWith(
+                                          color: colors.muted,
+                                          fontSize: 13.5,
+                                        ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                          vertical: 8,
+                                          vertical: 9,
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                SizedBox(
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
                                   width: fieldHeight,
                                   height: fieldHeight,
                                   child: IconButton(
@@ -661,15 +831,28 @@ class _CommentSheetState extends State<CommentSheet> {
                                             height: 16,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
+                                              color: AppColors.primary,
                                             ),
                                           )
-                                        : VitheyIcon(
-                                            LucideIcons.send,
-                                            size: 18,
-                                            color: canSend
-                                                ? AppColors.primary
-                                                : colors.muted
-                                                    .withValues(alpha: 0.45),
+                                        : Container(
+                                            width: 32,
+                                            height: 32,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: canSend
+                                                  ? AppColors.primary
+                                                  : Colors.transparent,
+                                            ),
+                                            child: Center(
+                                              child: VitheyIcon(
+                                                LucideIcons.arrowUp,
+                                                size: 16,
+                                                color: canSend
+                                                    ? Colors.white
+                                                    : colors.muted.withValues(
+                                                        alpha: 0.4),
+                                              ),
+                                            ),
                                           ),
                                   ),
                                 ),
@@ -682,8 +865,8 @@ class _CommentSheetState extends State<CommentSheet> {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -757,6 +940,46 @@ class _CommentText extends StatelessWidget {
           color: colors.heading,
         ),
         children: spans.isEmpty ? [TextSpan(text: text)] : spans,
+      ),
+    );
+  }
+}
+
+class _CommentRowIconButton extends StatelessWidget {
+  const _CommentRowIconButton({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Center(
+              child: VitheyIcon(
+                icon,
+                size: 16,
+                color: color,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

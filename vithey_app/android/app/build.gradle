@@ -23,8 +23,11 @@ if (flutterVersionName == null) {
 }
 
 def googleMapsApiKey = localProperties.getProperty('GOOGLE_MAPS_API_KEY')
-if (googleMapsApiKey == null) {
-    googleMapsApiKey = System.getenv('GOOGLE_MAPS_API_KEY') ?: ''
+if (googleMapsApiKey == null || googleMapsApiKey.isEmpty()) {
+    googleMapsApiKey = System.getenv('GOOGLE_MAPS_API_KEY')
+}
+if (googleMapsApiKey == null || googleMapsApiKey.isEmpty()) {
+    googleMapsApiKey = 'AIzaSyAD0HbYTJzDm0DTnx_HRWpNCCbeQLBRifg'
 }
 
 android {

@@ -36,11 +36,15 @@ class HomeFlexibleHeader extends StatelessWidget {
     required this.items,
     required this.onOpenOwnMedia,
     required this.onOpenItem,
+    this.onAddStory,
+    this.onOpenCreatePost,
   });
 
   final List<HomeMediaItem> items;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
+  final VoidCallback? onAddStory;
+  final VoidCallback? onOpenCreatePost;
 
   static const double toolbarHeight = kToolbarHeight;
   static const double mediaRowHeight = 100;
@@ -55,6 +59,8 @@ class HomeFlexibleHeader extends StatelessWidget {
         items: items,
         onOpenOwnMedia: onOpenOwnMedia,
         onOpenItem: onOpenItem,
+        onAddStory: onAddStory ?? onOpenOwnMedia,
+        onOpenCreatePost: onOpenCreatePost ?? onOpenOwnMedia,
       ),
     );
   }
@@ -65,11 +71,15 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.items,
     required this.onOpenOwnMedia,
     required this.onOpenItem,
+    required this.onAddStory,
+    required this.onOpenCreatePost,
   });
 
   final List<HomeMediaItem> items;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
+  final VoidCallback onAddStory;
+  final VoidCallback onOpenCreatePost;
 
   @override
   double get maxExtent => HomeFlexibleHeader.maxHeight;
@@ -127,6 +137,7 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
                       stackItems: stackItems,
                       onOpenOwnMedia: onOpenOwnMedia,
                       onOpenItem: onOpenItem,
+                      onOpenCreatePost: onOpenCreatePost,
                     ),
                   ),
                   if (mediaVisible > 0.5)
@@ -149,6 +160,7 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
                                 items: items,
                                 onOpenOwnMedia: onOpenOwnMedia,
                                 onOpenItem: onOpenItem,
+                                onAddStory: onAddStory,
                               ),
                             ),
                           ),
@@ -183,6 +195,7 @@ class _Toolbar extends StatelessWidget {
     required this.stackItems,
     required this.onOpenOwnMedia,
     required this.onOpenItem,
+    required this.onOpenCreatePost,
   });
 
   final String title;
@@ -191,6 +204,7 @@ class _Toolbar extends StatelessWidget {
   final List<HomeMediaItem> stackItems;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
+  final VoidCallback onOpenCreatePost;
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +225,12 @@ class _Toolbar extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 8),
                       child: Text(
                         title,
-                        style: context.text.headlineSmall?.copyWith(fontSize: 26, fontWeight: FontWeight.w800, color: colors.heading, letterSpacing: -0.3),
+                        style: context.text.headlineSmall?.copyWith(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: colors.heading,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                     ),
                   ),
@@ -267,7 +286,63 @@ class _Toolbar extends StatelessWidget {
             onPressed: FinanceNavigation.openFinanceEntry,
             tooltip: 'Finance',
           ),
+          const SizedBox(width: 4),
+          _ToolbarPostButton(onPressed: onOpenCreatePost),
         ],
+      ),
+    );
+  }
+}
+
+class _ToolbarPostButton extends StatelessWidget {
+  const _ToolbarPostButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary,
+                AppColors.primaryLight,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              VitheyIcon(LucideIcons.plus, size: 15, color: Colors.white),
+              SizedBox(width: 4),
+              Text(
+                'Post',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5,
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -318,11 +393,13 @@ class _MediaStoriesRow extends StatelessWidget {
     required this.items,
     required this.onOpenOwnMedia,
     required this.onOpenItem,
+    this.onAddStory,
   });
 
   final List<HomeMediaItem> items;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
+  final VoidCallback? onAddStory;
 
   @override
   Widget build(BuildContext context) {
@@ -340,13 +417,8 @@ class _MediaStoriesRow extends StatelessWidget {
           final item = items[index];
           return _MediaStoryChip(
             item: item,
-            onTap: () {
-              if (item.isOwn) {
-                onOpenOwnMedia();
-              } else {
-                onOpenItem(item);
-              }
-            },
+            onTap: () => onOpenItem(item),
+            onAddTap: onAddStory ?? onOpenOwnMedia,
           );
         },
       ),
@@ -358,10 +430,12 @@ class _MediaStoryChip extends StatelessWidget {
   const _MediaStoryChip({
     required this.item,
     required this.onTap,
+    this.onAddTap,
   });
 
   final HomeMediaItem item;
   final VoidCallback onTap;
+  final VoidCallback? onAddTap;
 
   @override
   Widget build(BuildContext context) {
@@ -378,6 +452,7 @@ class _MediaStoryChip extends StatelessWidget {
               size: 58,
               ringWidth: 2.5,
               showAddBadge: item.isOwn,
+              onAddTap: onAddTap,
             ),
             const SizedBox(height: 4),
             Text(
@@ -404,17 +479,19 @@ class _MediaRingAvatar extends StatelessWidget {
     required this.size,
     required this.ringWidth,
     required this.showAddBadge,
+    this.onAddTap,
   });
 
   final HomeMediaItem item;
   final double size;
   final double ringWidth;
   final bool showAddBadge;
+  final VoidCallback? onAddTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final showRing = item.hasUnseen && !item.isOwn;
+    final showRing = item.hasUnseen;
     final inset = showRing ? ringWidth + 2 : 3.0;
     final avatarRadius = ((size / 2) - inset).clamp(8.0, size / 2);
 
@@ -465,15 +542,18 @@ class _MediaRingAvatar extends StatelessWidget {
             Positioned(
               right: -1,
               bottom: -1,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.cardSurface, width: 2),
+              child: GestureDetector(
+                onTap: onAddTap,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: colors.cardSurface, width: 2),
+                  ),
+                  child: const VitheyIcon(LucideIcons.plus, size: 12, color: Colors.white),
                 ),
-                child: const VitheyIcon(LucideIcons.plus, size: 12, color: Colors.white),
               ),
             ),
         ],

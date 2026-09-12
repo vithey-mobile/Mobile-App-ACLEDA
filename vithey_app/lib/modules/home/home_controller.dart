@@ -19,9 +19,12 @@ import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/modules/home/widgets/comment_sheet.dart';
+import 'package:aub_connect_app/modules/home/widgets/create_story_sheet.dart';
 import 'package:aub_connect_app/modules/home/widgets/home_media_header.dart';
 import 'package:aub_connect_app/modules/home/widgets/share_sheet.dart';
 import 'package:aub_connect_app/modules/home/create_post/models/create_post_args.dart';
+import 'package:aub_connect_app/data/models/story_item.dart';
+import 'package:aub_connect_app/modules/home/story/story_viewer_screen.dart';
 
 class HomeController extends GetxController {
   HomeController(this._postRepository, this._jobApplicationRepository);
@@ -63,17 +66,146 @@ class HomeController extends GetxController {
     }
   }
 
+  /// User's own active stories
+  final userStories = <StoryItem>[].obs;
+
+  void addUserStory({
+    String? mediaUrl,
+    List<Color>? gradientColors,
+    String? text,
+    String? fontStyle,
+    String? sticker,
+    String? vibeType,
+    String? vibeData,
+    String textAlignment = 'center',
+    bool hasVignette = false,
+    double textDx = 0.0,
+    double textDy = 0.0,
+    double stickerDx = 0.0,
+    double stickerDy = 0.0,
+  }) {
+    final me = currentUser;
+    final story = StoryItem(
+      id: 'story_${DateTime.now().millisecondsSinceEpoch}',
+      authorId: me.id,
+      authorName: me.fullName,
+      authorAvatar: me.avatarUrl,
+      mediaUrl: mediaUrl,
+      gradientColors: gradientColors,
+      text: text,
+      fontStyle: fontStyle,
+      sticker: sticker,
+      vibeType: vibeType,
+      vibeData: vibeData,
+      textAlignment: textAlignment,
+      hasVignette: hasVignette,
+      textDx: textDx,
+      textDy: textDy,
+      stickerDx: stickerDx,
+      stickerDy: stickerDy,
+      createdAt: DateTime.now(),
+      isSeen: false,
+    );
+    userStories.insert(0, story);
+  }
+
+  void deleteUserStory(String storyId) {
+    userStories.removeWhere((s) => s.id == storyId);
+  }
+
+  /// All active story groups for the story viewer.
+  List<UserStoryGroup> get storyGroups {
+    final me = currentUser;
+    final groups = <UserStoryGroup>[];
+
+    // 1) Current user's stories if any
+    if (userStories.isNotEmpty) {
+      groups.add(
+        UserStoryGroup(
+          authorId: me.id,
+          authorName: me.fullName,
+          authorAvatar: me.avatarUrl,
+          stories: userStories.toList(),
+          isOwn: true,
+        ),
+      );
+    }
+
+    // 2) Feed author stories
+    final seenAuthors = <String>{me.id};
+    for (final post in posts) {
+      if (post.type == PostType.job) continue;
+      final preview =
+          post.thumbnailUrl ?? post.mediaUrl ?? post.author.avatarUrl;
+      if (preview == null || preview.isEmpty) {
+        if (post.author.avatarUrl == null || post.author.avatarUrl!.isEmpty) {
+          continue;
+        }
+      }
+      if (!seenAuthors.add(post.author.id)) continue;
+
+      final authorStories = <StoryItem>[
+        StoryItem(
+          id: 'story_post_${post.id}',
+          authorId: post.author.id,
+          authorName: post.author.fullName,
+          authorAvatar: post.author.avatarUrl,
+          mediaUrl: post.mediaUrl ?? post.thumbnailUrl,
+          text: post.content.isNotEmpty ? post.content : null,
+          fontStyle: 'modern',
+          sticker: post.type == PostType.video ? '🎥 Reel Story' : '✨ Campus Life',
+          createdAt: post.createdAt,
+          isSeen: false,
+        ),
+      ];
+
+      // Second diverse story for rich experience
+      if (post.content.length > 20) {
+        authorStories.add(
+          StoryItem(
+            id: 'story_text_${post.id}',
+            authorId: post.author.id,
+            authorName: post.author.fullName,
+            authorAvatar: post.author.avatarUrl,
+            gradientColors: const [Color(0xFF0D9488), Color(0xFF042F2E)],
+            text: post.content,
+            fontStyle: 'bold',
+            sticker: '📍 Phnom Penh',
+            createdAt: post.createdAt.subtract(const Duration(hours: 1)),
+            isSeen: false,
+          ),
+        );
+      }
+
+      groups.add(
+        UserStoryGroup(
+          authorId: post.author.id,
+          authorName: post.author.fullName,
+          authorAvatar: post.author.avatarUrl,
+          stories: authorStories,
+          isOwn: false,
+        ),
+      );
+      if (groups.length >= 12) break;
+    }
+
+    return groups;
+  }
+
   /// Media circles for the flexible home header (Telegram-style).
   List<HomeMediaItem> get mediaStories {
     final me = currentUser;
+    final hasOwn = userStories.isNotEmpty;
     final items = <HomeMediaItem>[
       HomeMediaItem(
         id: 'own-media',
-        label: 'Your media',
-        imageUrl: me.avatarUrl,
+        label: hasOwn ? 'Your Story' : 'Add Story',
+        imageUrl: hasOwn && userStories.first.isMediaImage
+            ? userStories.first.mediaUrl
+            : me.avatarUrl,
         authorId: me.id,
         isOwn: true,
-        hasUnseen: false,
+        hasUnseen: hasOwn,
       ),
     ];
 
@@ -107,10 +239,40 @@ class HomeController extends GetxController {
   }
 
   void openMediaItem(HomeMediaItem item) {
+    final context = Get.context;
+    if (context == null) return;
+
     if (item.isOwn) {
-      openCreatePost(type: PostType.poster);
+      if (userStories.isEmpty) {
+        CreateStorySheet.show(context);
+      } else {
+        // Show user's own story in full Story Viewer!
+        StoryViewerScreen.open(
+          context,
+          storyGroups: storyGroups,
+          initialGroupIndex: 0,
+          onDeleteStory: deleteUserStory,
+          onAddMoreStory: () => CreateStorySheet.show(context),
+        );
+      }
       return;
     }
+
+    // Open Story Viewer focused on selected author
+    final allGroups = storyGroups;
+    final targetIndex = allGroups.indexWhere((g) => g.authorId == item.authorId);
+    if (targetIndex != -1) {
+      StoryViewerScreen.open(
+        context,
+        storyGroups: allGroups,
+        initialGroupIndex: targetIndex,
+        onDeleteStory: deleteUserStory,
+        onAddMoreStory: () => CreateStorySheet.show(context),
+      );
+      return;
+    }
+
+    // Fallback if not found in story groups
     if (item.postId != null && item.postId!.isNotEmpty) {
       openPost(item.postId!);
       return;
@@ -358,6 +520,7 @@ class HomeController extends GetxController {
       ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
     );
   }
 

@@ -58,6 +58,8 @@ flutter:
     - assets/images/jobs/
     - assets/images/cv/
     - assets/images/profile/
+    - assets/images/reels/
+    - assets/videos/
     - assets/icons/Google Icon.png
     - assets/icons/skills/
     - .env

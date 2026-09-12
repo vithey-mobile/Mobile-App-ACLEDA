@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
@@ -93,7 +95,8 @@ class _FeedActionBarState extends State<FeedActionBar>
               ),
             ),
             Positioned(
-              left: (offset.dx - 8).clamp(8.0, overlayBox.size.width - 280),
+              left: (offset.dx - 8)
+                  .clamp(8.0, math.max(8.0, overlayBox.size.width - 280)),
               top: offset.dy - 64,
               child: FadeTransition(
                 opacity: _pickerAnim,
@@ -164,7 +167,7 @@ class _FeedActionBarState extends State<FeedActionBar>
     final likeColor = reacted ? _reactionColor(reaction) : idle;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 2, 10, 6),
+      padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
       child: Row(
         children: [
           // Left action cluster
@@ -259,7 +262,7 @@ class _IconAction extends StatelessWidget {
         onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: child,
         ),
       ),

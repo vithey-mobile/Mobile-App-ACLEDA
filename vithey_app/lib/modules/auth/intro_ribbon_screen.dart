@@ -112,81 +112,78 @@ class _LanguagePage extends StatelessWidget {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 112),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                    child: Column(
-                      children: [
-                        const Spacer(flex: 5),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 420),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Select Language',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: heading,
-                                  height: 1.25,
-                                ),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Select Language',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: heading,
+                                height: 1.25,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Choose your preferred language for the app.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  height: 1.4,
-                                  color: secondary,
-                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Choose your preferred language for the app.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.4,
+                                color: secondary,
                               ),
-                              const SizedBox(height: 40),
-                              Obx(() {
-                                final selected =
-                                    controller.selectedLanguage.value;
-                                return DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: border),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      _LanguageRow(
-                                        flagAsset: AppAssets.englishLanguage,
-                                        title: 'English (US)',
-                                        subtitle: 'English',
-                                        selected:
-                                            selected == AppLanguageOption.en,
-                                        secondary: secondary,
-                                        onTap: () => controller.selectLanguage(
-                                          AppLanguageOption.en,
-                                        ),
+                            ),
+                            const SizedBox(height: 28),
+                            Obx(() {
+                              final selected =
+                                  controller.selectedLanguage.value;
+                              return DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .scaffoldBackgroundColor,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: border),
+                                ),
+                                child: Column(
+                                  children: [
+                                    _LanguageRow(
+                                      flagAsset: AppAssets.englishLanguage,
+                                      title: 'English (US)',
+                                      subtitle: 'English',
+                                      selected:
+                                          selected == AppLanguageOption.en,
+                                      secondary: secondary,
+                                      onTap: () => controller.selectLanguage(
+                                        AppLanguageOption.en,
                                       ),
-                                      Divider(height: 1, color: border),
-                                      _LanguageRow(
-                                        flagAsset: AppAssets.khmerLanguage,
-                                        title: 'Khmer',
-                                        subtitle: 'ភាសាខ្មែរ',
-                                        selected:
-                                            selected == AppLanguageOption.km,
-                                        secondary: secondary,
-                                        onTap: () => controller.selectLanguage(
-                                          AppLanguageOption.km,
-                                        ),
+                                    ),
+                                    Divider(height: 1, color: border),
+                                    _LanguageRow(
+                                      flagAsset: AppAssets.khmerLanguage,
+                                      title: 'Khmer',
+                                      subtitle: 'ភាសាខ្មែរ',
+                                      selected:
+                                          selected == AppLanguageOption.km,
+                                      secondary: secondary,
+                                      onTap: () => controller.selectLanguage(
+                                        AppLanguageOption.km,
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
                         ),
-                        const Spacer(flex: 2),
-                      ],
+                      ),
                     ),
                   ),
                 ),

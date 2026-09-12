@@ -61,7 +61,7 @@ abstract final class UserFixtures {
     return switch (userId) {
       MockIds.currentUser => MockIdentities.mockUserFullName,
       MockIds.author1 => 'Heng Liza',
-      MockIds.author2 => 'Molika Khorn',
+      MockIds.author2 => 'Channary Sovann',
       MockIds.author3 => 'AUB Career Center',
       MockIds.author4 => 'Sreynich Chan',
       MockIds.author5 => 'Meas Lily',
@@ -204,7 +204,7 @@ abstract final class UserFixtures {
       ),
       MockIds.author2: const UserProfileModel(
         id: MockIds.author2,
-        fullName: 'Molika Khorn',
+        fullName: 'Channary Sovann',
         bio: 'Content creator sharing student life and career tips.',
         university: 'American University of Phnom Penh',
         major: 'Media Communications',
@@ -336,7 +336,7 @@ abstract final class UserFixtures {
       ChatParticipant(id: MockIds.author5, fullName: 'Meas Lily', isOnline: true),
       ChatParticipant(id: MockIds.author7, fullName: 'Moeng Kimheang', isOnline: true),
       ChatParticipant(id: MockIds.author6, fullName: 'Ponloeng Bora'),
-      ChatParticipant(id: MockIds.author2, fullName: 'Molika Khorn', isOnline: true),
+      ChatParticipant(id: MockIds.author2, fullName: 'Channary Sovann', isOnline: true),
       ChatParticipant(id: MockIds.author8, fullName: 'Sokha Phan'),
       ChatParticipant(id: MockIds.author9, fullName: 'Dara Lim', isOnline: true),
       ChatParticipant(id: MockIds.author11, fullName: 'Pisey Nget'),

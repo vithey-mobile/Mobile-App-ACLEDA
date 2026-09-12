@@ -43,7 +43,10 @@ class MapController extends GetxController {
   final droppedPin = Rxn<LatLng>();
   final routeDistanceM = 0.0.obs;
   final polylines = <Polyline>{}.obs;
-  final filter = const PlaceFilter(category: 'cafe').obs;
+  final filter = const PlaceFilter().obs;
+
+  final isMapReady = false.obs;
+  bool _isLocating = false;
 
   final gpsLatLng = Rxn<LatLng>();
   final searchCenter = LatLng(
@@ -97,6 +100,7 @@ class MapController extends GetxController {
 
   Future<void> onMapCreated(GoogleMapController controller) async {
     mapController = controller;
+    isMapReady.value = true;
     if (isLocationGranted.value) {
       await goToCurrentLocation(runNearby: places.isEmpty);
     } else if (places.isEmpty) {
@@ -107,27 +111,58 @@ class MapController extends GetxController {
   }
 
   Future<void> goToCurrentLocation({bool runNearby = true}) async {
+    if (_isLocating) return;
+    _isLocating = true;
     try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      final latLng = LatLng(position.latitude, position.longitude);
-      gpsLatLng.value = latLng;
-      searchCenter.value = latLng;
-      isFollowingGps.value = true;
-      showSearchThisArea.value = false;
-      await mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(latLng, 15),
-      );
-      if (runNearby) await loadNearby();
+      Position? position;
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 4),
+            ),
+          );
+        } catch (_) {
+          position = await Geolocator.getLastKnownPosition();
+        }
+      } else {
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      if (position != null) {
+        final latLng = LatLng(position.latitude, position.longitude);
+        gpsLatLng.value = latLng;
+        // If device GPS is > 500 km away (e.g. emulator default in California),
+        // stay centered on Phnom Penh in mock mode so places are visible.
+        final distToDefault = PlaceFixtures.distanceBetweenM(
+          position.latitude,
+          position.longitude,
+          PlaceFixtures.defaultLat,
+          PlaceFixtures.defaultLng,
+        );
+        if (_repository.useMockApi && distToDefault > 500000) {
+          searchCenter.value = const LatLng(
+            PlaceFixtures.defaultLat,
+            PlaceFixtures.defaultLng,
+          );
+        } else {
+          searchCenter.value = latLng;
+        }
+        isFollowingGps.value = true;
+        showSearchThisArea.value = false;
+        await mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(searchCenter.value, 15),
+        );
+      }
     } catch (_) {
-      Get.snackbar(
-        AppStrings.appName,
-        'Could not get current location',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Keep default searchCenter
+    } finally {
+      _isLocating = false;
+      if (runNearby && places.isEmpty) {
+        await loadNearby();
+      }
     }
   }
 
@@ -270,6 +305,13 @@ class MapController extends GetxController {
       errorMessage.value = '';
       return;
     }
+    // Clear old nearby red pins while searching so the map doesn't show them
+    if (places.length > 1) {
+      places.clear();
+      selectedPlace.value = null;
+      _searchFromHereMarker = null;
+      _rebuildMarkers();
+    }
     _debounce = Timer(const Duration(milliseconds: 250), () async {
       await _runAutocomplete(value.trim());
     });
@@ -277,7 +319,7 @@ class MapController extends GetxController {
 
   Future<void> onSearchSubmitted(String value) async {
     final q = value.trim();
-    if (q.length < 2) return;
+    if (q.isEmpty) return;
     suggestions.clear();
     await loadSearch(q);
   }
@@ -287,6 +329,9 @@ class MapController extends GetxController {
     searchQuery.value = '';
     suggestions.clear();
     errorMessage.value = '';
+    selectedPlace.value = null;
+    _searchFromHereMarker = null;
+    loadNearby();
   }
 
   Future<void> _runAutocomplete(String input) async {
@@ -311,25 +356,47 @@ class MapController extends GetxController {
     suggestions.clear();
     textController.text = suggestion.primaryText;
     searchQuery.value = suggestion.primaryText;
+    _searchFromHereMarker = null;
 
     double? lat = suggestion.latitude;
     double? lng = suggestion.longitude;
-    if (lat == null || lng == null) {
-      try {
-        final detail = await _repository.detail(suggestion.googlePlaceId);
-        lat = detail.latitude;
-        lng = detail.longitude;
-      } catch (_) {
-        // fall through to text search
-      }
+    PlaceDetail? detail;
+    try {
+      detail = await _repository.detail(suggestion.googlePlaceId);
+      lat ??= detail.latitude;
+      lng ??= detail.longitude;
+    } catch (_) {
+      // fall through to text search
     }
 
     if (lat != null && lng != null) {
-      await setSearchCenter(
-        LatLng(lat, lng),
-        fromGps: false,
-        label: suggestion.primaryText,
+      final target = LatLng(lat, lng);
+      searchCenter.value = target;
+      isFollowingGps.value = false;
+      showSearchThisArea.value = false;
+
+      final card = detail?.toCard() ??
+          places.firstWhereOrNull(
+            (p) => p.googlePlaceId == suggestion.googlePlaceId,
+          ) ??
+          PlaceCard(
+            googlePlaceId: suggestion.googlePlaceId,
+            name: suggestion.primaryText,
+            address: suggestion.secondaryText,
+            latitude: lat,
+            longitude: lng,
+          );
+
+      // Only show the searched/selected place pin on the map.
+      // Do NOT show other red pins!
+      places.assignAll([card]);
+      selectedPlace.value = card;
+      _rebuildMarkers();
+
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(target, 16.5),
       );
+      openPlaceSheet(card);
     } else {
       await loadSearch(suggestion.primaryText);
     }
@@ -356,19 +423,43 @@ class MapController extends GetxController {
   }
 
   Future<void> loadSearch(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return;
     isLoadingPlaces.value = true;
     errorMessage.value = '';
+    suggestions.clear();
+    _searchFromHereMarker = null;
     try {
       final center = searchCenter.value;
       final result = await _repository.search(
-        query: query,
+        query: q,
         lat: center.latitude,
         lng: center.longitude,
         filter: filter.value,
       );
       places.assignAll(result.places);
-      _mergeLocalPlaces();
-      _rebuildMarkers();
+
+      if (places.isNotEmpty) {
+        final p = places.first;
+        if (places.length == 1) {
+          selectedPlace.value = p;
+        } else {
+          selectedPlace.value = null;
+        }
+        _rebuildMarkers();
+
+        final target = LatLng(p.latitude, p.longitude);
+        await mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(target, places.length == 1 ? 16.5 : 14.5),
+        );
+        if (places.length == 1) {
+          openPlaceSheet(p);
+        }
+      } else {
+        selectedPlace.value = null;
+        _rebuildMarkers();
+        errorMessage.value = 'No places found for "$q"';
+      }
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -506,6 +597,29 @@ class MapController extends GetxController {
         ),
       );
     }
+
+    final isSearchActive = searchQuery.value.trim().isNotEmpty;
+    final selected = selectedPlace.value;
+
+    // When searching and a specific place is selected, show ONLY that place's pin!
+    // Do NOT show other red pins!
+    if (isSearchActive && selected != null) {
+      next.add(
+        Marker(
+          markerId: MarkerId(selected.googlePlaceId),
+          position: LatLng(selected.latitude, selected.longitude),
+          infoWindow: InfoWindow(
+            title: selected.name,
+            snippet: selected.address,
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          onTap: () => openPlaceSheet(selected),
+        ),
+      );
+      markers.assignAll(next);
+      return;
+    }
+
     for (final place in places) {
       next.add(
         Marker(
@@ -515,6 +629,7 @@ class MapController extends GetxController {
             title: place.name,
             snippet: place.address,
           ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
           onTap: () => openPlaceSheet(place),
         ),
       );
@@ -524,6 +639,7 @@ class MapController extends GetxController {
 
   Future<void> openPlaceSheet(PlaceCard place) async {
     selectedPlace.value = place;
+    _rebuildMarkers();
     PlaceCard current = place;
     await Get.bottomSheet(
       SafeArea(
@@ -531,6 +647,7 @@ class MapController extends GetxController {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: StatefulBuilder(
             builder: (context, setModalState) {
+              final colors = context.appColors;
               return VitheyCard(
                 borderRadius: VitheyRadii.sheet,
                 padding: const EdgeInsets.all(20),
@@ -538,70 +655,92 @@ class MapController extends GetxController {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                  Text(
-                    current.name,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  if (current.address != null) ...[
-                    const SizedBox(height: 4),
                     Text(
-                      current.address!,
-                      style: TextStyle(color: Theme.of(context).hintColor),
+                      current.name,
+                      style: context.text.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.heading,
+                      ),
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 4,
-                    children: [
-                      if (current.rating != null)
-                        Text('★ ${current.rating!.toStringAsFixed(1)}'),
-                      if (current.distanceM != null)
-                        Text('${current.distanceM} m'),
-                      if (current.category != null)
-                        Text(PlaceCategories.label(current.category!)),
-                      if (current.openNow == true)
-                        const Text(
-                          'Open now',
-                          style: TextStyle(color: AppColors.primary),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SheetAction(
-                          label: current.isFavorite ? 'Saved' : 'Favorite',
-                          icon: current.isFavorite
-                              ? LucideIcons.heart
-                              : LucideIcons.heart,
-                          onPressed: () async {
-                            final updated =
-                                await _repository.toggleFavorite(current);
-                            current = updated;
-                            selectedPlace.value = updated;
-                            final idx = places.indexWhere(
-                              (p) =>
-                                  p.googlePlaceId == updated.googlePlaceId,
-                            );
-                            if (idx >= 0) places[idx] = updated;
-                            setModalState(() {});
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SheetAction(
-                          label: 'Directions',
-                          icon: LucideIcons.navigation,
-                          onPressed: () => openDirections(current),
+                    if (current.address != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        current.address!,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: colors.muted,
                         ),
                       ),
                     ],
-                  ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      children: [
+                        if (current.rating != null)
+                          Text(
+                            '★ ${current.rating!.toStringAsFixed(1)}',
+                            style: context.text.bodySmall?.copyWith(
+                              color: const Color(0xFFF9A825),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        if (current.distanceM != null)
+                          Text(
+                            '${current.distanceM} m',
+                            style: context.text.bodySmall?.copyWith(
+                              color: colors.muted,
+                            ),
+                          ),
+                        if (current.category != null)
+                          Text(
+                            PlaceCategories.label(current.category!),
+                            style: context.text.bodySmall?.copyWith(
+                              color: colors.muted,
+                            ),
+                          ),
+                        if (current.openNow == true)
+                          Text(
+                            'Open now',
+                            style: context.text.bodySmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SheetAction(
+                            label: current.isFavorite ? 'Saved' : 'Favorite',
+                            icon: current.isFavorite
+                                ? LucideIcons.heart
+                                : LucideIcons.heart,
+                            onPressed: () async {
+                              final updated =
+                                  await _repository.toggleFavorite(current);
+                              current = updated;
+                              selectedPlace.value = updated;
+                              final idx = places.indexWhere(
+                                (p) =>
+                                    p.googlePlaceId == updated.googlePlaceId,
+                              );
+                              if (idx >= 0) places[idx] = updated;
+                              setModalState(() {});
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _SheetAction(
+                            label: 'Directions',
+                            icon: LucideIcons.navigation,
+                            onPressed: () => openDirections(current),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               );
@@ -609,11 +748,13 @@ class MapController extends GetxController {
           ),
         ),
       ),
-      backgroundColor: Get.theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     );
+    if (searchQuery.value.trim().isEmpty) {
+      selectedPlace.value = null;
+      _rebuildMarkers();
+    }
   }
 
   Future<void> openDirections(PlaceCard place) async {

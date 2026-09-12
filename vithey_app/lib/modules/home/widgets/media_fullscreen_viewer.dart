@@ -134,15 +134,41 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
     });
 
     try {
-      late final VideoPlayerController controller;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        controller = VideoPlayerController.networkUrl(Uri.parse(url));
-      } else if (url.startsWith('assets/')) {
-        controller = VideoPlayerController.asset(url);
-      } else {
-        controller = VideoPlayerController.file(File(url));
+      VideoPlayerController? controller;
+
+      Future<VideoPlayerController?> tryInit(String src) async {
+        VideoPlayerController c;
+        if (src.startsWith('http://') || src.startsWith('https://')) {
+          c = VideoPlayerController.networkUrl(Uri.parse(src));
+        } else if (src.startsWith('assets/')) {
+          c = VideoPlayerController.asset(src);
+        } else {
+          c = VideoPlayerController.file(File(src));
+        }
+        try {
+          await c.initialize().timeout(const Duration(seconds: 8));
+          return c;
+        } catch (_) {
+          await c.dispose();
+          return null;
+        }
       }
-      await controller.initialize();
+
+      controller = await tryInit(url);
+      if (controller == null) {
+        const fallbacks = [
+          'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+          'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+          'https://media.w3.org/2010/05/video/movie_300.mp4',
+        ];
+        final fallbackUrl = fallbacks[_post.id.hashCode.abs() % fallbacks.length];
+        controller = await tryInit(fallbackUrl);
+      }
+
+      if (controller == null) {
+        throw Exception('Could not initialize video player');
+      }
+
       if (!mounted) {
         controller.dispose();
         return;
@@ -444,22 +470,29 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
             controller.value.isPlaying ? controller.pause() : controller.play();
           });
         },
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: controller.value.aspectRatio == 0
-                ? 9 / 16
-                : controller.value.aspectRatio,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                VideoPlayer(controller),
-                if (!controller.value.isPlaying)
-                  const VitheyIcon(
-                    LucideIcons.circlePlay,
-                    color: Colors.white70,
-                    size: 72,
-                  ),
-              ],
+        child: SizedBox.expand(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: controller.value.size.width > 0
+                  ? controller.value.size.width
+                  : 360,
+              height: controller.value.size.height > 0
+                  ? controller.value.size.height
+                  : 640,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  VideoPlayer(controller),
+                  if (!controller.value.isPlaying)
+                    const VitheyIcon(
+                      LucideIcons.circlePlay,
+                      color: Colors.white70,
+                      size: 72,
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -469,10 +502,10 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Center(
+        Positioned.fill(
           child: _FullscreenImage(
             url: _post.thumbnailUrl ?? _post.mediaUrl,
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
           ),
         ),
         Center(
@@ -569,7 +602,19 @@ class _FullscreenImage extends StatelessWidget {
       );
     }
     if (url!.startsWith('assets/')) {
-      return Image.asset(url!, fit: fit);
+      return Image.asset(
+        url!,
+        fit: fit,
+        errorBuilder: (_, __, ___) => CachedNetworkImage(
+          imageUrl: 'https://picsum.photos/seed/fullviewer/720/1280',
+          fit: fit,
+          errorWidget: (_, __, ___) => const VitheyIcon(
+            LucideIcons.imageOff,
+            color: Colors.white54,
+            size: 48,
+          ),
+        ),
+      );
     }
     if (!url!.startsWith('http://') && !url!.startsWith('https://')) {
       return Image.file(

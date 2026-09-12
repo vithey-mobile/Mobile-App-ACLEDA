@@ -14,6 +14,8 @@ import 'package:aub_connect_app/modules/jobs/models/apply_cv_args.dart';
 import 'package:aub_connect_app/modules/jobs/models/apply_cv_result.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/modules/home/create_post/models/create_post_args.dart';
+import 'package:aub_connect_app/modules/home/widgets/share_sheet.dart';
+import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 
 class PostDetailController extends GetxController {
   PostDetailController(
@@ -421,6 +423,25 @@ class PostDetailController extends GetxController {
       if (!placed.contains(item.id)) out.add(item);
     }
     return out;
+  }
+
+  void openAuthorProfile(String authorId) {
+    openUserProfile(authorId);
+  }
+
+  void openShareSheet() {
+    final current = post.value;
+    if (current == null) return;
+    Get.bottomSheet(
+      ShareSheet(
+        post: current,
+        onShared: () {
+          post.value = current.copyWith(shareCount: current.shareCount + 1);
+        },
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
   }
 
   void applyJob() {

@@ -26,9 +26,14 @@ class UserAvatar extends StatelessWidget {
     final fill = backgroundColor ??
         Theme.of(context).colorScheme.primaryContainer;
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      final ImageProvider<Object> provider = imageUrl!.startsWith('http')
-          ? CachedNetworkImageProvider(imageUrl!)
-          : FileImage(File(imageUrl!)) as ImageProvider<Object>;
+      final ImageProvider<Object> provider;
+      if (imageUrl!.startsWith('assets/')) {
+        provider = AssetImage(imageUrl!);
+      } else if (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')) {
+        provider = CachedNetworkImageProvider(imageUrl!);
+      } else {
+        provider = FileImage(File(imageUrl!));
+      }
       return CircleAvatar(
         radius: radius,
         backgroundColor: fill,

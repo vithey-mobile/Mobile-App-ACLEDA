@@ -43,7 +43,7 @@ class MixedPostFeed extends StatelessWidget {
       return [
         SliverPadding(
           padding: EdgeInsets.only(
-            top: 5,
+            top: 6,
             bottom: AppBottomNavigation.scrollClearance(context),
           ),
           sliver: SliverList(
@@ -97,7 +97,7 @@ class ContentedSliverList extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverPadding(
       padding: EdgeInsets.only(
-        top: 5,
+        top: 6,
         bottom: AppBottomNavigation.scrollClearance(context),
       ),
       sliver: SliverList(
@@ -157,7 +157,14 @@ class _FeedPostItem extends StatelessWidget {
   final HomeController controller;
 
   @override
-  Widget build(BuildContext context) => _buildCard(context);
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: _buildCard(context),
+      ),
+    );
+  }
 
   Widget _buildCard(BuildContext context) {
     final common = (

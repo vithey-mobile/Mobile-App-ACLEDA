@@ -93,66 +93,72 @@ class ProfileActionRow extends StatelessWidget {
   final VoidCallback onVerifyStudent;
   final VoidCallback onShare;
 
-  static const _buttonGap = 16.0;
+  static const _buttonGap = 10.0;
   static const _actionMinHeight = 40.0;
   static const _actionHorizontalInset = 10.0;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-        if (isOwnProfile) ...[
-          CustomButton(
-            label: 'Edit Profile',
-            minHeight: _actionMinHeight,
-            horizontalInset: _actionHorizontalInset,
-            onPressed: onEditProfile,
-          ),
-          const SizedBox(width: _buttonGap),
-          CustomButton(
-            label: isStudentVerified ? 'Review' : 'Verify',
-            variant: CustomButtonVariant.outline,
-            minHeight: _actionMinHeight,
-            horizontalInset: _actionHorizontalInset,
-            onPressed: onVerifyStudent,
-          ),
-        ] else ...[
-          if (isFollowing)
-            CustomButton(
-              label: 'Unfollow',
-              variant: CustomButtonVariant.outline,
-              minHeight: _actionMinHeight,
-              horizontalInset: _actionHorizontalInset,
-              onPressed: onFollow,
-            )
-          else
-            CustomButton(
-              label: 'Follow',
-              minHeight: _actionMinHeight,
-              horizontalInset: _actionHorizontalInset,
-              onPressed: onFollow,
+          if (isOwnProfile) ...[
+            Expanded(
+              child: CustomButton(
+                label: 'Edit Profile',
+                minHeight: _actionMinHeight,
+                horizontalInset: _actionHorizontalInset,
+                onPressed: onEditProfile,
+              ),
             ),
+            const SizedBox(width: _buttonGap),
+            Expanded(
+              child: CustomButton(
+                label: isStudentVerified ? 'Review' : 'Verify',
+                variant: CustomButtonVariant.outline,
+                minHeight: _actionMinHeight,
+                horizontalInset: _actionHorizontalInset,
+                onPressed: onVerifyStudent,
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: isFollowing
+                  ? CustomButton(
+                      label: 'Unfollow',
+                      variant: CustomButtonVariant.outline,
+                      minHeight: _actionMinHeight,
+                      horizontalInset: _actionHorizontalInset,
+                      onPressed: onFollow,
+                    )
+                  : CustomButton(
+                      label: 'Follow',
+                      minHeight: _actionMinHeight,
+                      horizontalInset: _actionHorizontalInset,
+                      onPressed: onFollow,
+                    ),
+            ),
+            const SizedBox(width: _buttonGap),
+            Expanded(
+              child: CustomButton(
+                label: 'Message',
+                variant: CustomButtonVariant.outline,
+                minHeight: _actionMinHeight,
+                horizontalInset: _actionHorizontalInset,
+                onPressed: onMessage,
+              ),
+            ),
+          ],
           const SizedBox(width: _buttonGap),
-          CustomButton(
-            label: 'Message',
-            variant: CustomButtonVariant.outline,
-            minHeight: _actionMinHeight,
-            horizontalInset: _actionHorizontalInset,
-            onPressed: onMessage,
+          // GenZ round icon chrome — 48px tap target.
+          VitheyIconButton(
+            icon: LucideIcons.share,
+            onTap: onShare,
+            tooltip: 'Share profile',
+            circle: true,
           ),
         ],
-        const SizedBox(width: _buttonGap),
-        // GenZ round icon chrome — 48px tap target.
-        VitheyIconButton(
-          icon: LucideIcons.share,
-          onTap: onShare,
-          tooltip: 'Share profile',
-          circle: true,
-        ),
-      ],
       ),
     );
   }

@@ -53,13 +53,16 @@ class CodeBlockCard extends StatelessWidget {
                   size: 15,
                   color: context.appColors.muted,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: context.text.labelMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 _GhostCopyButton(onTap: _copy),
               ],
             ),

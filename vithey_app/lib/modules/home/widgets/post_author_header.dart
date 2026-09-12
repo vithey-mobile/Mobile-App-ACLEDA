@@ -19,7 +19,7 @@ class PostAuthorHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 11, 10, 8),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       child: Row(
         children: [
           GestureDetector(
@@ -30,7 +30,7 @@ class PostAuthorHeader extends StatelessWidget {
               radius: 18,
             ),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
           Expanded(
             child: GestureDetector(
               onTap: onAuthorTap,

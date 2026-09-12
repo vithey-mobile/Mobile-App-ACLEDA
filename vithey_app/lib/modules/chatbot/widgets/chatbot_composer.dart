@@ -36,11 +36,9 @@ class ChatbotComposer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-        child: ValueListenableBuilder<TextEditingValue>(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
           builder: (context, value, _) {
             final hasText = value.text.trim().isNotEmpty;
@@ -161,8 +159,7 @@ class ChatbotComposer extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 }
 
