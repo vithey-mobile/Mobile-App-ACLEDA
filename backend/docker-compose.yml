@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: vithey-minio
     env_file:
       - infrastructure/.env.example
@@ -375,6 +375,39 @@ services:
       - vithey-network
     restart: unless-stopped
 
+  map-service:
+    build:
+      context: .
+      dockerfile: services/map-service/Dockerfile
+      args:
+        SERVICE_PORT: 8090
+    image: vithey-map-service:local
+    container_name: vithey-map-service
+    env_file:
+      - path: services/map-service/.env
+        required: false
+      - path: services/map-service/.env.example
+        required: false
+    environment:
+      MAP_DB_URL: jdbc:postgresql://postgres:5432/map_db
+      MAP_DB_USERNAME: postgres
+      MAP_DB_PASSWORD: postgres
+    ports:
+      - "8090:8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      <<: *service-health
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8090/actuator/health | grep -q '\"status\":\"UP\"'"]
+    networks:
+      - vithey-network
+    restart: unless-stopped
+
   api-gateway:
     build:
       context: .
@@ -409,6 +442,8 @@ services:
       notification-service:
         condition: service_started
       ai-service:
+        condition: service_started
+      map-service:
         condition: service_started
     healthcheck:
       <<: *service-health

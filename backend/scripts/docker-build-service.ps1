@@ -29,6 +29,7 @@ $serviceMap = @{
     "chat-service"         = @{ Path = "services\chat-service"; Port = 8087 }
     "notification-service" = @{ Path = "services\notification-service"; Port = 8088 }
     "ai-service"           = @{ Path = "services\ai-service"; Port = 8089 }
+    "map-service"          = @{ Path = "services\map-service"; Port = 8090 }
 }
 
 if (-not $serviceMap.ContainsKey($Service)) {

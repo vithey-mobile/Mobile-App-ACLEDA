@@ -18,9 +18,11 @@ COPY services/finance-service/pom.xml services/finance-service/pom.xml
 COPY services/chat-service/pom.xml services/chat-service/pom.xml
 COPY services/notification-service/pom.xml services/notification-service/pom.xml
 COPY services/ai-service/pom.xml services/ai-service/pom.xml
+COPY services/map-service/pom.xml services/map-service/pom.xml
 COPY services/ai-service/src services/ai-service/src
 
-RUN mvn -B -q -pl services/ai-service -am -Dmaven.test.skip=true package && \
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -q -pl services/ai-service -am -Dmaven.test.skip=true package && \
     cp services/ai-service/target/*.jar app.jar
 
 FROM eclipse-temurin:21-jre-alpine AS runtime

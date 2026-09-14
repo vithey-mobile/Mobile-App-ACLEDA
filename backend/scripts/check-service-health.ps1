@@ -19,7 +19,8 @@ $services = @(
     @{ Name = "finance-service";      Port = 8086 },
     @{ Name = "chat-service";         Port = 8087 },
     @{ Name = "notification-service"; Port = 8088 },
-    @{ Name = "ai-service";           Port = 8089 }
+    @{ Name = "ai-service";           Port = 8089 },
+    @{ Name = "map-service";          Port = 8090 }
 )
 
 $passed = 0
