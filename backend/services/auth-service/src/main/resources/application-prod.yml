@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: configserver:${CONFIG_SERVER_URL}
+  jpa:
+    show-sql: false
+
+eureka:
+  client:
+    enabled: true
+
+logging:
+  level:
+    com.vithey.auth: INFO
