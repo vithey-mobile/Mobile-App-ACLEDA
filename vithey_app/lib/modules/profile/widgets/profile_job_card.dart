@@ -8,6 +8,7 @@ import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
@@ -259,34 +260,36 @@ class _JobPosterFullscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          InteractiveViewer(
-            minScale: 0.8,
-            maxScale: 4,
-            child: Center(
-              child: _PosterImage(url: imageUrl, fit: BoxFit.contain),
-            ),
-          ),
-          Positioned(
-            top: topInset + 4,
-            right: 4,
-            child: IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.black54,
-                foregroundColor: Colors.white,
+    return VitheyStatusBar(
+      color: Colors.black,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            InteractiveViewer(
+              minScale: 0.8,
+              maxScale: 4,
+              child: Center(
+                child: _PosterImage(url: imageUrl, fit: BoxFit.contain),
               ),
-              icon: const VitheyIcon(LucideIcons.x),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+            Positioned(
+              top: topInset + 4,
+              right: 4,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black54,
+                  foregroundColor: Colors.white,
+                ),
+                icon: const VitheyIcon(LucideIcons.x),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -350,6 +353,7 @@ class _JobPosterFullscreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

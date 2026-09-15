@@ -37,14 +37,12 @@ class HomeFlexibleHeader extends StatelessWidget {
     required this.onOpenOwnMedia,
     required this.onOpenItem,
     this.onAddStory,
-    this.onOpenCreatePost,
   });
 
   final List<HomeMediaItem> items;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
   final VoidCallback? onAddStory;
-  final VoidCallback? onOpenCreatePost;
 
   static const double toolbarHeight = kToolbarHeight;
   static const double mediaRowHeight = 100;
@@ -60,7 +58,6 @@ class HomeFlexibleHeader extends StatelessWidget {
         onOpenOwnMedia: onOpenOwnMedia,
         onOpenItem: onOpenItem,
         onAddStory: onAddStory ?? onOpenOwnMedia,
-        onOpenCreatePost: onOpenCreatePost ?? onOpenOwnMedia,
       ),
     );
   }
@@ -72,14 +69,12 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onOpenOwnMedia,
     required this.onOpenItem,
     required this.onAddStory,
-    required this.onOpenCreatePost,
   });
 
   final List<HomeMediaItem> items;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
   final VoidCallback onAddStory;
-  final VoidCallback onOpenCreatePost;
 
   @override
   double get maxExtent => HomeFlexibleHeader.maxHeight;
@@ -137,7 +132,6 @@ class _HomeFlexibleHeaderDelegate extends SliverPersistentHeaderDelegate {
                       stackItems: stackItems,
                       onOpenOwnMedia: onOpenOwnMedia,
                       onOpenItem: onOpenItem,
-                      onOpenCreatePost: onOpenCreatePost,
                     ),
                   ),
                   if (mediaVisible > 0.5)
@@ -195,7 +189,6 @@ class _Toolbar extends StatelessWidget {
     required this.stackItems,
     required this.onOpenOwnMedia,
     required this.onOpenItem,
-    required this.onOpenCreatePost,
   });
 
   final String title;
@@ -204,7 +197,6 @@ class _Toolbar extends StatelessWidget {
   final List<HomeMediaItem> stackItems;
   final VoidCallback onOpenOwnMedia;
   final ValueChanged<HomeMediaItem> onOpenItem;
-  final VoidCallback onOpenCreatePost;
 
   @override
   Widget build(BuildContext context) {
@@ -286,63 +278,7 @@ class _Toolbar extends StatelessWidget {
             onPressed: FinanceNavigation.openFinanceEntry,
             tooltip: 'Finance',
           ),
-          const SizedBox(width: 4),
-          _ToolbarPostButton(onPressed: onOpenCreatePost),
         ],
-      ),
-    );
-  }
-}
-
-class _ToolbarPostButton extends StatelessWidget {
-  const _ToolbarPostButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary,
-                AppColors.primaryLight,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.35),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              VitheyIcon(LucideIcons.plus, size: 15, color: Colors.white),
-              SizedBox(width: 4),
-              Text(
-                'Post',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12.5,
-                  letterSpacing: -0.1,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

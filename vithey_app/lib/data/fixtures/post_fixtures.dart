@@ -424,7 +424,16 @@ abstract final class PostFixtures {
       type: PostType.poster,
       author: PostAuthor(id: authorId, fullName: UserFixtures.displayName(authorId)),
       content: content,
-      mediaUrl: 'https://picsum.photos/seed/poster$seed/600/420',
+      mediaUrl: seed == 1
+          ? 'https://picsum.photos/seed/poster${seed}a/600/420'
+          : 'https://picsum.photos/seed/poster$seed/600/420',
+      mediaUrls: seed == 1
+          ? [
+              'https://picsum.photos/seed/poster${seed}a/600/420',
+              'https://picsum.photos/seed/poster${seed}b/600/420',
+              'https://picsum.photos/seed/poster${seed}c/600/420',
+            ]
+          : null,
       createdAt: MockClock.hoursAgo(seed * 2),
       viewCount: 180 + seed * 37,
       reactionCount: 12 + seed,

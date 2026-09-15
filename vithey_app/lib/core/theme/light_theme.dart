@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/theme/vithey_type.dart';
 
 ThemeData buildLightTheme() {
@@ -23,12 +24,13 @@ ThemeData buildLightTheme() {
     canvasColor: AppColors.accentLight,
     cardColor: AppColors.accentLight,
     dividerColor: AppColors.borderLight,
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: AppColors.accentLight,
       foregroundColor: AppColors.lightText,
       elevation: 0,
       centerTitle: true,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: VitheySystemUi.forBackground(AppColors.accentLight),
     ),
     bottomAppBarTheme: const BottomAppBarThemeData(
       color: AppColors.accentLight,

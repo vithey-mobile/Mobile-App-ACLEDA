@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Visual layout variants for AI / blank CV templates.
+/// Visual layout families for AI / blank CV templates.
 enum CvTemplateLayout {
   blank,
-  sidebarLight,
-  sidebarDark,
-  headerPhoto,
-  headerStrip,
+  sidebar,
+  header,
   minimal,
 }
 
@@ -20,6 +18,8 @@ class CvTemplate {
     required this.language,
     required this.layout,
     required this.accentColor,
+    required this.designId,
+    this.secondaryColor,
   });
 
   final String id;
@@ -35,7 +35,12 @@ class CvTemplate {
   final String language;
 
   final CvTemplateLayout layout;
+
+  /// Matches reference image key, e.g. `sidebar_1`, `header_3`, `minimal_5`.
+  final String designId;
+
   final Color accentColor;
+  final Color? secondaryColor;
 
   bool get isBlank => layout == CvTemplateLayout.blank;
 
@@ -52,6 +57,11 @@ class CvTemplateLabels {
     required this.skills,
     required this.projects,
     required this.contact,
+    required this.languages,
+    required this.references,
+    required this.certifications,
+    required this.achievements,
+    required this.hobbies,
   });
 
   final String aboutMe;
@@ -60,6 +70,11 @@ class CvTemplateLabels {
   final String skills;
   final String projects;
   final String contact;
+  final String languages;
+  final String references;
+  final String certifications;
+  final String achievements;
+  final String hobbies;
 
   static const english = CvTemplateLabels(
     aboutMe: 'About Me',
@@ -68,6 +83,11 @@ class CvTemplateLabels {
     skills: 'Skills',
     projects: 'Projects',
     contact: 'Contact',
+    languages: 'Languages',
+    references: 'References',
+    certifications: 'Certifications',
+    achievements: 'Achievements',
+    hobbies: 'Hobbies',
   );
 
   static const khmer = CvTemplateLabels(
@@ -77,5 +97,10 @@ class CvTemplateLabels {
     skills: 'ជំនាញ',
     projects: 'គម្រោង',
     contact: 'ទំនាក់ទំនង',
+    languages: 'ភាសា',
+    references: 'អ្នកធានា',
+    certifications: 'វិញ្ញាបនបត្រ',
+    achievements: 'សមិទ្ធផល',
+    hobbies: 'ចំណង់ចំណូលចិត្ត',
   );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/intro_stage_layout.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class OnboardingBottomSection extends StatelessWidget {
@@ -21,7 +22,7 @@ class OnboardingBottomSection extends StatelessWidget {
   final int totalPages;
   final VoidCallback onNext;
 
-  /// When false, only title + description are shown (dots/CTA live outside PageView).
+  /// When false, only title + description are shown (dots/CTA live outside).
   final bool showChrome;
 
   @override
@@ -29,25 +30,36 @@ class OnboardingBottomSection extends StatelessWidget {
     final isLast = currentPage == totalPages - 1;
     final colors = context.appColors;
 
+    final copy = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: context.text.headlineSmall?.copyWith(height: 1.25),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          description,
+          textAlign: TextAlign.center,
+          style: context.text.bodyMedium
+              ?.copyWith(color: colors.muted, height: 1.4),
+        ),
+      ],
+    );
+
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 8, 24, showChrome ? 24 : 8),
       child: Column(
         children: [
-          // More space above than below → text sits lower, toward the dots.
-          const Spacer(flex: 5),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: context.text.headlineSmall?.copyWith(height: 1.25),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: copy,
+              ),
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium
-                ?.copyWith(color: colors.muted, height: 1.4),
-          ),
-          const Spacer(flex: 2),
           if (showChrome) ...[
             _PageDots(currentPage: currentPage, totalPages: totalPages),
             const SizedBox(height: 24),
@@ -88,15 +100,24 @@ class OnboardingBottomChrome extends StatelessWidget {
   /// stays put (used when Get Started lives inside the last PageView page).
   final bool showCta;
 
+  /// Space reserved for overlay chrome (dots + CTA + 20 + system inset).
+  static double reservedHeight(BuildContext context) {
+    return IntroStageMetrics.chromeReserveHeight(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLast = isLastSlide ?? (currentPage == totalPages - 1);
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final label =
         nextLabel ?? (isLast ? AppStrings.getStarted : AppStrings.next);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        IntroStageMetrics.bottomPadding(context),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -131,9 +152,13 @@ class OnboardingGetStartedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottomInset),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        IntroStageMetrics.bottomPadding(context),
+      ),
       child: _OnboardingCtaButton(
         label: AppStrings.getStarted,
         onPressed: onPressed,

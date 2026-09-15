@@ -6,12 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
-
-import 'package:aub_connect_app/core/icons/vithey_icons.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 /// Opens poster image / video in an immersive detail stage (TikTok-style).
 Future<void> showMediaFullscreen(
   BuildContext context,
@@ -73,8 +73,10 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
   bool _initializing = false;
   bool _captionExpanded = false;
   String? _error;
+  int _imagePage = 0;
 
   bool get _isVideo => _post.type == PostType.video;
+  List<String> get _imageUrls => _post.displayMediaUrls;
 
   @override
   void initState() {
@@ -216,15 +218,17 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final caption = _caption;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Media stage
-          Positioned.fill(
-            child: _isVideo ? _buildVideoStage() : _buildImageStage(),
-          ),
+    return VitheyStatusBar(
+      color: Colors.black,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Media stage
+            Positioned.fill(
+              child: _isVideo ? _buildVideoStage() : _buildImageStage(),
+            ),
 
           // Top gradient + back
           Positioned(
@@ -448,16 +452,86 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
           ),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildImageStage() {
-    return InteractiveViewer(
-      minScale: 0.9,
-      maxScale: 4,
-      child: Center(
-        child: _FullscreenImage(url: _post.mediaUrl, fit: BoxFit.contain),
-      ),
+    final urls = _imageUrls;
+    if (urls.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (urls.length == 1) {
+      return InteractiveViewer(
+        minScale: 0.9,
+        maxScale: 4,
+        child: Center(
+          child: _FullscreenImage(url: urls.first, fit: BoxFit.contain),
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          itemCount: urls.length,
+          onPageChanged: (index) => setState(() => _imagePage = index),
+          itemBuilder: (_, index) {
+            return InteractiveViewer(
+              minScale: 0.9,
+              maxScale: 4,
+              child: Center(
+                child: _FullscreenImage(url: urls[index], fit: BoxFit.contain),
+              ),
+            );
+          },
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 120,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(urls.length, (index) {
+              final active = index == _imagePage;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: active ? 16 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: active
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              );
+            }),
+          ),
+        ),
+        Positioned(
+          top: MediaQuery.paddingOf(context).top + 56,
+          right: 16,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                '${_imagePage + 1}/${urls.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

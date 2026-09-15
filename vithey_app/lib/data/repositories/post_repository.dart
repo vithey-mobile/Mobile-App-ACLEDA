@@ -361,20 +361,32 @@ class PostRepository {
     required PostType type,
     required String content,
     String? mediaFileId,
+    List<String>? mediaFileIds,
     JobMeta? jobMeta,
     DateTime? scheduledAt,
   }) async {
+    final resolvedIds = <String>[
+      ...?mediaFileIds?.where((e) => e.trim().isNotEmpty),
+    ];
+    if (resolvedIds.isEmpty &&
+        mediaFileId != null &&
+        mediaFileId.trim().isNotEmpty) {
+      resolvedIds.add(mediaFileId.trim());
+    }
+
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 800));
-      final hasMedia = mediaFileId != null && mediaFileId.isNotEmpty;
+      final hasMedia = resolvedIds.isNotEmpty;
+      final primary = hasMedia ? resolvedIds.first : null;
       final post = FeedPost(
         id: 'post-${DateTime.now().millisecondsSinceEpoch}',
         type: type,
         author: _currentUser.postAuthor,
         content: content,
         // Text-only posts must not invent a placeholder image.
-        mediaUrl: hasMedia ? mediaFileId : null,
-        thumbnailUrl: hasMedia ? mediaFileId : null,
+        mediaUrl: primary,
+        mediaUrls: resolvedIds,
+        thumbnailUrl: primary,
         durationSeconds: hasMedia && type == PostType.video ? 125 : 0,
         jobMeta: type == PostType.job
             ? (jobMeta ?? const JobMeta(title: 'Job announcement!'))
@@ -389,7 +401,8 @@ class PostRepository {
     return _postService.createPost(
       type: type.name.toUpperCase(),
       content: content,
-      mediaFileId: mediaFileId,
+      mediaFileId: resolvedIds.isEmpty ? null : resolvedIds.first,
+      mediaFileIds: resolvedIds.isEmpty ? null : resolvedIds,
       scheduledAt: scheduledAt,
       jobMeta: jobMeta != null
           ? {
@@ -406,9 +419,19 @@ class PostRepository {
     required String postId,
     required String content,
     String? mediaFileId,
+    List<String>? mediaFileIds,
     bool removeMedia = false,
     JobMeta? jobMeta,
   }) async {
+    final resolvedIds = <String>[
+      ...?mediaFileIds?.where((e) => e.trim().isNotEmpty),
+    ];
+    if (resolvedIds.isEmpty &&
+        mediaFileId != null &&
+        mediaFileId.trim().isNotEmpty) {
+      resolvedIds.add(mediaFileId.trim());
+    }
+
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
       final current = await fetchPost(postId);
@@ -416,11 +439,15 @@ class PostRepository {
       if (!current.isOwnPost) {
         throw PostServiceException('You can only edit your own post');
       }
-      final mediaUrl = removeMedia ? null : (mediaFileId ?? current.mediaUrl);
+      final nextUrls = removeMedia
+          ? const <String>[]
+          : (resolvedIds.isNotEmpty ? resolvedIds : current.displayMediaUrls);
+      final primary = nextUrls.isEmpty ? null : nextUrls.first;
       final updated = current.copyWith(
         content: content,
-        mediaUrl: mediaUrl,
-        thumbnailUrl: mediaUrl,
+        mediaUrl: primary,
+        mediaUrls: nextUrls,
+        thumbnailUrl: primary,
         jobMeta: current.type == PostType.job ? jobMeta : const JobMeta(),
       );
       if (_mockCreatedPosts.containsKey(postId)) {
@@ -434,7 +461,8 @@ class PostRepository {
     return _postService.updatePost(
       postId: postId,
       content: content,
-      mediaFileId: mediaFileId,
+      mediaFileId: resolvedIds.isEmpty ? null : resolvedIds.first,
+      mediaFileIds: resolvedIds.isEmpty ? null : resolvedIds,
       removeMedia: removeMedia,
       jobMeta: jobMeta != null
           ? {

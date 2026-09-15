@@ -11,11 +11,12 @@ import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
 import 'package:aub_connect_app/modules/auth/language/select_language_controller.dart';
 import 'package:aub_connect_app/modules/auth/login_screen.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/intro_stage_layout.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_top_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
-
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 /// Language → Onboarding×3 → Sign In → Sign Up as one PageView continuum.
 /// Forward slides left; back slides right — **buttons only** (no finger swipe).
 ///
@@ -153,7 +154,10 @@ class _IntroRibbonScreenState extends State<IntroRibbonScreen>
     final screenH = MediaQuery.sizeOf(context).height;
     final screenW = MediaQuery.sizeOf(context).width;
 
-    return Scaffold(
+    return VitheyStatusBar(
+      color: AppColors.primaryLight,
+      systemNavigationBarColor: context.appColors.cardSurface,
+      child: Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: context.appColors.cardSurface,
       body: AnimatedBuilder(
@@ -319,6 +323,7 @@ class _IntroRibbonScreenState extends State<IntroRibbonScreen>
           });
         },
       ),
+      ),
     );
   }
 }
@@ -334,109 +339,77 @@ class _LanguagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<IntroRibbonController>();
-    final heading = context.appColors.heading;
     final secondary = _secondary(context);
     final border = context.appColors.border;
+    const profile = WaveRibbon.language;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        const OnboardingBackground(profile: WaveRibbon.language),
-        Column(
-          children: [
-            const Expanded(
-              flex: 34,
-              child: SafeArea(
-                bottom: false,
-                child: Center(
-                  child: AppLogo(size: 100, onWhiteCircle: true),
+        const OnboardingBackground(profile: profile),
+        IntroStageLayout(
+          profile: profile,
+          reserveOverlayChrome: true,
+          header: const AppLogo(size: 100, onWhiteCircle: true),
+          body: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Select Language',
+                  textAlign: TextAlign.center,
+                  style:
+                      context.text.headlineSmall?.copyWith(height: 1.25),
                 ),
-              ),
-            ),
-            Expanded(
-              flex: 66,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 112),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Select Language',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: heading,
-                                height: 1.25,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Choose your preferred language for the app.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                height: 1.4,
-                                color: secondary,
-                              ),
-                            ),
-                            const SizedBox(height: 28),
-                            Obx(() {
-                              final selected =
-                                  controller.selectedLanguage.value;
-                              return DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .scaffoldBackgroundColor,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: border),
-                                ),
-                                child: Column(
-                                  children: [
-                                    _LanguageRow(
-                                      flagAsset: AppAssets.englishLanguage,
-                                      title: 'English (US)',
-                                      subtitle: 'English',
-                                      selected:
-                                          selected == AppLanguageOption.en,
-                                      secondary: secondary,
-                                      onTap: () => controller.selectLanguage(
-                                        AppLanguageOption.en,
-                                      ),
-                                    ),
-                                    Divider(height: 1, color: border),
-                                    _LanguageRow(
-                                      flagAsset: AppAssets.khmerLanguage,
-                                      title: 'Khmer',
-                                      subtitle: 'ភាសាខ្មែរ',
-                                      selected:
-                                          selected == AppLanguageOption.km,
-                                      secondary: secondary,
-                                      onTap: () => controller.selectLanguage(
-                                        AppLanguageOption.km,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ),
+                const SizedBox(height: 12),
+                Text(
+                  'Choose your preferred language for the app.',
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: secondary,
+                    height: 1.4,
                   ),
                 ),
-              ),
+                const SizedBox(height: 28),
+                Obx(() {
+                  final selected = controller.selectedLanguage.value;
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: border),
+                    ),
+                    child: Column(
+                      children: [
+                        _LanguageRow(
+                          flagAsset: AppAssets.englishLanguage,
+                          title: 'English (US)',
+                          subtitle: 'English',
+                          selected: selected == AppLanguageOption.en,
+                          secondary: secondary,
+                          onTap: () => controller.selectLanguage(
+                            AppLanguageOption.en,
+                          ),
+                        ),
+                        Divider(height: 1, color: border),
+                        _LanguageRow(
+                          flagAsset: AppAssets.khmerLanguage,
+                          title: 'Khmer',
+                          subtitle: 'ភាសាខ្មែរ',
+                          selected: selected == AppLanguageOption.km,
+                          secondary: secondary,
+                          onTap: () => controller.selectLanguage(
+                            AppLanguageOption.km,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -522,32 +495,39 @@ class _OnboardingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final slide = controller.onboardingSlides[slideIndex];
     final profile = WaveRibbon.onboardingPage(slideIndex);
+    final muted = context.appColors.muted;
 
     return Stack(
       fit: StackFit.expand,
       children: [
         OnboardingBackground(profile: profile),
-        Column(
-          children: [
-            Expanded(
-              flex: 55,
-              child: OnboardingTopSection(imageAsset: slide.imageAsset),
-            ),
-            Expanded(
-              flex: 45,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 112),
-                child: OnboardingBottomSection(
-                  title: slide.title,
-                  description: slide.description,
-                  currentPage: slideIndex,
-                  totalPages: controller.onboardingSlides.length,
-                  onNext: controller.onboardingNext,
-                  showChrome: false,
+        IntroStageLayout(
+          profile: profile,
+          reserveOverlayChrome: true,
+          header: OnboardingTopSection(imageAsset: slide.imageAsset),
+          body: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  slide.title,
+                  textAlign: TextAlign.center,
+                  style:
+                      context.text.headlineSmall?.copyWith(height: 1.25),
                 ),
-              ),
+                const SizedBox(height: 12),
+                Text(
+                  slide.description,
+                  textAlign: TextAlign.center,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: muted,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );

@@ -101,21 +101,44 @@ class AiCvController extends GetxController {
     switch (section) {
       case CvEditSection.fullName:
         return d.fullName;
+      case CvEditSection.jobTitle:
+        return d.jobTitle;
       case CvEditSection.summary:
         return d.summary;
       case CvEditSection.skills:
         return d.skills.join(', ');
+      case CvEditSection.softSkills:
+        return d.softSkills.join(', ');
       case CvEditSection.education:
         return d.education.join('\n');
       case CvEditSection.experience:
         return d.experience.join('\n');
       case CvEditSection.projects:
         return d.projects.join('\n');
+      case CvEditSection.languages:
+        return d.languages.join('\n');
+      case CvEditSection.references:
+        return d.references.join('\n');
+      case CvEditSection.certifications:
+        return d.certifications.join('\n');
+      case CvEditSection.achievements:
+        return d.achievements.join('\n');
+      case CvEditSection.hobbies:
+        return d.hobbies.join(', ');
       case CvEditSection.contact:
-        return d.contact;
+        return d.contactDisplay;
+      case CvEditSection.phone:
+        return d.phone;
+      case CvEditSection.email:
+        return d.email;
+      case CvEditSection.location:
+        return d.location;
+      case CvEditSection.website:
+        return d.website;
     }
   }
 
+  /// Updates **CV draft only**. Never writes to profile/account.
   void updateSection(CvEditSection section, String raw) {
     final base = draft.value;
     if (base == null) return;
@@ -130,12 +153,25 @@ class AiCvController extends GetxController {
 
     draft.value = switch (section) {
       CvEditSection.fullName => base.copyWith(fullName: raw.trim()),
+      CvEditSection.jobTitle => base.copyWith(jobTitle: raw.trim()),
       CvEditSection.summary => base.copyWith(summary: raw.trim()),
       CvEditSection.skills => base.copyWith(skills: lines(raw, commas: true)),
+      CvEditSection.softSkills =>
+        base.copyWith(softSkills: lines(raw, commas: true)),
       CvEditSection.education => base.copyWith(education: lines(raw)),
       CvEditSection.experience => base.copyWith(experience: lines(raw)),
       CvEditSection.projects => base.copyWith(projects: lines(raw)),
+      CvEditSection.languages => base.copyWith(languages: lines(raw)),
+      CvEditSection.references => base.copyWith(references: lines(raw)),
+      CvEditSection.certifications =>
+        base.copyWith(certifications: lines(raw)),
+      CvEditSection.achievements => base.copyWith(achievements: lines(raw)),
+      CvEditSection.hobbies => base.copyWith(hobbies: lines(raw, commas: true)),
       CvEditSection.contact => base.copyWith(contact: raw.trim()),
+      CvEditSection.phone => base.copyWith(phone: raw.trim()),
+      CvEditSection.email => base.copyWith(email: raw.trim()),
+      CvEditSection.location => base.copyWith(location: raw.trim()),
+      CvEditSection.website => base.copyWith(website: raw.trim()),
     };
   }
 

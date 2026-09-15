@@ -7,6 +7,7 @@ import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
@@ -20,12 +21,14 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.appColors.cardSurface;
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
-      backgroundColor: context.appColors.cardSurface,
+      backgroundColor: surface,
       surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: VitheySystemUi.forBackground(surface),
       title: Row(
         children: [
           const AppLogo(size: 28),

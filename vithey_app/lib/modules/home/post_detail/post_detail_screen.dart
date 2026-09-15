@@ -14,6 +14,7 @@ import 'package:aub_connect_app/modules/home/post_detail/widgets/post_detail_hea
 import 'package:aub_connect_app/modules/home/post_detail/widgets/post_detail_media.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -22,6 +23,7 @@ class PostDetailScreen extends GetView<PostDetailController> {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.appColors.cardSurface;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -29,14 +31,15 @@ class PostDetailScreen extends GetView<PostDetailController> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: context.appColors.cardSurface,
+        backgroundColor: surface,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 8,
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: context.appColors.cardSurface,
+          backgroundColor: surface,
           surfaceTintColor: Colors.transparent,
+          systemOverlayStyle: VitheySystemUi.forBackground(surface),
           title: Text('Back', style: context.text.titleLarge),
           leading: VitheyIconButton(
             icon: LucideIcons.arrowLeft,
@@ -122,8 +125,7 @@ class _PostDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMedia = post.mediaUrl?.isNotEmpty == true ||
-        post.thumbnailUrl?.isNotEmpty == true;
+    final hasMedia = post.hasMedia || post.thumbnailUrl?.isNotEmpty == true;
 
     return Container(
       width: double.infinity,

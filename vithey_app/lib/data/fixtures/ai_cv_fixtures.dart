@@ -5,6 +5,8 @@ import 'package:aub_connect_app/data/models/ai_cv_draft.dart';
 import 'package:aub_connect_app/data/models/user_profile_model.dart';
 
 /// Mock Auto-Create CV drafts built only from profile fixture data (AI-CV-07).
+///
+/// **Read-only from profile** — never writes back to account/profile.
 abstract final class AiCvFixtures {
   static AiCvDraft draftForCurrentUser() {
     final profile = UserFixtures.buildProfiles()[MockIds.currentUser];
@@ -25,8 +27,12 @@ abstract final class AiCvFixtures {
     return fromProfile(profile);
   }
 
+  /// Snapshot profile → CV draft. Profile object is never modified.
   static AiCvDraft fromProfile(UserProfileModel profile) {
-    final skills = profile.skills.map((s) => s.name).where((n) => n.trim().isNotEmpty).toList();
+    final skills = profile.skills
+        .map((s) => s.name)
+        .where((n) => n.trim().isNotEmpty)
+        .toList();
     final education = profile.educationEntries.isNotEmpty
         ? profile.educationEntries.map((e) {
             final major = e.major?.trim();
@@ -43,11 +49,12 @@ abstract final class AiCvFixtures {
     final experience = profile.workEntries.map((w) {
       final workplace = w.workplace.trim();
       final position = w.position.trim();
-      if (workplace.isNotEmpty && position.isNotEmpty) {
-        return '$position at $workplace';
-      }
-      if (position.isNotEmpty) return position;
-      return workplace;
+      final desc = w.description?.trim();
+      final head = workplace.isNotEmpty && position.isNotEmpty
+          ? '$position at $workplace'
+          : (position.isNotEmpty ? position : workplace);
+      if (desc != null && desc.isNotEmpty) return '$head — $desc';
+      return head;
     }).where((line) => line.isNotEmpty).toList();
 
     final bio = profile.bio?.trim() ?? '';
@@ -57,11 +64,24 @@ abstract final class AiCvFixtures {
       if (bio.isNotEmpty) 'Personal note — $bio',
     ];
 
+    final phone = profile.phone?.trim() ?? '';
+    final email = profile.email?.trim() ?? '';
+    final location = profile.location?.trim() ?? '';
+    final website = () {
+      final portfolio = profile.portfolioUrl?.trim();
+      if (portfolio != null && portfolio.isNotEmpty) return portfolio;
+      for (final link in profile.linkItems) {
+        final url = link.url.trim();
+        if (url.isNotEmpty) return url;
+      }
+      return '';
+    }();
+
     final contactParts = <String>[
-      if (profile.email != null && profile.email!.isNotEmpty) profile.email!,
-      if (profile.phone != null && profile.phone!.isNotEmpty) profile.phone!,
-      if (profile.location != null && profile.location!.isNotEmpty)
-        profile.location!,
+      if (email.isNotEmpty) email,
+      if (phone.isNotEmpty) phone,
+      if (location.isNotEmpty) location,
+      if (website.isNotEmpty) website,
     ];
 
     final incomplete = profile.fullName.trim().isEmpty ||
@@ -76,16 +96,34 @@ abstract final class AiCvFixtures {
       bio: bio,
     );
 
+    final jobTitle = () {
+      final work = profile.workEntries;
+      if (work.isNotEmpty && work.first.position.trim().isNotEmpty) {
+        return work.first.position.trim();
+      }
+      if (major != null && major.isNotEmpty) return major;
+      if (profile.workplace != null && profile.workplace!.trim().isNotEmpty) {
+        return profile.workplace!.trim();
+      }
+      return '';
+    }();
+
     return AiCvDraft(
       fullName: profile.fullName.isNotEmpty
           ? profile.fullName
           : MockIdentities.mockUserFullName,
+      jobTitle: jobTitle,
       summary: summary,
       skills: skills,
       education: education,
       experience: experience,
       projects: projects,
       contact: contactParts.join(' · '),
+      phone: phone,
+      email: email,
+      location: location,
+      website: website,
+      avatarUrl: profile.avatarUrl,
       incompleteProfile: incomplete,
       incompleteMessage: incomplete
           ? 'Your profile looks incomplete. Add education, experience, or skills, then try again.'
@@ -116,6 +154,7 @@ abstract final class AiCvFixtures {
 
   /// Mock “Regenerate summary”: rotates the profile-fact phrases and may lead
   /// with the user's own top skills. Never invents employers or degrees.
+  /// Does not write to profile.
   static String regeneratedSummary({required int variant}) {
     final profile = UserFixtures.buildProfiles()[MockIds.currentUser];
     if (profile == null) {

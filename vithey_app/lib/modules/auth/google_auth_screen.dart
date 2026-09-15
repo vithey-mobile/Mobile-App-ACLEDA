@@ -8,6 +8,7 @@ import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Mock accounts for the UI chooser (dev / demo).
@@ -97,7 +98,10 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
     final border = context.appColors.border;
     final bg = context.appColors.bodyBackground;
 
-    return Scaffold(
+    return VitheyStatusBar(
+      color: bg,
+      systemNavigationBarColor: bg,
+      child: Scaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Theme(
@@ -240,6 +244,7 @@ class _GoogleAccountChooserScreenState extends State<GoogleAccountChooserScreen>
           ),
         ),
       ),
+      ),
     );
   }
 }
@@ -254,9 +259,13 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
     final secondary = _secondaryText(context);
     final border = context.appColors.border;
     final firstName = account?.firstName ?? 'User';
+    final bg = context.appColors.bodyBackground;
 
-    return Scaffold(
-      backgroundColor: context.appColors.bodyBackground,
+    return VitheyStatusBar(
+      color: bg,
+      systemNavigationBarColor: bg,
+      child: Scaffold(
+      backgroundColor: bg,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -367,6 +376,7 @@ class GoogleAuthConfirmationScreen extends GetView<AuthController> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

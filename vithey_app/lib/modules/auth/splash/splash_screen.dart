@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/modules/auth/language/select_language_preview.dart';
 import 'package:aub_connect_app/modules/auth/splash/splash_controller.dart';
@@ -18,11 +19,14 @@ class SplashScreen extends GetView<SplashController> {
     final screenH = MediaQuery.sizeOf(context).height;
     final baseColor = context.appColors.cardSurface;
 
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: baseColor,
-        body: Obx(() {
+    return VitheyStatusBar(
+      color: AppColors.primaryLight,
+      systemNavigationBarColor: baseColor,
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: baseColor,
+          body: Obx(() {
           final showUnderlay = controller.showLanguageUnderlay.value;
           final rise = controller.handoffProgress.value;
           final brand = controller.brandOpacity.value;
@@ -71,6 +75,7 @@ class SplashScreen extends GetView<SplashController> {
             ],
           );
         }),
+      ),
       ),
     );
   }

@@ -39,7 +39,7 @@ class JobPosterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMedia = post.mediaUrl != null && post.mediaUrl!.isNotEmpty;
+    final hasMedia = post.hasMedia;
 
     return PostCard(
       post: post,
@@ -83,7 +83,9 @@ class JobPosterCard extends StatelessWidget {
           ],
         ),
       ),
-      body: hasMedia ? PostMediaImage(url: post.mediaUrl) : null,
+      body: hasMedia
+          ? PostMediaImage(urls: post.displayMediaUrls)
+          : null,
       onLike: onLike,
       onReact: onReact,
       onComment: onComment,

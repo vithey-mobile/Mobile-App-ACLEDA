@@ -10,7 +10,6 @@ import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
-import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_all.dart';
@@ -26,9 +25,6 @@ class ProfileScreen extends GetView<ProfileController> {
   /// When true, used inside [MainShellScreen] (shell owns the bottom bar).
   final bool embedded;
 
-  /// Clears the floating shell bottom nav when embedded.
-  static const _fabBottomClearance = 88.0;
-
   Future<void> _openAiCreateCv() async {
     await Get.toNamed(
       AppRoutes.applyCvTemplates,
@@ -36,59 +32,39 @@ class ProfileScreen extends GetView<ProfileController> {
     );
   }
 
-  bool get _shellNavVisible {
-    if (!embedded || !Get.isRegistered<MainShellController>()) return true;
-    return Get.find<MainShellController>().navVisible.value;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.appColors.bodyBackground,
+      // Standalone (non-shell) still shows its own FAB.
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Obx(() {
-        if (controller.isLoading.value ||
-            controller.hasError.value ||
-            controller.profile.value == null) {
-          return const SizedBox.shrink();
-        }
-        final navVisible = _shellNavVisible;
-        return IgnorePointer(
-          ignoring: !navVisible,
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            offset: navVisible ? Offset.zero : const Offset(0, 1.6),
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
-              opacity: navVisible ? 1 : 0,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: embedded ? _fabBottomClearance : 0,
+      floatingActionButton: embedded
+          ? null
+          : Obx(() {
+              if (controller.isLoading.value ||
+                  controller.hasError.value ||
+                  controller.profile.value == null) {
+                return const SizedBox.shrink();
+              }
+              return FloatingActionButton.extended(
+                onPressed: _openAiCreateCv,
+                backgroundColor: AppColors.primary,
+                foregroundColor: context.scheme.onPrimary,
+                elevation: 3,
+                icon: VitheyIcon(
+                  LucideIcons.sparkles,
+                  size: 20,
+                  color: context.scheme.onPrimary,
                 ),
-                child: FloatingActionButton.extended(
-                  onPressed: _openAiCreateCv,
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: context.scheme.onPrimary,
-                  elevation: 3,
-                  icon: VitheyIcon(
-                    LucideIcons.sparkles,
-                    size: 20,
+                label: Text(
+                  'AI Create CV',
+                  style: context.text.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: context.scheme.onPrimary,
                   ),
-                  label: Text(
-                    'AI Create CV',
-                    style: context.text.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: context.scheme.onPrimary,
-                    ),
-                  ),
                 ),
-              ),
-            ),
-          ),
-        );
-      }),
+              );
+            }),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const LoadingWidget(message: 'Loading profile...');
@@ -121,7 +97,7 @@ class ProfileScreen extends GetView<ProfileController> {
         ];
 
         return NestedScrollView(
-          headerSliverBuilder: (_, __) => [
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -164,7 +140,7 @@ class ProfileScreen extends GetView<ProfileController> {
                     ),
                   ),
                   ProfileStats(profile: profile),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -172,6 +148,8 @@ class ProfileScreen extends GetView<ProfileController> {
               pinned: true,
               delegate: _TabBarDelegate(
                 topInset: MediaQuery.paddingOf(context).top,
+                // Only inset under the status bar once the tab strip is stuck.
+                pinnedUnderStatusBar: innerBoxIsScrolled,
                 tabBar: TabBar(
                   controller: controller.tabController,
                   isScrollable: true,
@@ -220,25 +198,35 @@ class ProfileScreen extends GetView<ProfileController> {
 }
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  _TabBarDelegate({required this.tabBar, required this.topInset});
+  _TabBarDelegate({
+    required this.tabBar,
+    required this.topInset,
+    required this.pinnedUnderStatusBar,
+  });
 
   final TabBar tabBar;
   final double topInset;
+  final bool pinnedUnderStatusBar;
+
+  double get _statusPad => pinnedUnderStatusBar ? topInset : 0;
 
   @override
-  double get minExtent => tabBar.preferredSize.height + topInset;
+  double get minExtent => tabBar.preferredSize.height + _statusPad;
 
   @override
-  double get maxExtent => tabBar.preferredSize.height + topInset;
+  double get maxExtent => tabBar.preferredSize.height + _statusPad;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final pad = _statusPad;
     return Material(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      elevation: overlapsContent ? 1 : 0,
+      color: bg,
+      elevation: pinnedUnderStatusBar || overlapsContent ? 1 : 0,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: topInset),
+          if (pad > 0) SizedBox(height: pad),
           tabBar,
         ],
       ),
@@ -247,5 +235,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
-      topInset != oldDelegate.topInset || tabBar != oldDelegate.tabBar;
+      topInset != oldDelegate.topInset ||
+      pinnedUnderStatusBar != oldDelegate.pinnedUnderStatusBar ||
+      tabBar != oldDelegate.tabBar;
 }

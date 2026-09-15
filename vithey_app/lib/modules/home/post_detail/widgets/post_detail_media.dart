@@ -64,10 +64,20 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
     switch (widget.post.type) {
       case PostType.poster:
       case PostType.job:
-        return _buildImage(widget.post.mediaUrl);
+        return _buildImageGallery(widget.post.displayMediaUrls);
       case PostType.video:
         return _buildVideo();
     }
+  }
+
+  Widget _buildImageGallery(List<String> urls) {
+    if (urls.isEmpty) return _placeholder();
+    if (urls.length == 1) return _buildImage(urls.first);
+
+    return AspectRatio(
+      aspectRatio: 1.04,
+      child: _DetailImageCarousel(urls: urls, buildImage: _buildImage),
+    );
   }
 
   Widget _buildImage(String? url) {
@@ -168,6 +178,62 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
       child: loading
           ? const CircularProgressIndicator(strokeWidth: 2)
           : const VitheyIcon(LucideIcons.imageOff),
+    );
+  }
+}
+
+class _DetailImageCarousel extends StatefulWidget {
+  const _DetailImageCarousel({
+    required this.urls,
+    required this.buildImage,
+  });
+
+  final List<String> urls;
+  final Widget Function(String url) buildImage;
+
+  @override
+  State<_DetailImageCarousel> createState() => _DetailImageCarouselState();
+}
+
+class _DetailImageCarouselState extends State<_DetailImageCarousel> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.urls.length;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          itemCount: count,
+          onPageChanged: (index) => setState(() => _page = index),
+          itemBuilder: (_, index) =>
+              Center(child: widget.buildImage(widget.urls[index])),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 12,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(count, (index) {
+              final active = index == _page;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: active ? 16 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: active
+                      ? context.scheme.primary
+                      : context.appColors.muted.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
     );
   }
 }

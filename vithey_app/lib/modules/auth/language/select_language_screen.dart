@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/app_logo.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/intro_stage_layout.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/wave_ribbon.dart';
 import 'package:aub_connect_app/modules/auth/language/select_language_controller.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+
 /// Select Language — UI only; preference saved for future i18n.
 class SelectLanguageScreen extends StatelessWidget {
   const SelectLanguageScreen({
@@ -33,29 +36,24 @@ class SelectLanguageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Avoid red error while Get.offAll disposes this route's controller.
     if (!Get.isRegistered<SelectLanguageController>()) {
       return Scaffold(
         backgroundColor: context.appColors.cardSurface,
-        body: const OnboardingBackground(
-          profile: WaveRibbon.language,
-        ),
+        body: const OnboardingBackground(profile: WaveRibbon.language),
       );
     }
     final controller = Get.find<SelectLanguageController>();
-
     final secondary = _secondary(context);
     final border = context.appColors.border;
     final reveal = contentReveal.clamp(0.0, 1.0);
     final contentT = Curves.easeOutCubic.transform(reveal);
+    const profile = WaveRibbon.language;
 
     return Scaffold(
       backgroundColor: context.appColors.cardSurface,
       body: Obx(() {
         if (!Get.isRegistered<SelectLanguageController>()) {
-          return const OnboardingBackground(
-            profile: WaveRibbon.language,
-          );
+          return const OnboardingBackground(profile: WaveRibbon.language);
         }
         final fade = controller.contentOpacity.value;
         final uiOpacity = (contentT * fade).clamp(0.0, 1.0);
@@ -64,142 +62,88 @@ class SelectLanguageScreen extends StatelessWidget {
         return Stack(
           fit: StackFit.expand,
           children: [
-            const OnboardingBackground(profile: WaveRibbon.language),
+            const OnboardingBackground(profile: profile),
             Opacity(
               opacity: uiOpacity,
               child: Transform.translate(
                 offset: Offset(0, (1.0 - contentT) * 48),
                 child: IgnorePointer(
                   ignoring: !interactive || busy,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Column(
+                  child: IntroStageLayout(
+                    profile: profile,
+                    header: const AppLogo(size: 100, onWhiteCircle: true),
+                    body: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Expanded(
-                            flex: 34,
-                            child: SafeArea(
-                              bottom: false,
-                              child: Center(
-                                child: AppLogo(size: 100, onWhiteCircle: true),
-                              ),
+                          Text(
+                            'Select Language',
+                            textAlign: TextAlign.center,
+                            style: context.text.headlineSmall
+                                ?.copyWith(height: 1.25),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Choose your preferred language for the app.',
+                            textAlign: TextAlign.center,
+                            style: context.text.bodyMedium?.copyWith(
+                              color: secondary,
+                              height: 1.4,
                             ),
                           ),
-                          Expanded(
-                            flex: 66,
-                            child: SafeArea(
-                              top: false,
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 112),
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    24,
-                                    8,
-                                    24,
-                                    8,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Spacer(flex: 5),
-                                      ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 420,
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Select Language',
-                                              textAlign: TextAlign.center,
-                                              style: context.text.headlineSmall
-                                                  ?.copyWith(height: 1.25),
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              'Choose your preferred language for the app.',
-                                              textAlign: TextAlign.center,
-                                              style: context.text.bodyMedium
-                                                  ?.copyWith(
-                                                color: secondary,
-                                                height: 1.4,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 40),
-                                            Obx(() {
-                                              if (!Get.isRegistered<
-                                                  SelectLanguageController>()) {
-                                                return const SizedBox.shrink();
-                                              }
-                                              final selected =
-                                                  controller.selected.value;
-                                              return DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .scaffoldBackgroundColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(18),
-                                                  border:
-                                                      Border.all(color: border),
-                                                ),
-                                                child: Column(
-                                                  children: [
-                                                    _LanguageRow(
-                                                      flagAsset: AppAssets
-                                                          .englishLanguage,
-                                                      title: 'English (US)',
-                                                      subtitle: 'English',
-                                                      selected: selected ==
-                                                          AppLanguageOption.en,
-                                                      secondary: secondary,
-                                                      onTap: () =>
-                                                          controller.select(
-                                                        AppLanguageOption.en,
-                                                      ),
-                                                    ),
-                                                    Divider(
-                                                      height: 1,
-                                                      color: border,
-                                                    ),
-                                                    _LanguageRow(
-                                                      flagAsset: AppAssets
-                                                          .khmerLanguage,
-                                                      title: 'Khmer',
-                                                      subtitle: 'ភាសាខ្មែរ',
-                                                      selected: selected ==
-                                                          AppLanguageOption.km,
-                                                      secondary: secondary,
-                                                      onTap: () =>
-                                                          controller.select(
-                                                        AppLanguageOption.km,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }),
-                                          ],
-                                        ),
-                                      ),
-                                      const Spacer(flex: 2),
-                                    ],
-                                  ),
-                                ),
+                          const SizedBox(height: 28),
+                          Obx(() {
+                            if (!Get.isRegistered<
+                                SelectLanguageController>()) {
+                              return const SizedBox.shrink();
+                            }
+                            final selected = controller.selected.value;
+                            return DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .scaffoldBackgroundColor,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: border),
                               ),
-                            ),
-                          ),
+                              child: Column(
+                                children: [
+                                  _LanguageRow(
+                                    flagAsset: AppAssets.englishLanguage,
+                                    title: 'English (US)',
+                                    subtitle: 'English',
+                                    selected:
+                                        selected == AppLanguageOption.en,
+                                    secondary: secondary,
+                                    onTap: () => controller.select(
+                                      AppLanguageOption.en,
+                                    ),
+                                  ),
+                                  Divider(height: 1, color: border),
+                                  _LanguageRow(
+                                    flagAsset: AppAssets.khmerLanguage,
+                                    title: 'Khmer',
+                                    subtitle: 'ភាសាខ្មែរ',
+                                    selected:
+                                        selected == AppLanguageOption.km,
+                                    secondary: secondary,
+                                    onTap: () => controller.select(
+                                      AppLanguageOption.km,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                         ],
                       ),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: OnboardingBottomChrome(
-                          currentPage: 0,
-                          totalPages: introDotCount,
-                          onNext: controller.next,
-                        ),
-                      ),
-                    ],
+                    ),
+                    chrome: OnboardingBottomChrome(
+                      currentPage: 0,
+                      totalPages: introDotCount,
+                      nextLabel: AppStrings.continueLabel,
+                      onNext: controller.next,
+                    ),
                   ),
                 ),
               ),
@@ -264,7 +208,11 @@ class _LanguageRow extends StatelessWidget {
               ),
             ),
             if (selected)
-              const VitheyIcon(LucideIcons.check, color: AppColors.primary, size: 24)
+              const VitheyIcon(
+                LucideIcons.check,
+                color: AppColors.primary,
+                size: 24,
+              )
             else
               const SizedBox(width: 24),
           ],

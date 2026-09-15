@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/modules/finance/finance_controller.dart';
 
@@ -28,6 +29,7 @@ class FinanceAppBar extends GetView<FinanceController>
         centerTitle: false,
         titleSpacing: canPop ? 0 : 16,
         automaticallyImplyLeading: canPop && !isSearchActive,
+        systemOverlayStyle: VitheySystemUi.forBackground(colors.cardSurface),
         leading: isSearchActive
             ? VitheyIconButton(
                 icon: LucideIcons.arrowLeft,

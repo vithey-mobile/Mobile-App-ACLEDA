@@ -7,12 +7,12 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
-import 'package:aub_connect_app/core/widgets/vithey_text_area.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/data/repositories/post_repository.dart';
 import 'package:aub_connect_app/data/services/upload_service.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/modules/home/create_post/create_post_controller.dart';
 import 'package:aub_connect_app/modules/home/create_post/widgets/create_post_media_zone.dart';
 import 'package:intl/intl.dart';
@@ -23,30 +23,28 @@ class CreatePostScreen extends GetView<CreatePostController> {
 
   @override
   Widget build(BuildContext context) {
+    final surface = context.appColors.cardSurface;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleBack(context);
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: Theme.of(context).brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light.copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor: context.appColors.cardSurface,
-              )
-            : SystemUiOverlayStyle.dark.copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor: context.appColors.cardSurface,
-              ),
+        value: VitheySystemUi.forBackground(
+          surface,
+          systemNavigationBarColor: surface,
+        ),
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          backgroundColor: context.appColors.cardSurface,
+          backgroundColor: surface,
           // Header lives in the body so status-bar + header share one flat color
           // (no separate Scaffold appBar tint / "live" strip on top).
+          // Toolbar is in the Column (not bottomNavigationBar) so it stays
+          // pinned to the bottom of the visible area and rides above the keyboard.
           body: Column(
             children: [
               ColoredBox(
-                color: context.appColors.cardSurface,
+                color: surface,
                 child: SafeArea(
                   bottom: false,
                   child: _CreatePostHeader(
@@ -66,14 +64,15 @@ class CreatePostScreen extends GetView<CreatePostController> {
                 );
               }),
               Expanded(child: _AdaptiveEditor(controller: controller)),
+              _ComposerToolbar(
+                onMedia: controller.showMediaSourceSheet,
+                onSchedule: () => controller.pickSchedule(context),
+                onCvLimit: () => _showCvLimitSheet(context),
+                onCategory: controller.isEditing
+                    ? null
+                    : () => _showCategorySheet(context),
+              ),
             ],
-          ),
-          bottomNavigationBar: _ComposerToolbar(
-            onMedia: controller.showMediaSourceSheet,
-            onSchedule: () => controller.pickSchedule(context),
-            onCvLimit: () => _showCvLimitSheet(context),
-            onCategory:
-                controller.isEditing ? null : () => _showCategorySheet(context),
           ),
         ),
       ),
@@ -140,11 +139,11 @@ class _AdaptiveEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final mediaPath = controller.mediaPreviewPath;
+      final mediaPaths = controller.mediaPreviewPaths;
       final isUploading = controller.isUploadingMedia.value;
       final error = controller.errorMessage.value;
 
-      if (mediaPath == null) {
+      if (mediaPaths.isEmpty) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -170,22 +169,25 @@ class _AdaptiveEditor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            VitheyTextArea(
+            TextField(
               key: const ValueKey('media-composer-editor'),
               controller: controller.contentController,
               minLines: 4,
               maxLines: 12,
+              style: _editorStyle(context),
+              decoration: _editorDecoration(context),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(VitheyRadii.media),
                 child: CreatePostMediaZone(
-                  mediaPath: mediaPath,
+                  mediaPaths: mediaPaths,
                   isVideo: controller.isVideo,
                   isUploading: isUploading,
                   onPick: controller.showMediaSourceSheet,
-                  onClear: controller.clearMedia,
+                  onClearAll: controller.clearMedia,
+                  onRemoveAt: controller.removeMediaAt,
                 ),
               ),
             ),
@@ -198,9 +200,9 @@ class _AdaptiveEditor extends StatelessWidget {
   }
 
   TextStyle? _editorStyle(BuildContext context) {
-    return context.text.bodyMedium?.copyWith(
+    // Match chat / feed composers (bodyLarge), not a smaller one-off size.
+    return context.text.bodyLarge?.copyWith(
       color: context.appColors.heading,
-      fontSize: 15,
       height: 1.4,
     );
   }
@@ -208,8 +210,8 @@ class _AdaptiveEditor extends StatelessWidget {
   InputDecoration _editorDecoration(BuildContext context) {
     return InputDecoration(
       hintText: 'What\'s on your mind?',
-      hintStyle: context.text.bodyMedium
-          ?.copyWith(color: context.appColors.muted, fontSize: 15),
+      hintStyle:
+          context.text.bodyLarge?.copyWith(color: context.appColors.muted),
       filled: true,
       fillColor: context.appColors.cardSurface,
       border: InputBorder.none,
@@ -474,6 +476,9 @@ class _ComposerToolbar extends GetView<CreatePostController> {
         ),
         child: SafeArea(
           top: false,
+          // When the keyboard is open, padding.bottom is already 0 — keep the
+          // bar flush above the keyboard instead of adding extra inset.
+          bottom: MediaQuery.viewInsetsOf(context).bottom == 0,
           child: Obx(
             () => SizedBox(
               height: 48,

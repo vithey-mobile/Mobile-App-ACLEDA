@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/story_item.dart';
@@ -274,7 +275,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     final dragScale = (1.0 - (_dragOffsetY / 1200)).clamp(0.85, 1.0);
     final dragOpacity = (1.0 - (_dragOffsetY / 400)).clamp(0.0, 1.0);
 
-    return Scaffold(
+    return VitheyStatusBar(
+      color: Colors.black,
+      child: Scaffold(
       backgroundColor: Colors.black.withValues(alpha: dragOpacity),
       body: GestureDetector(
         onVerticalDragUpdate: (details) {
@@ -653,6 +656,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             ),
           ),
         ),
+      ),
       ),
     );
   }

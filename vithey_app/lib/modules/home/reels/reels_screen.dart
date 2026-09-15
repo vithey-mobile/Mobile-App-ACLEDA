@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
@@ -10,8 +12,6 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_controller.dart';
 import 'package:aub_connect_app/modules/home/reels/widgets/reel_video_page.dart';
-
-import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ReelsScreen extends GetView<ReelsController> {
   const ReelsScreen({super.key, this.embedded = false});
 
@@ -24,7 +24,7 @@ class ReelsScreen extends GetView<ReelsController> {
         : 88.0 + MediaQuery.paddingOf(context).bottom;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: VitheySystemUi.immersiveDark(),
       child: Scaffold(
         backgroundColor: Colors.black,
         extendBody: true,

@@ -80,85 +80,199 @@ class PostCard extends StatelessWidget {
 }
 
 class PostMediaImage extends StatelessWidget {
-  const PostMediaImage({super.key, this.url, this.height});
+  const PostMediaImage({
+    super.key,
+    this.url,
+    this.urls,
+    this.height,
+  });
 
   final String? url;
+  final List<String>? urls;
   final double? height;
 
-  bool get _isAsset {
-    final value = url;
-    if (value == null || value.isEmpty) return false;
-    return value.startsWith('assets/');
-  }
-
-  bool get _isLocalFile {
-    final value = url;
-    if (value == null || value.isEmpty) return false;
-    if (_isAsset) return false;
-    return !value.startsWith('http://') && !value.startsWith('https://');
+  List<String> get _resolvedUrls {
+    final fromList = (urls ?? const <String>[])
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (fromList.isNotEmpty) return fromList;
+    final single = url?.trim();
+    if (single != null && single.isNotEmpty) return [single];
+    return const [];
   }
 
   @override
   Widget build(BuildContext context) {
-    if (url == null || url!.isEmpty) return const SizedBox.shrink();
-
-    final Widget media;
-    if (_isAsset) {
-      media = Image.asset(
-        url!,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: context.appColors.inputFill,
-          alignment: Alignment.center,
-          child: const VitheyIcon(LucideIcons.imageOff),
-        ),
-      );
-    } else if (_isLocalFile) {
-      media = Image.file(
-        File(url!),
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: context.appColors.inputFill,
-          alignment: Alignment.center,
-          child: const VitheyIcon(LucideIcons.imageOff),
-        ),
-      );
-    } else {
-      media = CachedNetworkImage(
-        imageUrl: url!,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => ColoredBox(
-          color: context.appColors.inputFill,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (_, __, ___) => Container(
-          color: context.appColors.inputFill,
-          alignment: Alignment.center,
-          child: const VitheyIcon(LucideIcons.imageOff),
-        ),
+    final resolved = _resolvedUrls;
+    if (resolved.isEmpty) return const SizedBox.shrink();
+    if (resolved.length == 1) {
+      return _PostMediaFrame(
+        height: height,
+        child: _PostMediaTile(url: resolved.first),
       );
     }
+    return _PostMediaCarousel(urls: resolved, height: height);
+  }
+}
 
+class _PostMediaFrame extends StatelessWidget {
+  const _PostMediaFrame({required this.child, this.height});
+
+  final Widget child;
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) {
     if (height != null) {
       return SizedBox(
         height: height,
         width: double.infinity,
-        child: media,
+        child: child,
       );
     }
     return AspectRatio(
       aspectRatio: 1.04,
       child: ColoredBox(
         color: context.appColors.inputFill,
-        child: media,
+        child: child,
+      ),
+    );
+  }
+}
+
+class _PostMediaCarousel extends StatefulWidget {
+  const _PostMediaCarousel({required this.urls, this.height});
+
+  final List<String> urls;
+  final double? height;
+
+  @override
+  State<_PostMediaCarousel> createState() => _PostMediaCarouselState();
+}
+
+class _PostMediaCarouselState extends State<_PostMediaCarousel> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.urls.length;
+    return _PostMediaFrame(
+      height: widget.height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          PageView.builder(
+            itemCount: count,
+            onPageChanged: (index) => setState(() => _page = index),
+            itemBuilder: (_, index) => _PostMediaTile(url: widget.urls[index]),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(count, (index) {
+                final active = index == _page;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: active ? 16 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: active
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                );
+              }),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(VitheyRadii.pill),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  '${_page + 1}/$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostMediaTile extends StatelessWidget {
+  const _PostMediaTile({required this.url});
+
+  final String url;
+
+  bool get _isAsset => url.startsWith('assets/');
+
+  bool get _isLocalFile =>
+      !_isAsset &&
+      !url.startsWith('http://') &&
+      !url.startsWith('https://');
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isAsset) {
+      return Image.asset(
+        url,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: context.appColors.inputFill,
+          alignment: Alignment.center,
+          child: const VitheyIcon(LucideIcons.imageOff),
+        ),
+      );
+    }
+    if (_isLocalFile) {
+      return Image.file(
+        File(url),
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: context.appColors.inputFill,
+          alignment: Alignment.center,
+          child: const VitheyIcon(LucideIcons.imageOff),
+        ),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: url,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      placeholder: (_, __) => ColoredBox(
+        color: context.appColors.inputFill,
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      errorWidget: (_, __, ___) => Container(
+        color: context.appColors.inputFill,
+        alignment: Alignment.center,
+        child: const VitheyIcon(LucideIcons.imageOff),
       ),
     );
   }

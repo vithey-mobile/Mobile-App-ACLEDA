@@ -171,7 +171,7 @@ class _VitheyFieldState extends State<VitheyField> {
     final features = <shad.InputFeature>[
       if (widget.prefixIcon != null)
         shad.InputFeature.leading(
-          VitheyIcon(widget.prefixIcon!, size: 22, color: chrome),
+          VitheyIcon(widget.prefixIcon!, size: 20, color: chrome),
         ),
       if (widget.obscureText)
         shad.InputFeature.trailing(
@@ -280,10 +280,10 @@ class _VitheyFieldState extends State<VitheyField> {
                 filled: widget.filled,
                 borderRadius: BorderRadius.circular(VitheyRadii.field),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-                style: context.text.bodyLarge?.copyWith(
+                style: context.text.bodyMedium?.copyWith(
                   fontWeight: VitheyWeight.medium,
                   height: 1.25,
                   color: widget.readOnly || !widget.enabled ? muted : heading,
@@ -292,7 +292,7 @@ class _VitheyFieldState extends State<VitheyField> {
                     ? null
                     : Text(
                         widget.hint!,
-                        style: context.text.bodyLarge?.copyWith(
+                        style: context.text.bodyMedium?.copyWith(
                           color: chrome,
                           height: 1.25,
                         ),

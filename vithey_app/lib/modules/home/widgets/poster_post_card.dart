@@ -38,7 +38,7 @@ class PosterPostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasMedia = post.mediaUrl != null && post.mediaUrl!.isNotEmpty;
+    final hasMedia = post.hasMedia;
 
     return PostCard(
       post: post,
@@ -46,7 +46,9 @@ class PosterPostCard extends StatelessWidget {
       headerTrailing: post.isOwnPost
           ? PostOwnerActions(onEdit: onEdit, onDelete: onDelete)
           : _FollowButton(post: post, onFollow: onFollow),
-      body: hasMedia ? PostMediaImage(url: post.mediaUrl) : null,
+      body: hasMedia
+          ? PostMediaImage(urls: post.displayMediaUrls)
+          : null,
       onLike: onLike,
       onReact: onReact,
       onComment: onComment,

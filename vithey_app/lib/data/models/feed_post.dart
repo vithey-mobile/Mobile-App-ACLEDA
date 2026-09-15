@@ -68,6 +68,7 @@ class FeedPost {
     required this.author,
     required this.content,
     this.mediaUrl,
+    List<String>? mediaUrls,
     this.thumbnailUrl,
     this.durationSeconds = 0,
     this.processingState = VideoProcessingState.ready,
@@ -84,13 +85,18 @@ class FeedPost {
     this.userReaction,
     this.isFollowingAuthor = false,
     this.currentUserId,
-  });
+  }) : mediaUrls = List<String>.unmodifiable(
+          _normalizeMediaUrls(mediaUrls, mediaUrl),
+        );
 
   final String id;
   final PostType type;
   final PostAuthor author;
   final String content;
+  /// Primary / first media URL (backward compatible).
   final String? mediaUrl;
+  /// All media URLs for multi-image posts. Empty when there is no media.
+  final List<String> mediaUrls;
   final String? thumbnailUrl;
   final int durationSeconds;
   final VideoProcessingState processingState;
@@ -109,6 +115,25 @@ class FeedPost {
   final String? currentUserId;
 
   bool get isOwnPost => currentUserId != null && currentUserId == author.id;
+
+  /// Images/videos to render (never empty when [mediaUrl] is set).
+  List<String> get displayMediaUrls => mediaUrls;
+
+  bool get hasMedia => displayMediaUrls.isNotEmpty;
+
+  static List<String> _normalizeMediaUrls(
+    List<String>? mediaUrls,
+    String? mediaUrl,
+  ) {
+    final fromList = (mediaUrls ?? const <String>[])
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (fromList.isNotEmpty) return fromList;
+    final single = mediaUrl?.trim();
+    if (single != null && single.isNotEmpty) return [single];
+    return const [];
+  }
 
   /// Short label for lists / analytics (job title, caption, or type fallback).
   String get displayTitle {
@@ -132,6 +157,7 @@ class FeedPost {
   FeedPost copyWith({
     String? content,
     Object? mediaUrl = _unset,
+    Object? mediaUrls = _unset,
     Object? thumbnailUrl = _unset,
     int? durationSeconds,
     JobMeta? jobMeta,
@@ -145,13 +171,19 @@ class FeedPost {
     JobApplicationState? applicationState,
     VideoProcessingState? processingState,
   }) {
+    final nextMediaUrl = identical(mediaUrl, _unset)
+        ? this.mediaUrl
+        : mediaUrl as String?;
+    final nextMediaUrls = identical(mediaUrls, _unset)
+        ? this.mediaUrls
+        : List<String>.from(mediaUrls as List<String>? ?? const []);
     return FeedPost(
       id: id,
       type: type,
       author: author,
       content: content ?? this.content,
-      mediaUrl:
-          identical(mediaUrl, _unset) ? this.mediaUrl : mediaUrl as String?,
+      mediaUrl: nextMediaUrl,
+      mediaUrls: nextMediaUrls,
       thumbnailUrl: identical(thumbnailUrl, _unset)
           ? this.thumbnailUrl
           : thumbnailUrl as String?,
@@ -224,15 +256,26 @@ class FeedPost {
       applicationState = JobApplicationState.applied;
     }
 
+    final singleMedia = json['media_url'] as String?;
+    final rawUrls = json['media_urls'];
+    final parsedUrls = <String>[];
+    if (rawUrls is List) {
+      for (final item in rawUrls) {
+        final value = item?.toString().trim() ?? '';
+        if (value.isNotEmpty) parsedUrls.add(value);
+      }
+    }
+
     return FeedPost(
       id: json['post_id']?.toString() ?? json['id']?.toString() ?? '',
       type: type,
       author:
           PostAuthor.fromJson(json['author'] as Map<String, dynamic>? ?? {}),
       content: json['content'] as String? ?? '',
-      mediaUrl: json['media_url'] as String?,
+      mediaUrl: singleMedia ?? (parsedUrls.isNotEmpty ? parsedUrls.first : null),
+      mediaUrls: parsedUrls,
       thumbnailUrl:
-          json['thumbnail_url'] as String? ?? json['media_url'] as String?,
+          json['thumbnail_url'] as String? ?? singleMedia,
       durationSeconds: json['duration_seconds'] as int? ?? 0,
       processingState: videoState,
       jobMeta: JobMeta.fromJson(json['job_meta'] as Map<String, dynamic>?),

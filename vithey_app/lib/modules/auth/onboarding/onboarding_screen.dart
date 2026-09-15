@@ -6,6 +6,7 @@ import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/onboarding_controller.dart';
+import 'package:aub_connect_app/modules/auth/onboarding/widgets/intro_stage_layout.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_bottom_section.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_top_section.dart';
@@ -47,33 +48,47 @@ class OnboardingScreen extends StatelessWidget {
               itemBuilder: (_, index) {
                 final slide = controller.slides[index];
                 final profile = WaveRibbon.onboardingPage(index);
+                final muted = context.appColors.muted;
+
                 return Stack(
                   fit: StackFit.expand,
                   children: [
                     OnboardingBackground(profile: profile),
-                    Column(
-                      children: [
-                        Expanded(
-                          flex: 55,
-                          child: OnboardingTopSection(
-                            imageAsset: slide.imageAsset,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 45,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 112),
-                            child: OnboardingBottomSection(
-                              title: slide.title,
-                              description: slide.description,
-                              currentPage: index,
-                              totalPages: OnboardingController.totalPages,
-                              onNext: controller.next,
-                              showChrome: false,
+                    IntroStageLayout(
+                      profile: profile,
+                      header: OnboardingTopSection(
+                        imageAsset: slide.imageAsset,
+                      ),
+                      body: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              slide.title,
+                              textAlign: TextAlign.center,
+                              style: context.text.headlineSmall
+                                  ?.copyWith(height: 1.25),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            Text(
+                              slide.description,
+                              textAlign: TextAlign.center,
+                              style: context.text.bodyMedium?.copyWith(
+                                color: muted,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      chrome: OnboardingBottomChrome(
+                        currentPage: index + 1,
+                        totalPages: OnboardingController.introDotCount,
+                        onNext: controller.next,
+                        isLastSlide:
+                            index == OnboardingController.totalPages - 1,
+                      ),
                     ),
                     Positioned(
                       top: 0,
@@ -97,18 +112,6 @@ class OnboardingScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: OnboardingBottomChrome(
-                        currentPage: index + 1,
-                        totalPages: OnboardingController.introDotCount,
-                        onNext: controller.next,
-                        isLastSlide:
-                            index == OnboardingController.totalPages - 1,
                       ),
                     ),
                   ],

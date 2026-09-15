@@ -23,9 +23,19 @@ class WaveRibbonProfile {
 
   /// Mean teal edge Y — useful for logo band height.
   double get meanTealY {
-    if (tealY.isEmpty) return 0.4;
-    return tealY.reduce((a, b) => a + b) / tealY.length;
+    if (tealY.isEmpty) return 0.4 * WaveRibbon.heightScale;
+    final mean = tealY.reduce((a, b) => a + b) / tealY.length;
+    return mean * WaveRibbon.heightScale;
   }
+
+  /// Teal edge Ys after [WaveRibbon.heightScale].
+  List<double> get scaledTealY =>
+      [for (final y in tealY) y * WaveRibbon.heightScale];
+
+  /// Light edge Ys after [WaveRibbon.heightScale].
+  List<double> get scaledLightY =>
+      [for (final y in lightY) y * WaveRibbon.heightScale];
+
 
   WaveRibbonProfile lerp(WaveRibbonProfile other, double t) {
     final tt = t.clamp(0.0, 1.0);
@@ -86,6 +96,10 @@ class WaveRibbonProfile {
 
 /// Ribbon index: 0 Language … 5 Sign Up.
 abstract final class WaveRibbon {
+  /// Shortens teal (and matching light wave) height; edge style unchanged.
+  /// 0.92 = 8% shorter than design (5% then +3%).
+  static const heightScale = 0.90;
+
   static const language = WaveRibbonProfile(
     id: 0,
     name: 'Language',
@@ -140,14 +154,14 @@ abstract final class WaveRibbon {
     lightY: [0.300, 0.265, 0.310, 0.250, 0.285, 0.255, 0.270],
   );
 
-  /// Forgot password — teal band sits lower (~58%) to match Sign In wave style.
+  /// Forgot password — same wave shape as Sign In, teal band kept taller.
   static const forgotPassword = WaveRibbonProfile(
     id: 6,
     name: 'ForgotPassword',
     tealX: [0.00, 0.18, 0.38, 0.62, 0.82, 1.00],
-    tealY: [0.580, 0.545, 0.610, 0.555, 0.595, 0.560],
+    tealY: [0.544, 0.484, 0.434, 0.469, 0.409, 0.384],
     lightX: [0.00, 0.16, 0.36, 0.56, 0.76, 0.90, 1.00],
-    lightY: [0.640, 0.600, 0.670, 0.610, 0.655, 0.620, 0.630],
+    lightY: [0.599, 0.544, 0.494, 0.529, 0.464, 0.439, 0.444],
   );
 
   static const List<WaveRibbonProfile> all = [

@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 PreferredSizeWidget buildChatbotAppBar({
   required VoidCallback onMenu,
   required VoidCallback onBackHome,
+  Color? backgroundColor,
 }) {
+  final bg = backgroundColor ?? Colors.transparent;
   return AppBar(
     elevation: 0,
     scrolledUnderElevation: 0,
     centerTitle: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: bg,
+    surfaceTintColor: Colors.transparent,
+    systemOverlayStyle: backgroundColor == null
+        ? null
+        : VitheySystemUi.forBackground(backgroundColor),
     leading: _AppBarAction(
       icon: LucideIcons.menu,
       tooltip: 'Menu',

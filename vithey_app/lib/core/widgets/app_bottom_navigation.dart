@@ -41,6 +41,12 @@ class AppBottomNavigation extends StatelessWidget {
     return barHeight + navBottom + extra;
   }
 
+  /// FAB location that sits [gap] above the scaffold's bottom content edge
+  /// (top of [bottomNavigationBar] when present).
+  static FloatingActionButtonLocation fabLocation({double gap = 20}) {
+    return _AboveNavFabLocation(gap);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -265,5 +271,28 @@ class _ProfileNavItem extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Places a FAB [gap] above [ScaffoldPrelayoutGeometry.contentBottom]
+/// (the top of the bottom navigation bar on the shell scaffold).
+class _AboveNavFabLocation extends FloatingActionButtonLocation {
+  const _AboveNavFabLocation(this.gap);
+
+  final double gap;
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry geometry) {
+    final double endPadding =
+        kFloatingActionButtonMargin + geometry.minInsets.right;
+    final double fabX = geometry.textDirection == TextDirection.rtl
+        ? endPadding
+        : geometry.scaffoldSize.width -
+            geometry.floatingActionButtonSize.width -
+            endPadding;
+    final double fabY = geometry.contentBottom -
+        geometry.floatingActionButtonSize.height -
+        gap;
+    return Offset(fabX, fabY);
   }
 }

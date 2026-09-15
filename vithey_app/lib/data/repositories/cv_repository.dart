@@ -121,6 +121,7 @@ class CvRepository {
   }
 
   /// Persists an AI/blank draft into the CV library (mock PDF on device).
+  /// Does **not** update the user's profile/account — CV data only.
   Future<CvMetadataModel> saveDraftAsCv(
     AiCvDraft draft, {
     String? templateId,

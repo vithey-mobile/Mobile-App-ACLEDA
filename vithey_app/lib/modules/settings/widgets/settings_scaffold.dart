@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
@@ -54,6 +55,10 @@ class SettingsScaffold extends StatelessWidget {
                 elevation: 0,
                 scrolledUnderElevation: 0,
                 forceElevated: false,
+                systemOverlayStyle: VitheySystemUi.forBackground(
+                  pageBg,
+                  systemNavigationBarColor: pageBg,
+                ),
                 leading: IconButton(
                   icon: Icon(
                     LucideIcons.arrowLeft,

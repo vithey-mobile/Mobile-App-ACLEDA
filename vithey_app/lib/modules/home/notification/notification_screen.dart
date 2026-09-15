@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
@@ -38,6 +39,9 @@ class NotificationScreen extends GetView<NotificationController> {
         automaticallyImplyLeading: false,
         backgroundColor: context.appColors.bodyBackground,
         foregroundColor: context.appColors.heading,
+        systemOverlayStyle: VitheySystemUi.forBackground(
+          context.appColors.bodyBackground,
+        ),
         titleSpacing: 0,
         leading: VitheyIconButton(
           icon: LucideIcons.settings,

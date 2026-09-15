@@ -27,32 +27,31 @@ abstract final class CvPdfBuilder {
         margin: const pw.EdgeInsets.all(0),
         build: (context) {
           switch (template.layout) {
-            case CvTemplateLayout.sidebarLight:
+            case CvTemplateLayout.sidebar:
+              final dark = template.designId == 'sidebar_2' ||
+                  template.designId == 'sidebar_3' ||
+                  template.designId == 'sidebar_4' ||
+                  template.designId == 'sidebar_5';
               return _sidebar(
                 draft: draft,
                 labels: labels,
                 accent: accent,
-                dark: false,
+                dark: dark,
               );
-            case CvTemplateLayout.sidebarDark:
-              return _sidebar(
-                draft: draft,
-                labels: labels,
-                accent: accent,
-                dark: true,
-              );
-            case CvTemplateLayout.headerPhoto:
-              return _headerPhoto(
-                draft: draft,
-                labels: labels,
-                accent: accent,
-              );
-            case CvTemplateLayout.headerStrip:
-              return _headerStrip(
-                draft: draft,
-                labels: labels,
-                accent: accent,
-              );
+            case CvTemplateLayout.header:
+              final strip = template.designId == 'header_4' ||
+                  template.designId == 'header_5';
+              return strip
+                  ? _headerStrip(
+                      draft: draft,
+                      labels: labels,
+                      accent: accent,
+                    )
+                  : _headerPhoto(
+                      draft: draft,
+                      labels: labels,
+                      accent: accent,
+                    );
             case CvTemplateLayout.minimal:
             case CvTemplateLayout.blank:
               return _minimal(
@@ -168,10 +167,18 @@ abstract final class CvPdfBuilder {
                   color: sideFg,
                 ),
               ),
+              if (draft.jobTitle.trim().isNotEmpty) ...[
+                pw.SizedBox(height: 4),
+                _body(draft.jobTitle, color: sideMuted),
+              ],
               _sectionTitle(labels.contact, sideFg),
-              _body(draft.contact, color: sideMuted),
+              _body(draft.contactDisplay, color: sideMuted),
               _sectionTitle(labels.skills, sideFg),
               _body(draft.skills.join(' · '), color: sideMuted),
+              if (draft.hasLanguages) ...[
+                _sectionTitle(labels.languages, sideFg),
+                _body(draft.languages.join('\n'), color: sideMuted),
+              ],
             ],
           ),
         ),
@@ -187,9 +194,13 @@ abstract final class CvPdfBuilder {
                 _body(draft.experience.join('\n')),
                 _sectionTitle(labels.education, accent),
                 _body(draft.education.join('\n')),
-                if (draft.projects.isNotEmpty) ...[
+                if (draft.hasProjects) ...[
                   _sectionTitle(labels.projects, accent),
                   _body(draft.projects.join('\n')),
+                ],
+                if (draft.hasReferences) ...[
+                  _sectionTitle(labels.references, accent),
+                  _body(draft.references.join('\n')),
                 ],
               ],
             ),
@@ -243,8 +254,12 @@ abstract final class CvPdfBuilder {
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
+              if (draft.jobTitle.trim().isNotEmpty) ...[
+                pw.SizedBox(height: 2),
+                _body(draft.jobTitle, color: PdfColors.grey700),
+              ],
               pw.SizedBox(height: 4),
-              _body(draft.contact, color: PdfColors.grey600),
+              _body(draft.contactDisplay, color: PdfColors.grey600),
               pw.SizedBox(height: 12),
               pw.Align(
                 alignment: pw.Alignment.centerLeft,
@@ -259,6 +274,14 @@ abstract final class CvPdfBuilder {
                     _body(draft.education.join('\n')),
                     _sectionTitle(labels.skills, accent),
                     _body(draft.skills.join(' · ')),
+                    if (draft.hasLanguages) ...[
+                      _sectionTitle(labels.languages, accent),
+                      _body(draft.languages.join('\n')),
+                    ],
+                    if (draft.hasReferences) ...[
+                      _sectionTitle(labels.references, accent),
+                      _body(draft.references.join('\n')),
+                    ],
                   ],
                 ),
               ),
@@ -291,8 +314,12 @@ abstract final class CvPdfBuilder {
                   color: PdfColors.white,
                 ),
               ),
+              if (draft.jobTitle.trim().isNotEmpty) ...[
+                pw.SizedBox(height: 4),
+                _body(draft.jobTitle, color: PdfColors.grey200),
+              ],
               pw.SizedBox(height: 6),
-              _body(draft.contact, color: PdfColors.grey300),
+              _body(draft.contactDisplay, color: PdfColors.grey300),
             ],
           ),
         ),
@@ -309,6 +336,10 @@ abstract final class CvPdfBuilder {
               _body(draft.education.join('\n')),
               _sectionTitle(labels.skills, accent),
               _body(draft.skills.join(' · ')),
+              if (draft.hasReferences) ...[
+                _sectionTitle(labels.references, accent),
+                _body(draft.references.join('\n')),
+              ],
             ],
           ),
         ),
@@ -334,8 +365,12 @@ abstract final class CvPdfBuilder {
               color: accent,
             ),
           ),
+          if (draft.jobTitle.trim().isNotEmpty) ...[
+            pw.SizedBox(height: 2),
+            _body(draft.jobTitle, color: PdfColors.grey700),
+          ],
           pw.SizedBox(height: 4),
-          _body(draft.contact, color: PdfColors.grey600),
+          _body(draft.contactDisplay, color: PdfColors.grey600),
           pw.Divider(color: accent, thickness: 0.8),
           _sectionTitle(labels.aboutMe, accent),
           _body(draft.summary),
@@ -345,9 +380,17 @@ abstract final class CvPdfBuilder {
           _body(draft.education.join('\n')),
           _sectionTitle(labels.skills, accent),
           _body(draft.skills.join(' · ')),
-          if (draft.projects.isNotEmpty) ...[
+          if (draft.hasProjects) ...[
             _sectionTitle(labels.projects, accent),
             _body(draft.projects.join('\n')),
+          ],
+          if (draft.hasLanguages) ...[
+            _sectionTitle(labels.languages, accent),
+            _body(draft.languages.join('\n')),
+          ],
+          if (draft.hasReferences) ...[
+            _sectionTitle(labels.references, accent),
+            _body(draft.references.join('\n')),
           ],
         ],
       ),

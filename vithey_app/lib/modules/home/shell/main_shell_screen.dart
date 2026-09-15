@@ -1,17 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
+import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_binding.dart';
+import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/home_screen.dart';
 import 'package:aub_connect_app/modules/home/notification/notification_binding.dart';
 import 'package:aub_connect_app/modules/home/notification/notification_screen.dart';
+import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_args.dart';
 import 'package:aub_connect_app/modules/profile/profile_binding.dart';
+import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:aub_connect_app/modules/profile/profile_screen.dart';
+import 'package:aub_connect_app/modules/profile/widgets/profile_cover_redesign.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_binding.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_screen.dart';
 
@@ -140,38 +149,150 @@ class MainShellScreen extends GetView<MainShellController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: context.appColors.bodyBackground,
-      body: NotificationListener<ScrollNotification>(
-        onNotification: controller.handleScrollNotification,
-        child: PageView(
-          controller: controller.pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          onPageChanged: controller.onPageChanged,
-          children: _pages,
+    final colors = context.appColors;
+
+    return Obx(() {
+      final index = controller.currentIndex.value;
+      final overlay = switch (index) {
+        MainTabNavigation.reel => VitheySystemUi.immersiveDark(),
+        MainTabNavigation.profile => VitheySystemUi.forBackground(
+            ProfileCoverRedesign.tealColor(context),
+            systemNavigationBarColor: colors.bodyBackground,
+          ),
+        _ => VitheySystemUi.forBackground(
+            colors.bodyBackground,
+            systemNavigationBarColor: colors.bodyBackground,
+          ),
+      };
+
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlay,
+        child: Scaffold(
+          extendBody: true,
+          backgroundColor: colors.bodyBackground,
+          floatingActionButtonLocation: AppBottomNavigation.fabLocation(),
+          floatingActionButton: _ShellFab(tabIndex: index),
+          body: NotificationListener<ScrollNotification>(
+            onNotification: controller.handleScrollNotification,
+            child: PageView(
+              controller: controller.pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: controller.onPageChanged,
+              children: _pages,
+            ),
+          ),
+          bottomNavigationBar: Builder(
+            builder: (context) {
+              final visible = controller.navVisible.value;
+              return AnimatedSlide(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.fastOutSlowIn,
+                offset: visible ? Offset.zero : const Offset(0, 1.4),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 130),
+                  opacity: visible ? 1 : 0,
+                  child: IgnorePointer(
+                    ignoring: !visible,
+                    child: AppBottomNavigation(
+                      currentIndex: controller.currentIndex.value,
+                      onTap: controller.selectTab,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-      ),
-      bottomNavigationBar: Obx(() {
-        final visible = controller.navVisible.value;
-        return AnimatedSlide(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.fastOutSlowIn,
-          offset: visible ? Offset.zero : const Offset(0, 1.4),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 130),
-            opacity: visible ? 1 : 0,
-            child: IgnorePointer(
-              ignoring: !visible,
-              child: AppBottomNavigation(
-                currentIndex: controller.currentIndex.value,
-                onTap: controller.selectTab,
-              ),
+      );
+    });
+  }
+}
+
+/// Home / Profile FABs owned by the shell so they clear the real navbar.
+class _ShellFab extends StatelessWidget {
+  const _ShellFab({required this.tabIndex});
+
+  final int tabIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final shell = Get.find<MainShellController>();
+    final showHome = tabIndex == MainTabNavigation.home;
+    final showProfile = tabIndex == MainTabNavigation.profile;
+
+    if (!showHome && !showProfile) return const SizedBox.shrink();
+
+    return Obx(() {
+      final navVisible = shell.navVisible.value;
+      Widget? fab;
+
+      if (showHome && Get.isRegistered<HomeController>()) {
+        fab = FloatingActionButton.extended(
+          heroTag: 'shell-post-fab',
+          onPressed: () => Get.find<HomeController>()
+              .openCreatePost(type: PostType.poster),
+          backgroundColor: AppColors.primary,
+          foregroundColor: context.scheme.onPrimary,
+          elevation: 3,
+          icon: VitheyIcon(
+            LucideIcons.plus,
+            size: 20,
+            color: context.scheme.onPrimary,
+          ),
+          label: Text(
+            'Post',
+            style: context.text.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: context.scheme.onPrimary,
             ),
           ),
         );
-      }),
-    );
+      } else if (showProfile && Get.isRegistered<ProfileController>()) {
+        final profile = Get.find<ProfileController>();
+        if (!profile.isLoading.value &&
+            !profile.hasError.value &&
+            profile.profile.value != null) {
+          fab = FloatingActionButton.extended(
+            heroTag: 'shell-ai-cv-fab',
+            onPressed: () => Get.toNamed(
+              AppRoutes.applyCvTemplates,
+              arguments: const AiCvArgs(returnToApply: false),
+            ),
+            backgroundColor: AppColors.primary,
+            foregroundColor: context.scheme.onPrimary,
+            elevation: 3,
+            icon: VitheyIcon(
+              LucideIcons.sparkles,
+              size: 20,
+              color: context.scheme.onPrimary,
+            ),
+            label: Text(
+              'AI Create CV',
+              style: context.text.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.scheme.onPrimary,
+              ),
+            ),
+          );
+        }
+      }
+
+      if (fab == null) return const SizedBox.shrink();
+
+      return IgnorePointer(
+        ignoring: !navVisible,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: navVisible ? Offset.zero : const Offset(0, 1.6),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 180),
+            opacity: navVisible ? 1 : 0,
+            child: fab,
+          ),
+        ),
+      );
+    });
   }
 }
 

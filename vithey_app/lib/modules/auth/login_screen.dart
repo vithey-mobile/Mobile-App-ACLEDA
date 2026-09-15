@@ -10,6 +10,7 @@ import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/modules/auth/auth_controller.dart';
+
 import 'package:aub_connect_app/modules/auth/widgets/oauth_button.dart';
 import 'package:aub_connect_app/modules/auth/widgets/register_step_slider.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/widgets/onboarding_background.dart';
@@ -237,7 +238,8 @@ class AuthSignInForm extends GetView<AuthController> {
         24,
         28,
         24,
-        8 + MediaQuery.paddingOf(context).bottom,
+        // Tight gap above the system nav (inset is 0 when there is no bar).
+        8 + MediaQuery.viewPaddingOf(context).bottom,
       ),
       child: FormErrorHost(
         formKey: controller.loginFormKey,
@@ -357,7 +359,8 @@ class AuthSignUpForm extends GetView<AuthController> {
         24,
         28,
         24,
-        8 + MediaQuery.paddingOf(context).bottom,
+        // Tight gap above the system nav (inset is 0 when there is no bar).
+        8 + MediaQuery.viewPaddingOf(context).bottom,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -574,7 +577,7 @@ class AuthForgotPasswordForm extends GetView<AuthController> {
         24,
         28,
         24,
-        20 + MediaQuery.paddingOf(context).bottom,
+        40 + MediaQuery.paddingOf(context).bottom,
       ),
       child: Obx(() {
         if (controller.forgotPasswordSuccess.value) {

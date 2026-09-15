@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/assistant_message.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/chatbot_app_bar.dart';
@@ -48,15 +49,21 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: context.appColors.cardSurface,
-      drawer: ChatbotHistoryDrawer(controller: controller),
-      appBar: buildChatbotAppBar(
-        onMenu: controller.openDrawer,
-        onBackHome: _backToHome,
-      ),
-      body: Column(
+    final surface = context.appColors.cardSurface;
+
+    return VitheyStatusBar(
+      color: surface,
+      systemNavigationBarColor: surface,
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: surface,
+        drawer: ChatbotHistoryDrawer(controller: controller),
+        appBar: buildChatbotAppBar(
+          onMenu: controller.openDrawer,
+          onBackHome: _backToHome,
+          backgroundColor: surface,
+        ),
+        body: Column(
         children: [
           Expanded(
             child: Stack(
@@ -165,6 +172,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

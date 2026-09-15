@@ -53,7 +53,7 @@ class ProfileViewScreen extends GetView<ProfileViewController> {
         ];
 
         return NestedScrollView(
-          headerSliverBuilder: (_, __) => [
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -108,6 +108,7 @@ class ProfileViewScreen extends GetView<ProfileViewController> {
               pinned: true,
               delegate: _TabBarDelegate(
                 topInset: MediaQuery.paddingOf(context).top,
+                pinnedUnderStatusBar: innerBoxIsScrolled,
                 tabBar: TabBar(
                   controller: controller.tabController,
                   isScrollable: true,
@@ -147,25 +148,35 @@ class ProfileViewScreen extends GetView<ProfileViewController> {
 }
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  _TabBarDelegate({required this.tabBar, required this.topInset});
+  _TabBarDelegate({
+    required this.tabBar,
+    required this.topInset,
+    required this.pinnedUnderStatusBar,
+  });
 
   final TabBar tabBar;
   final double topInset;
+  final bool pinnedUnderStatusBar;
+
+  double get _statusPad => pinnedUnderStatusBar ? topInset : 0;
 
   @override
-  double get minExtent => tabBar.preferredSize.height + topInset;
+  double get minExtent => tabBar.preferredSize.height + _statusPad;
 
   @override
-  double get maxExtent => tabBar.preferredSize.height + topInset;
+  double get maxExtent => tabBar.preferredSize.height + _statusPad;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final pad = _statusPad;
     return Material(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      elevation: overlapsContent ? 1 : 0,
+      color: bg,
+      elevation: pinnedUnderStatusBar || overlapsContent ? 1 : 0,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: topInset),
+          if (pad > 0) SizedBox(height: pad),
           tabBar,
         ],
       ),
@@ -174,5 +185,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
-      topInset != oldDelegate.topInset || tabBar != oldDelegate.tabBar;
+      topInset != oldDelegate.topInset ||
+      pinnedUnderStatusBar != oldDelegate.pinnedUnderStatusBar ||
+      tabBar != oldDelegate.tabBar;
 }

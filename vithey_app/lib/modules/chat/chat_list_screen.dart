@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
@@ -18,12 +19,16 @@ class ChatListScreen extends GetView<ChatListController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: context.appColors.bodyBackground,
-      body: SafeArea(
-        bottom: false,
-        child: Obx(() {
+    final bg = context.appColors.bodyBackground;
+    return VitheyStatusBar(
+      color: bg,
+      systemNavigationBarColor: bg,
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: bg,
+        body: SafeArea(
+          bottom: false,
+          child: Obx(() {
           final isLoading = controller.isLoading.value;
           final hasError = controller.hasError.value;
           final conversations = controller.conversations.toList();
@@ -110,6 +115,7 @@ class ChatListScreen extends GetView<ChatListController> {
             currentIndex: MainTabNavigation.chatbot,
           );
         },
+      ),
       ),
     );
   }

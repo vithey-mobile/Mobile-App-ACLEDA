@@ -1,14 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/modules/profile/profile_navigation.dart';
 import 'package:aub_connect_app/modules/profile/widgets/qr_scan_corner_frame.dart';
 
-import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Live camera QR scanner — matches `Scan QR.png`.
 class ScanQrScreen extends StatefulWidget {
   const ScanQrScreen({super.key});
@@ -104,7 +105,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     final scanSize = size.width * 0.72;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: VitheySystemUi.immersiveDark(),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: Stack(

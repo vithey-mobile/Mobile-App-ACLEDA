@@ -112,11 +112,14 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
 
   void _onTick() {
     if (!mounted) return;
-    // Dismiss the poster overlay only once the native texture has delivered
-    // its first real frame (position > 0). Guarantees zero black flash.
+    // Dismiss poster once playback has started (not only after seeking past 0),
+    // otherwise a paused/ready frame at 0:00 stays covered by a black thumb.
     if (_posterVisible) {
-      final pos = _controller?.value.position ?? Duration.zero;
-      if (pos.inMilliseconds > 0) {
+      final v = _controller?.value;
+      if (v != null &&
+          v.isInitialized &&
+          (v.position.inMilliseconds > 0 ||
+              (v.isPlaying && !v.isBuffering))) {
         setState(() => _posterVisible = false);
         return;
       }
@@ -353,7 +356,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
 
           // Right action rail (on top of gradient)
           Positioned(
-            right: 8,
+            right: 4,
             bottom: 108 + bottomPad,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -392,113 +395,124 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
             ),
           ),
 
-          // Bottom meta + progress (on top of gradient, leaving room for action rail)
+          // Bottom meta + full-width progress
           Positioned(
             left: 0,
-            right: 68,
+            right: 0,
             bottom: 0,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(14, 0, 8, bottomPad),
+              padding: EdgeInsets.only(bottom: bottomPad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  GestureDetector(
-                    onTap: widget.onAuthorTap,
-                    child: Row(
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 58, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        UserAvatar(
-                          name: _post.author.fullName,
-                          imageUrl: _post.author.avatarUrl,
-                          radius: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            _post.author.fullName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
+                        GestureDetector(
+                          onTap: widget.onAuthorTap,
+                          child: Row(
+                            children: [
+                              UserAvatar(
+                                name: _post.author.fullName,
+                                imageUrl: _post.author.avatarUrl,
+                                radius: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  _post.author.fullName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              VitheyIcon(
+                                LucideIcons.globe,
+                                size: 14,
+                                color: Colors.white.withValues(alpha: 0.75),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        VitheyIcon(
-                          LucideIcons.globe,
-                          size: 14,
-                          color: Colors.white.withValues(alpha: 0.75),
+                        if (_post.content.trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () => setState(
+                              () => _captionExpanded = !_captionExpanded,
+                            ),
+                            child: Text.rich(
+                              TextSpan(
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                  fontSize: 13,
+                                  height: 1.35,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: _captionExpanded ||
+                                            _post.content.length <= 80
+                                        ? _post.content
+                                        : '${_post.content.substring(0, 80).trimRight()}…',
+                                  ),
+                                  if (!_captionExpanded &&
+                                      _post.content.length > 80)
+                                    const TextSpan(
+                                      text: ' more',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          ready
+                              ? '${_format(position)} / ${_format(duration)}'
+                              : '0:00 / 0:00',
+                          style: context.text.labelMedium?.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.85)),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 40,
+                            minHeight: 40,
+                          ),
+                          onPressed: widget.onToggleMute,
+                          icon: VitheyIcon(
+                            widget.muted
+                                ? LucideIcons.volumeX
+                                : LucideIcons.volume2,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  if (_post.content.trim().isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => setState(
-                        () => _captionExpanded = !_captionExpanded,
-                      ),
-                      child: Text.rich(
-                        TextSpan(
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.92),
-                            fontSize: 13,
-                            height: 1.35,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: _captionExpanded ||
-                                      _post.content.length <= 80
-                                  ? _post.content
-                                  : '${_post.content.substring(0, 80).trimRight()}…',
-                            ),
-                            if (!_captionExpanded && _post.content.length > 80)
-                              const TextSpan(
-                                text: ' more',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Text(
-                        ready
-                            ? '${_format(position)} / ${_format(duration)}'
-                            : '0:00 / 0:00',
-                        style: context.text.labelMedium?.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.85)),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 44,
-                          minHeight: 44,
-                        ),
-                        onPressed: widget.onToggleMute,
-                        icon: VitheyIcon(
-                          widget.muted
-                              ? LucideIcons.volumeX
-                              : LucideIcons.volume2,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 2.5,
@@ -506,20 +520,26 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                         enabledThumbRadius: 6,
                       ),
                       overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 12,
+                        overlayRadius: 10,
                       ),
                       activeTrackColor: Colors.white,
                       inactiveTrackColor: Colors.white24,
                       thumbColor: Colors.white,
+                      // Pull track closer to the screen edges.
+                      trackShape: const RoundedRectSliderTrackShape(),
                     ),
-                    child: Slider(
-                      value: progress,
-                      onChanged: ready
-                          ? (v) {
-                              final ms = (duration.inMilliseconds * v).round();
-                              c.seekTo(Duration(milliseconds: ms));
-                            }
-                          : null,
+                    child: SizedBox(
+                      height: 28,
+                      child: Slider(
+                        value: progress,
+                        onChanged: ready
+                            ? (v) {
+                                final ms =
+                                    (duration.inMilliseconds * v).round();
+                                c.seekTo(Duration(milliseconds: ms));
+                              }
+                            : null,
+                      ),
                     ),
                   ),
                 ],
@@ -575,15 +595,15 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
     }
 
     final videoSize = c.value.size;
-    final w = videoSize.width > 0 ? videoSize.width : 360.0;
-    final h = videoSize.height > 0 ? videoSize.height : 640.0;
+    final w = videoSize.width > 0 ? videoSize.width : 9.0;
+    final h = videoSize.height > 0 ? videoSize.height : 16.0;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // True full-screen cover video: exactly 1 VideoPlayer instance, no black bars,
-        // no aspect collapse, no duplicate texture collisions!
-        SizedBox.expand(
+        // Cover the viewport (full width/height). FittedBox scales the native
+        // texture reliably — OverflowBox was leaving a blank black stage.
+        Positioned.fill(
           child: FittedBox(
             fit: BoxFit.cover,
             clipBehavior: Clip.hardEdge,
@@ -595,21 +615,21 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
           ),
         ),
 
-        // Poster overlay sits on TOP of the VideoPlayer and only fades out
-        // once the video position > 0 (i.e., the native GPU texture has
-        // rendered at least one real frame). Eliminates the black flash on
-        // all devices regardless of codec warm-up time.
+        // Poster overlay until playback actually starts.
         if (_post.thumbnailUrl != null || _posterVisible)
-          AnimatedOpacity(
-            opacity: _posterVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            child: _buildThumbnail(
-              _post.thumbnailUrl ?? '',
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _posterVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                child: _buildThumbnail(
+                  _post.thumbnailUrl ?? '',
+                ),
+              ),
             ),
           ),
 
-        // Buffering indicator
         if (c.value.isBuffering && !_posterVisible)
           const Center(
             child: CircularProgressIndicator(

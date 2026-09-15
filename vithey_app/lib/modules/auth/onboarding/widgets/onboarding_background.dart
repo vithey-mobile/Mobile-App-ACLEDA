@@ -82,11 +82,11 @@ class _OnboardingWavePainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, Paint()..color = baseColor);
 
     canvas.drawPath(
-      _layerPath(size, profile.lightX, profile.lightY),
+      _layerPath(size, profile.lightX, profile.scaledLightY),
       Paint()..color = waveRearColor,
     );
     canvas.drawPath(
-      _layerPath(size, profile.tealX, profile.tealY),
+      _layerPath(size, profile.tealX, profile.scaledTealY),
       Paint()..color = AppColors.primaryLight,
     );
   }
@@ -131,7 +131,7 @@ class _OnboardingWavePainter extends CustomPainter {
         waveRearColor != oldDelegate.waveRearColor ||
         solidTeal != oldDelegate.solidTeal ||
         profile.id != oldDelegate.profile.id ||
-        profile.tealY != oldDelegate.profile.tealY ||
-        profile.lightY != oldDelegate.profile.lightY;
+        profile.scaledTealY != oldDelegate.profile.scaledTealY ||
+        profile.scaledLightY != oldDelegate.profile.scaledLightY;
   }
 }

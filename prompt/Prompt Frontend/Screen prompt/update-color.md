@@ -1,36 +1,18 @@
-now in the same three modules, we are focus on these 3.
+### Update Post Media — Multiple Images
 
-check the background color's variable.
+Currently, the **Post Media** screen only allows the user to select/post **one image**.
 
-Teal, lightteal or teallight, white, white50, light
+Change it so users can select and post **multiple images/photos in a single post**.
 
-mostly, it is about the overlay one.
+Requirements:
 
-check the variable, and tell me the duplicate
-
-i want to rewrite the vairable and family
-
-Teal = primary
-white/light = accent
-
-Don't get confused with white colors for light/dark mode.
-
-In area that use accent (the color between white and grey (white opacity (0-100))).
-
-Ok you can set this.
-
-Wrong -> light = #000000
-
-Right -> accent = #000000, light = color.accent
-
-Overall accent is the color between white and grey
-
-the current accent is 0xFFFFB703, so change it to #FFFFFF
-
-now just check this first.
-
-Add new accent family color.
-
-- accentLight = white/50%
-- accent = white
-- accentDark = grey
+- Allow selecting multiple images from the gallery/file picker.
+- Do not remove the existing single-image functionality; selecting one image should still work.
+- Display all selected images in the Post Media preview before posting.
+- Allow the user to remove an individual selected image before posting.
+- Keep the existing UI/design and make the multi-image preview match the current app style.
+- Make sure the selected images are all included when submitting the post to the backend/API.
+- Check the existing image picker, model, controller, API request, and post UI before making changes.
+- Update the backend/API payload only if necessary to support multiple images.
+- Do not break existing posts that contain only one image.
+- Keep the changes focused only on supporting multiple images.

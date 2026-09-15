@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Illustration only — no card / fill background behind the asset.
+/// Illustration centered in the teal band (no SafeArea — parent sizes the band).
 class OnboardingTopSection extends StatelessWidget {
   const OnboardingTopSection({
     super.key,
@@ -13,20 +13,15 @@ class OnboardingTopSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxWidth = MediaQuery.sizeOf(context).width * 0.60;
 
-    return SafeArea(
-      bottom: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: imageAsset == null
-              ? const SizedBox.shrink()
-              : Image.asset(
-                  imageAsset!,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-        ),
-      ),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: imageAsset == null
+          ? const SizedBox.shrink()
+          : Image.asset(
+              imageAsset!,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
     );
   }
 }

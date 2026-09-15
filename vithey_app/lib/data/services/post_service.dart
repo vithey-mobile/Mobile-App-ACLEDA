@@ -187,6 +187,7 @@ class PostService {
     required String type,
     required String content,
     String? mediaFileId,
+    List<String>? mediaFileIds,
     Map<String, dynamic>? jobMeta,
     DateTime? scheduledAt,
     String? currentUserId,
@@ -197,6 +198,8 @@ class PostService {
         'type': type,
         'content': content,
         if (mediaFileId != null) 'media_file_id': mediaFileId,
+        if (mediaFileIds != null && mediaFileIds.isNotEmpty)
+          'media_file_ids': mediaFileIds,
         if (jobMeta != null) 'job_meta': jobMeta,
         if (scheduledAt != null)
           'scheduled_at': scheduledAt.toUtc().toIso8601String(),
@@ -215,6 +218,7 @@ class PostService {
     required String postId,
     required String content,
     String? mediaFileId,
+    List<String>? mediaFileIds,
     bool removeMedia = false,
     Map<String, dynamic>? jobMeta,
     String? currentUserId,
@@ -224,6 +228,8 @@ class PostService {
       data: {
         'content': content,
         if (mediaFileId != null) 'media_file_id': mediaFileId,
+        if (mediaFileIds != null && mediaFileIds.isNotEmpty)
+          'media_file_ids': mediaFileIds,
         if (removeMedia) 'remove_media': true,
         if (jobMeta != null) 'job_meta': jobMeta,
       },

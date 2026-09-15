@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_search_pill.dart';
 
@@ -34,6 +35,7 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       backgroundColor: colors.cardSurface,
       foregroundColor: colors.heading,
+      systemOverlayStyle: VitheySystemUi.forBackground(colors.cardSurface),
       leading: VitheyIconButton(
         icon: LucideIcons.arrowLeft,
         variant: VitheyIconButtonVariant.neutral,
