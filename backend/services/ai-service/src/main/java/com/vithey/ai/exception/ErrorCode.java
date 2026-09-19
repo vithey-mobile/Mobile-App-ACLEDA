@@ -8,6 +8,8 @@ public enum ErrorCode {
   VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Invalid request"),
   NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
   RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded"),
+  AI_BUSY(HttpStatus.TOO_MANY_REQUESTS, "AI is busy"),
+  AI_CORE_UNAVAILABLE(HttpStatus.BAD_GATEWAY, "ai_core is unavailable"),
   UPSTREAM_ERROR(HttpStatus.BAD_GATEWAY, "Upstream AI service error");
 
   private final HttpStatus status;

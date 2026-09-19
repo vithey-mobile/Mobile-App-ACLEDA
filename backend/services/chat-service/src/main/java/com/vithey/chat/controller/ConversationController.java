@@ -42,7 +42,7 @@ public class ConversationController {
     return ResponseEntity.ok(conversationService.listConversations(userId, page, limit));
   }
 
-  @PostMapping("/request")
+  @PostMapping("/start")
   ResponseEntity<ApiResponseWrapper<ConversationResponse>> createRequest(
       @Valid @RequestBody MessageRequestDto request
   ) {

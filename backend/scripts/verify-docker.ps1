@@ -1,4 +1,4 @@
-# Verify Vithey Docker stack
+# Verify Vithey Docker stack (Profile M - no GDCE)
 $ErrorActionPreference = "Continue"
 
 $infra = @(
@@ -23,10 +23,10 @@ $services = @(
     "vithey-ai-service"
 )
 
-$gdce = @(
-    "general-service",
-    "qdrant-general",
-    "redis-general"
+# Present when started with docker-compose.demo.yml
+$demoOptional = @(
+    "vithey-map-service",
+    "vithey-ai-core"
 )
 
 function Test-ContainerRunning($name) {
@@ -36,6 +36,16 @@ function Test-ContainerRunning($name) {
         return $true
     }
     Write-Host "[FAIL] $name (status: $state)" -ForegroundColor Red
+    return $false
+}
+
+function Test-ContainerOptional($name) {
+    $state = docker inspect -f "{{.State.Status}}" $name 2>$null
+    if ($state -eq "running") {
+        Write-Host "[OK]   $name (demo)" -ForegroundColor Green
+        return $true
+    }
+    Write-Host "[SKIP] $name (not running - start demo overlay for map/ai_core)" -ForegroundColor DarkYellow
     return $false
 }
 
@@ -54,6 +64,21 @@ function Test-Http($label, $url, $pattern) {
     }
 }
 
+function Test-HttpOptional($label, $url, $pattern) {
+    try {
+        $resp = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+        if ($resp.Content -match $pattern -or $resp.StatusCode -eq 200) {
+            Write-Host "[OK]   $label (demo)" -ForegroundColor Green
+            return $true
+        }
+        Write-Host "[SKIP] $label (unexpected response)" -ForegroundColor DarkYellow
+        return $false
+    } catch {
+        Write-Host "[SKIP] $label (not up - demo overlay)" -ForegroundColor DarkYellow
+        return $false
+    }
+}
+
 Write-Host "`n=== Infrastructure ===" -ForegroundColor Cyan
 $ok = 0
 foreach ($c in $infra) { if (Test-ContainerRunning $c) { $ok++ } }
@@ -61,27 +86,36 @@ foreach ($c in $infra) { if (Test-ContainerRunning $c) { $ok++ } }
 Write-Host "`n=== Microservices ===" -ForegroundColor Cyan
 foreach ($c in $services) { if (Test-ContainerRunning $c) { $ok++ } }
 
-Write-Host "`n=== GDCE General (chatbot) ===" -ForegroundColor Cyan
-foreach ($c in $gdce) { if (Test-ContainerRunning $c) { $ok++ } }
+Write-Host "`n=== Demo optional (map + ai_core) ===" -ForegroundColor Cyan
+$demoOk = 0
+foreach ($c in $demoOptional) { if (Test-ContainerOptional $c) { $demoOk++ } }
 
 Write-Host "`n=== Health endpoints ===" -ForegroundColor Cyan
 $healthOk = 0
+$healthRequired = 4
 if (Test-Http "Eureka" "http://localhost:8761/actuator/health" '"status"') { $healthOk++ }
 if (Test-Http "Gateway" "http://localhost:8080/actuator/health" '"status"') { $healthOk++ }
 if (Test-Http "Auth" "http://localhost:8081/actuator/health" '"status"') { $healthOk++ }
 if (Test-Http "AI service" "http://localhost:8089/actuator/health" '"status"') { $healthOk++ }
-if (Test-Http "General" "http://localhost:8005/health" "status|healthy|UP") { $healthOk++ }
+$demoHealth = 0
+if (Test-HttpOptional "map-service" "http://localhost:8090/actuator/health" '"status"') { $demoHealth++ }
+if (Test-HttpOptional "ai_core" "http://localhost:8100/health" "healthy|status") { $demoHealth++ }
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
-$total = $infra.Count + $services.Count + $gdce.Count
-Write-Host "Containers running: check output above ($total expected)"
-Write-Host "Health checks passed: $healthOk / 5"
+$requiredTotal = $infra.Count + $services.Count
+Write-Host "Required containers OK: $ok / $requiredTotal"
+Write-Host "Demo containers OK: $demoOk / $($demoOptional.Count)"
+Write-Host "Required health checks: $healthOk / $healthRequired"
+Write-Host "Demo health checks: $demoHealth / 2"
 Write-Host ""
 
-if ($healthOk -eq 5) {
-    Write-Host "Stack looks healthy." -ForegroundColor Green
+if ($healthOk -eq $healthRequired -and $ok -eq $requiredTotal) {
+    Write-Host "Core stack looks healthy." -ForegroundColor Green
+    if ($demoOk -lt $demoOptional.Count) {
+        Write-Host "Demo overlay incomplete - run .\scripts\docker-up-demo.ps1 for map + ai_core." -ForegroundColor Yellow
+    }
     exit 0
 }
 
-Write-Host "Some checks failed. See prompt/Prompt Devops/DOCKER-VERIFY.md for fixes." -ForegroundColor Yellow
+Write-Host "Some required checks failed. See prompt/Prompt Devops/DOCKER-VERIFY.md for fixes." -ForegroundColor Yellow
 exit 1

@@ -47,7 +47,19 @@ vithey:
   jwt:
     secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
   ai:
+    chat:
+      mode: ${VITHEY_AI_CHAT_MODE:stub}
+    core:
+      base-url: ${AI_CORE_BASE_URL:http://localhost:8100}
+      timeout-seconds: ${AI_CORE_TIMEOUT_SECONDS:60}
+    profile:
+      base-url: ${USER_PROFILE_BASE_URL:http://user-profile-service:8082}
+    content:
+      base-url: ${CONTENT_BASE_URL:http://content-service:8084}
+    cv:
+      max-posts: ${AI_CV_MAX_POSTS:20}
+      max-concurrent: ${AI_CV_MAX_CONCURRENT:3}
     general:
-      base-url: ${GENERAL_SERVICE_URL:http://general-service:8005}
-      timeout-seconds: ${GENERAL_TIMEOUT_SECONDS:90}
+      base-url: ${GENERAL_SERVICE_URL:http://127.0.0.1:9}
+      timeout-seconds: ${GENERAL_TIMEOUT_SECONDS:5}
       top-k: ${GENERAL_TOP_K:10}

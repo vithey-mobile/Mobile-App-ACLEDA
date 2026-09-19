@@ -87,7 +87,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: vithey-cadvisor
     ports:
-      - "8090:8080"
+      - "8095:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

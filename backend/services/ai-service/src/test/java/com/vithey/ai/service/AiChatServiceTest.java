@@ -3,13 +3,13 @@ package com.vithey.ai.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.vithey.ai.client.GeneralRetrievalClient;
 import com.vithey.ai.dto.request.ChatRequest;
 import com.vithey.ai.dto.response.ChatResponse;
 import com.vithey.ai.entity.AiChatMessage;
@@ -44,7 +44,7 @@ class AiChatServiceTest {
   private AiChatMessageRepository messageRepository;
 
   @Mock
-  private GeneralRetrievalClient generalRetrievalClient;
+  private ChatReplyService chatReplyService;
 
   @Mock
   private ChatRequestRegistry requestRegistry;
@@ -77,15 +77,15 @@ class AiChatServiceTest {
   }
 
   @Test
-  void chatReturnsReplyFromGeneralService() {
+  void chatReturnsReplyFromChatReplyService() {
     UUID userId = UUID.randomUUID();
     stubSaveAssignsIds();
     when(requestRegistry.register(userId)).thenReturn(UUID.randomUUID());
-    when(generalRetrievalClient.retrieve(any(), any())).thenReturn("A good CV should include relevant experience.");
+    when(chatReplyService.reply(anyString(), any(), any())).thenReturn("A good CV should include relevant experience.");
 
     ApiResponseWrapper<ChatResponse> response = aiChatService.chat(
         user(userId),
-        new ChatRequest("How to write a CV?", AiTopic.CV, null)
+        new ChatRequest("How to write a CV?", AiTopic.CV, null, null)
     );
 
     assertThat(response.data()).isNotNull();
@@ -99,23 +99,22 @@ class AiChatServiceTest {
     UUID userId = UUID.randomUUID();
     stubSaveAssignsIds();
     when(requestRegistry.register(userId)).thenReturn(UUID.randomUUID());
-    when(generalRetrievalClient.retrieve(any(), any())).thenReturn("Here is a streamed answer.");
+    when(chatReplyService.reply(anyString(), any(), any())).thenReturn("Here is a streamed answer.");
 
     AiChatService service = new AiChatService(
         sessionRepository,
         messageRepository,
-        generalRetrievalClient,
+        chatReplyService,
         requestRegistry,
         Runnable::run
     );
 
     SseEmitter emitter = service.chatStream(
         user(userId),
-        new ChatRequest("Help with my CV", AiTopic.CV, null)
+        new ChatRequest("Help with my CV", AiTopic.CV, null, null)
     );
 
     assertThat(emitter).isNotNull();
-    // One user message + one assistant message persisted.
     verify(messageRepository, times(2)).save(any(AiChatMessage.class));
     verify(messageRepository).save(org.mockito.ArgumentMatchers.argThat(saved ->
         saved.getRole() == AiMessageRole.ASSISTANT
@@ -130,19 +129,18 @@ class AiChatServiceTest {
     stubSaveAssignsIds();
     when(requestRegistry.register(userId)).thenReturn(UUID.randomUUID());
     when(requestRegistry.isCancelled(any())).thenReturn(true);
-    when(generalRetrievalClient.retrieve(any(), any())).thenReturn("This reply gets cancelled.");
+    when(chatReplyService.reply(anyString(), any(), any())).thenReturn("This reply gets cancelled.");
 
     AiChatService service = new AiChatService(
         sessionRepository,
         messageRepository,
-        generalRetrievalClient,
+        chatReplyService,
         requestRegistry,
         Runnable::run
     );
 
-    service.chatStream(user(userId), new ChatRequest("Hello", AiTopic.STUDENT, null));
+    service.chatStream(user(userId), new ChatRequest("Hello", AiTopic.STUDENT, null, null));
 
-    // Only the user message is persisted; no assistant reply survived the cancel.
     verify(messageRepository, times(1)).save(any(AiChatMessage.class));
     verify(requestRegistry).markDone(any());
   }
@@ -160,7 +158,7 @@ class AiChatServiceTest {
     when(messageRepository.findById(messageId)).thenReturn(Optional.of(assistantMessage));
     when(messageRepository.findFirstBySessionIdAndRoleAndCreatedAtBeforeOrderByCreatedAtDesc(
         any(), any(), any())).thenReturn(Optional.of(userMessage));
-    when(generalRetrievalClient.retrieve(any(), any())).thenReturn("Regenerated reply");
+    when(chatReplyService.reply(anyString(), any(), any())).thenReturn("Regenerated reply");
 
     ApiResponseWrapper<ChatResponse> response = aiChatService.regenerate(user(userId), messageId);
 
@@ -186,7 +184,7 @@ class AiChatServiceTest {
             assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND));
 
     verify(messageRepository, never()).save(any());
-    verifyNoInteractions(generalRetrievalClient);
+    verifyNoInteractions(chatReplyService);
   }
 
   @Test

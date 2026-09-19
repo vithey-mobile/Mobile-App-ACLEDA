@@ -1,5 +1,10 @@
 # AI / Chatbot — Java Platform Integration
 
+> **2026-09 update (demo Profile M):** Vithey-facing AI is **Spring `ai-service` :8089**.  
+> CV generation calls Python **`ai_core` :8100** (DeepSeek API key).  
+> Vithey AI **chat uses stub mode** by default (`VITHEY_AI_CHAT_MODE=stub`) — **no GDCE**.  
+> See repo `plan.md` and `backend/DEMO.md`.
+
 > **Integration only.** You build chatbot + AI in Python.  
 > Vithey Java repo provides gateway routing, JWT auth, and Eureka — not AI code.
 

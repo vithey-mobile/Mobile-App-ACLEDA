@@ -18,6 +18,7 @@ COPY services/finance-service/pom.xml services/finance-service/pom.xml
 COPY services/chat-service/pom.xml services/chat-service/pom.xml
 COPY services/notification-service/pom.xml services/notification-service/pom.xml
 COPY services/ai-service/pom.xml services/ai-service/pom.xml
+COPY services/map-service/pom.xml services/map-service/pom.xml
 COPY services/content-service/src services/content-service/src
 
 RUN mvn -B -q -pl services/content-service -am -Dmaven.test.skip=true package && \

@@ -1,5 +1,6 @@
 # Checks /actuator/health for Vithey backend services (Docker Compose or local).
 # Usage: .\check-service-health.ps1 [-BaseHost localhost]
+# map-service (8090) and ai_core (8100) are optional (demo overlay).
 
 param(
     [string]$BaseHost = "localhost"
@@ -20,6 +21,11 @@ $services = @(
     @{ Name = "chat-service";         Port = 8087 },
     @{ Name = "notification-service"; Port = 8088 },
     @{ Name = "ai-service";           Port = 8089 }
+)
+
+$demoOptional = @(
+    @{ Name = "map-service"; Port = 8090; Path = "/actuator/health"; ExpectStatus = "UP" },
+    @{ Name = "ai_core";     Port = 8100; Path = "/health";          ExpectStatus = $null }
 )
 
 $passed = 0
@@ -44,6 +50,28 @@ foreach ($svc in $services) {
     catch {
         Write-Host "[FAIL] $($svc.Name) - $($_.Exception.Message)" -ForegroundColor Red
         $failed++
+    }
+}
+
+Write-Host ("-" * 50)
+Write-Host "Demo optional (map + ai_core)" -ForegroundColor Cyan
+foreach ($svc in $demoOptional) {
+    $url = "http://${BaseHost}:$($svc.Port)$($svc.Path)"
+    try {
+        $response = Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 5
+        $ok = $true
+        if ($svc.ExpectStatus -and $response.status -ne $svc.ExpectStatus) {
+            $ok = $false
+        }
+        if ($ok) {
+            Write-Host "[OK]   $($svc.Name) ($url)" -ForegroundColor Green
+        }
+        else {
+            Write-Host "[SKIP] $($svc.Name) unexpected status" -ForegroundColor DarkYellow
+        }
+    }
+    catch {
+        Write-Host "[SKIP] $($svc.Name) - not running (start demo overlay)" -ForegroundColor DarkYellow
     }
 }
 

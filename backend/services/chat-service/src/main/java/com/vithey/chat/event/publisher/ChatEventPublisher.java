@@ -36,7 +36,7 @@ public class ChatEventPublisher {
   private void publish(String routingKey, Object event) {
     try {
       rabbitTemplate.convertAndSend(exchangeName, routingKey, event);
-    } catch (AmqpException exception) {
+    } catch (AmqpException | IllegalArgumentException exception) {
       log.warn("Unable to publish {} event", routingKey, exception);
     }
   }

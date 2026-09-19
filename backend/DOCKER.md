@@ -1,105 +1,104 @@
-# Vithey Backend — Docker (per-service folders)
+# Vithey Backend — Docker
 
-Each microservice has its **own** `Dockerfile` + `docker-compose.yml` in its folder.  
-There is **no** all-in-one services compose file — build and run **one service at a time**.
+Three ways to run the stack. Prefer the **full stack** or **Profile M demo** for end-to-end work.
 
 ## Layout
 
 ```
 backend/
-  docker-compose.yml              # infrastructure only (include)
-  infrastructure/docker-compose.yml
-  services/auth-service/
+  docker-compose.yml              # full Java stack + infra
+  docker-compose.demo.yml         # Profile M overlay (map + ai_core + mem caps)
+  DEMO.md                         # demo prerequisites and smoke
+  infrastructure/docker-compose.yml   # infra-only (legacy / incremental)
+  services/<name>/
     Dockerfile
-    docker-compose.yml            # build/run auth only
+    docker-compose.yml            # single-service incremental run
     .env.example
-  services/career-service/
-    Dockerfile
-    docker-compose.yml            # build/run career only
-  ...
 ```
 
-Maven still uses the monorepo root as **build context** (`context: ../..`), but you always run Docker **from the service folder**.
+## Option A — Full Java stack
 
-## Step 1 — Start infrastructure (once)
+From `backend/`:
+
+```powershell
+.\scripts\docker-up.ps1
+# or: docker compose -f docker-compose.yml up -d --build
+```
+
+Stops with `.\scripts\docker-down.ps1`.
+
+Includes Postgres, Redis, RabbitMQ, MinIO, Eureka, Config Server, all Java microservices, and the API gateway. Does **not** include `map-service` or `ai_core` (gateway `/places/**` returns 503 until map is added via demo overlay).
+
+## Option B — Profile M demo (recommended for Flutter live API)
+
+Adds `map-service`, `ai-core`, JVM memory caps, and stub AI chat (no GDCE):
+
+```powershell
+.\scripts\docker-up-demo.ps1
+.\scripts\docker-down-demo.ps1
+# Pass -v on down to wipe volumes (Flyway / DB reset)
+```
+
+Details: [DEMO.md](DEMO.md). Smoke: `.\scripts\smoke-api.ps1`.
+
+`ai-service` defaults to `AI_CORE_BASE_URL=http://ai-core:8100`. For host-run ai_core, override with `http://host.docker.internal:8100`.
+
+## Option C — One service at a time
+
+Infra once:
 
 ```powershell
 cd backend/infrastructure
 docker compose up -d
 ```
 
-Starts: Postgres, Redis, RabbitMQ, MinIO, Eureka, Config Server.
-
-## Step 2 — Build & run one service
-
-From the **service folder**:
+Then from a service folder (or helper script):
 
 ```powershell
-cd backend/services/auth-service
-docker compose up -d --build
+cd backend
+.\scripts\docker-build-service.ps1 auth-service -Up
 ```
 
-Other examples:
+Available names: `auth-service`, `user-profile-service`, `file-service`, `content-service`, `career-service`, `finance-service`, `chat-service`, `notification-service`, `ai-service`, `map-service`, `api-gateway`, `eureka-server`, `config-server`.
 
-```powershell
-cd backend/services/career-service
-docker compose up -d --build
+Maven build context remains the backend monorepo root (`context: .` or `../..` depending on compose file).
 
-cd backend/services/api-gateway
-docker compose up -d --build
-```
+## Port map
 
-## Helper script (from `backend/`)
+| Service | Host port |
+|---------|-----------|
+| API Gateway | 8080 |
+| auth | 8081 |
+| user-profile | 8082 |
+| file | 8083 |
+| content | 8084 |
+| career | 8085 |
+| finance | 8086 |
+| chat | 8087 |
+| notification | 8088 |
+| ai-service | 8089 |
+| map-service (demo) | 8090 |
+| ai_core (demo) | 8100 |
+| Eureka | 8761 |
+| Config Server | 8888 |
+| PostgreSQL | 15432 |
+| Redis | 16379 |
+| RabbitMQ / management | 5672 / 15672 |
+| MinIO API / console | 19000 / 19001 |
 
-```powershell
-# Build only
-.\scripts\docker-build-service.ps1 career-service
-
-# Build + start
-.\scripts\docker-build-service.ps1 career-service -Up
-
-# Stop
-.\scripts\docker-build-service.ps1 career-service -Down
-```
-
-Available names: `auth-service`, `user-profile-service`, `file-service`, `content-service`, `career-service`, `finance-service`, `chat-service`, `notification-service`, `ai-service`, `api-gateway`, `eureka-server`, `config-server`.
-
-## Recommended startup order
-
-1. `infrastructure/` — data stores + Eureka + Config  
-2. Domain services (any order): `auth-service`, `user-profile-service`, …  
-3. `api-gateway` last (needs Redis + Eureka + services registered)
-
-## Build without starting
-
-```powershell
-cd backend/services/file-service
-docker compose build
-```
-
-## Health check
+## Health & verify
 
 ```powershell
 cd backend
 .\scripts\check-service-health.ps1
-```
-
-## Stop
-
-```powershell
-# One service (from its folder)
-docker compose down
-
-# Infrastructure
-cd backend/infrastructure
-docker compose down
+.\scripts\verify-docker.ps1
 ```
 
 ## Notes
 
-- Network `vithey-network` is created by infrastructure compose (or the helper script).
-- Spring profile: `docker` via each `services/*/.env.example`.
-- First build per service downloads Maven deps (~5–10 min each).
-- Config repo is embedded in the `config-server` image.
+- Network: `vithey-network`
+- Spring profile: `docker` via each `services/*/ .env.example`
+- Config repo is embedded in the `config-server` image
+- Monitoring stack (`../monitoring`) is separate; cAdvisor uses host **8095** so it does not clash with map **8090**
 
-See `TESTING.md` and `infrastructure/.env.example`.
+See `TESTING.md`, `DEMO.md`, and `infrastructure/.env.example`.

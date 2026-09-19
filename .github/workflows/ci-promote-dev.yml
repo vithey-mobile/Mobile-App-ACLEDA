@@ -112,6 +112,9 @@ jobs:
           - service: ai-service
             dockerfile: services/ai-service/Dockerfile
             port: 8089
+          - service: map-service
+            dockerfile: services/map-service/Dockerfile
+            port: 8090
     steps:
       - uses: actions/checkout@v4
 
@@ -164,7 +167,7 @@ jobs:
             echo "Registry: \`ghcr.io/${OWNER}\`"
             echo "Tags: \`latest\`, \`sha-${SHA}\`"
             echo ""
-            for svc in eureka-server config-server api-gateway auth-service user-profile-service file-service content-service career-service finance-service chat-service notification-service ai-service; do
+            for svc in eureka-server config-server api-gateway auth-service user-profile-service file-service content-service career-service finance-service chat-service notification-service ai-service map-service; do
               echo "- \`ghcr.io/${OWNER}/vithey-${svc}:latest\`"
             done
           } >> "$GITHUB_STEP_SUMMARY"

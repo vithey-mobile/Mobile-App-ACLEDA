@@ -1,6 +1,5 @@
 package com.vithey.ai.service;
 
-import com.vithey.ai.client.GeneralRetrievalClient;
 import com.vithey.ai.dto.request.ChatRequest;
 import com.vithey.ai.dto.response.ChatResponse;
 import com.vithey.ai.dto.response.MessageResponse;
@@ -15,7 +14,6 @@ import com.vithey.ai.exception.ErrorCode;
 import com.vithey.ai.repository.AiChatMessageRepository;
 import com.vithey.ai.repository.AiChatSessionRepository;
 import com.vithey.ai.security.CurrentUser;
-import com.vithey.ai.support.QueryEnricher;
 import com.vithey.ai.util.ApiResponseWrapper;
 import com.vithey.ai.util.ApiResponseWrapper.Meta;
 import java.io.IOException;
@@ -41,20 +39,20 @@ public class AiChatService {
 
   private final AiChatSessionRepository sessionRepository;
   private final AiChatMessageRepository messageRepository;
-  private final GeneralRetrievalClient generalRetrievalClient;
+  private final ChatReplyService chatReplyService;
   private final ChatRequestRegistry requestRegistry;
   private final Executor streamExecutor;
 
   public AiChatService(
       AiChatSessionRepository sessionRepository,
       AiChatMessageRepository messageRepository,
-      GeneralRetrievalClient generalRetrievalClient,
+      ChatReplyService chatReplyService,
       ChatRequestRegistry requestRegistry,
       @Qualifier("aiStreamExecutor") Executor streamExecutor
   ) {
     this.sessionRepository = sessionRepository;
     this.messageRepository = messageRepository;
-    this.generalRetrievalClient = generalRetrievalClient;
+    this.chatReplyService = chatReplyService;
     this.requestRegistry = requestRegistry;
     this.streamExecutor = streamExecutor;
   }
@@ -173,8 +171,11 @@ public class AiChatService {
         )
         .orElseThrow(() -> new ApiException(ErrorCode.VALIDATION_ERROR, "No user message to regenerate from"));
 
-    String query = QueryEnricher.enrich(userMessage.getContent(), session.getTopic());
-    String reply = generalRetrievalClient.retrieve(query, session.getId().toString());
+    String reply = chatReplyService.reply(
+        userMessage.getContent(),
+        session.getTopic(),
+        session.getId().toString()
+    );
 
     assistantMessage.setContent(reply);
     messageRepository.save(assistantMessage);
@@ -291,8 +292,7 @@ public class AiChatService {
   }
 
   private String retrieveReply(String message, PreparedTurn prepared) {
-    String query = QueryEnricher.enrich(message, prepared.topic());
-    return generalRetrievalClient.retrieve(query, prepared.session().getId().toString());
+    return chatReplyService.reply(message, prepared.topic(), prepared.session().getId().toString());
   }
 
   private CompletedTurn completeTurn(PreparedTurn prepared, String reply) {

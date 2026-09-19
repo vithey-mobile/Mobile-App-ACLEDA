@@ -65,6 +65,7 @@ class DeepSeekClient:
         ) from last_error
 
     def _call_once(self, system_prompt: str, user_prompt: str) -> dict:
+        message = None
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -76,13 +77,63 @@ class DeepSeekClient:
                 temperature=self.temperature,
                 max_tokens=self._config.MAX_TOKENS,
             )
-            content = response.choices[0].message.content
-            if content is None:
-                raise AIResponseValidationError("DeepSeek returned empty content.")
-            return json.loads(content)
+            message = response.choices[0].message
+            content = message.content
+            # Some OpenRouter models (e.g. GLM flash) occasionally leave
+            # content empty while putting text in reasoning — recover JSON.
+            if content is None or (isinstance(content, str) and not content.strip()):
+                content = self._extract_json_text(message)
+            if content is None or not str(content).strip():
+                raise AIResponseValidationError("LLM returned empty content.")
+            return json.loads(self._strip_json_fence(str(content)))
         except json.JSONDecodeError as e:
-            raise AIResponseValidationError("DeepSeek returned invalid JSON.") from e
+            recovered = self._extract_json_text(message) if message is not None else None
+            if recovered:
+                try:
+                    return json.loads(self._strip_json_fence(recovered))
+                except json.JSONDecodeError:
+                    pass
+            raise AIResponseValidationError("LLM returned invalid JSON.") from e
         except AIResponseValidationError:
             raise
         except Exception as e:
-            raise AIClientError(f"DeepSeek API call failed: {e}") from e
+            raise AIClientError(f"LLM API call failed: {e}") from e
+
+    @staticmethod
+    def _strip_json_fence(text: str) -> str:
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            lines = cleaned.splitlines()
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            cleaned = "\n".join(lines).strip()
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start >= 0 and end > start:
+            return cleaned[start : end + 1]
+        return cleaned
+
+    @staticmethod
+    def _extract_json_text(message) -> str | None:
+        """Best-effort JSON recovery for reasoning-first OpenRouter replies."""
+        dumped = message.model_dump() if hasattr(message, "model_dump") else {}
+        for key in ("content", "reasoning"):
+            value = dumped.get(key)
+            if isinstance(value, str) and "{" in value:
+                start = value.find("{")
+                end = value.rfind("}")
+                if start >= 0 and end > start:
+                    return value[start : end + 1]
+        details = dumped.get("reasoning_details") or []
+        for item in details:
+            if not isinstance(item, dict):
+                continue
+            text = item.get("text")
+            if isinstance(text, str) and "{" in text:
+                start = text.find("{")
+                end = text.rfind("}")
+                if start >= 0 and end > start:
+                    return text[start : end + 1]
+        return None
