@@ -28,7 +28,7 @@ class CommentSection extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               child: Text(
-                'No comments yet. Be the first to comment.',
+                'No comments yet. Be the first to comment.'.tr,
                 style: context.text.bodySmall,
               ),
             );
@@ -124,7 +124,7 @@ class CommentSection extends StatelessWidget {
                                 ),
                                 if (comment.isPending)
                                   Text(
-                                    'Sending…',
+                                    'Sending…'.tr,
                                     style: context.text.bodySmall
                                         ?.copyWith(fontSize: 11.5),
                                   ),
@@ -170,7 +170,7 @@ class _CommentAction extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Text(
-          label,
+          label.tr,
           style: context.text.labelSmall?.copyWith(
             fontSize: 11.5,
             color: color ?? context.appColors.muted,

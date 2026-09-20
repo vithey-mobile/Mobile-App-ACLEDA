@@ -1,42 +1,38 @@
-# AI Service — DevOps Prompt
+# AI — DevOps Prompt (`ai_core`)
 
-Java `ai-service` stub exists in `backend/services/ai-service/` with its own `docker-compose.yml`.
+Python **`ai_core/`** is the Vithey AI runtime. Java `backend/services/ai-service/` is **retired**.
 
-**Integration (Python optional):** `Prompt Backend/services/ai-service/INTEGRATION.md`  
+**Integration:** `Prompt Backend/services/ai-service/INTEGRATION.md`  
 **Registry:** `_shared/SERVICE_REGISTRY.md`
 
 ## Service
 
 | Item | Value |
 | --- | --- |
-| Source path | `backend/services/ai-service` |
-| Port | `8089` |
-| Image | `ghcr.io/<owner>/vithey-ai-service` |
-| Database | `ai_db` |
+| Source path | `ai_core/` (repo root) |
+| Port | `8100` |
+| Compose name | `ai-core` |
+| Image | `vithey-ai-core:local` (local) / GHCR tag when published |
+| Database | `ai_db` on shared Postgres |
+| Gateway | `/api/v1/ai/**` → `http://ai-core:8100` |
 
-## Docker Compose Output
+## Docker Compose
 
-```text
-backend/services/ai-service/docker-compose.yml
-backend/services/ai-service/.env.example
+Defined in root `backend/docker-compose.yml` (and demo overlay). Started by:
+
+```powershell
+cd backend
+.\scripts\start-all.ps1
 ```
 
-**Service compose containers only:** `ai-service`, `ai-postgres`  
-**Shared infra:** `redis`, `eureka-server`, `config-server`  
-**Optional:** join external `gdce-network` if bridging to external Python stack.
+Optional secrets: `ai_core/.env` (`DEEPSEEK_API_KEY`, …).
 
 ## Verification
 
-```bash
-cd backend/infrastructure && docker compose up -d --build
-cd ../services/ai-service && copy .env.example .env
-docker compose up -d --build
-curl http://localhost:8089/actuator/health
-curl http://localhost:8761/eureka/apps/AI-SERVICE
+```powershell
+Invoke-RestMethod http://localhost:8100/health
+# Via gateway (needs JWT):
+# POST http://localhost:8080/api/v1/ai/chat
 ```
 
-## GitHub Actions
-
-`.github/workflows/ai-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8089`.
-
-For a **Python-only** replacement, build CI in your Python repo; keep Eureka name `ai-service` and port `8089`.
+Confirm **no** `vithey-ai-service` container.

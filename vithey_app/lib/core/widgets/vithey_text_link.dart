@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Inline text link ("Forgot password?", "Sign up") used next to body copy.
 ///
@@ -30,7 +31,7 @@ class VitheyTextLink extends TextButton {
             ),
           ),
           child: Text(
-            label,
+            label.tr,
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: fontWeight,

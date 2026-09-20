@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
@@ -22,14 +23,14 @@ PreferredSizeWidget buildChatbotAppBar({
         : VitheySystemUi.forBackground(backgroundColor),
     leading: _AppBarAction(
       icon: LucideIcons.menu,
-      tooltip: 'Menu',
+      tooltip: 'Menu'.tr,
       onPressed: onMenu,
     ),
     title: _VitheyAiBadge(),
     actions: [
       _AppBarAction(
         icon: LucideIcons.arrowLeft,
-        tooltip: 'Back to home',
+        tooltip: 'Back to home'.tr,
         onPressed: onBackHome,
       ),
       const SizedBox(width: 8),

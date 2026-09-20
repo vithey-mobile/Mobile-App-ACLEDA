@@ -19,9 +19,20 @@ class FinanceRepository {
       return FinanceFixtures.buildDashboard();
     }
 
-    final payments = List<PaymentSummary>.from(
-      await _financeService.fetchPayments(page: page, limit: limit),
-    )..sort((a, b) => b.sortDate.compareTo(a.sortDate));
+    List<PaymentSummary> fetched = [];
+    int attempts = 0;
+    while (attempts < 3) {
+      try {
+        fetched = await _financeService.fetchPayments(page: page, limit: limit);
+        break;
+      } catch (e) {
+        attempts++;
+        if (attempts >= 3) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      }
+    }
+    final payments = List<PaymentSummary>.from(fetched)
+      ..sort((a, b) => b.sortDate.compareTo(a.sortDate));
     final unpaid = payments.where((p) => p.status != PaymentStatus.paid).toList();
     final totalMinor = unpaid.fold<int>(0, (sum, p) => sum + p.amount.amountMinor);
     final paycheckMinor = payments

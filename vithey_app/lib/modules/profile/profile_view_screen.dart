@@ -36,12 +36,12 @@ class ProfileViewScreen extends GetView<ProfileViewController> {
           return const AppErrorWidget(message: 'Profile unavailable');
         }
 
-        const tabs = <Tab>[
-          Tab(text: 'All'),
-          Tab(text: 'Reels'),
-          Tab(text: 'Posters'),
-          Tab(text: 'Jobs'),
-          Tab(text: 'Applied Jobs'),
+        final tabs = <Tab>[
+          Tab(text: 'All'.tr),
+          Tab(text: 'Reels'.tr),
+          Tab(text: 'Posters'.tr),
+          Tab(text: 'Jobs'.tr),
+          Tab(text: 'Applied Jobs'.tr),
         ];
 
         final tabViews = <Widget>[

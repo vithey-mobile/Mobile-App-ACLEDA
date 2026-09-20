@@ -47,7 +47,7 @@ class CvTemplateGalleryScreen extends GetView<CvTemplateGalleryController> {
                       ),
                     ),
                     Text(
-                      'Templates',
+                      'Templates'.tr,
                       style: context.text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(width: 4),
@@ -63,7 +63,7 @@ class CvTemplateGalleryScreen extends GetView<CvTemplateGalleryController> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: VitheySearchPill(
                   controller: controller.searchController,
-                  hintText: 'Search templates.',
+                  hintText: 'Search templates.'.tr,
                   onClear: () {
                     controller.searchController.clear();
                     controller.query.value = '';
@@ -78,11 +78,11 @@ class CvTemplateGalleryScreen extends GetView<CvTemplateGalleryController> {
                     children: [
                       Expanded(
                         child: _FilterPill(
-                          label: 'Category',
+                          label: 'Category'.tr,
                           value: controller.category.value,
                           onTap: () => _pickFilter(
                             context,
-                            title: 'Category',
+                            title: 'Category'.tr,
                             options: CvTemplateFixtures.categories,
                             current: controller.category.value,
                             onSelected: controller.setCategory,
@@ -92,11 +92,11 @@ class CvTemplateGalleryScreen extends GetView<CvTemplateGalleryController> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _FilterPill(
-                          label: 'Style',
+                          label: 'Style'.tr,
                           value: controller.style.value,
                           onTap: () => _pickFilter(
                             context,
-                            title: 'Style',
+                            title: 'Style'.tr,
                             options: CvTemplateFixtures.styles,
                             current: controller.style.value,
                             onSelected: controller.setStyle,
@@ -106,11 +106,11 @@ class CvTemplateGalleryScreen extends GetView<CvTemplateGalleryController> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _FilterPill(
-                          label: 'Language',
+                          label: 'Language'.tr,
                           value: controller.language.value,
                           onTap: () => _pickFilter(
                             context,
-                            title: 'Language',
+                            title: 'Language'.tr,
                             options: CvTemplateFixtures.languages,
                             current: controller.language.value,
                             onSelected: controller.setLanguage,
@@ -211,7 +211,7 @@ class _FilterPill extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  showing,
+                  showing.tr,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: context.text.labelMedium?.copyWith(
@@ -271,7 +271,7 @@ class _BlankTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Create blank',
+                'Create blank'.tr,
                 style: context.text.bodySmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colors.heading,

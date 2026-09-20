@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// Visual variants for [VitheyIconButton].
@@ -110,7 +111,7 @@ class VitheyIconButton extends StatelessWidget {
 
     if (tooltip != null) {
       button = Tooltip(
-        message: tooltip!,
+        message: tooltip!.tr,
         child: button,
       );
     }

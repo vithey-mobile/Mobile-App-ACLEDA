@@ -255,7 +255,7 @@ class _CoverIconButton extends StatelessWidget {
         padding: const EdgeInsets.all(8),
       ),
       icon: VitheyIcon(icon, color: color, size: 22),
-      tooltip: tooltip,
+      tooltip: tooltip.tr,
       onPressed: onPressed,
     );
   }

@@ -76,6 +76,30 @@ def test_cv_suggest(client):
     assert resp.json()["data"]["suggested_text"]
 
 
+def test_product_ai_endpoints_without_upstream(client, monkeypatch):
+    """Endpoints respond even when profile/content services are unreachable."""
+    user = str(uuid.uuid4())
+    headers = {"X-User-Id": user}
+
+    skills = client.get("/api/v1/ai/skills/score", headers=headers)
+    assert skills.status_code == 200
+    body = skills.json()["data"]
+    assert "overall_score" in body
+    assert body["top_skills"] == []
+
+    feed = client.get("/api/v1/ai/feed/recommendations?limit=5", headers=headers)
+    assert feed.status_code == 200
+    assert feed.json()["data"] == []
+
+    # Job match returns 404 when the post cannot be fetched.
+    match = client.post(
+        f"/api/v1/ai/jobs/{uuid.uuid4()}/match",
+        headers=headers,
+        json={},
+    )
+    assert match.status_code == 404
+
+
 def test_chat_requires_auth(client):
     resp = client.post("/api/v1/ai/chat", json={"message": "hi"})
     assert resp.status_code == 401

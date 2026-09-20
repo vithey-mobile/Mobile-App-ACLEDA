@@ -81,7 +81,7 @@ class MapScreen extends GetView<MapController> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Loading map...',
+                        'Loading map...'.tr,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -145,7 +145,7 @@ class MapScreen extends GetView<MapController> {
                           builder: (context, value, _) => Obx(
                             () => VitheySearchPill(
                               controller: controller.textController,
-                              hintText: 'Search shops nearby',
+                              hintText: 'Search shops nearby'.tr,
                               compact: true,
                               onChanged: controller.onSearchChanged,
                               onSubmitted: controller.onSearchSubmitted,
@@ -302,7 +302,7 @@ class MapScreen extends GetView<MapController> {
                         vertical: 10,
                       ),
                       child: Text(
-                        'Search this area',
+                        'Search this area'.tr,
                         style: context.text.bodyMedium?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -416,7 +416,7 @@ class _ActiveFilterPill extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                label,
+                label.tr,
                 style: context.text.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
@@ -448,7 +448,7 @@ class _DropPinBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Drag the map to set the pin',
+            'Drag the map to set the pin'.tr,
             style: context.text.bodySmall?.copyWith(
               color: context.appColors.muted,
             ),
@@ -504,7 +504,7 @@ class _DroppedPinCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Dropped pin',
+                  'Dropped pin'.tr,
                   style: context.text.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: context.appColors.heading,

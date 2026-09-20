@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: vithey-minio
     env_file:
       - infrastructure/.env.example
@@ -206,6 +206,9 @@ services:
     container_name: vithey-file-service
     env_file:
       - services/file-service/.env.example
+    environment:
+      # Overridden at runtime by start-all.ps1 (detected LAN IP for phone/emulator testing)
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:19000}
     ports:
       - "8083:8083"
     depends_on:
@@ -362,13 +365,13 @@ services:
     container_name: vithey-ai-core
     environment:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://openrouter.ai/api/v1}
-      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-z-ai/glm-5.3-flash}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://open.bigmodel.cn/api/paas/v4/}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-glm-4-plus}
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_db
       VITHEY_JWT_SECRET: ${VITHEY_JWT_SECRET:-change-me-to-a-strong-256-bit-secret-for-local-dev}
       USER_PROFILE_BASE_URL: http://user-profile-service:8082
       CONTENT_BASE_URL: http://content-service:8084
-      AI_CHAT_MODE: stub
+      AI_CHAT_MODE: ${AI_CHAT_MODE:-live}
       AI_CV_MAX_POSTS: "20"
       MAX_POSTS_PER_BUILD: "20"
       MAX_CONTENT_CHARS: "2000"
@@ -377,6 +380,8 @@ services:
       API_RATE_LIMIT_PER_MINUTE: "20"
       CACHE_MAX_SIZE: "128"
       LOG_LEVEL: INFO
+    volumes:
+      - ../ai_core/vithey_ai:/app/vithey_ai
     env_file:
       - path: ../ai_core/.env
         required: false

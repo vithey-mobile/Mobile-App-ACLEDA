@@ -70,7 +70,7 @@ class ApplicationStatusScreen extends GetView<ApplicationStatusController> {
         elevation: 0,
         backgroundColor: context.appColors.bodyBackground,
         foregroundColor: context.appColors.heading,
-        title: Text(AppStrings.applyStatusTitle, style: context.text.headlineSmall),
+        title: Text(AppStrings.applyStatusTitle.tr, style: context.text.headlineSmall),
       ),
       body: Obx(() {
         if (controller.isLoading.value) return const LoadingWidget();

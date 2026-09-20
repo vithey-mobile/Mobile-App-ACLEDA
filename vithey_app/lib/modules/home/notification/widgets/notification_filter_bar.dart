@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/widgets/vithey_filter_chips.dart';
 import 'package:aub_connect_app/data/models/app_notification_model.dart';
 
@@ -23,9 +24,9 @@ class NotificationFilterBar extends StatelessWidget {
             VitheyFilterChipItem(
               id: filter.name,
               label: switch (filter) {
-                NotificationFilter.all => 'All',
-                NotificationFilter.read => 'Read',
-                NotificationFilter.unread => 'Unread',
+                NotificationFilter.all => 'All'.tr,
+                NotificationFilter.read => 'Read'.tr,
+                NotificationFilter.unread => 'Unread'.tr,
               },
               selected: filter == selected,
             ),

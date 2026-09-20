@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Shared auth CTA label style — primary and outline buttons match size/weight.
 const kAuthButtonFontSize = 16.0;
@@ -100,7 +101,7 @@ class SocialDivider extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
-              text,
+              text.tr,
               style: context.text.labelMedium?.copyWith(
                 fontSize: fontSize,
                 height: 1,

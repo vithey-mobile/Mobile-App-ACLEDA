@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/empty_state_widget.dart';
 import 'package:aub_connect_app/core/widgets/shimmer_list_tile.dart';
@@ -55,7 +56,7 @@ class SearchRecentSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
           child: Row(
             children: [
-              Text('Recent', style: context.text.titleMedium),
+              Text('Recent'.tr, style: context.text.titleMedium),
               const Spacer(),
               if (onClearAll != null)
                 VitheyTextLink(

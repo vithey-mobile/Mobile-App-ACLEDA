@@ -191,7 +191,7 @@ class PostRepository {
           reactedPosts: _reactedPosts,
           followedAuthors: _followedAuthors,
         ),
-      ]).where((p) => p.type == PostType.video).toList();
+      ]).where((p) => p.isReelVideo).toList();
       final start = (page - 1) * limit;
       if (start >= all.length) {
         return const FeedPageResult(posts: [], hasMore: false);
@@ -208,7 +208,8 @@ class PostRepository {
       currentUserId: _mockUserId,
       type: PostType.video,
     );
-    return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
+    final reels = posts.where((p) => p.isReelVideo).toList();
+    return FeedPageResult(posts: reels, hasMore: posts.length >= limit);
   }
 
   Future<void> toggleReaction(String postId) async {

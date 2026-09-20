@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class RelativeTime {
   RelativeTime._();
 
@@ -6,26 +8,31 @@ class RelativeTime {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
 
-    if (diff.isNegative || diff.inMinutes < 1) return 'Just now';
+    if (diff.isNegative || diff.inMinutes < 1) return 'Just now'.tr;
     if (diff.inHours < 1) {
-      return _plural(diff.inMinutes, 'minute', 'minutes');
+      return _plural(diff.inMinutes, 'minute');
     }
     if (diff.inHours < 24) {
-      return _plural(diff.inHours, 'hour', 'hours');
+      return _plural(diff.inHours, 'hour');
     }
     if (diff.inDays < 30) {
-      return _plural(diff.inDays, 'day', 'days');
+      return _plural(diff.inDays, 'days');
     }
     if (diff.inDays < 365) {
       final months = (diff.inDays / 30).floor().clamp(1, 11);
-      return _plural(months, 'month', 'months');
+      return _plural(months, 'month');
     }
     final years = (diff.inDays / 365).floor().clamp(1, 999);
-    return _plural(years, 'year', 'years');
+    return _plural(years, 'year');
   }
 
-  static String _plural(int value, String singular, String plural) {
-    return '$value ${value == 1 ? singular : plural} ago';
+  static String _plural(int value, String unitKey) {
+    final isKhmer = Get.locale?.languageCode == 'km';
+    if (isKhmer) {
+      return '$value ${unitKey.tr}${'ago'.tr}';
+    }
+    final plural = value == 1 ? unitKey : '${unitKey}s';
+    return '$value $plural ago';
   }
 
   /// Chat list trailing time — e.g. `2m ago`, `Yesterday`.
@@ -35,10 +42,10 @@ class RelativeTime {
     final day = DateTime(dateTime.year, dateTime.month, dateTime.day);
     final diff = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 1) return 'Just now'.tr;
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (day == today) return '${diff.inHours}h ago';
-    if (day == today.subtract(const Duration(days: 1))) return 'Yesterday';
+    if (day == today.subtract(const Duration(days: 1))) return 'Yesterday'.tr;
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
@@ -24,7 +25,7 @@ class AppErrorWidget extends StatelessWidget {
           children: [
             VitheyIcon(LucideIcons.circleAlert, size: 56, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
+            Text(message.tr, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
               CustomButton(label: AppStrings.retry, onPressed: onRetry, variant: CustomButtonVariant.outline),

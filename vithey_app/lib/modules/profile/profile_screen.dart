@@ -57,7 +57,7 @@ class ProfileScreen extends GetView<ProfileController> {
                   color: context.scheme.onPrimary,
                 ),
                 label: Text(
-                  'AI Create CV',
+                  'AI Create CV'.tr,
                   style: context.text.labelLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: context.scheme.onPrimary,
@@ -81,11 +81,11 @@ class ProfileScreen extends GetView<ProfileController> {
         }
 
         final tabs = <Tab>[
-          const Tab(text: 'All'),
-          const Tab(text: 'Reels'),
-          const Tab(text: 'Posters'),
-          const Tab(text: 'Jobs'),
-          const Tab(text: 'Applied Jobs'),
+          Tab(text: 'All'.tr),
+          Tab(text: 'Reels'.tr),
+          Tab(text: 'Posters'.tr),
+          Tab(text: 'Jobs'.tr),
+          Tab(text: 'Applied Jobs'.tr),
         ];
 
         const tabViews = <Widget>[

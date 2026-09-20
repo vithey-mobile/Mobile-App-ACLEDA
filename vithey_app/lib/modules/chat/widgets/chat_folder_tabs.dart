@@ -120,7 +120,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                 ),
                 children: [
                   _FolderNavTab(
-                    label: AppStrings.chatFolderAll,
+                    label: AppStrings.chatFolderAll.tr,
                     count: conversationCount,
                     selected: selected == ChatFolderIds.all,
                     inactiveLabel: inactiveLabel,
@@ -129,7 +129,7 @@ class _ChatFolderTabsDelegate extends SliverPersistentHeaderDelegate {
                     onTap: (_) => controller.selectFolder(ChatFolderIds.all),
                   ),
                   _FolderNavTab(
-                    label: AppStrings.chatFolderUnread,
+                    label: AppStrings.chatFolderUnread.tr,
                     count: controller.countForFolder(ChatFolderIds.unread),
                     selected: selected == ChatFolderIds.unread,
                     inactiveLabel: inactiveLabel,

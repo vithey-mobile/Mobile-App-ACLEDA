@@ -249,7 +249,7 @@ class AuthSignInForm extends GetView<AuthController> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                AppStrings.welcomeBack,
+                AppStrings.welcomeBack.tr,
                 style: context.text.headlineSmall,
               ),
               const SizedBox(height: 20),
@@ -326,7 +326,7 @@ class AuthSignInForm extends GetView<AuthController> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    AppStrings.noAccount,
+                    AppStrings.noAccount.tr,
                     style: context.text.labelMedium,
                   ),
                   CustomButton(
@@ -366,7 +366,7 @@ class AuthSignUpForm extends GetView<AuthController> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            AppStrings.createAccount,
+            AppStrings.createAccount.tr,
             style: context.text.headlineSmall,
           ),
           const SizedBox(height: 16),
@@ -457,7 +457,7 @@ class AuthSignUpForm extends GetView<AuthController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                AppStrings.hasAccount,
+                AppStrings.hasAccount.tr,
                 style: context.text.labelMedium,
               ),
               CustomButton(
@@ -603,7 +603,7 @@ class AuthForgotPasswordForm extends GetView<AuthController> {
               ),
               const SizedBox(height: 16),
               Text(
-                AppStrings.resetLinkSent,
+                AppStrings.resetLinkSent.tr,
                 textAlign: TextAlign.center,
                 style: context.text.titleMedium,
               ),
@@ -625,12 +625,12 @@ class AuthForgotPasswordForm extends GetView<AuthController> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  AppStrings.forgotPasswordTitle,
+                  AppStrings.forgotPasswordTitle.tr,
                   style: context.text.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppStrings.forgotPasswordSubtitle,
+                  AppStrings.forgotPasswordSubtitle.tr,
                   textAlign: TextAlign.center,
                   style: context.text.bodyMedium?.copyWith(
                     color: context.appColors.muted,

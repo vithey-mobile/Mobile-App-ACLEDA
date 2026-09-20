@@ -510,11 +510,31 @@ All fields optional. Body may be omitted (`{}` or empty). Server aggregates prof
 }
 ```
 
+### Job match (rule-based)
+
+### `POST /ai/jobs/{job_post_id}/match`
+
+```json
+{ "applicant_user_id": null, "cv_file_id": null }
+```
+
+Returns score 0–100, matched/gap skills, reasons, `incomplete_profile`.
+
+### Skill score (rule-based)
+
+### `GET /ai/skills/score`
+
+Returns `{ overall_score, top_skills[{ skill_name, ai_score, self_percent, signals }], suggestions }`.
+
+### Feed recommendations (rule-based)
+
+### `GET /ai/feed/recommendations?limit=`
+
+Returns `[{ post_id, relevance, reason }]`.
+
 ### Not implemented (do not call yet)
 
-`PATCH /ai/sessions/{id}` · `POST /ai/messages/{id}/feedback` · `POST /ai/jobs/{jobPostId}/match` · `GET /ai/skills/score` · `GET /ai/feed/recommendations`
-
-Flutter gates these behind mock/feature flags and returns neutral values in live mode.
+`PATCH /ai/sessions/{id}` · `POST /ai/messages/{id}/feedback`
 
 ---
 
@@ -629,7 +649,7 @@ No single `/search` aggregator — Flutter fans out:
 | `PATCH /posts/{post_id}` | Flutter calls it; **no backend mapping** → `404` |
 | `POST /conversations/request` | Does not exist; use `POST /message-requests` |
 | `GET /api/v1/jobs/**` | Gateway route exists but no controller |
-| `POST /ai/jobs/{id}/match`, `GET /ai/skills/score`, `GET /ai/feed/recommendations` | Not shipped; Flutter stubs only |
+| `POST /ai/jobs/{id}/match`, `GET /ai/skills/score`, `GET /ai/feed/recommendations` | Shipped in `ai_core` (rule-based, no LLM) |
 | Google sign-in | Stubbed in Flutter (`ENABLE_GOOGLE_AUTH`); no endpoint |
 | `GET /users/me/settings` `fcm_token` field | Device tokens use `POST /notifications/devices` instead |
 

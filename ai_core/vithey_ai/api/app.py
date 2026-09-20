@@ -15,6 +15,7 @@ from ..config import Config
 from ..cv_app_service import CvAppService
 from ..db import build_database
 from ..logging_conf import get_logger
+from ..product_ai_service import ProductAiService
 from .deps import build_ai
 from .flutter_envelope import fail
 from .flutter_routes import flutter_router
@@ -52,8 +53,9 @@ def create_app(config: Config | None = None, ai=None) -> FastAPI:
 
     db = build_database(config)
     app.state.db = db
-    app.state.chat_service = ChatService(db)
+    app.state.chat_service = ChatService(db, config=config)
     app.state.cv_app_service = CvAppService(app.state.ai, config, db)
+    app.state.product_ai_service = ProductAiService(config)
 
     # Middleware (order matters: outermost first).
     app.add_middleware(RequestContextMiddleware)

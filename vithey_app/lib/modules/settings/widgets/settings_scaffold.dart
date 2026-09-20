@@ -72,7 +72,7 @@ class SettingsScaffold extends StatelessWidget {
                   opacity: innerBoxIsScrolled ? 1 : 0,
                   duration: const Duration(milliseconds: 120),
                   child: Text(
-                    title,
+                    title.tr,
                     style: context.text.titleLarge?.copyWith(fontSize: 17),
                   ),
                 ),
@@ -116,7 +116,7 @@ class _SettingsLargeTitle extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
           child: Text(
-            title,
+            title.tr,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: context.text.headlineSmall?.copyWith(

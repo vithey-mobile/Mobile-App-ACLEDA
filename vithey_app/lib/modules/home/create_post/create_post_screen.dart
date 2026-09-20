@@ -209,7 +209,7 @@ class _AdaptiveEditor extends StatelessWidget {
 
   InputDecoration _editorDecoration(BuildContext context) {
     return InputDecoration(
-      hintText: 'What\'s on your mind?',
+      hintText: 'What\'s on your mind?'.tr,
       hintStyle:
           context.text.bodyLarge?.copyWith(color: context.appColors.muted),
       filled: true,
@@ -282,7 +282,7 @@ class _CreatePostHeader extends GetView<CreatePostController> {
                     VitheyIconButton(
                       icon: LucideIcons.arrowLeft,
                       variant: VitheyIconButtonVariant.neutral,
-                      tooltip: 'Back to home',
+                      tooltip: 'Back to home'.tr,
                       onTap: onBack,
                     ),
                     UserAvatar(
@@ -303,7 +303,7 @@ class _CreatePostHeader extends GetView<CreatePostController> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              controller.audienceLabel,
+                              controller.audienceLabel.tr,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: context.text.labelLarge
@@ -320,7 +320,7 @@ class _CreatePostHeader extends GetView<CreatePostController> {
                     ),
                     const Spacer(),
                     _PublishAction(
-                      label: postLabel,
+                      label: postLabel.tr,
                       enabled: controller.canPublish,
                       loading: controller.isPosting.value,
                       onPressed: onPost,
@@ -373,7 +373,7 @@ class _PublishAction extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      label,
+                      label.tr,
                       style: context.text.bodySmall?.copyWith(
                         color: enabled
                             ? context.scheme.onPrimary
@@ -513,7 +513,7 @@ class _ComposerToolbar extends GetView<CreatePostController> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            controller.categoryLabel,
+                            controller.categoryLabel.tr,
                             style: context.text.labelSmall?.copyWith(
                               color: context.scheme.primary,
                               fontWeight: FontWeight.w600,
@@ -564,7 +564,7 @@ class _ToolbarAction extends StatelessWidget {
             VitheyIcon(icon, size: 19, color: context.appColors.muted),
             const SizedBox(height: 2),
             Text(
-              label,
+              label.tr,
               style: context.text.bodyMedium
                   ?.copyWith(color: context.appColors.muted, fontSize: 9.5),
             ),
@@ -592,7 +592,7 @@ class _AudienceSheet extends StatelessWidget {
             const _SheetHandle(),
             const SizedBox(height: 15),
             Text(
-              'Who can see your post?',
+              'Who can see your post?'.tr,
               style: context.text.titleLarge?.copyWith(fontSize: 17),
             ),
             const SizedBox(height: 10),
@@ -662,7 +662,7 @@ class _CategorySheet extends StatelessWidget {
             const _SheetHandle(),
             const SizedBox(height: 15),
             Text(
-              'What is your post type?',
+              'What is your post type?'.tr,
               style: context.text.titleLarge?.copyWith(fontSize: 17),
             ),
             const SizedBox(height: 10),
@@ -784,7 +784,7 @@ class _CvLimitSheetState extends State<_CvLimitSheet> {
               const _SheetHandle(),
               const SizedBox(height: 12),
               Text(
-                'Limit CV',
+                'Limit CV'.tr,
                 style: context.text.titleLarge?.copyWith(fontSize: 17),
               ),
               const SizedBox(height: 4),
@@ -799,7 +799,7 @@ class _CvLimitSheetState extends State<_CvLimitSheet> {
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
-                hint: 'Insert amount',
+                hint: 'Insert amount'.tr,
                 errorText: _error,
                 onChanged: _onCustomChanged,
                 onSubmitted: (_) => _confirm(),
@@ -886,9 +886,9 @@ class _ChoiceRow extends StatelessWidget {
         onTap: enabled ? onTap : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 2),
         leading: VitheyIcon(icon, color: context.appColors.muted),
-        title: Text(title, style: context.text.labelLarge),
+        title: Text(title.tr, style: context.text.labelLarge),
         subtitle: Text(
-          subtitle,
+          subtitle.tr,
           style: context.text.bodySmall?.copyWith(fontSize: 11.5),
         ),
         trailing: VitheyIcon(

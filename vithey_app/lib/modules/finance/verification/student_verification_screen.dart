@@ -6,8 +6,10 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_text_field.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
+import 'package:aub_connect_app/data/models/student_verification_model.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/modules/finance/verification/widgets/student_id_upload_box.dart';
 import 'package:aub_connect_app/modules/finance/verification/widgets/verification_app_bar.dart';
@@ -92,13 +94,22 @@ class StudentVerificationController extends GetxController {
     errorMessage.value = '';
     try {
       // Always re-run verification — never skip because of a previous success.
-      await _repository.submitVerification(
+      final model = await _repository.submitVerification(
         studentId: studentIdController.text.trim(),
         universityEmail: emailController.text.trim(),
         documentFileName: hasDocument ? selectedDocumentName.value : null,
         documentPath: hasDocument ? _selectedDocumentPath : null,
       );
-      Get.offNamed(AppRoutes.verificationStatus);
+      if (model.status == VerificationStatus.verified) {
+        Get.snackbar(
+          AppStrings.appName,
+          'Student identity verified successfully! Welcome to Vithey Finance.',
+          snackPosition: SnackPosition.TOP,
+        );
+        Get.offNamed(AppRoutes.finance);
+      } else {
+        Get.offNamed(AppRoutes.verificationStatus);
+      }
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {

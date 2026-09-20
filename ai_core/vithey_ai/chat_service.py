@@ -6,9 +6,15 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from openai import OpenAI
+
 from .chat_registry import ChatRequestRegistry
 from .chat_stubs import normalize_topic, stub_reply
+from .config import Config
 from .db import Database
+from .logging_conf import get_logger
+
+logger = get_logger(__name__)
 
 
 def _now() -> datetime:
@@ -23,12 +29,62 @@ def _title_from_message(message: str) -> str:
 
 
 class ChatService:
-    def __init__(self, db: Database | None, registry: ChatRequestRegistry | None = None):
+    def __init__(
+        self,
+        db: Database | None,
+        registry: ChatRequestRegistry | None = None,
+        config: Config | None = None,
+    ):
         self._db = db
         self.registry = registry or ChatRequestRegistry()
+        self._config = config or Config()
         # Fallback store when DATABASE_URL is missing (local unit tests).
         self._mem_sessions: dict[uuid.UUID, dict[str, Any]] = {}
         self._mem_messages: dict[uuid.UUID, list[dict[str, Any]]] = {}
+
+    def get_history_for_llm(
+        self, user_id: uuid.UUID, session_id: uuid.UUID, limit: int = 6
+    ) -> list[dict[str, str]]:
+        msgs, _ = self.list_messages(user_id, session_id, page=1, limit=limit)
+        history: list[dict[str, str]] = []
+        for m in msgs:
+            role = "user" if str(m["role"]).upper() == "USER" else "assistant"
+            history.append({"role": role, "content": m["content"]})
+        return history
+
+    def _call_llm(
+        self, user_id: uuid.UUID, session_id: uuid.UUID, topic: str, user_message: str
+    ) -> str | None:
+        if self._config.AI_CHAT_MODE == "stub" or not self._config.DEEPSEEK_API_KEY:
+            return None
+        try:
+            client = OpenAI(
+                api_key=self._config.DEEPSEEK_API_KEY,
+                base_url=self._config.DEEPSEEK_BASE_URL,
+                timeout=self._config.TIMEOUT_SECONDS,
+            )
+            history = self.get_history_for_llm(user_id, session_id, limit=6)
+            system_prompt = (
+                f"You are Vithey AI, a friendly, intelligent assistant for the Vithey superapp "
+                f"serving Cambodian university students (AUPP/ACLEDA). Topic: {topic}. "
+                f"Give concise, helpful answers formatted in Markdown."
+            )
+            messages = [{"role": "system", "content": system_prompt}]
+            messages.extend(history)
+            if not history or history[-1].get("role") != "user":
+                messages.append({"role": "user", "content": user_message})
+
+            response = client.chat.completions.create(
+                model=self._config.DEEPSEEK_MODEL,
+                messages=messages,
+                max_tokens=self._config.MAX_TOKENS,
+                temperature=self._config.TEMPERATURE,
+            )
+            content = response.choices[0].message.content
+            return content.strip() if content else None
+        except Exception as e:
+            logger.warning("LLM call failed: %s; falling back to stub", e)
+            return None
 
     def chat(
         self,
@@ -40,7 +96,11 @@ class ChatService:
         request_id = self.registry.register(user_id)
         try:
             prepared = self._prepare_turn(user_id, message, topic, session_id)
-            reply = stub_reply(prepared["topic"], message)
+            reply = self._call_llm(
+                user_id, prepared["session_id"], prepared["topic"], message
+            )
+            if not reply:
+                reply = stub_reply(prepared["topic"], message)
             assistant_id = self._complete_turn(prepared, reply)
             return {
                 "session_id": str(prepared["session_id"]),
@@ -66,7 +126,11 @@ class ChatService:
         if user_msg is None:
             raise ValueError("No user message to regenerate from")
 
-        reply = stub_reply(session["topic"], user_msg["content"])
+        reply = self._call_llm(
+            user_id, session["id"], session["topic"], user_msg["content"]
+        )
+        if not reply:
+            reply = stub_reply(session["topic"], user_msg["content"])
         self._update_message_content(message_id, reply)
         self._touch_session(session["id"])
         return {

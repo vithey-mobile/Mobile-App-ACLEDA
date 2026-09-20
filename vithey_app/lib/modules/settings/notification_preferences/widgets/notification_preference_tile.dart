@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
@@ -45,12 +46,12 @@ class NotificationPreferenceTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
+                          title.tr,
                           style: context.text.titleSmall,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          subtitle,
+                          subtitle.tr,
                           style: context.text.bodySmall?.copyWith(fontSize: 12),
                         ),
                       ],

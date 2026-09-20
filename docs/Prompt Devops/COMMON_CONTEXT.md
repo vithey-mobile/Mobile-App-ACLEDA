@@ -56,17 +56,18 @@ See `_shared/REPO_PATHS.md` for canonical paths.
 monorepo/
 ├── .github/workflows/           # ci.yml, <service>-ci.yml, docker-publish.yml
 ├── backend/
+│   ├── docker-compose.yml       # full stack (preferred with start-all.ps1)
 │   ├── infrastructure/docker-compose.yml
-│   ├── scripts/start-all.ps1
+│   ├── scripts/start-all.ps1    # LAN MinIO public URL + Flutter .env sync
 │   └── services/<name>/
 │       ├── Dockerfile
 │       ├── docker-compose.yml
 │       └── .env.example
+├── ai_core/                     # Python FastAPI AI (:8100)
 ├── vithey_app/                  # Flutter
 ├── monitoring/                  # Prometheus, Grafana, Loki (see v1/08)
-└── prompt/                      # all markdown docs
+└── docs/                        # all markdown prompts (Prompt Backend/Frontend/Devops/Al)
 ```
-
 ## Docker Image Registry
 | Setting | Value |
 |---------|-------|
@@ -182,7 +183,7 @@ Use `depends_on` + `healthcheck` + Spring `spring.cloud.discovery.wait` where ne
 
 ## Documentation Deliverables
 
-In `prompt/Prompt Devops/` only (not in `backend/`):
+In `docs/Prompt Devops/` only (not scattered as extra READMEs under every service):
 
 - `docs/LOCAL_DEV.md`, `docs/ENV.md`, `DOCKER.md`, `DOCKER-VERIFY.md`
 

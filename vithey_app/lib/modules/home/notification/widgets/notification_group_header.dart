@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class NotificationGroupHeader extends StatelessWidget {
@@ -19,7 +20,7 @@ class NotificationGroupHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              title,
+              title.tr,
               style: context.text.titleSmall,
             ),
           ),

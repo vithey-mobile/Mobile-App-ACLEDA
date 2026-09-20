@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -56,7 +57,7 @@ class FinanceBalanceCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Outstanding Balance',
+                        'Outstanding Balance'.tr,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: context.text.bodySmall
@@ -86,7 +87,9 @@ class FinanceBalanceCard extends StatelessWidget {
                               BorderRadius.circular(VitheyRadii.pill),
                         ),
                         child: Text(
-                          dashboard.dueBadgeLabel,
+                          dashboard.daysRemaining > 0
+                              ? '${'Due in'.tr} ${dashboard.daysRemaining} ${'days'.tr}'
+                              : 'Due Today'.tr,
                           maxLines: 1,
                           softWrap: false,
                           style: context.text.labelMedium?.copyWith(

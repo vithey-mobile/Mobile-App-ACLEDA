@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:aub_connect_app/core/constants/api_endpoints.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
 import 'package:aub_connect_app/core/network/dio_client.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/models/ai_cv_draft.dart';
+import 'package:aub_connect_app/data/models/ai_career_readiness.dart';
+import 'package:aub_connect_app/data/models/ai_feed_recommendation.dart';
+import 'package:aub_connect_app/data/models/ai_job_match_result.dart';
 
 /// SSE event from `POST /ai/chat/stream`.
 sealed class AiStreamEvent {
@@ -143,8 +147,12 @@ class AiService {
       if (line.startsWith('event:')) {
         eventName = line.substring(6).trim();
       } else if (line.startsWith('data:')) {
-        if (dataBuffer.isNotEmpty) dataBuffer.writeln();
-        dataBuffer.write(line.substring(5).trimLeft());
+        var value = line.substring(5);
+        if (value.startsWith(' ')) {
+          value = value.substring(1);
+        }
+        if (dataBuffer.isNotEmpty) dataBuffer.write('\n');
+        dataBuffer.write(value);
       }
     }
   }
@@ -162,6 +170,10 @@ class AiService {
           topic: json['topic']?.toString(),
         );
       case 'token':
+        final json = _tryDecodeMap(data);
+        if (json != null && json.containsKey('text')) {
+          return AiStreamToken(json['text']?.toString() ?? '');
+        }
         return AiStreamToken(data);
       case 'done':
         final json = _tryDecodeMap(data) ?? {};
@@ -190,6 +202,10 @@ class AiService {
     } catch (_) {}
     return null;
   }
+
+  @visibleForTesting
+  AiStreamEvent? parseSseEventForTesting(String name, String data) =>
+      _parseSseEvent(name, data);
 
   Future<void> cancelChatRequest(String requestId) async {
     final response = await _api.delete<void>(
@@ -307,6 +323,63 @@ class AiService {
     );
     if (!response.isSuccess || response.data == null || response.data!.isEmpty) {
       throw AiServiceException(response.error?.message ?? 'CV suggest failed');
+    }
+    return response.data!;
+  }
+
+  /// Rule-based job match via `POST /ai/jobs/{id}/match`.
+  Future<AiJobMatchResult> matchJob({
+    required String jobPostId,
+    String? cvFileId,
+    String? applicantUserId,
+  }) async {
+    final response = await _api.post<AiJobMatchResult>(
+      ApiEndpoints.aiJobMatch(jobPostId),
+      data: {
+        if (cvFileId != null && cvFileId.isNotEmpty) 'cv_file_id': cvFileId,
+        if (applicantUserId != null && applicantUserId.isNotEmpty)
+          'applicant_user_id': applicantUserId,
+      },
+      fromJson: (json) => AiJobMatchResult.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw AiServiceException(response.error?.message ?? 'Job match failed');
+    }
+    return response.data!;
+  }
+
+  /// Career readiness via `GET /ai/skills/score`.
+  Future<AiCareerReadiness> skillScores() async {
+    final response = await _api.get<AiCareerReadiness>(
+      ApiEndpoints.aiSkillsScore,
+      fromJson: (json) => AiCareerReadiness.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw AiServiceException(response.error?.message ?? 'Skill score failed');
+    }
+    return response.data!;
+  }
+
+  /// Personalized feed ranking via `GET /ai/feed/recommendations`.
+  Future<List<AiFeedRecommendation>> feedRecommendations({int limit = 20}) async {
+    final response = await _api.get<List<AiFeedRecommendation>>(
+      ApiEndpoints.aiFeedRecommendations,
+      queryParameters: {'limit': limit},
+      fromJson: (json) {
+        if (json is! List) return <AiFeedRecommendation>[];
+        return [
+          for (final item in json)
+            if (item is Map<String, dynamic>)
+              AiFeedRecommendation.fromJson(item)
+            else if (item is Map)
+              AiFeedRecommendation.fromJson(Map<String, dynamic>.from(item)),
+        ];
+      },
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw AiServiceException(
+        response.error?.message ?? 'Feed recommendations failed',
+      );
     }
     return response.data!;
   }

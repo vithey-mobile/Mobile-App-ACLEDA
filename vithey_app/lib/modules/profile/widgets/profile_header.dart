@@ -63,7 +63,7 @@ class _StatItem extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          label,
+          label.tr,
           style: context.text.bodySmall?.copyWith(height: 1.1),
         ),
       ],

@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
@@ -8,8 +5,8 @@ import 'package:aub_connect_app/modules/home/widgets/post_author_header.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
+import 'package:aub_connect_app/core/widgets/vithey_media_image.dart';
 
-import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
@@ -223,57 +220,13 @@ class _PostMediaTile extends StatelessWidget {
 
   final String url;
 
-  bool get _isAsset => url.startsWith('assets/');
-
-  bool get _isLocalFile =>
-      !_isAsset &&
-      !url.startsWith('http://') &&
-      !url.startsWith('https://');
-
   @override
   Widget build(BuildContext context) {
-    if (_isAsset) {
-      return Image.asset(
-        url,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: context.appColors.inputFill,
-          alignment: Alignment.center,
-          child: const VitheyIcon(LucideIcons.imageOff),
-        ),
-      );
-    }
-    if (_isLocalFile) {
-      return Image.file(
-        File(url),
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: context.appColors.inputFill,
-          alignment: Alignment.center,
-          child: const VitheyIcon(LucideIcons.imageOff),
-        ),
-      );
-    }
-    return CachedNetworkImage(
-      imageUrl: url,
+    return VitheyMediaImage(
+      url: url,
       width: double.infinity,
       height: double.infinity,
       fit: BoxFit.cover,
-      placeholder: (_, __) => ColoredBox(
-        color: context.appColors.inputFill,
-        child: const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
-      errorWidget: (_, __, ___) => Container(
-        color: context.appColors.inputFill,
-        alignment: Alignment.center,
-        child: const VitheyIcon(LucideIcons.imageOff),
-      ),
     );
   }
 }

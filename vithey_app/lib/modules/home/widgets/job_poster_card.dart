@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/widgets/vithey_text_link.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
@@ -125,7 +126,7 @@ class _JobActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (post.isOwnPost) {
       return VitheyTextLink(
-        label: 'Applicants (${post.applicantCount})',
+        label: '${'Applicants'.tr} (${post.applicantCount})',
         onPressed: onViewApplicants,
         fontSize: 10.5,
       );
@@ -135,7 +136,7 @@ class _JobActionButton extends StatelessWidget {
       case JobApplicationState.applied:
         return Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: Text('Applied',
+          child: Text('Applied'.tr,
               style: context.text.labelLarge
                   ?.copyWith(color: context.appColors.muted)),
         );
@@ -151,7 +152,7 @@ class _JobActionButton extends StatelessWidget {
         if (post.lifecycleState != JobLifecycleState.open) {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: Text('Closed',
+            child: Text('Closed'.tr,
                 style: TextStyle(color: context.appColors.muted)),
           );
         }
@@ -166,7 +167,7 @@ class _JobActionButton extends StatelessWidget {
               height: 28,
               child: Center(
                 child: Text(
-                  'Apply',
+                  'Apply'.tr,
                   style: context.text.labelLarge?.copyWith(
                     fontSize: 12,
                     color: context.scheme.onPrimary,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 
 /// Avatar with network image and initials fallback.
 class UserAvatar extends StatelessWidget {
@@ -25,14 +26,18 @@ class UserAvatar extends StatelessWidget {
     final initials = _initials(name);
     final fill = backgroundColor ??
         Theme.of(context).colorScheme.primaryContainer;
-    if (imageUrl != null && imageUrl!.isNotEmpty) {
+    final resolved = MediaUrlResolver.resolve(imageUrl);
+    if (resolved.isNotEmpty) {
       final ImageProvider<Object> provider;
-      if (imageUrl!.startsWith('assets/')) {
-        provider = AssetImage(imageUrl!);
-      } else if (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')) {
-        provider = CachedNetworkImageProvider(imageUrl!);
+      if (resolved.isAsset) {
+        provider = AssetImage(resolved.url);
+      } else if (resolved.isNetwork) {
+        provider = CachedNetworkImageProvider(
+          resolved.url,
+          headers: resolved.headers,
+        );
       } else {
-        provider = FileImage(File(imageUrl!));
+        provider = FileImage(File(resolved.url));
       }
       return CircleAvatar(
         radius: radius,

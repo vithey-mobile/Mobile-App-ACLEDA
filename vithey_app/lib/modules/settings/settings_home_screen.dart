@@ -17,7 +17,7 @@ class SettingsHomeScreen extends GetView<SettingsController> {
   @override
   Widget build(BuildContext context) {
     return SettingsScaffold(
-      title: 'Settings',
+      title: 'Settings'.tr,
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -25,79 +25,79 @@ class SettingsHomeScreen extends GetView<SettingsController> {
         return ListView(
           padding: const EdgeInsets.only(bottom: 8),
           children: [
-            const SettingsSectionLabel(label: 'Preferences'),
+            SettingsSectionLabel(label: 'Preferences'.tr),
             _CardGroup(
               children: [
                 SettingsMenuTile(
                   icon: LucideIcons.user,
-                  label: 'Account',
+                  label: 'Account'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsAccount),
                 ),
                 SettingsMenuTile(
                   icon: LucideIcons.lock,
-                  label: 'Privacy',
+                  label: 'Privacy'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsPrivacy),
                 ),
                 SettingsMenuTile(
                   icon: LucideIcons.languages,
-                  label: 'Language',
+                  label: 'Language'.tr,
                   subtitle: controller.languageLabel,
                   onTap: controller.openLanguagePicker,
                 ),
               ],
             ),
-            const SettingsSectionLabel(label: 'System'),
+            SettingsSectionLabel(label: 'System'.tr),
             _CardGroup(
               children: [
                 SettingsMenuTile(
                   icon: LucideIcons.bell,
-                  label: 'Notifications',
+                  label: 'Notifications'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsNotifications),
                 ),
                 SettingsMenuTile(
                   icon: LucideIcons.shield,
-                  label: 'Security',
+                  label: 'Security'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsSecurity),
                 ),
                 SettingsSwitchTile(
                   icon: LucideIcons.moon,
-                  label: 'Dark Mode',
+                  label: 'Dark Mode'.tr,
                   value: controller.isDarkMode.value,
                   onChanged: controller.toggleDarkMode,
                 ),
               ],
             ),
-            const SettingsSectionLabel(label: 'Support'),
+            SettingsSectionLabel(label: 'Support'.tr),
             _CardGroup(
               children: [
                 SettingsMenuTile(
                   icon: LucideIcons.circleHelp,
-                  label: 'Help Center',
+                  label: 'Help Center'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsHelpCenter),
                 ),
                 SettingsMenuTile(
                   icon: LucideIcons.info,
-                  label: 'About',
+                  label: 'About'.tr,
                   onTap: () => Get.toNamed(AppRoutes.settingsAbout),
                 ),
               ],
             ),
-            const SettingsSectionLabel(label: 'General'),
+            SettingsSectionLabel(label: 'General'.tr),
             _CardGroup(
               children: [
                 SettingsMenuTile(
                   icon: LucideIcons.database,
-                  label: 'Data & storage',
+                  label: 'Data & storage'.tr,
                   onTap: () => Get.snackbar(
-                    'Settings',
+                    'Settings'.tr,
                     'Data & storage is coming soon',
                   ),
                 ),
                 SettingsMenuTile(
                   icon: LucideIcons.accessibility,
-                  label: 'Accessibility',
+                  label: 'Accessibility'.tr,
                   onTap: () => Get.snackbar(
-                    'Settings',
+                    'Settings'.tr,
                     'Accessibility is coming soon',
                   ),
                 ),

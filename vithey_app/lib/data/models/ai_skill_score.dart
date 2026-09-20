@@ -21,4 +21,22 @@ class AiSkillScore {
 
   /// Human-readable evidence lines, e.g. "2 related posts".
   final List<String> signals;
+
+  factory AiSkillScore.fromJson(Map<String, dynamic> json) {
+    final score = (json['ai_score'] as num?)?.toInt() ??
+        (json['self_percent'] as num?)?.toInt() ??
+        0;
+    final signalsRaw = json['signals'];
+    return AiSkillScore(
+      skillName: json['skill_name']?.toString() ?? '',
+      selfPercent: (json['self_percent'] as num?)?.toInt() ?? score,
+      aiScore: score,
+      signals: signalsRaw is List
+          ? [
+              for (final s in signalsRaw)
+                if (s != null) s.toString(),
+            ]
+          : const [],
+    );
+  }
 }

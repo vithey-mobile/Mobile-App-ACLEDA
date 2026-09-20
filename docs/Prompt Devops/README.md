@@ -13,7 +13,7 @@ Docker Compose, Dockerfiles, and GitHub Actions (CI → GHCR) prompts.
 
 | File | Purpose |
 | --- | --- |
-| `DOCKER.md` | **Primary** — per-folder Docker guide |
+| `DOCKER.md` | **Primary** — full stack + `start-all.ps1` |
 | `DOCKER-VERIFY.md` | Verification and troubleshooting |
 | `docs/ENV.md` | Environment variables |
 | `RUN-SERVICES.md` | Pointer to `DOCKER.md` (legacy alias) |
@@ -35,7 +35,7 @@ Docker Compose, Dockerfiles, and GitHub Actions (CI → GHCR) prompts.
 Generates under `backend/` — see `_shared/REPO_PATHS.md`.  
 Monitoring stack output: `monitoring/` (repo root).
 
-Documentation stays in `prompt/Prompt Devops/` (not in `backend/`).
+Documentation stays in `docs/Prompt Devops/` (not in `backend/`).
 
 ## Master prompt
 

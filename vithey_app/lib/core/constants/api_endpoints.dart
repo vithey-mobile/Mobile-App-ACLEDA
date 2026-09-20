@@ -44,6 +44,9 @@ class ApiEndpoints {
   static String aiCancelChatRequest(String requestId) => '/ai/chat/requests/$requestId';
   static const aiCvGenerate = '/ai/cv/generate';
   static const aiCvSuggest = '/ai/cv/suggest';
+  static String aiJobMatch(String jobPostId) => '/ai/jobs/$jobPostId/match';
+  static const aiSkillsScore = '/ai/skills/score';
+  static const aiFeedRecommendations = '/ai/feed/recommendations';
   static const notifications = '/notifications';
   static const notificationsUnreadCount = '/notifications/unread-count';
   static const notificationsReadAll = '/notifications/read-all';

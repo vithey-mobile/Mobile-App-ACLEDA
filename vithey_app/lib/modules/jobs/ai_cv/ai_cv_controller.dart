@@ -10,6 +10,7 @@ import 'package:aub_connect_app/modules/jobs/ai_cv/ai_cv_args.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_pdf_builder.dart';
 import 'package:aub_connect_app/modules/jobs/ai_cv/templates/cv_template_preview.dart';
 import 'package:aub_connect_app/modules/jobs/models/apply_cv_args.dart';
+import 'package:aub_connect_app/modules/profile/profile_controller.dart';
 import 'package:get/get.dart';
 
 enum AiCvPhase { generating, preview, saving, error }
@@ -84,6 +85,10 @@ class AiCvController extends GetxController {
       draft.value = withTemplate;
       _summaryVariant = 0;
       if (withTemplate.incompleteProfile) {
+        if (!withTemplate.isEmptyDraft) {
+          phase.value = AiCvPhase.preview;
+          return;
+        }
         phase.value = AiCvPhase.error;
         errorMessage.value = withTemplate.incompleteMessage ??
             'Complete your profile first so Vithey AI can build your CV.';
@@ -198,6 +203,44 @@ class AiCvController extends GetxController {
   }
 
   Future<void> retryGenerate() => _generate();
+
+  void fillManually() {
+    final current = draft.value;
+    if (current == null || current.isEmptyDraft) {
+      ProfileController? profileCtrl;
+      try {
+        if (Get.isRegistered<ProfileController>()) {
+          profileCtrl = Get.find<ProfileController>();
+        }
+      } catch (_) {}
+
+      final p = profileCtrl?.profile.value;
+      draft.value = AiCvDraft(
+        fullName: p?.fullName ?? 'Student Name',
+        jobTitle: _jobPreview?.jobMeta.title ?? 'AUB Student',
+        summary: p?.bio ?? 'Motivated student at American University of Phnom Penh.',
+        skills: p?.skills.isNotEmpty == true
+            ? p!.skills.map((s) => s.name).toList()
+            : const ['Communication', 'Problem Solving', 'Teamwork'],
+        education: p?.educationItems.isNotEmpty == true
+            ? p!.educationItems.map((e) => '${e.school} - ${e.major}').toList()
+            : const ['American University of Phnom Penh (AUB)'],
+        experience: p?.workItems.isNotEmpty == true
+            ? p!.workItems.map((w) => '${w.position} at ${w.workplace}').toList()
+            : const [],
+        projects: const [],
+        contact: p?.contactItems.firstOrNull?.email ?? p?.contactItems.firstOrNull?.phone ?? '',
+        phone: p?.contactItems.firstOrNull?.phone ?? '',
+        email: p?.contactItems.firstOrNull?.email ?? '',
+        location: p?.location ?? 'Phnom Penh, Cambodia',
+        templateId: _templateId,
+        incompleteProfile: false,
+      );
+    } else {
+      draft.value = current.copyWith(incompleteProfile: false);
+    }
+    phase.value = AiCvPhase.preview;
+  }
 
   void cancelToApply() {
     if (!hasJobContext) {

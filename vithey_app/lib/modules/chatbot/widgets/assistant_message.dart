@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
+import 'package:aub_connect_app/core/widgets/app_logo.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/assistant_reasoning_block.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/assistant_thinking_indicator.dart';
@@ -29,7 +31,7 @@ class AssistantMessage extends StatelessWidget {
     final showActions = message.isTerminal && message.content.isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 20),
+      padding: const EdgeInsets.fromLTRB(4, 6, 4, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,6 +40,54 @@ class AssistantMessage extends StatelessWidget {
           else if (message.status == AiMessageStatus.failed)
             ChatbotErrorBubble(message: message.content)
           else ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: AppLogo(size: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vithey AI',
+                    style: context.text.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.scheme.primary,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  if (message.isStreaming) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Generating...',
+                        style: context.text.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             if (message.reasoning != null &&
                 message.reasoning!.trim().isNotEmpty &&
                 !message.isThinking)

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
@@ -50,6 +51,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
   // first real frame (position > 0). This eliminates the 1–3 frame black
   // flash that occurs between controller.initialize() and the first GPU draw.
   bool _posterVisible = true;
+  bool _treatAsImage = false;
   String? _error;
   late FeedPost _post;
 
@@ -70,6 +72,8 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
       _post = widget.post;
       _captionExpanded = false;
       _saved = false;
+      _treatAsImage = false;
+      _error = null;
       _posterVisible = true; // Reset so new video's poster covers until first real frame
       if (widget.isActive) _initPlayer();
     } else {
@@ -158,21 +162,19 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
         }
       }
 
-      // Try primary mediaUrl
-      controller = await tryInit(url);
-
-      // If initial controller failed (e.g. live session before asset bundling),
-      // seamlessly fallback to high-speed verified video stream:
-      if (controller == null) {
-        const fallbacks = [
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-          'https://media.w3.org/2010/05/video/movie_300.mp4',
-          'https://media.w3.org/2010/05/sintel/trailer.mp4',
-        ];
-        final fallbackUrl = fallbacks[_post.id.hashCode.abs() % fallbacks.length];
-        controller = await tryInit(fallbackUrl);
+      // Image uploaded as a "video" post — show still, don't swap in demo MP4s.
+      if (_looksLikeImageUrl(url)) {
+        if (mounted) {
+          setState(() {
+            _initializing = false;
+            _error = null;
+            _treatAsImage = true;
+          });
+        }
+        return;
       }
+
+      controller = await tryInit(url);
 
       if (controller == null) {
         throw Exception('Could not initialize video player');
@@ -304,8 +306,8 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
             ),
           ),
 
-          // Center playback controls
-          if (_showControls && ready)
+          // Center playback controls (video only)
+          if (_showControls && ready && !_treatAsImage)
             Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -552,6 +554,10 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
   }
 
   Widget _buildStage(bool ready, VideoPlayerController? c) {
+    if (_treatAsImage) {
+      final url = _post.mediaUrl ?? _post.thumbnailUrl ?? '';
+      return _buildThumbnail(url);
+    }
     if (_error != null) {
       return Center(
         child: Column(
@@ -570,7 +576,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white38),
               ),
-              child: const Text('Retry'),
+              child: Text('Retry'.tr),
             ),
           ],
         ),
@@ -580,16 +586,17 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
       return Stack(
         fit: StackFit.expand,
         children: [
-          if (_post.thumbnailUrl != null)
-            _buildThumbnail(_post.thumbnailUrl!)
+          if (_post.thumbnailUrl != null || _post.mediaUrl != null)
+            _buildThumbnail(_post.thumbnailUrl ?? _post.mediaUrl!)
           else
             const ColoredBox(color: Colors.black),
-          const Center(
-            child: CircularProgressIndicator(
-              color: Colors.white70,
-              strokeWidth: 2.5,
+          if (_initializing)
+            const Center(
+              child: CircularProgressIndicator(
+                color: Colors.white70,
+                strokeWidth: 2.5,
+              ),
             ),
-          ),
         ],
       );
     }
@@ -665,13 +672,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        errorBuilder: (_, __, ___) => CachedNetworkImage(
-          imageUrl: 'https://picsum.photos/seed/${_post.id}/720/1280',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-          errorWidget: (_, __, ___) => fallbackPoster(),
-        ),
+        errorBuilder: (_, __, ___) => fallbackPoster(),
       );
     }
     return CachedNetworkImage(
@@ -709,6 +710,8 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return '$n';
   }
+
+  static bool _looksLikeImageUrl(String url) => FeedPost.looksLikeImageUrl(url);
 }
 
 class _RoundControl extends StatelessWidget {

@@ -1,3 +1,4 @@
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 
 enum PostType { poster, video, job }
@@ -120,6 +121,25 @@ class FeedPost {
   List<String> get displayMediaUrls => mediaUrls;
 
   bool get hasMedia => displayMediaUrls.isNotEmpty;
+
+  /// True only for playable reel candidates (video type + non-image media URL).
+  bool get isReelVideo {
+    if (type != PostType.video) return false;
+    final url = (mediaUrl ?? thumbnailUrl)?.trim();
+    if (url == null || url.isEmpty) return false;
+    return !looksLikeImageUrl(url);
+  }
+
+  static bool looksLikeImageUrl(String url) {
+    final path = (Uri.tryParse(url)?.path ?? url).toLowerCase();
+    return path.endsWith('.jpg') ||
+        path.endsWith('.jpeg') ||
+        path.endsWith('.png') ||
+        path.endsWith('.webp') ||
+        path.endsWith('.gif') ||
+        path.endsWith('.heic') ||
+        path.endsWith('.bmp');
+  }
 
   static List<String> _normalizeMediaUrls(
     List<String>? mediaUrls,
@@ -256,15 +276,22 @@ class FeedPost {
       applicationState = JobApplicationState.applied;
     }
 
-    final singleMedia = json['media_url'] as String?;
+    final singleMedia =
+        MediaUrlResolver.resolveUrl(json['media_url'] as String?);
     final rawUrls = json['media_urls'];
     final parsedUrls = <String>[];
     if (rawUrls is List) {
       for (final item in rawUrls) {
         final value = item?.toString().trim() ?? '';
-        if (value.isNotEmpty) parsedUrls.add(value);
+        if (value.isNotEmpty) {
+          final resolved = MediaUrlResolver.resolveUrl(value) ?? value;
+          parsedUrls.add(resolved);
+        }
       }
     }
+
+    final rawThumb = json['thumbnail_url'] as String?;
+    final resolvedThumb = MediaUrlResolver.resolveUrl(rawThumb) ?? singleMedia;
 
     return FeedPost(
       id: json['post_id']?.toString() ?? json['id']?.toString() ?? '',
@@ -274,8 +301,7 @@ class FeedPost {
       content: json['content'] as String? ?? '',
       mediaUrl: singleMedia ?? (parsedUrls.isNotEmpty ? parsedUrls.first : null),
       mediaUrls: parsedUrls,
-      thumbnailUrl:
-          json['thumbnail_url'] as String? ?? singleMedia,
+      thumbnailUrl: resolvedThumb,
       durationSeconds: json['duration_seconds'] as int? ?? 0,
       processingState: videoState,
       jobMeta: JobMeta.fromJson(json['job_meta'] as Map<String, dynamic>?),

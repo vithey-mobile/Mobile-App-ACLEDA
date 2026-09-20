@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -54,7 +55,7 @@ class ChatbotSuggestionList extends StatelessWidget {
               if (i > 0) const SizedBox(height: 8),
               _SuggestionPill(
                 item: items[i],
-                onTap: () => onPromptTap(items[i].text),
+                onTap: () => onPromptTap(items[i].text.tr),
               ),
             ],
           ],
@@ -92,7 +93,7 @@ class _SuggestionPill extends StatelessWidget {
               VitheyIcon(item.icon, size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
-                item.text,
+                item.text.tr,
                 style: context.text.bodyMedium
                     ?.copyWith(fontWeight: FontWeight.w500),
               ),

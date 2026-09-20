@@ -24,9 +24,9 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 | Finance Service | `finance_db` | Payments, fees, alerts (verified students) |
 | Chat Service | `chat_db` | Conversations, messages, requests, block/report |
 | Notification Service | `notification_db` | In-app + FCM push notifications |
-| AI Service | `ai_db` | CV/job/interview/finance AI chat (**Python FastAPI**) |
+| AI (`ai_core`) | `ai_db` | CV / chatbot / skills — **Python FastAPI** in `ai_core/` (:8100) |
 | File Service | — (MinIO) | Upload/download media, CV, avatar |
-| Map Service | `map_db` | Nearby shop/place search (Google Places), filters, favorites |
+| Map Service | `map_db` | Nearby shop/place search (Google Places), filters, favorites (opt-in) |
 
 ## Infrastructure
 | Component | Technology | Purpose |
@@ -37,7 +37,7 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 | Message Broker | RabbitMQ | Domain events |
 | Object Storage | MinIO | Files (S3-compatible) |
 | Push | Firebase Admin (FCM) | Mobile push |
-| AI | OpenAI / Gemini REST | AI responses (called from **Python ai-service**) |
+| AI | DeepSeek / OpenRouter via **ai_core** | Chat stub by default; CV generate when API key set |
 
 ## Mandatory Tech Stack (per service)
 
@@ -60,13 +60,14 @@ Build a production-quality **Spring Boot microservice** platform for Vithey App.
 - Flyway migrations
 - spring-boot-starter-test, Mockito, Testcontainers
 
-**Exception — `ai-service`:**
+**Exception — AI (`ai_core`):**
 
-- Java stub exists in `backend/services/ai-service/` for gateway routing and local Docker
-- Optional Python replacement: see `Prompt Backend/services/ai-service/INTEGRATION.md`
-- Registers with Eureka as `ai-service` on port 8089
-- Gateway route `/api/v1/ai/**` already configured in api-gateway
-- `chat-service` (Java) is user messaging; AI chatbot is `ai-service`
+- Python FastAPI app lives in repo-root `ai_core/` (Compose service `ai-core`, port **8100**)
+- Gateway routes `/api/v1/ai/**` → `http://ai-core:8100` (direct URI)
+- Default chat mode is **stub** (`AI_CHAT_MODE=stub`); no GDCE / general-service
+- Java `backend/services/ai-service/` is **retired** — do not deploy it
+- `chat-service` (Java) is user-to-user messaging only; Vithey AI chatbot is `ai_core`
+- Integration notes: `docs/Prompt Backend/services/ai-service/INTEGRATION.md`
 
 **Full monorepo layout, parent POM, and package tree:** see `SERVICE_BLUEPRINT.md`.
 
@@ -235,7 +236,7 @@ See `Prompt Devops/DOCKER.md` and `_shared/SERVICE_REGISTRY.md` for start order 
 
 ## Documentation
 
-Prompt docs live in `prompt/` only — **no** `README.md` or `API.md` inside `backend/`.
+Prompt docs live in `docs/` only — keep operational notes in `backend/DOCKER.md`, `DEMO.md`, `TESTING.md` (do not scatter extra READMEs per service).
 
 Per-service specs: `Prompt Backend/services/<name>/` (`API_ENDPOINTS.md`, `SERVICE_LOGIC.md`, `DB_SCHEMA.md`).
 

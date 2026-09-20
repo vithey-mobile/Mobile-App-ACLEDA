@@ -1,6 +1,7 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -19,7 +20,7 @@ class PasswordRequirementCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Requirements',
+            'Requirements'.tr,
             style: context.text.labelLarge,
           ),
           const SizedBox(height: 12),

@@ -43,7 +43,7 @@ class ApplyCvScreen extends GetView<ApplyCvController> {
           foregroundColor: context.appColors.heading,
           surfaceTintColor: Colors.transparent,
           title: Text(
-            AppStrings.applyJobTitle,
+            AppStrings.applyJobTitle.tr,
             style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           leading: BackButton(
@@ -152,14 +152,14 @@ class _UploadStep extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
-                    AppStrings.uploadYourCv,
+                    AppStrings.uploadYourCv.tr,
                     style: context.text.titleLarge,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
-                    AppStrings.uploadCvSubtitle,
+                    AppStrings.uploadCvSubtitle.tr,
                     style: context.text.bodySmall,
                   ),
                 ),
@@ -279,7 +279,7 @@ class _UploadStep extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: Text(
-            'Or upload / update a CV manually above.',
+            'Or upload / update a CV manually above.'.tr,
             textAlign: TextAlign.center,
             style: context.text.bodySmall?.copyWith(fontSize: 12),
           ),
@@ -316,14 +316,14 @@ class _ReviewStep extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                   child: Text(
-                    AppStrings.reviewYourCv,
+                    AppStrings.reviewYourCv.tr,
                     style: context.text.titleLarge,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   child: Text(
-                    AppStrings.reviewCvSubtitle,
+                    AppStrings.reviewCvSubtitle.tr,
                     style: context.text.bodySmall,
                   ),
                 ),

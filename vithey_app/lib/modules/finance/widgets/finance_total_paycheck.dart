@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
@@ -38,7 +39,7 @@ class FinanceTotalPaycheck extends StatelessWidget {
           const SizedBox(width: 12),
           Flexible(
             child: Text(
-              'Total Paycheck',
+              'Total Paycheck'.tr,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: context.text.titleSmall

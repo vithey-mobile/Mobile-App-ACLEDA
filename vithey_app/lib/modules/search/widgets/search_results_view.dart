@@ -62,7 +62,7 @@ class SearchResultsView extends StatelessWidget {
     if (query.trim().length == 1) {
       return Center(
         child: Text(
-          'Type at least 2 characters',
+          'Type at least 2 characters'.tr,
           style: TextStyle(color: context.appColors.muted),
         ),
       );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -31,7 +32,7 @@ class ChatbotEmptyHero extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          title,
+          title.tr,
           textAlign: TextAlign.center,
           style: context.text.titleLarge,
         ),

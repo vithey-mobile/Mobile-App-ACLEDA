@@ -286,15 +286,34 @@ vithey_app/
 └── README.md
 ```
 
+## Local backend + `.env` (current)
+
+Prefer starting the backend with:
+
+```powershell
+cd backend
+.\scripts\start-all.ps1
+```
+
+That syncs `vithey_app/.env` `API_BASE_URL` / `WS_BASE_URL` to your LAN IP for physical phones. Emulator default remains `10.0.2.2`.
+
+| Flag / rule | Current usage |
+| --- | --- |
+| `USE_MOCK_*=false` | Live gateway (auth, feed, chat, AI, map, …) |
+| `ENABLE_GOOGLE_AUTH` | UI gate only — may still be placeholder backend config |
+| Reels | **Video posts only** (`isReelVideo`); do not show image-only posts in reels |
+| Video playback | Use real `mediaUrl` only — **no** sample/mock MP4 fallbacks |
+| Media on device | Depends on `MINIO_PUBLIC_ENDPOINT` (LAN IP from `start-all.ps1`), not `localhost` |
+
 ## API Integration Rules
 
-- Base URL from `.env`: `API_BASE_URL`
+- Base URL from `.env`: `API_BASE_URL` (via `AppConfig` / `FeatureFlags` — never read `dotenv` in UI)
 - Attach JWT in Dio interceptor from `SecureStorageService`
 - On `401`: attempt refresh token once, else redirect to Auth
 - Parse standard error envelope and show user-friendly message via `AppErrorWidget` or snackbar
 - List endpoints: support `page`, `limit`, handle pagination in controllers
 - File upload: multipart via `UploadService`
-
+- AI calls hit gateway `/api/v1/ai/**` → Python **ai_core** (:8100)
 ## Key Endpoints
 
 Reference only. See `api-intergration/integration-contract.md` for the binding

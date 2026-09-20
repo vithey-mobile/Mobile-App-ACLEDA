@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_card.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Rounded grouped card holding option rows (Privacy / Security).
 class SecurityOptionCard extends StatelessWidget {
@@ -57,12 +58,12 @@ class SecuritySwitchTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      title.tr,
                       style: context.text.titleSmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      subtitle,
+                      subtitle.tr,
                       style: context.text.bodySmall?.copyWith(fontSize: 12),
                     ),
                   ],

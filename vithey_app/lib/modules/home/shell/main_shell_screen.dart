@@ -23,6 +23,7 @@ import 'package:aub_connect_app/modules/profile/profile_screen.dart';
 import 'package:aub_connect_app/modules/profile/widgets/profile_cover_redesign.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_binding.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_screen.dart';
+import 'package:aub_connect_app/core/localization/locale_service.dart';
 
 /// Persistent main tabs host. Tab changes animate the page content only —
 /// the bottom bar stays put (no GetX route push transitions).
@@ -140,12 +141,24 @@ class MainShellController extends GetxController {
 class MainShellScreen extends GetView<MainShellController> {
   const MainShellScreen({super.key});
 
-  static const _pages = <Widget>[
-    ProfileScreen(embedded: true),
-    HomeScreen(embedded: true),
-    ReelsScreen(embedded: true),
-    NotificationScreen(embedded: true),
-  ];
+  List<Widget> _buildPages(String localeCode) => [
+        ProfileScreen(
+          key: ValueKey('shell_profile_$localeCode'),
+          embedded: true,
+        ),
+        HomeScreen(
+          key: ValueKey('shell_home_$localeCode'),
+          embedded: true,
+        ),
+        ReelsScreen(
+          key: ValueKey('shell_reels_$localeCode'),
+          embedded: true,
+        ),
+        NotificationScreen(
+          key: ValueKey('shell_notification_$localeCode'),
+          embedded: true,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +166,7 @@ class MainShellScreen extends GetView<MainShellController> {
 
     return Obx(() {
       final index = controller.currentIndex.value;
+      final localeCode = LocaleService.rxLocaleCode.value;
       final overlay = switch (index) {
         MainTabNavigation.reel => VitheySystemUi.immersiveDark(),
         MainTabNavigation.profile => VitheySystemUi.forBackground(
@@ -175,10 +189,11 @@ class MainShellScreen extends GetView<MainShellController> {
           body: NotificationListener<ScrollNotification>(
             onNotification: controller.handleScrollNotification,
             child: PageView(
+              key: ValueKey('shell_page_view_$localeCode'),
               controller: controller.pageController,
               physics: const NeverScrollableScrollPhysics(),
               onPageChanged: controller.onPageChanged,
-              children: _pages,
+              children: _buildPages(localeCode),
             ),
           ),
           bottomNavigationBar: Builder(
@@ -224,6 +239,7 @@ class _ShellFab extends StatelessWidget {
 
     return Obx(() {
       final navVisible = shell.navVisible.value;
+      final _ = LocaleService.rxLocaleCode.value;
       Widget? fab;
 
       if (showHome && Get.isRegistered<HomeController>()) {
@@ -240,7 +256,7 @@ class _ShellFab extends StatelessWidget {
             color: context.scheme.onPrimary,
           ),
           label: Text(
-            'Post',
+            'Post'.tr,
             style: context.text.labelLarge?.copyWith(
               fontWeight: FontWeight.w700,
               color: context.scheme.onPrimary,
@@ -267,7 +283,7 @@ class _ShellFab extends StatelessWidget {
               color: context.scheme.onPrimary,
             ),
             label: Text(
-              'AI Create CV',
+              'AI Create CV'.tr,
               style: context.text.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.scheme.onPrimary,

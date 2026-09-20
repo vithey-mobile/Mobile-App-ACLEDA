@@ -78,14 +78,14 @@ class SelectLanguageScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Select Language',
+                            'Select Language'.tr,
                             textAlign: TextAlign.center,
                             style: context.text.headlineSmall
                                 ?.copyWith(height: 1.25),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Choose your preferred language for the app.',
+                            'Choose your preferred language for the app.'.tr,
                             textAlign: TextAlign.center,
                             style: context.text.bodyMedium?.copyWith(
                               color: secondary,

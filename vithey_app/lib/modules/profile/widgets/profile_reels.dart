@@ -74,7 +74,8 @@ class _ProfileReelsTabState extends State<ProfileReelsTab> {
         return const LoadingWidget();
       }
 
-      final allPosts = host.tabPosts[PostType.video]!.toList();
+      final allPosts =
+          host.tabPosts[PostType.video]!.where((p) => p.isReelVideo).toList();
       final posts = _applyFilter(allPosts);
       final showCreate = host.isOwnProfile;
       final emptyAfterFilter = posts.isEmpty && allPosts.isNotEmpty;

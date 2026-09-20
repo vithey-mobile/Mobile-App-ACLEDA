@@ -1,94 +1,72 @@
-# AI / Chatbot — Java Platform Integration
+# AI / Chatbot — Platform Integration
 
-> **2026-09 update (demo Profile M):** Vithey-facing AI is **Spring `ai-service` :8089**.  
-> CV generation calls Python **`ai_core` :8100** (DeepSeek API key).  
-> Vithey AI **chat uses stub mode** by default (`VITHEY_AI_CHAT_MODE=stub`) — **no GDCE**.  
-> See repo `plan.md` and `backend/DEMO.md`.
-
-> **Integration only.** You build chatbot + AI in Python.  
-> Vithey Java repo provides gateway routing, JWT auth, and Eureka — not AI code.
+> **Current stack (2026-09):** Vithey-facing AI is Python **`ai_core` :8100** (`ai_core/` at repo root).  
+> Gateway routes `/api/v1/ai/**` → `http://ai-core:8100`.  
+> Chat defaults to **stub** (`AI_CHAT_MODE=stub`). CV generate uses DeepSeek/OpenRouter when `DEEPSEEK_API_KEY` is set.  
+> **No Java `ai-service`, no GDCE.** See `backend/DEMO.md` and `backend/DOCKER.md`.
 
 ## Architecture
 
 ```text
-Vithey Flutter (chatbot module)
+Vithey Flutter (chatbot / AI CV modules)
     │
     ▼
 Java API Gateway :8080
     │  JWT validate → X-User-Id, X-User-Email, X-User-Roles
-    │  /api/v1/ai/**
+    │  Path=/api/v1/ai/**
     ▼
-Your Python ai-service :8089  (Eureka name: ai-service)
-    └── your chatbot / LLM / orchestrator / RAG stack
+Python ai_core :8100  (Compose: ai-core)
+    ├── stub chat (default)
+    └── CV generate / suggest (LLM when keyed)
 ```
 
-## Java side — already configured
+## Java / Compose side — already configured
 
 | Component | Status |
 | --- | --- |
-| Gateway route `/api/v1/ai/**` | `config-repo/api-gateway.yml` (+ local `application.yml` fallback) |
+| Gateway route `/api/v1/ai/**` | `config-repo/api-gateway.yml` + local `application.yml` → `http://ai-core:8100` |
 | JWT + identity headers | `JwtAuthenticationGlobalFilter` |
-| Eureka server | `infrastructure/eureka-server` |
-| Integration docs | `Prompt Backend/services/ai-service/` |
+| Compose service | `ai-core` in `backend/docker-compose.yml` |
+| Start | `.\scripts\start-all.ps1` (includes ai_core) |
 
-**No Java implementation** for AI or chatbot in this repo.
-
-## Python side — you implement
+## Python side — `ai_core/`
 
 | Requirement | Detail |
 | --- | --- |
-| Eureka name | `ai-service` |
-| Port | 8089 |
-| API | `/api/v1/ai/**` per `API_ENDPOINTS.md` |
-| Auth | `X-User-*` headers or Vithey JWT |
-| Envelope | `{ data, meta, error }`, snake_case |
-| Health | `GET /actuator/health` → `{"status":"UP"}` |
+| Folder | `ai_core/` (repo root) |
+| Port | **8100** |
+| API | `/api/v1/ai/**` (chat, sessions, cv/generate, cv/suggest, …) |
+| Auth | Vithey JWT / trusted gateway headers |
+| Envelope | Prefer Vithey `{ data, meta, error }` snake_case where applicable |
+| Health | `GET /health` → OK |
+| Chat mode | `AI_CHAT_MODE=stub` by default |
 
-Full guide: this file (`Prompt Backend/services/ai-service/INTEGRATION.md`)
+Optional env: copy `ai_core/.env.example` → `ai_core/.env` and set `DEEPSEEK_API_KEY`.
 
-## chat-service vs ai-service
+## chat-service vs ai_core
 
 | Service | Lang | Port | Use |
 | --- | --- | --- | --- |
 | `chat-service` | Java | 8087 | User-to-user messaging |
-| `ai-service` | Python | 8089 | Vithey AI chatbot |
-
-## Reusing your GDCE Docker stack (optional)
-
-Location: `D:\GDCE-chatbot\chatbot_review\`
-
-| Container | Port |
-| --- | --- |
-| `orchestrator-service` | 8001 |
-| `general-service` | 8005 |
-| `api-layer-api-layer-1` | 8000 |
-| `retrieval-service` | 8003 |
-
-Network: `gdce-network`. Your Vithey Python service joins `vithey-network` + `gdce-network`.
-
-Start:
-
-```powershell
-cd "D:\GDCE-chatbot\chatbot_review\backend\api-layer\scripts"
-.\start-development.ps1 -SkipBuild
-```
-
-Prefer calling orchestrator `POST /internal/chat/send` with Vithey `user_id` — avoids GDCE's separate login.
+| `ai_core` | Python | 8100 | Vithey AI chatbot + CV |
 
 ## Verification
 
 ```powershell
-curl http://localhost:8761/eureka/apps/AI-SERVICE
+# after start-all.ps1
+Invoke-RestMethod http://localhost:8100/health
 curl -X POST http://localhost:8080/api/v1/ai/chat `
   -H "Authorization: Bearer <vithey-jwt>" `
   -H "Content-Type: application/json" `
   -d '{"message":"Hello","topic":"CV"}'
 ```
 
+Confirm **no** container named `vithey-ai-service`.
+
 ## Checklist
 
-- [ ] Register with Eureka as `ai-service` on port 8089
-- [ ] Expose `/api/v1/ai/**` routes per `API_ENDPOINTS.md`
-- [ ] Return `{ data, meta, error }` envelope with snake_case JSON
-- [ ] Implement `GET /actuator/health` → `{"status":"UP"}`
-- [ ] Join Docker network `vithey-network` (and `gdce-network` if using GDCE stack)
+- [ ] `ai_core` healthy on `:8100`
+- [ ] Gateway `/api/v1/ai/**` points at `http://ai-core:8100`
+- [ ] Flutter `USE_MOCK_AI=false` when testing live AI
+- [ ] `DEEPSEEK_API_KEY` set only if testing live CV generate
+- [ ] Do not start or document Java `ai-service` :8089

@@ -47,14 +47,14 @@ class FinanceAppBar extends GetView<FinanceController>
                 onClear: controller.clearSearch,
               )
             : Text(
-                'Finance',
+                'Finance'.tr,
                 style: context.text.titleLarge,
               ),
         actions: [
           VitheyIconButton(
             icon: isSearchActive ? LucideIcons.x : LucideIcons.search,
             variant: VitheyIconButtonVariant.neutral,
-            tooltip: AppStrings.financeSearchHint,
+            tooltip: AppStrings.financeSearchHint.tr,
             onTap: controller.toggleSearch,
           ),
         ],
@@ -95,7 +95,7 @@ class _FinanceSearchField extends StatelessWidget {
         onChanged: onChanged,
         style: context.text.titleSmall?.copyWith(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
-          hintText: AppStrings.financeSearchHint,
+          hintText: AppStrings.financeSearchHint.tr,
           hintStyle: context.text.titleSmall
               ?.copyWith(fontWeight: FontWeight.w500, color: colors.muted),
           isDense: true,
@@ -109,7 +109,7 @@ class _FinanceSearchField extends StatelessWidget {
               ? IconButton(
                   icon: VitheyIcon(LucideIcons.x, color: colors.muted, size: 18),
                   onPressed: onClear,
-                  tooltip: AppStrings.clearSearch,
+                  tooltip: AppStrings.clearSearch.tr,
                 )
               : null,
           enabledBorder: OutlineInputBorder(

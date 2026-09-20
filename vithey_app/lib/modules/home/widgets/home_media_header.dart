@@ -265,18 +265,18 @@ class _Toolbar extends StatelessWidget {
           HomeAppBarAction(
             icon: const VitheyIcon(LucideIcons.search),
             onPressed: () => Get.toNamed(AppRoutes.search),
-            tooltip: 'Search',
+            tooltip: 'Search'.tr,
           ),
           HomeAppBarAction(
             icon: const VitheyIcon(LucideIcons.mapPinned),
             onPressed: () => Get.toNamed(AppRoutes.map),
-            tooltip: 'Map',
+            tooltip: 'Map'.tr,
           ),
           const HomeChatAppBarAction(),
-          const HomeAppBarAction(
-            icon: VitheyIcon(LucideIcons.wallet),
+          HomeAppBarAction(
+            icon: const VitheyIcon(LucideIcons.wallet),
             onPressed: FinanceNavigation.openFinanceEntry,
-            tooltip: 'Finance',
+            tooltip: 'Finance'.tr,
           ),
         ],
       ),

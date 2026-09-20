@@ -40,11 +40,11 @@ class PostDetailScreen extends GetView<PostDetailController> {
           backgroundColor: surface,
           surfaceTintColor: Colors.transparent,
           systemOverlayStyle: VitheySystemUi.forBackground(surface),
-          title: Text('Back', style: context.text.titleLarge),
+          title: Text('Back'.tr, style: context.text.titleLarge),
           leading: VitheyIconButton(
             icon: LucideIcons.arrowLeft,
             variant: VitheyIconButtonVariant.neutral,
-            tooltip: 'Back',
+            tooltip: 'Back'.tr,
             onTap: () => Get.back(result: controller.post.value),
           ),
           bottom: PreferredSize(

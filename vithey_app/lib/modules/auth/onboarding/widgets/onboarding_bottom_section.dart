@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
@@ -34,13 +35,13 @@ class OnboardingBottomSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          title,
+          title.tr,
           textAlign: TextAlign.center,
           style: context.text.headlineSmall?.copyWith(height: 1.25),
         ),
         const SizedBox(height: 12),
         Text(
-          description,
+          description.tr,
           textAlign: TextAlign.center,
           style: context.text.bodyMedium
               ?.copyWith(color: colors.muted, height: 1.4),
@@ -64,7 +65,7 @@ class OnboardingBottomSection extends StatelessWidget {
             _PageDots(currentPage: currentPage, totalPages: totalPages),
             const SizedBox(height: 24),
             _OnboardingCtaButton(
-              label: isLast ? AppStrings.getStarted : AppStrings.next,
+              label: (isLast ? AppStrings.getStarted : AppStrings.next).tr,
               onPressed: onNext,
             ),
           ],
@@ -108,8 +109,9 @@ class OnboardingBottomChrome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLast = isLastSlide ?? (currentPage == totalPages - 1);
-    final label =
+    final rawLabel =
         nextLabel ?? (isLast ? AppStrings.getStarted : AppStrings.next);
+    final label = rawLabel.tr;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -133,7 +135,7 @@ class OnboardingBottomChrome extends StatelessWidget {
               child: Opacity(
                 opacity: 0,
                 child: _OnboardingCtaButton(
-                  label: AppStrings.getStarted,
+                  label: AppStrings.getStarted.tr,
                   onPressed: () {},
                 ),
               ),
@@ -160,7 +162,7 @@ class OnboardingGetStartedButton extends StatelessWidget {
         IntroStageMetrics.bottomPadding(context),
       ),
       child: _OnboardingCtaButton(
-        label: AppStrings.getStarted,
+        label: AppStrings.getStarted.tr,
         onPressed: onPressed,
       ),
     );

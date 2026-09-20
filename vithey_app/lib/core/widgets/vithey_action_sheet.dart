@@ -4,6 +4,7 @@ import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 /// One callback-style row in a [VitheyActionSheet].
@@ -113,7 +114,7 @@ class VitheyActionSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              title,
+              title.tr,
               textAlign: TextAlign.center,
               maxLines: message == null ? 1 : 2,
               overflow: TextOverflow.ellipsis,
@@ -122,7 +123,7 @@ class VitheyActionSheet extends StatelessWidget {
             if (message != null) ...[
               const SizedBox(height: 4),
               Text(
-                message!,
+                message!.tr,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -217,7 +218,7 @@ class _ActionRow extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _label,
+                        _label.tr,
                         style: context.text.titleSmall?.copyWith(
                           fontWeight: VitheyWeight.medium,
                           color: foreground,
@@ -226,7 +227,7 @@ class _ActionRow extends StatelessWidget {
                       if (_subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
-                          _subtitle!,
+                          _subtitle!.tr,
                           style: context.text.labelMedium
                               ?.copyWith(height: 1.3),
                         ),

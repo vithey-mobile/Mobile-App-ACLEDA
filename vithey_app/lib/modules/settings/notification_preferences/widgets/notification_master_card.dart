@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:aub_connect_app/modules/settings/notification_preferences/widgets/notification_preference_card.dart';
@@ -44,14 +45,14 @@ class NotificationMasterCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Allow Notifications',
+                            'Allow Notifications'.tr,
                             style: context.text.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'Receive alerts from Vithey',
+                            'Receive alerts from Vithey'.tr,
                             style: context.text.bodySmall,
                           ),
                         ],

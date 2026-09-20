@@ -36,7 +36,7 @@ class AiRepository {
   final _mockMessages = <String, List<AiMessage>>{};
   int _sessionCounter = 0;
 
-  /// Auto-Create CV. Live: `POST /ai/cv/generate` via ai-service → ai_core.
+  /// Auto-Create CV. Live: `POST /ai/cv/generate` via gateway → ai_core.
   Future<AiCvDraft> generateCvDraft({
     String? targetRole,
     String? language,
@@ -73,7 +73,7 @@ class AiRepository {
     );
   }
 
-  /// Block 5 — Job Apply Match Score (AI-JOB-01…06, mock rule-based overlap).
+  /// Block 5 — Job Apply Match Score (AI-JOB-01…06).
   /// Uses the current user as applicant; `cvFileId` reserved for live matching.
   /// Live: POST /ai/jobs/{jobPostId}/match
   ///
@@ -97,42 +97,31 @@ class AiRepository {
         cvFileId: cvFileId,
       );
     }
-    // Backend POST /ai/jobs/{id}/match not shipped yet — no fake scores in live mode.
-    return AiJobMatchResult(
+    return _aiService.matchJob(
       jobPostId: jobPostId,
-      applicantUserId: applicantUserId,
       cvFileId: cvFileId,
-      score: 0,
-      label: AiJobMatchResult.labelForScore(0),
-      matchedSkills: const [],
-      gapSkills: const [],
-      reasons: const ['Job match scoring is not available on the live API yet.'],
-      incompleteProfile: true,
+      applicantUserId: applicantUserId,
     );
   }
 
-  /// Block 4 — Skill Score / Career readiness (AI-SK-02…04, mock rules).
-  /// Live: GET /ai/skills/score (not shipped yet).
+  /// Block 4 — Skill Score / Career readiness (AI-SK-02…04).
+  /// Live: GET /ai/skills/score
   Future<AiCareerReadiness> skillScores({List<ProfileSkill>? skills}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 600));
       return AiSkillFixtures.readinessForCurrentUser(skills);
     }
-    return const AiCareerReadiness(
-      overallScore: 0,
-      topSkills: [],
-      suggestions: [],
-    );
+    return _aiService.skillScores();
   }
 
   /// Block 2 — Personalized feed ranking (AI-FEED-02…06).
-  /// Live: GET /ai/feed/recommendations (not shipped yet).
+  /// Live: GET /ai/feed/recommendations
   Future<List<AiFeedRecommendation>> feedRecommendations({int limit = 20}) async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
       return AiFeedFixtures.forYou(limit: limit);
     }
-    return const [];
+    return _aiService.feedRecommendations(limit: limit);
   }
 
   Future<List<AiSession>> fetchSessions({int page = 1}) async {

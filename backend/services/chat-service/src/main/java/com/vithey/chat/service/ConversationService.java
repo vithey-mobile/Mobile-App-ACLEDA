@@ -113,8 +113,9 @@ public class ConversationService {
         ConversationStatus.ACTIVE,
         ConversationStatus.BLOCKED
     );
-    if (conversationRepository.findBetweenUsers(requesterId, request.toUserId(), activeStatuses).isPresent()) {
-      throw new ApiException(ErrorCode.CONFLICT, "A conversation already exists with this user");
+    Optional<Conversation> existing = conversationRepository.findBetweenUsers(requesterId, request.toUserId(), activeStatuses);
+    if (existing.isPresent()) {
+      return toResponse(existing.get(), requesterId);
     }
 
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);

@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/app_assets.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -104,13 +105,13 @@ class _LanguagePickerSheetState extends State<LanguagePickerSheet> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Select Language',
+              'Select Language'.tr,
               textAlign: TextAlign.start,
               style: context.text.headlineSmall?.copyWith(height: 1.25),
             ),
             const SizedBox(height: 12),
             Text(
-              'Choose your preferred language for the app.',
+              'Choose your preferred language for the app.'.tr,
               textAlign: TextAlign.start,
               style: context.text.bodyMedium?.copyWith(
                 height: 1.4,

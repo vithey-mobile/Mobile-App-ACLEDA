@@ -18,4 +18,29 @@ class AiCareerReadiness {
 
   /// Up to 3 next skills to improve (AI-SK-04).
   final List<String> suggestions;
+
+  factory AiCareerReadiness.fromJson(Map<String, dynamic> json) {
+    final skillsRaw = json['top_skills'];
+    final skills = <AiSkillScore>[];
+    if (skillsRaw is List) {
+      for (final item in skillsRaw) {
+        if (item is Map<String, dynamic>) {
+          skills.add(AiSkillScore.fromJson(item));
+        } else if (item is Map) {
+          skills.add(AiSkillScore.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+    final suggestionsRaw = json['suggestions'];
+    return AiCareerReadiness(
+      overallScore: (json['overall_score'] as num?)?.toInt() ?? 0,
+      topSkills: skills,
+      suggestions: suggestionsRaw is List
+          ? [
+              for (final s in suggestionsRaw)
+                if (s != null) s.toString(),
+            ]
+          : const [],
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -107,7 +108,7 @@ class ChatbotComposer extends StatelessWidget {
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
                               disabledBorder: InputBorder.none,
-                              hintText: 'Ask Vithey AI',
+                              hintText: 'Ask Vithey AI'.tr,
                               hintStyle: context.text.bodyLarge
                                   ?.copyWith(color: colors.muted),
                               contentPadding: const EdgeInsets.fromLTRB(
@@ -123,7 +124,7 @@ class ChatbotComposer extends StatelessWidget {
                         Row(
                           children: [
                             Tooltip(
-                              message: 'Add photo, video, or file',
+                              message: 'Add photo, video, or file'.tr,
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
@@ -180,7 +181,7 @@ class _SendCircle extends StatelessWidget {
     final active = enabled && onPressed != null;
 
     return Tooltip(
-      message: isStop ? 'Stop' : 'Send',
+      message: isStop ? 'Stop'.tr : 'Send'.tr,
       child: Material(
         color: active ? AppColors.primary : colors.inputFill,
         shape: const CircleBorder(),

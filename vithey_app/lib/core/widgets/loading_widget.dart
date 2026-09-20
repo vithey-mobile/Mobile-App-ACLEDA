@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 
 /// Centered loading indicator.
@@ -16,10 +17,10 @@ class LoadingWidget extends StatelessWidget {
           const CircularProgressIndicator(),
           if (message != null) ...[
             const SizedBox(height: 16),
-            Text(message!, style: Theme.of(context).textTheme.bodyMedium),
+            Text(message!.tr, style: Theme.of(context).textTheme.bodyMedium),
           ] else ...[
             const SizedBox(height: 16),
-            Text(AppStrings.loading, style: Theme.of(context).textTheme.bodyMedium),
+            Text(AppStrings.loading.tr, style: Theme.of(context).textTheme.bodyMedium),
           ],
         ],
       ),

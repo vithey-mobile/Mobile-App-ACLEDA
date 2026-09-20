@@ -1,48 +1,44 @@
 # AI / Chatbot — Common Context (Integration)
 
-> Python implementation — built by you.  
-> Java platform provides gateway, auth, and discovery only.
+> Implemented as Python **`ai_core/`** (Compose: `ai-core`, port **8100**).  
+> Java platform provides gateway, auth, and discovery only.  
+> See `INTEGRATION.md` for the current wiring.
 
 ## Service Role
 
 Vithey AI chatbot for students: CV help, job advice, interview prep, student support, finance Q&A.
 
-Implemented in **Python** by you. Java services do not contain chatbot or LLM logic.
+Java services do not contain chatbot or LLM logic. Chat defaults to **stub** mode.
 
 ## Identity
 
 | Item | Value |
 | --- | --- |
-| Language | Python (your project) |
-| Eureka name | `ai-service` |
-| Port | 8089 |
+| Language | Python (FastAPI) |
+| Folder | `ai_core/` (repo root) |
+| Compose name | `ai-core` |
+| Port | **8100** |
 | API prefix | `/api/v1/ai/**` |
-| Flutter module | `lib/modules/chatbot/` |
+| Flutter module | `lib/modules/chatbot/` (+ AI CV surfaces) |
+
+> Java `backend/services/ai-service/` is **retired**. Do not use port 8089 / Eureka name `ai-service`.
 
 ## Distinction from chat-service
 
-| | chat-service | ai-service |
+| | chat-service | ai_core |
 | --- | --- | --- |
 | Language | Java | Python |
-| Port | 8087 | 8089 |
-| Purpose | Private user messaging | AI chatbot assistant |
-| Gateway path | `/api/v1/conversations/**` | `/api/v1/ai/**` |
+| Port | 8087 | 8100 |
+| Purpose | Private user messaging | AI chatbot + CV |
+| Gateway path | `/api/v1/conversations/**` | `/api/v1/ai/**` → `http://ai-core:8100` |
 
 ## Auth flow
 
 1. User logs in via `auth-service` → Vithey JWT
-2. Flutter calls gateway `8080/api/v1/ai/chat` with JWT
-3. Gateway validates JWT, adds `X-User-Id`, forwards to Python `ai-service`
+2. Flutter calls gateway `8080/api/v1/ai/**` with JWT
+3. Gateway validates JWT, adds `X-User-*`, forwards to `ai-core`
 4. Python trusts headers or re-validates JWT
 
 ## API contract
 
-See `API_ENDPOINTS.md`. Response envelope matches all Java services.
-
-## Does NOT live in Java repo
-
-- LLM calls, RAG, prompts, session DB implementation
-- Eureka client code
-- Docker image for Python service
-
-See `INTEGRATION.md` in this folder for wiring guide.
+See `API_ENDPOINTS.md` and `INTEGRATION.md`. Prefer Vithey `{ data, meta, error }` snake_case envelope.

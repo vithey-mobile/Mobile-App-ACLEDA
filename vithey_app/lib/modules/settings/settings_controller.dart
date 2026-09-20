@@ -11,6 +11,7 @@ import 'package:aub_connect_app/data/push/fcm_service.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/repositories/notification_repository.dart';
 import 'package:aub_connect_app/data/repositories/settings_repository.dart';
+import 'package:aub_connect_app/core/localization/locale_service.dart';
 import 'package:aub_connect_app/modules/settings/widgets/language_picker_sheet.dart';
 
 class SettingsController extends GetxController {
@@ -44,9 +45,9 @@ class SettingsController extends GetxController {
   String get languageLabel {
     switch (languageCode.value) {
       case 'km':
-        return 'Khmer';
+        return 'Khmer'.tr;
       default:
-        return 'English (US)';
+        return 'English (US)'.tr;
     }
   }
 
@@ -82,19 +83,20 @@ class SettingsController extends GetxController {
   Future<void> _selectLanguage(String code) async {
     languageCode.value = code;
     try {
+      await LocaleService.changeLocale(code);
       await _settingsRepository.saveLanguage(code);
-      Get.snackbar('Vithey', 'Language preference saved');
+      Get.snackbar('Vithey App', 'Language preference saved'.tr);
     } catch (_) {
-      Get.snackbar('Vithey', 'Could not save language preference');
+      Get.snackbar('Vithey App', 'Could not save language preference'.tr);
     }
   }
 
   Future<void> logout() async {
     final confirmed = await showConfirmDialog(
       context: Get.context!,
-      title: 'Logout',
-      message: 'Are you sure you want to log out of Vithey?',
-      confirmLabel: 'Logout',
+      title: 'Logout'.tr,
+      message: 'Are you sure you want to log out of Vithey?'.tr,
+      confirmLabel: 'Logout'.tr,
       variant: ConfirmDialogVariant.destructive,
     );
     if (confirmed != true) return;

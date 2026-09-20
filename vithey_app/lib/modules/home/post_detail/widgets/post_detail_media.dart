@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
+import 'package:aub_connect_app/core/widgets/vithey_media_image.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
@@ -29,8 +30,8 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
 
   Future<void> _initPlayer() async {
     if (_controller != null || _initializing) return;
-    final url = widget.post.mediaUrl;
-    if (url == null || url.isEmpty) return;
+    final resolved = MediaUrlResolver.resolve(widget.post.mediaUrl);
+    if (resolved.isEmpty) return;
 
     setState(() {
       _initializing = true;
@@ -38,7 +39,14 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
     });
 
     try {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      final controller = resolved.isLocalFile
+          ? VideoPlayerController.file(File(resolved.url))
+          : (resolved.isAsset
+              ? VideoPlayerController.asset(resolved.url)
+              : VideoPlayerController.networkUrl(
+                  Uri.parse(resolved.url),
+                  httpHeaders: resolved.headers ?? const {},
+                ));
       await controller.initialize();
       if (!mounted) {
         controller.dispose();
@@ -84,28 +92,12 @@ class _PostDetailMediaState extends State<PostDetailMedia> {
     if (url == null || url.isEmpty) {
       return _placeholder();
     }
-    if (url.startsWith('assets/')) {
-      return Image.asset(
-        url,
-        width: double.infinity,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _placeholder(),
-      );
-    }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return Image.file(
-        File(url),
-        width: double.infinity,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _placeholder(),
-      );
-    }
-    return CachedNetworkImage(
-      imageUrl: url,
+    return VitheyMediaImage(
+      url: url,
       width: double.infinity,
       fit: BoxFit.contain,
-      placeholder: (_, __) => _placeholder(loading: true),
-      errorWidget: (_, __, ___) => _placeholder(),
+      errorWidget: _placeholder(),
+      placeholder: _placeholder(loading: true),
     );
   }
 

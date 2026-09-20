@@ -1,5 +1,6 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -39,7 +40,7 @@ class SettingsMenuTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label,
+                      label.tr,
                       style: context.text.titleSmall?.copyWith(
                         fontWeight: FontWeight.w500,
                         height: 1.2,
@@ -48,7 +49,7 @@ class SettingsMenuTile extends StatelessWidget {
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        subtitle!,
+                        subtitle!.tr,
                         style: context.text.bodySmall?.copyWith(height: 1.25),
                       ),
                     ],

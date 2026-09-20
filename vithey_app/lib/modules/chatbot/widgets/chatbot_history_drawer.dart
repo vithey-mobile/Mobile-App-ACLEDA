@@ -54,7 +54,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'New chat',
+                              'New chat'.tr,
                               style: context.text.bodySmall?.copyWith(
                                 color: context.scheme.onPrimary,
                                 fontWeight: FontWeight.w600,
@@ -83,7 +83,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                 if (sessions.isEmpty) {
                   return Center(
                     child: Text(
-                      'No chat history yet',
+                      'No chat history yet'.tr,
                       style: TextStyle(color: context.appColors.muted),
                     ),
                   );
@@ -95,7 +95,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                       child: Text(
-                        'Recents',
+                        'Recents'.tr,
                         style: context.text.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
@@ -161,7 +161,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                         ? AppColors.primary
                         : context.appColors.heading,
                   ),
-                  title: Text(session.isPinned ? 'Unpin' : 'Pin'),
+                  title: Text(session.isPinned ? 'Unpin'.tr : 'Pin'.tr),
                   onTap: () {
                     Navigator.pop(ctx);
                     controller.togglePin(session);
@@ -172,7 +172,7 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                     LucideIcons.pencil,
                     color: context.appColors.heading,
                   ),
-                  title: const Text('Rename'),
+                  title: Text('Rename'.tr),
                   onTap: () {
                     Navigator.pop(ctx);
                     controller.renameSession(session);
@@ -180,9 +180,9 @@ class ChatbotHistoryDrawer extends StatelessWidget {
                 ),
                 ListTile(
                   leading: const VitheyIcon(LucideIcons.trash2, color: Colors.red),
-                  title: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
+                  title: Text(
+                    'Delete'.tr,
+                    style: const TextStyle(color: Colors.red),
                   ),
                   onTap: () {
                     Navigator.pop(ctx);

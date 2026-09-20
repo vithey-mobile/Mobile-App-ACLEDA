@@ -5,6 +5,7 @@ import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
@@ -212,7 +213,7 @@ class _VitheyFieldState extends State<VitheyField> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.label!,
+                    widget.label!.tr,
                     style:
                         context.text.titleSmall?.copyWith(color: labelColor),
                   ),
@@ -291,7 +292,7 @@ class _VitheyFieldState extends State<VitheyField> {
                 placeholder: widget.hint == null
                     ? null
                     : Text(
-                        widget.hint!,
+                        widget.hint!.tr,
                         style: context.text.bodyMedium?.copyWith(
                           color: chrome,
                           height: 1.25,

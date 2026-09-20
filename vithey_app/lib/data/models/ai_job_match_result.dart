@@ -49,6 +49,30 @@ class AiJobMatchResult {
 
   static const defaultDisclaimer = 'AI assist only — not a hiring decision.';
 
+  factory AiJobMatchResult.fromJson(Map<String, dynamic> json) {
+    return AiJobMatchResult(
+      jobPostId: json['job_post_id']?.toString() ?? '',
+      applicantUserId: json['applicant_user_id']?.toString(),
+      cvFileId: json['cv_file_id']?.toString(),
+      score: (json['score'] as num?)?.toInt() ?? 0,
+      label: json['label']?.toString() ??
+          labelForScore((json['score'] as num?)?.toInt() ?? 0),
+      matchedSkills: _stringList(json['matched_skills']),
+      gapSkills: _stringList(json['gap_skills']),
+      reasons: _stringList(json['reasons']),
+      incompleteProfile: json['incomplete_profile'] as bool? ?? false,
+      disclaimer: json['disclaimer']?.toString() ?? defaultDisclaimer,
+    );
+  }
+
+  static List<String> _stringList(dynamic raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final item in raw)
+        if (item != null && item.toString().trim().isNotEmpty) item.toString(),
+    ];
+  }
+
   static String labelForScore(int score) {
     if (score >= 80) return 'Excellent';
     if (score >= 65) return 'Good';

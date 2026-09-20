@@ -1,6 +1,7 @@
 # Read Order
 
-Standard file read order. Service kickoffs should link here — do not invent shorter lists.
+Standard file read order. Paths are under **`docs/`** (e.g. `docs/Prompt Backend/...`).  
+Service kickoffs should link here — do not invent shorter lists.
 
 ## Any AI session
 
@@ -23,7 +24,7 @@ Read in `Prompt Backend/services/<name>/`:
 7. `DB_SCHEMA.md`
 8. `SERVICE_PROMPT.md` (build checklist — authoritative)
 
-**ai-service only:** read `INTEGRATION.md` after step 3 (before `API_ENDPOINTS.md`).
+**AI only:** docs still live under `services/ai-service/`, but runtime is **`ai_core/` :8100**. Read `INTEGRATION.md` after step 3 (before `API_ENDPOINTS.md`).
 
 **Precedence on conflict:** `SERVICE_PROMPT.md` > service `COMMON_CONTEXT.md` > root `COMMON_CONTEXT.md` > `integration-contract.md` for cross-layer API paths.
 
@@ -31,9 +32,10 @@ Read in `Prompt Backend/services/<name>/`:
 
 1. `Prompt Devops/KICKOFF_PROMPT.md`
 2. `Prompt Devops/COMMON_CONTEXT.md`
-3. `Prompt Devops/v1/06-per-service-docker-compose-prompt.md`
-4. `Prompt Devops/services/<name>/DEVOPS_PROMPT.md`
-5. Matching `Prompt Backend/services/<name>/` files if wiring env or ports
+3. `Prompt Devops/DOCKER.md` + `docs/LOCAL_DEV.md` (how we run today)
+4. `Prompt Devops/v1/06-per-service-docker-compose-prompt.md` (incremental compose)
+5. `Prompt Devops/services/<name>/DEVOPS_PROMPT.md`
+6. Matching `Prompt Backend/services/<name>/` files if wiring env or ports
 
 ## Frontend — one screen
 
@@ -47,4 +49,4 @@ Read in `Prompt Backend/services/<name>/`:
 
 `Prompt Devops/v1/00-foundation-prompt.md` → `01` → `02` → `03` → `04` → `05` → `06` → `07` → `08`
 
-Note: `v1/01` is legacy all-in-one compose. **Current model:** per-service compose per `v1/06` and `DOCKER.md`. **Monitoring:** `v1/08` → output in `monitoring/`.
+Note: `v1/01` is legacy all-in-one compose. **Day-to-day run:** `backend/scripts/start-all.ps1` + `DOCKER.md`. Incremental model: `v1/06`. **Monitoring:** `v1/08` → output in `monitoring/`.

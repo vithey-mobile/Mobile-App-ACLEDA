@@ -35,7 +35,7 @@ class HomeScreen extends GetView<HomeController> {
                 color: context.scheme.onPrimary,
               ),
               label: Text(
-                'Post',
+                'Post'.tr,
                 style: context.text.labelLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: context.scheme.onPrimary,

@@ -222,7 +222,7 @@ class _ChatToolbar extends StatelessWidget {
             HomeAppBarAction(
               icon: VitheyIcon(isSearchActive ? LucideIcons.x : LucideIcons.search),
               onPressed: chatController.toggleSearch,
-              tooltip: AppStrings.chatSearchHint,
+              tooltip: AppStrings.chatSearchHint.tr,
             ),
             Stack(
               clipBehavior: Clip.none,
@@ -230,7 +230,7 @@ class _ChatToolbar extends StatelessWidget {
                 HomeAppBarAction(
                   icon: const VitheyIcon(LucideIcons.mail),
                   onPressed: onInbox,
-                  tooltip: AppStrings.chatMessageRequests,
+                  tooltip: AppStrings.chatMessageRequests.tr,
                 ),
                 if (inboxCount > 0)
                   Positioned(

@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_type.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class VitheyFilterChipItem {
   const VitheyFilterChipItem({
@@ -83,7 +84,7 @@ class _VitheyChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
           child: Text(
-            label,
+            label.tr,
             style: context.text.labelLarge?.copyWith(
               fontWeight:
                   selected ? VitheyWeight.semibold : VitheyWeight.medium,

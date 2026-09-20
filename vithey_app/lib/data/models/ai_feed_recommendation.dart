@@ -16,4 +16,12 @@ class AiFeedRecommendation {
 
   /// Light explanation, e.g. "Matches your Flutter & Dart skills".
   final String? reason;
+
+  factory AiFeedRecommendation.fromJson(Map<String, dynamic> json) {
+    return AiFeedRecommendation(
+      postId: json['post_id']?.toString() ?? '',
+      relevance: (json['relevance'] as num?)?.toInt() ?? 0,
+      reason: json['reason']?.toString(),
+    );
+  }
 }

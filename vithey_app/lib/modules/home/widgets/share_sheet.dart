@@ -95,7 +95,7 @@ class _ShareSheetState extends State<ShareSheet> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Share this post',
+            'Share this post'.tr,
             style: context.text.titleLarge?.copyWith(fontSize: 16),
           ),
           const SizedBox(height: 16),
@@ -172,14 +172,16 @@ class _ShareOption extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    title.tr,
                     style: context.text.labelLarge,
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    subtitle,
-                    style: context.text.bodyMedium
-                        ?.copyWith(color: colors.muted, fontSize: 12),
+                    subtitle.tr,
+                    style: context.text.bodySmall?.copyWith(
+                      color: colors.muted,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

@@ -1,88 +1,70 @@
 # Local Development
 
-## 1. Shared Infrastructure
+Repo root on this machine: `D:\Projects\Mobile\Mobile-App-ACLEDA`
 
-Start Eureka, Config Server, RabbitMQ, Redis, Postgres, and MinIO:
+## Preferred: full stack
 
 ```powershell
-cd "D:\project\Acleda Mobile App\backend\infrastructure"
-copy .env.example .env
-docker compose up -d --build
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
+.\scripts\start-all.ps1
 ```
+
+This starts infra + all Java services + `ai_core`, sets `MINIO_PUBLIC_ENDPOINT` to your LAN IP, and updates `vithey_app/.env` API/WS URLs.
 
 Verify:
 
 ```powershell
-Invoke-RestMethod http://localhost:8761/actuator/health
-Invoke-RestMethod http://localhost:8888/actuator/health
-docker network inspect vithey-network
-```
-
-## 2. Auth Service
-
-```powershell
-cd "D:\project\Acleda Mobile App\backend\services\auth-service"
-copy .env.example .env
-docker compose up -d --build
-Invoke-RestMethod http://localhost:8081/actuator/health
-```
-
-## 3. User Profile Service
-
-```powershell
-cd "D:\project\Acleda Mobile App\backend\services\user-profile-service"
-copy .env.example .env
-docker compose up -d --build
-Invoke-RestMethod http://localhost:8082/actuator/health
-```
-
-## 4. API Gateway
-
-```powershell
-cd "D:\project\Acleda Mobile App\backend\services\api-gateway"
-copy .env.example .env
-docker compose up -d --build
+.\scripts\verify-docker.ps1
 Invoke-RestMethod http://localhost:8080/actuator/health
+Invoke-RestMethod http://localhost:8100/health
 ```
 
-## 5. File Service
+## Incremental (optional)
+
+### 1. Shared infrastructure only
 
 ```powershell
-cd "D:\project\Acleda Mobile App\backend\services\file-service"
-copy .env.example .env
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
+.\scripts\start-all.ps1 -InfraOnly
+# or:
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend\infrastructure
 docker compose up -d --build
-Invoke-RestMethod http://localhost:8083/actuator/health
 ```
 
-## Start all services
+### 2. One Java service
 
 ```powershell
-cd "D:\project\Acleda Mobile App\backend"
-.\scripts\start-all.ps1
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
+.\scripts\docker-build-service.ps1 auth-service -Up
 ```
+
+Available names: see `_shared/SERVICE_REGISTRY.md`.
+
+## Flutter app
+
+```powershell
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\vithey_app
+flutter pub get
+flutter run
+```
+
+- Emulator: `API_BASE_URL=http://10.0.2.2:8080/api/v1`
+- Physical phone: use LAN IP (written by `start-all.ps1`)
+- Feature flags live in `.env` → `FeatureFlags` (`USE_MOCK_*`, `ENABLE_GOOGLE_AUTH`, etc.)
 
 ## Stop
 
-Infrastructure:
-
 ```powershell
-cd "D:\project\Acleda Mobile App\backend\infrastructure"
-docker compose down
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
+.\scripts\start-all.ps1 -Down
 ```
 
-Service:
+## Build without Docker (Java)
 
 ```powershell
-cd "D:\project\Acleda Mobile App\backend\services\auth-service"
-docker compose down
-```
-
-## Build without Docker
-
-```powershell
-cd "D:\project\Acleda Mobile App\backend"
+cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
 mvn clean install
 mvn -pl services/auth-service spring-boot:run
 ```
 
-Non-Docker runs need the shared infrastructure containers running on localhost.
+Non-Docker JVM runs still need shared infrastructure containers on localhost (or `start-dev-host.ps1`).

@@ -22,7 +22,7 @@ class SearchScreen extends GetView<SearchController> {
         onClear: controller.clearQuery,
         onSubmitted: controller.submitSearch,
         hintText:
-            controller.pickUserForChat ? AppStrings.pickUserToChat : 'Search',
+            controller.pickUserForChat ? AppStrings.pickUserToChat.tr : 'Search'.tr,
       ),
       body: Obx(() {
         if (controller.showRecent) {
@@ -40,7 +40,7 @@ class SearchScreen extends GetView<SearchController> {
                 ? Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Text(
-                      AppStrings.pickUserToChat,
+                      AppStrings.pickUserToChat.tr,
                       style: context.text.bodySmall,
                     ),
                   )

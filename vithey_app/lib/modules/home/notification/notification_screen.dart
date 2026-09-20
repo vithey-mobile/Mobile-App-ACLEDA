@@ -45,11 +45,11 @@ class NotificationScreen extends GetView<NotificationController> {
         titleSpacing: 0,
         leading: VitheyIconButton(
           icon: LucideIcons.settings,
-          tooltip: 'Settings',
+          tooltip: 'Settings'.tr,
           onTap: () => Get.toNamed(AppRoutes.settings),
         ),
         title: Text(
-          'Notification',
+          'Notification'.tr,
           style: context.text.titleLarge?.copyWith(fontSize: 20),
         ),
         actions: [
@@ -57,7 +57,7 @@ class NotificationScreen extends GetView<NotificationController> {
             final searching = controller.isSearchOpen.value;
             return VitheyIconButton(
               icon: searching ? LucideIcons.x : LucideIcons.search,
-              tooltip: searching ? 'Close search' : 'Search notifications',
+              tooltip: searching ? 'Close search'.tr : 'Search notifications'.tr,
               onTap: () {
                 if (searching) {
                   controller.closeSearch();
@@ -89,7 +89,7 @@ class NotificationScreen extends GetView<NotificationController> {
                   padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                   child: VitheySearchPill(
                     controller: controller.searchController,
-                    hintText: 'Search notifications',
+                    hintText: 'Search notifications'.tr,
                     autofocus: true,
                     onChanged: controller.setSearchQuery,
                     onClear: () {

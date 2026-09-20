@@ -384,6 +384,31 @@ class ChatRepository {
     }
     final local = await _isar.getConversationById(conversationId);
     if (local != null) return ChatIsarMapper.fromLocalConversation(local);
+    try {
+      final remote = await _chatService.fetchConversations(page: 1);
+      final match = remote.where((c) => c.id == conversationId);
+      if (match.isNotEmpty) {
+        final conv = match.first;
+        await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(conv));
+        return conv;
+      }
+      final requests = await _chatService.fetchMessageRequests();
+      final reqMatch = requests.where((r) => r.id == conversationId);
+      if (reqMatch.isNotEmpty) {
+        final req = reqMatch.first;
+        final conv = ConversationModel(
+          id: req.id,
+          participant: req.requester,
+          lastMessagePreview: req.initialMessage,
+          updatedAt: req.createdAt,
+          status: ConversationStatus.pending,
+        );
+        await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(conv));
+        return conv;
+      }
+    } catch (_) {
+      // Fallback
+    }
     return null;
   }
 
@@ -441,7 +466,14 @@ class ChatRepository {
     }
   }
 
-  Future<String> findOrCreateConversation(String participantId) async {
+  Future<String> findOrCreateConversation(
+    String participantId, {
+    String? initialMessage,
+  }) async {
+    final message = (initialMessage != null && initialMessage.trim().isNotEmpty)
+        ? initialMessage.trim()
+        : 'Hi';
+
     if (useMockApi) {
       await _ensureMockSeed();
       final existing = _mockConversations.where((c) => c.participant.id == participantId);
@@ -454,7 +486,7 @@ class ChatRepository {
       final conv = ConversationModel(
         id: id,
         participant: contact,
-        lastMessagePreview: '',
+        lastMessagePreview: message,
         updatedAt: DateTime.now(),
       );
       _mockConversations.insert(0, conv);
@@ -477,12 +509,33 @@ class ChatRepository {
     } catch (_) {
       // Fall through to create a request.
     }
-    final created = await _chatService.createConversationRequest(
-      toUserId: participantId,
-      initialMessage: 'Hi',
-    );
-    await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(created));
-    return created.id;
+    try {
+      final created = await _chatService.createConversationRequest(
+        toUserId: participantId,
+        initialMessage: message,
+      );
+      await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(created));
+      return created.id;
+    } catch (e) {
+      // If conversation already exists or conflict occurred, locate from remote
+      try {
+        final remote = await _chatService.fetchConversations(page: 1);
+        final match = remote.where((c) => c.participant.id == participantId);
+        if (match.isNotEmpty) {
+          final conv = match.first;
+          await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(conv));
+          return conv.id;
+        }
+        final requests = await _chatService.fetchMessageRequests();
+        final reqMatch = requests.where((r) => r.requester.id == participantId);
+        if (reqMatch.isNotEmpty) {
+          return reqMatch.first.id;
+        }
+      } catch (_) {
+        // Fall through to rethrow
+      }
+      rethrow;
+    }
   }
 
   Future<void> acceptMessageRequest(String requestId) async {
@@ -491,6 +544,11 @@ class ChatRepository {
       return;
     }
     await _chatService.acceptConversation(requestId);
+    try {
+      final remote = await _chatService.fetchConversations(page: 1);
+      await _isar.upsertConversations(remote.map(ChatIsarMapper.toLocalConversation).toList());
+      _refreshUnreadCount(remote);
+    } catch (_) {}
   }
 
   Future<void> declineMessageRequest(String requestId) async {
@@ -499,6 +557,7 @@ class ChatRepository {
       return;
     }
     await _chatService.declineConversation(requestId);
+    await _isar.deleteConversation(requestId);
   }
 
   Future<void> blockConversation(String conversationId) async {

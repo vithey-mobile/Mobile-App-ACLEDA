@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 
@@ -12,6 +13,9 @@ class EmptyStateWidget extends StatelessWidget {
     this.icon = LucideIcons.inbox,
     this.actionLabel,
     this.onAction,
+    this.titleColor,
+    this.subtitleColor,
+    this.iconColor,
   });
 
   final String title;
@@ -19,20 +23,41 @@ class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Color? titleColor;
+  final Color? subtitleColor;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            VitheyIcon(icon, size: 64, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+            VitheyIcon(
+              icon,
+              size: 64,
+              color: iconColor ?? theme.colorScheme.primary.withValues(alpha: 0.5),
+            ),
             const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+            Text(
+              title.tr,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: titleColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
-            Text(subtitle, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+            Text(
+              subtitle.tr,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: subtitleColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 24),
               CustomButton(label: actionLabel!, onPressed: onAction),

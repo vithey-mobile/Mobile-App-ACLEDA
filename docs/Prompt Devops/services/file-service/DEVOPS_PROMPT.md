@@ -21,17 +21,17 @@ backend/services/file-service/.env.example
 ```
 
 **Service compose containers only:** `file-service`, `file-postgres`  
-**Shared infra:** `minio`, `eureka-server`, `config-server`
+**Shared infra:** `minio` (`quay.io/minio/minio`), `eureka-server`, `config-server`  
+**Public media URLs:** set `MINIO_PUBLIC_ENDPOINT` to a phone-reachable host (`start-all.ps1` writes LAN IP into `backend/.env`).
 
 ## Verification
 
-```bash
-cd backend/infrastructure && docker compose up -d --build
-cd ../services/file-service && copy .env.example .env
-docker compose up -d --build
+```powershell
+cd backend
+.\scripts\start-all.ps1 -SkipBuild   # or infra + this service only
 curl http://localhost:8083/actuator/health
+# Confirm MINIO_PUBLIC_ENDPOINT is LAN IP when testing on a physical phone
 ```
-
 ## GitHub Actions
 
 `.github/workflows/file-service-ci.yml` — Maven test, Docker build `SERVICE_PORT=8083`.

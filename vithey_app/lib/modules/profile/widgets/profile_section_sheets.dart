@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,7 +52,7 @@ Widget Function(BuildContext) _removeTrailing<T>({
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Text(
-            'Remove',
+            'Remove'.tr,
             style: ctx.text.labelLarge?.copyWith(
               color: AppColors.error,
             ),

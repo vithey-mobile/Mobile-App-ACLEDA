@@ -133,7 +133,7 @@ class EditProfileScreen extends GetView<EditProfileController> {
         backgroundColor: context.appColors.bodyBackground,
         foregroundColor: heading,
         title: Text(
-          'Edit personal info',
+          'Edit personal info'.tr,
           style: context.text.headlineSmall?.copyWith(color: heading),
         ),
       ),
@@ -297,7 +297,7 @@ class _SkillsBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Skills',
+            'Skills'.tr,
             style: context.text.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -350,7 +350,7 @@ class _BioBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Bio',
+            'Bio'.tr,
             style: context.text.titleLarge,
           ),
           const SizedBox(height: 8),
@@ -364,7 +364,7 @@ class _BioBlock extends StatelessWidget {
               onTap: () => _open(context),
               behavior: HitTestBehavior.opaque,
               child: Text(
-                'No bio yet',
+                'No bio yet'.tr,
                 style: TextStyle(color: context.appColors.muted),
               ),
             ),
@@ -432,7 +432,7 @@ class _PersonalBlock extends StatelessWidget {
               onTap: () => _open(context),
             ),
           if (loc.isEmpty && g.isEmpty && dob == null)
-            Text('No personal details yet',
+            Text('No personal details yet'.tr,
                 style: TextStyle(color: context.appColors.muted)),
         ],
       );
@@ -476,7 +476,7 @@ class _WorkBlock extends StatelessWidget {
         children: [
           ProfileSectionAddHeader(title: 'Work', onAdd: () => _open(context)),
           if (list.isEmpty)
-            Text('No work yet',
+            Text('No work yet'.tr,
                 style: TextStyle(color: context.appColors.muted))
           else
             for (var i = 0; i < list.length; i++)
@@ -530,7 +530,7 @@ class _EducationBlock extends StatelessWidget {
             onAdd: () => _open(context),
           ),
           if (list.isEmpty)
-            Text('No education yet',
+            Text('No education yet'.tr,
                 style: TextStyle(color: context.appColors.muted))
           else
             for (var i = 0; i < list.length; i++)
@@ -581,7 +581,7 @@ class _LinksBlock extends StatelessWidget {
         children: [
           ProfileSectionAddHeader(title: 'Links', onAdd: () => _open(context)),
           if (list.isEmpty)
-            Text('No links yet',
+            Text('No links yet'.tr,
                 style: TextStyle(color: context.appColors.muted))
           else
             for (var i = 0; i < list.length; i++)
@@ -635,7 +635,7 @@ class _ContactBlock extends StatelessWidget {
             onAdd: () => _open(context),
           ),
           if (list.isEmpty)
-            Text('No contact info yet',
+            Text('No contact info yet'.tr,
                 style: TextStyle(color: context.appColors.muted))
           else
             for (var i = 0; i < list.length; i++) ...[

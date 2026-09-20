@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -104,7 +105,7 @@ class _EditProfileSheetScaffold extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                title,
+                title.tr,
                 style: context.text.titleLarge?.copyWith(fontSize: 20),
               ),
             ),
@@ -252,7 +253,7 @@ class ProfileSectionAddHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            title,
+            title.tr,
             style: context.text.titleLarge?.copyWith(fontSize: titleSize),
           ),
         ),
@@ -262,7 +263,7 @@ class ProfileSectionAddHeader extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Text(
-              'Add',
+              'Add'.tr,
               style: context.text.labelLarge?.copyWith(
                 color: AppColors.primary,
               ),

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -9,8 +8,10 @@ import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
+import 'package:aub_connect_app/core/widgets/vithey_media_image.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 /// Opens poster image / video in an immersive detail stage (TikTok-style).
 Future<void> showMediaFullscreen(
@@ -75,8 +76,16 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
   String? _error;
   int _imagePage = 0;
 
-  bool get _isVideo => _post.type == PostType.video;
+  bool get _isVideo {
+    if (_post.type != PostType.video) return false;
+    final url = _post.mediaUrl;
+    if (url == null || url.isEmpty) return true;
+    return !_looksLikeImageUrl(url);
+  }
+
   List<String> get _imageUrls => _post.displayMediaUrls;
+
+  static bool _looksLikeImageUrl(String url) => FeedPost.looksLikeImageUrl(url);
 
   @override
   void initState() {
@@ -129,6 +138,7 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
     if (_controller != null || _initializing) return;
     final url = _post.mediaUrl;
     if (url == null || url.isEmpty) return;
+    if (_looksLikeImageUrl(url)) return;
 
     setState(() {
       _initializing = true;
@@ -139,13 +149,18 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
       VideoPlayerController? controller;
 
       Future<VideoPlayerController?> tryInit(String src) async {
+        final resolved = MediaUrlResolver.resolve(src);
+        if (resolved.isEmpty) return null;
         VideoPlayerController c;
-        if (src.startsWith('http://') || src.startsWith('https://')) {
-          c = VideoPlayerController.networkUrl(Uri.parse(src));
-        } else if (src.startsWith('assets/')) {
-          c = VideoPlayerController.asset(src);
+        if (resolved.isAsset) {
+          c = VideoPlayerController.asset(resolved.url);
+        } else if (resolved.isLocalFile) {
+          c = VideoPlayerController.file(File(resolved.url));
         } else {
-          c = VideoPlayerController.file(File(src));
+          c = VideoPlayerController.networkUrl(
+            Uri.parse(resolved.url),
+            httpHeaders: resolved.headers ?? const {},
+          );
         }
         try {
           await c.initialize().timeout(const Duration(seconds: 8));
@@ -157,15 +172,6 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
       }
 
       controller = await tryInit(url);
-      if (controller == null) {
-        const fallbacks = [
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-          'https://media.w3.org/2010/05/video/movie_300.mp4',
-        ];
-        final fallbackUrl = fallbacks[_post.id.hashCode.abs() % fallbacks.length];
-        controller = await tryInit(fallbackUrl);
-      }
 
       if (controller == null) {
         throw Exception('Could not initialize video player');
@@ -668,49 +674,20 @@ class _FullscreenImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (url == null || url!.isEmpty) {
-      return const VitheyIcon(
-        LucideIcons.imageOff,
-        color: Colors.white54,
-        size: 48,
-      );
-    }
-    if (url!.startsWith('assets/')) {
-      return Image.asset(
-        url!,
-        fit: fit,
-        errorBuilder: (_, __, ___) => CachedNetworkImage(
-          imageUrl: 'https://picsum.photos/seed/fullviewer/720/1280',
-          fit: fit,
-          errorWidget: (_, __, ___) => const VitheyIcon(
-            LucideIcons.imageOff,
-            color: Colors.white54,
-            size: 48,
-          ),
-        ),
-      );
-    }
-    if (!url!.startsWith('http://') && !url!.startsWith('https://')) {
-      return Image.file(
-        File(url!),
-        fit: fit,
-        errorBuilder: (_, __, ___) => const VitheyIcon(
+    return VitheyMediaImage(
+      url: url,
+      fit: fit,
+      fallbackColor: Colors.black,
+      iconColor: Colors.white54,
+      errorWidget: const Center(
+        child: VitheyIcon(
           LucideIcons.imageOff,
           color: Colors.white54,
           size: 48,
         ),
-      );
-    }
-    return CachedNetworkImage(
-      imageUrl: url!,
-      fit: fit,
-      placeholder: (_, __) => const Center(
-        child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2),
       ),
-      errorWidget: (_, __, ___) => const VitheyIcon(
-        LucideIcons.imageOff,
-        color: Colors.white54,
-        size: 48,
+      placeholder: const Center(
+        child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2),
       ),
     );
   }

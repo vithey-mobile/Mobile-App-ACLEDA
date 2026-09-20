@@ -1,13 +1,8 @@
--- Precheck if migrate fails on uniqueness:
--- SELECT cv_file_id, COUNT(*) FROM user_cvs GROUP BY cv_file_id HAVING COUNT(*) > 1;
--- Orphan apps (would fail FK):
--- SELECT ja.id FROM job_applications ja
--- LEFT JOIN user_cvs uc ON uc.cv_file_id = ja.cv_file_id
--- WHERE uc.cv_file_id IS NULL;
-
-CREATE UNIQUE INDEX uq_user_cvs_cv_file_id
+-- Idempotent: V1 already defines UNIQUE(cv_file_id) and fk_job_applications_cv_file.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_user_cvs_cv_file_id
     ON user_cvs (cv_file_id);
 
+ALTER TABLE job_applications DROP CONSTRAINT IF EXISTS fk_job_applications_cv_file;
 ALTER TABLE job_applications
     ADD CONSTRAINT fk_job_applications_cv_file
     FOREIGN KEY (cv_file_id) REFERENCES user_cvs (cv_file_id);

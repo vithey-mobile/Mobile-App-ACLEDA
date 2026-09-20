@@ -25,8 +25,13 @@ class StudentVerificationRepository {
   bool get useMockApi => _flags.useMockApi;
 
   Future<void> refreshVerifiedFlag() async {
-    final current = await getMyVerification();
-    _publishVerified(current.status);
+    try {
+      final current = await getMyVerification();
+      _publishVerified(current.status);
+    } catch (_) {
+      // Not logged in / token missing — treat as unverified without crashing.
+      _publishVerified(VerificationStatus.notSubmitted);
+    }
   }
 
   void _publishVerified(VerificationStatus status) {
@@ -40,15 +45,23 @@ class StudentVerificationRepository {
       _publishVerified(model.status);
       return model;
     }
-    final me = await _service.fetchAuthMe();
-    final model = StudentVerificationModel(
-      status: me.isStudentVerified
-          ? VerificationStatus.verified
-          : VerificationStatus.notSubmitted,
-      verifiedAt: me.isStudentVerified ? DateTime.now() : null,
-    );
-    _publishVerified(model.status);
-    return model;
+    try {
+      final me = await _service.fetchAuthMe();
+      final model = StudentVerificationModel(
+        status: me.isStudentVerified
+            ? VerificationStatus.verified
+            : VerificationStatus.notSubmitted,
+        verifiedAt: me.isStudentVerified ? DateTime.now() : null,
+      );
+      _publishVerified(model.status);
+      return model;
+    } catch (_) {
+      final model = const StudentVerificationModel(
+        status: VerificationStatus.notSubmitted,
+      );
+      _publishVerified(model.status);
+      return model;
+    }
   }
 
   Future<StudentVerificationModel> submitVerification({

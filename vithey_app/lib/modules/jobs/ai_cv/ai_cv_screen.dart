@@ -81,6 +81,7 @@ class AiCvScreen extends GetView<AiCvController> {
                   message: controller.errorMessage.value,
                   onRetry: controller.retryGenerate,
                   onBack: controller.cancelToApply,
+                  onFillManually: controller.fillManually,
                 );
               case AiCvPhase.preview:
                 return _PreviewEditorPane(controller: controller);
@@ -109,13 +110,13 @@ class _StatusPane extends StatelessWidget {
             const LoadingWidget(),
             const SizedBox(height: 20),
             Text(
-              title,
+              title.tr,
               textAlign: TextAlign.center,
               style: context.text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              subtitle,
+              subtitle.tr,
               textAlign: TextAlign.center,
               style: context.text.bodySmall,
             ),
@@ -131,11 +132,13 @@ class _ErrorPane extends StatelessWidget {
     required this.message,
     required this.onRetry,
     required this.onBack,
+    required this.onFillManually,
   });
 
   final String message;
   final VoidCallback onRetry;
   final VoidCallback onBack;
+  final VoidCallback onFillManually;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +152,7 @@ class _ErrorPane extends StatelessWidget {
                 size: 40, color: context.appColors.muted),
             const SizedBox(height: 16),
             Text(
-              message,
+              message.tr,
               textAlign: TextAlign.center,
               style: context.text.titleSmall?.copyWith(fontWeight: FontWeight.w400, height: 1.4),
             ),
@@ -157,8 +160,14 @@ class _ErrorPane extends StatelessWidget {
             CustomButton(label: 'Try again', onPressed: onRetry),
             const SizedBox(height: 10),
             CustomButton(
-              label: 'Go back',
+              label: 'Fill sections manually',
               variant: CustomButtonVariant.outline,
+              onPressed: onFillManually,
+            ),
+            const SizedBox(height: 10),
+            CustomButton(
+              label: 'Go back',
+              variant: CustomButtonVariant.ghost,
               onPressed: onBack,
             ),
           ],
@@ -207,12 +216,12 @@ class _PreviewEditorPane extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                section.title,
+                section.title.tr,
                 style: ctx.text.titleLarge?.copyWith(fontSize: 17, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 4),
               Text(
-                'Changes update the template preview instantly.',
+                'Changes update the template preview instantly.'.tr,
                 style: ctx.text.bodySmall?.copyWith(fontSize: 12),
               ),
               const SizedBox(height: 14),
@@ -263,12 +272,12 @@ class _PreviewEditorPane extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               children: [
                 Text(
-                  'Tap any text on the CV to edit it',
+                  'Tap any text on the CV to edit it'.tr,
                   style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Template · ${template.name}',
+                  '${'Templates'.tr} · ${template.name}',
                   style: context.text.labelMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,

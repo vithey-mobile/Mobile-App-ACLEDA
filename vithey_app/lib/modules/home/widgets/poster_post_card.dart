@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
@@ -94,7 +95,7 @@ class _FollowButton extends StatelessWidget {
           width: post.isFollowingAuthor ? 70 : 58,
           child: Center(
             child: Text(
-              post.isFollowingAuthor ? 'Following' : 'Follow',
+              post.isFollowingAuthor ? 'Following'.tr : 'Follow'.tr,
               style: context.text.labelLarge?.copyWith(
                 fontSize: 12,
                 color: context.scheme.onPrimary,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/theme/app_theme.dart';
 import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
 import 'package:aub_connect_app/core/widgets/app_bottom_navigation.dart';
 import 'package:aub_connect_app/core/widgets/app_error_widget.dart';
@@ -23,37 +25,42 @@ class ReelsScreen extends GetView<ReelsController> {
         ? MediaQuery.paddingOf(context).bottom
         : 88.0 + MediaQuery.paddingOf(context).bottom;
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: VitheySystemUi.immersiveDark(),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        extendBody: true,
-        body: Obx(() {
-          if (controller.isLoading.value && controller.posts.isEmpty) {
-            return const ColoredBox(
-              color: Colors.black,
-              child: LoadingWidget(),
-            );
-          }
-          if (controller.hasError.value && controller.posts.isEmpty) {
-            return ColoredBox(
-              color: Colors.black,
-              child: AppErrorWidget(
-                message: controller.errorMessage.value,
-                onRetry: controller.loadReels,
-              ),
-            );
-          }
-          if (controller.posts.isEmpty) {
-            return const ColoredBox(
-              color: Colors.black,
-              child: EmptyStateWidget(
-                title: 'No reels yet',
-                subtitle: 'Video posts from the community will show up here',
-                icon: LucideIcons.video,
-              ),
-            );
-          }
+    return Theme(
+      data: AppTheme.dark(),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: VitheySystemUi.immersiveDark(),
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          extendBody: true,
+          body: Obx(() {
+            if (controller.isLoading.value && controller.posts.isEmpty) {
+              return const ColoredBox(
+                color: Colors.black,
+                child: LoadingWidget(),
+              );
+            }
+            if (controller.hasError.value && controller.posts.isEmpty) {
+              return ColoredBox(
+                color: Colors.black,
+                child: AppErrorWidget(
+                  message: controller.errorMessage.value,
+                  onRetry: controller.loadReels,
+                ),
+              );
+            }
+            if (controller.posts.isEmpty) {
+              return const ColoredBox(
+                color: Colors.black,
+                child: EmptyStateWidget(
+                  title: 'No reels yet',
+                  subtitle: 'Video posts from the community will show up here',
+                  icon: LucideIcons.video,
+                  titleColor: Colors.white,
+                  subtitleColor: Colors.white70,
+                  iconColor: AppColors.primaryLight,
+                ),
+              );
+            }
 
           final posts = controller.posts.toList();
           final current = controller.currentIndex.value;
@@ -109,14 +116,14 @@ class ReelsScreen extends GetView<ReelsController> {
                       child: Row(
                         children: [
                           Text(
-                            'Reels',
+                            'Reels'.tr,
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.3),
                           ),
                           const Spacer(),
                           VitheyIconButton(
                             icon: LucideIcons.search,
                             onTap: () => Get.toNamed(AppRoutes.search),
-                            tooltip: 'Search',
+                            tooltip: 'Search'.tr,
                             color: Colors.white,
                           ),
                         ],
@@ -137,6 +144,7 @@ class ReelsScreen extends GetView<ReelsController> {
                   currentIndex: MainTabNavigation.reel,
                 ),
               ),
+        ),
       ),
     );
   }

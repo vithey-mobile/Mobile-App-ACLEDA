@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:aub_connect_app/modules/settings/widgets/squircle_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Privacy toggle row: squircle icon chrome, title + subtitle, and a
 /// [VitheySwitch]. Lives inside a grouped [VitheyCard].
@@ -37,10 +38,10 @@ class PrivacySwitchTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: context.text.titleSmall),
+                  Text(title.tr, style: context.text.titleSmall),
                   const SizedBox(height: 2),
                   Text(
-                    subtitle,
+                    subtitle.tr,
                     style: context.text.bodySmall?.copyWith(fontSize: 12),
                   ),
                 ],

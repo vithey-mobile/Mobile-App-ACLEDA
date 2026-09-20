@@ -43,18 +43,18 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         HomeAppBarAction(
           icon: const VitheyIcon(LucideIcons.search),
           onPressed: () => Get.toNamed(AppRoutes.search),
-          tooltip: 'Search',
+          tooltip: 'Search'.tr,
         ),
         HomeAppBarAction(
           icon: const VitheyIcon(LucideIcons.mapPinned),
           onPressed: () => Get.toNamed(AppRoutes.map),
-          tooltip: 'Map',
+          tooltip: 'Map'.tr,
         ),
         const HomeChatAppBarAction(),
-        const HomeAppBarAction(
-          icon: VitheyIcon(LucideIcons.wallet),
+        HomeAppBarAction(
+          icon: const VitheyIcon(LucideIcons.wallet),
           onPressed: FinanceNavigation.openFinanceEntry,
-          tooltip: 'Finance',
+          tooltip: 'Finance'.tr,
         ),
         const SizedBox(width: 4),
       ],
@@ -89,7 +89,7 @@ class _HomeChatAppBarActionState extends State<HomeChatAppBarAction> {
       return HomeAppBarAction(
         icon: const VitheyIcon(LucideIcons.messageCircle),
         onPressed: () => Get.toNamed(AppRoutes.chat),
-        tooltip: 'Messages',
+        tooltip: 'Messages'.tr,
       );
     }
 
@@ -98,7 +98,7 @@ class _HomeChatAppBarActionState extends State<HomeChatAppBarAction> {
       return HomeAppBarAction(
         icon: const VitheyIcon(LucideIcons.messageCircle),
         onPressed: () => Get.toNamed(AppRoutes.chat),
-        tooltip: count > 0 ? 'Messages ($count)' : 'Messages',
+        tooltip: count > 0 ? '${'Messages'.tr} ($count)' : 'Messages'.tr,
         badgeCount: count,
       );
     });

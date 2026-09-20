@@ -1,6 +1,7 @@
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/vithey_switch.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SettingsSwitchTile extends StatelessWidget {
   const SettingsSwitchTile({
@@ -26,7 +27,7 @@ class SettingsSwitchTile extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              label,
+              label.tr,
               style: context.text.titleSmall?.copyWith(
                 fontWeight: FontWeight.w500,
                 height: 1.2,

@@ -371,7 +371,7 @@ class _CommentSheetState extends State<CommentSheet> {
           child: Row(
             children: [
               Text(
-                'Comments',
+                'Comments'.tr,
                 style: context.text.titleLarge?.copyWith(
                   fontSize: 16.5,
                   fontWeight: FontWeight.w700,
@@ -401,7 +401,7 @@ class _CommentSheetState extends State<CommentSheet> {
               const Spacer(),
               VitheyIconButton(
                 icon: LucideIcons.x,
-                tooltip: 'Close',
+                tooltip: 'Close'.tr,
                 color: colors.muted,
                 circle: true,
                 onTap: () => Navigator.of(context).pop(),
@@ -440,7 +440,7 @@ class _CommentSheetState extends State<CommentSheet> {
             ),
             const SizedBox(height: 14),
             Text(
-              'No comments yet',
+              'No comments yet'.tr,
               style: context.text.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colors.heading,
@@ -448,7 +448,7 @@ class _CommentSheetState extends State<CommentSheet> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Be the first to share your thoughts!',
+              'Be the first to share your thoughts!'.tr,
               textAlign: TextAlign.center,
               style: context.text.bodyMedium?.copyWith(
                 color: colors.muted,
@@ -496,8 +496,8 @@ class _CommentSheetState extends State<CommentSheet> {
     }
     final isEditing = _editingComment != null;
     final label = isEditing
-        ? 'Editing your comment'
-        : 'Replying to ${_replyTarget!.author.fullName}';
+        ? 'Editing your comment'.tr
+        : '${'Replying to'.tr} ${_replyTarget!.author.fullName}';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -644,7 +644,7 @@ class _CommentSheetState extends State<CommentSheet> {
                                 if (comment.isPending) ...[
                                   const SizedBox(width: 14),
                                   Text(
-                                    'Sending…',
+                                    'Sending…'.tr,
                                     style: context.text.bodyMedium?.copyWith(
                                         color: colors.muted, fontSize: 12),
                                   ),
@@ -720,10 +720,10 @@ class _CommentSheetState extends State<CommentSheet> {
     final colors = context.appColors;
     final me = _currentUser.postAuthor;
     final hint = _editingComment != null
-        ? 'Edit your comment…'
+        ? 'Edit your comment…'.tr
         : _replyTarget != null
-            ? 'Reply to ${_replyTarget!.author.fullName}…'
-            : 'Add a comment…';
+            ? '${'Replying to'.tr} ${_replyTarget!.author.fullName}…'
+            : 'Add a comment…'.tr;
 
     const fieldHeight = 38.0;
     const avatarRadius = 17.0;
@@ -821,8 +821,8 @@ class _CommentSheetState extends State<CommentSheet> {
                                   height: fieldHeight,
                                   child: IconButton(
                                     tooltip: _editingComment != null
-                                        ? 'Save'
-                                        : 'Send',
+                                        ? 'Save'.tr
+                                        : 'Send'.tr,
                                     onPressed: canSend ? _send : null,
                                     padding: EdgeInsets.zero,
                                     icon: _isSending.value
@@ -890,7 +890,7 @@ class _ActionLabel extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
       child: Text(
-        label,
+        label.tr,
         style: context.text.bodyMedium?.copyWith(
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
@@ -961,7 +961,7 @@ class _CommentRowIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip,
+      message: tooltip.tr,
       child: Material(
         color: Colors.transparent,
         shape: const CircleBorder(),

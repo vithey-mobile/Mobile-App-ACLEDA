@@ -35,6 +35,8 @@ dependencies:
   geolocator: ^14.0.2
   pdf: ^3.13.0
   gpt_markdown: ^1.2.1
+  crypto: ^3.0.7
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +44,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   isar_generator: ^3.1.0+1
   build_runner: ^2.4.13
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -57,3 +60,13 @@ flutter:
     - assets/icons/Google Icon.png
     - assets/icons/skills/
     - .env
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/brand/launcher_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/brand/launcher_icon_foreground.png"
+

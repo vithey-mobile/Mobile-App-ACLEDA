@@ -19,14 +19,25 @@ backend/infrastructure/docker-compose.yml
 backend/infrastructure/.env.example
 ```
 
-**Containers (shared only):** `postgres`, `redis`, `rabbitmq`, `minio`, `eureka-server`, `config-server`
+**Containers (shared only):** `postgres`, `redis`, `rabbitmq`, `minio` (`quay.io/minio/minio:latest`), `eureka-server`, `config-server`
 
 Creates network `vithey-network`. Business services are **not** in this file.
 
+Host ports: Postgres **15432**, Redis **16379**, MinIO API **19000** / console **19001**.
+
+Preferred full-stack start (infra + services + ai_core):
+
+```powershell
+cd backend
+.\scripts\start-all.ps1
+# or infra only:
+.\scripts\start-all.ps1 -InfraOnly
+```
+
 ## Verification
 
-```bash
-cd backend/infrastructure
+```powershell
+cd backend\infrastructure
 copy .env.example .env
 docker compose up -d --build
 curl http://localhost:8761/actuator/health

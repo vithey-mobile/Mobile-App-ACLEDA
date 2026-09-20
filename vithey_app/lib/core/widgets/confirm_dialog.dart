@@ -103,13 +103,13 @@ class ConfirmDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                title,
+                title.tr,
                 textAlign: TextAlign.start,
                 style: context.text.titleLarge?.copyWith(color: colors.heading),
               ),
               const SizedBox(height: 12),
               Text(
-                message,
+                message.tr,
                 textAlign: TextAlign.start,
                 style: context.text.bodyMedium
                     ?.copyWith(color: colors.muted, height: 1.4),

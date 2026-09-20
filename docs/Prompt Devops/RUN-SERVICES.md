@@ -5,9 +5,9 @@
 
 ## Quick reference
 
-1. `backend/infrastructure/` — shared infra (creates `vithey-network`)
-2. Domain services in registry order (auth → … → notification → ai)
-3. `backend/services/api-gateway/` — last
+1. Prefer one command: `backend/scripts/start-all.ps1` (infra + domain services + **ai_core** + gateway)
+2. Incremental alternative: `backend/infrastructure/` first, then domain services in registry order, gateway last
+3. map-service is **opt-in** (Compose profile `map`)
 
 ## Start all
 
@@ -20,6 +20,7 @@ cd backend
 
 ```powershell
 .\scripts\verify-docker.ps1
+.\scripts\smoke-api.ps1
 ```
 
 See [DOCKER-VERIFY.md](DOCKER-VERIFY.md) for fixes.

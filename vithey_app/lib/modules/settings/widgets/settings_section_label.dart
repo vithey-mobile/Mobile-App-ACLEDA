@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 
 class SettingsSectionLabel extends StatelessWidget {
@@ -11,7 +12,7 @@ class SettingsSectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
       child: Text(
-        label,
+        label.tr,
         style: context.text.bodySmall?.copyWith(fontWeight: FontWeight.w500),
       ),
     );

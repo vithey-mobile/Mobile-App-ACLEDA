@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
@@ -89,7 +90,7 @@ class CustomButton extends StatelessWidget {
         icon != null ? VitheyIcon(icon!, size: 18, color: foregroundColor) : leading;
 
     final labelWidget = shad.Text(
-      label,
+      label.tr,
       style: foregroundColor != null
           ? TextStyle(color: foregroundColor)
           : null,

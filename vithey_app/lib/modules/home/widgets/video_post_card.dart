@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
+import 'package:aub_connect_app/core/widgets/vithey_media_image.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/modules/home/widgets/media_fullscreen_viewer.dart';
@@ -55,11 +56,16 @@ class _VideoPostCardState extends State<VideoPostCard> {
 
   void _initPlayer(String videoUrl) {
     _disposePlayer();
-    final controller = videoUrl.startsWith('http://') || videoUrl.startsWith('https://')
-        ? VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-        : videoUrl.startsWith('assets/')
-            ? VideoPlayerController.asset(videoUrl)
-            : VideoPlayerController.file(File(videoUrl));
+    final resolved = MediaUrlResolver.resolve(videoUrl);
+    if (resolved.isEmpty) return;
+    final controller = resolved.isAsset
+        ? VideoPlayerController.asset(resolved.url)
+        : resolved.isLocalFile
+            ? VideoPlayerController.file(File(resolved.url))
+            : VideoPlayerController.networkUrl(
+                Uri.parse(resolved.url),
+                httpHeaders: resolved.headers ?? const {},
+              );
 
     _playerController = controller;
     controller.initialize().then((_) {
@@ -260,46 +266,18 @@ class _VideoPostCardState extends State<VideoPostCard> {
   }
 
   Widget _buildPreviewImage(String? url) {
-    if (url == null || url.isEmpty) {
-      return const ColoredBox(
+    return VitheyMediaImage(
+      url: url,
+      fit: BoxFit.cover,
+      fallbackColor: Colors.black87,
+      iconColor: Colors.white54,
+      errorWidget: const ColoredBox(
         color: Colors.black87,
         child: Center(child: VitheyIcon(LucideIcons.video, size: 48, color: Colors.white54)),
-      );
-    }
-    if (url.startsWith('assets/')) {
-      return Image.asset(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => CachedNetworkImage(
-          imageUrl: 'https://picsum.photos/seed/${widget.post.id}/720/1280',
-          fit: BoxFit.cover,
-          errorWidget: (_, __, ___) => const ColoredBox(
-            color: Colors.black87,
-            child: Center(child: VitheyIcon(LucideIcons.video, size: 48, color: Colors.white54)),
-          ),
-        ),
-      );
-    }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return Image.file(
-        File(url),
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const ColoredBox(
-          color: Colors.black87,
-          child: Center(child: VitheyIcon(LucideIcons.video, size: 48, color: Colors.white54)),
-        ),
-      );
-    }
-    return CachedNetworkImage(
-      imageUrl: url,
-      fit: BoxFit.cover,
-      placeholder: (_, __) => const ColoredBox(
+      ),
+      placeholder: const ColoredBox(
         color: Colors.black87,
         child: Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
-      ),
-      errorWidget: (_, __, ___) => const ColoredBox(
-        color: Colors.black87,
-        child: Center(child: VitheyIcon(LucideIcons.video, size: 48, color: Colors.white54)),
       ),
     );
   }

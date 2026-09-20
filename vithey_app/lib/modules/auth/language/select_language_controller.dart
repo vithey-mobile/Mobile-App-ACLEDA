@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
+import 'package:aub_connect_app/core/localization/locale_service.dart';
 import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
 
@@ -46,6 +47,11 @@ class SelectLanguageController extends GetxController {
   void select(AppLanguageOption option) {
     if (isBusy.value) return;
     selected.value = option;
+    final code = switch (option) {
+      AppLanguageOption.en => 'en',
+      AppLanguageOption.km => 'km',
+    };
+    LocaleService.changeLocale(code);
   }
 
   Future<void> next() => _goNext(selected.value);
@@ -60,7 +66,7 @@ class SelectLanguageController extends GetxController {
     };
 
     try {
-      await _localStorage.saveLanguage(code);
+      await LocaleService.changeLocale(code);
       await _localStorage.setLanguageSelected(true);
       final onboardingDone = await _localStorage.isOnboardingCompleted();
       if (onboardingDone) {

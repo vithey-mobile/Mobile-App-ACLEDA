@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
@@ -60,7 +61,7 @@ class PaymentReceiptsSection extends StatelessWidget {
         Row(
           children: [
             Text(
-              isSearching ? 'Search Results' : 'Recent Transaction',
+              isSearching ? 'Search Results'.tr : 'Recent Transaction'.tr,
               style: context.text.titleLarge,
             ),
             const Spacer(),
@@ -71,7 +72,7 @@ class PaymentReceiptsSection extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Text(
-                    showAll ? 'See Less' : 'See All',
+                    showAll ? 'See Less'.tr : 'See All'.tr,
                     style: context.text.labelLarge
                         ?.copyWith(color: AppColors.primary),
                   ),
