@@ -13,6 +13,13 @@ ALTER TABLE reactions
     ADD CONSTRAINT reactions_post_id_fkey
     FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE;
 
-ALTER TABLE follows
-    ADD CONSTRAINT chk_follows_no_self_follow
-    CHECK (follower_id <> following_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'chk_follows_no_self_follow'
+    ) THEN
+        ALTER TABLE follows
+            ADD CONSTRAINT chk_follows_no_self_follow
+            CHECK (follower_id <> following_id);
+    END IF;
+END $$;

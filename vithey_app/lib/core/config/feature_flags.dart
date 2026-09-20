@@ -3,6 +3,9 @@ import 'package:aub_connect_app/core/config/app_config.dart';
 import 'package:aub_connect_app/core/config/environment.dart';
 
 /// Central feature flags — repositories must read mock/real mode from here only.
+///
+/// Live API is the default. Mocks are opt-in via `USE_MOCK_*=true` and are
+/// hard-disabled in production builds.
 class FeatureFlags {
   FeatureFlags({AppConfig? config}) : _config = config ?? AppConfig.instance;
 
@@ -11,25 +14,25 @@ class FeatureFlags {
   static bool _isFalse(String? value) => value?.toLowerCase() == 'false';
   static bool _isTrue(String? value) => value?.toLowerCase() == 'true';
 
-  /// Global API mock fallback when individual module flags are unset.
-  /// Always off in production builds.
+  /// Global API mock. Opt-in only (`USE_MOCK_API=true`). Off in production.
   bool get useMockApi =>
-      !isProduction && !_isFalse(dotenv.env['USE_MOCK_API']);
+      !isProduction && _isTrue(dotenv.env['USE_MOCK_API']);
 
   bool get useMockAuth =>
-      !isProduction && _isTrue(dotenv.env['USE_MOCK_AUTH']);
+      !isProduction &&
+      (_isTrue(dotenv.env['USE_MOCK_AUTH']) || useMockApi);
 
   bool get useMockAi {
     if (isProduction) return false;
     final mockAi = dotenv.env['USE_MOCK_AI'];
-    if (mockAi != null) return !_isFalse(mockAi);
+    if (mockAi != null) return _isTrue(mockAi);
     return useMockApi;
   }
 
   bool get useMockSearch {
     if (isProduction) return false;
     final mockSearch = dotenv.env['USE_MOCK_SEARCH'];
-    if (mockSearch != null) return !_isFalse(mockSearch);
+    if (mockSearch != null) return _isTrue(mockSearch);
     return useMockApi;
   }
 
@@ -44,21 +47,20 @@ class FeatureFlags {
   bool get useMockMap {
     if (isProduction) return false;
     final mockMap = dotenv.env['USE_MOCK_MAP'];
-    if (mockMap != null) return !_isFalse(mockMap);
+    if (mockMap != null) return _isTrue(mockMap);
     return useMockApi;
   }
 
-  /// AI product flags (shared task S2). Default ON in dev; set `USE_AI_*=false`
-  /// in `.env` to hide a single AI feature. Production hides all via isProduction.
-  /// These gate whether the AI UI appears; `useMockAi` decides the data source.
-  bool get useAiCv => !_isFalse(dotenv.env['USE_AI_CV']) && !isProduction;
+  /// AI product flags (backed by `ai_core`). Default ON; set `USE_AI_*=false`
+  /// to hide the UI. These are real backend features, so they stay enabled in
+  /// production.
+  bool get useAiCv => !_isFalse(dotenv.env['USE_AI_CV']);
 
-  bool get useAiFeed => !_isFalse(dotenv.env['USE_AI_FEED']) && !isProduction;
+  bool get useAiFeed => !_isFalse(dotenv.env['USE_AI_FEED']);
 
-  bool get useAiSkills => !_isFalse(dotenv.env['USE_AI_SKILLS']) && !isProduction;
+  bool get useAiSkills => !_isFalse(dotenv.env['USE_AI_SKILLS']);
 
-  bool get useAiJobMatch =>
-      !_isFalse(dotenv.env['USE_AI_JOB_MATCH']) && !isProduction;
+  bool get useAiJobMatch => !_isFalse(dotenv.env['USE_AI_JOB_MATCH']);
 
   bool get enableGoogleAuth => _isTrue(dotenv.env['ENABLE_GOOGLE_AUTH']);
 
@@ -68,22 +70,15 @@ class FeatureFlags {
 
   bool get isProduction => _config.environment.isProduction;
 
-  /// Demo-only controls (mock status cycle, etc.) — hidden in production builds.
+  /// Demo-only controls — only when mocks are explicitly on.
   bool get showMockDevTools => !isProduction && useMockApi;
 
-  /// Dev-only: Splash always opens Onboarding, ignoring token / completed flag.
-  /// Set `FORCE_SHOW_ONBOARDING=false` in `.env` when done testing.
   bool get forceShowOnboarding =>
       !isProduction && _isTrue(dotenv.env['FORCE_SHOW_ONBOARDING']);
 
-  /// Dev-only: after Auth always open Startup, ignoring `startup_completed`.
-  /// Set `FORCE_SHOW_STARTUP=false` when done testing.
   bool get forceShowStartup =>
       !isProduction && _isTrue(dotenv.env['FORCE_SHOW_STARTUP']);
 
-  /// Dev-only: walk the full funnel every cold start / hot restart:
-  /// Splash → Onboarding → Auth → Startup → Home.
-  /// Clears session + completed flags, then starts at Onboarding.
   bool get forceDevFunnel =>
       !isProduction && _isTrue(dotenv.env['FORCE_DEV_FUNNEL']);
 

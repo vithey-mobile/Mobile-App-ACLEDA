@@ -128,9 +128,9 @@ spring:
                 redis-rate-limiter.burstCapacity: ${vithey.gateway.rate-limit.burst-capacity:100}
                 redis-rate-limiter.requestedTokens: ${vithey.gateway.rate-limit.requested-tokens:1}
                 key-resolver: "#{@rateLimitKeyResolver}"
-        - id: ai-service
+        - id: ai-core
           order: 0
-          uri: lb://ai-service
+          uri: http://ai-core:8100
           predicates:
             - Path=/api/v1/ai/**
           filters:

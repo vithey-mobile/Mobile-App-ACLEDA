@@ -35,6 +35,38 @@ class FinanceService {
     return response.data!;
   }
 
+  Future<List<Map<String, dynamic>>> fetchFees() async {
+    final response = await _api.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.fees,
+      fromJson: (json) {
+        final list = json as List<dynamic>? ?? [];
+        return list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      },
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw FinanceServiceException(response.error?.message ?? 'Failed to load fees');
+    }
+    return response.data!;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPaymentAlerts() async {
+    final response = await _api.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.paymentsAlerts,
+      fromJson: (json) {
+        final list = json as List<dynamic>? ?? [];
+        return list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      },
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw FinanceServiceException(response.error?.message ?? 'Failed to load alerts');
+    }
+    return response.data!;
+  }
+
   PaymentSummary _parsePayment(Map<String, dynamic> json) {
     final baseJson = json['base_amount'] as Map<String, dynamic>?;
     final totalJson = json['total'] as Map<String, dynamic>?;

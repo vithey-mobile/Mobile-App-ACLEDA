@@ -3,6 +3,7 @@ import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 import 'package:aub_connect_app/data/models/user_model.dart';
+import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 
@@ -60,6 +61,9 @@ class CurrentUserService extends GetxService {
     try {
       final me = await _authService.getMe();
       setUser(me);
+      if (Get.isRegistered<StudentVerificationRepository>()) {
+        await Get.find<StudentVerificationRepository>().refreshVerifiedFlag();
+      }
     } catch (_) {
       clear();
     }

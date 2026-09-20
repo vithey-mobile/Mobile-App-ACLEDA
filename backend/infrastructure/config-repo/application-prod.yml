@@ -9,10 +9,17 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info
   endpoint:
     health:
       show-details: when_authorized
   metrics:
     tags:
       application: ${spring.application.name}
+
+# API docs are dev-facing only.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

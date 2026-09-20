@@ -1,5 +1,16 @@
+# Vithey monitoring — opt-in profile.
+#
+#   docker compose --profile monitoring up -d
+#
+# Services declare profiles: ["monitoring"], so a plain `docker compose up`
+# starts nothing here. Leave the profile off for the lean 3-user phase.
+
+x-monitoring: &monitoring
+  profiles: ["monitoring"]
+
 services:
   prometheus:
+    <<: *monitoring
     image: prom/prometheus:latest
     container_name: vithey-prometheus
     ports:
@@ -17,6 +28,7 @@ services:
     restart: unless-stopped
 
   grafana:
+    <<: *monitoring
     image: grafana/grafana:latest
     container_name: vithey-grafana
     ports:
@@ -39,6 +51,7 @@ services:
     restart: unless-stopped
 
   loki:
+    <<: *monitoring
     image: grafana/loki:latest
     container_name: vithey-loki
     ports:
@@ -52,6 +65,7 @@ services:
     restart: unless-stopped
 
   promtail:
+    <<: *monitoring
     image: grafana/promtail:latest
     container_name: vithey-promtail
     volumes:
@@ -66,6 +80,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
+    <<: *monitoring
     image: prom/node-exporter:latest
     container_name: vithey-node-exporter
     ports:
@@ -84,10 +99,11 @@ services:
     restart: unless-stopped
 
   cadvisor:
+    <<: *monitoring
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: vithey-cadvisor
     ports:
-      - "8090:8080"
+      - "8095:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

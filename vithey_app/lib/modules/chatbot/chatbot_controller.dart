@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -5,17 +6,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/custom_button.dart';
 import 'package:aub_connect_app/core/widgets/vithey_field.dart';
 import 'package:aub_connect_app/data/models/ai_chat_model.dart';
 import 'package:aub_connect_app/data/repositories/ai_repository.dart';
+import 'package:aub_connect_app/data/services/ai_service.dart';
 import 'package:aub_connect_app/modules/chatbot/chatbot_args.dart';
 import 'package:aub_connect_app/modules/chatbot/utils/ai_api_error.dart';
 import 'package:aub_connect_app/modules/chatbot/widgets/streaming_markdown.dart';
 
-import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 class ChatbotController extends GetxController {
   ChatbotController(this._aiRepository);
 
@@ -39,6 +41,8 @@ class ChatbotController extends GetxController {
   final _drafts = <String, String>{};
   int _requestToken = 0;
   bool _sendLocked = false;
+  String? _activeStreamRequestId;
+  CancelToken? _streamCancelToken;
 
   static const starterPrompts = [
     'Help me write a CV',
@@ -355,23 +359,33 @@ class ChatbotController extends GetxController {
     scrollToBottom();
 
     try {
-      final response = await _aiRepository.sendMessage(
-        message: apiMessage,
-        sessionId: _currentSessionId,
-        topic: _selectedTopic,
-      );
-      if (token != _requestToken) return;
+      if (_aiRepository.useMockApi) {
+        final response = await _aiRepository.sendMessage(
+          message: apiMessage,
+          sessionId: _currentSessionId,
+          topic: _selectedTopic,
+        );
+        if (token != _requestToken) return;
 
-      _currentSessionId = response.sessionId;
-      final streamed = await _playChatGptStream(
-        token: token,
-        index: messages.indexWhere((m) => m.id == thinking.id),
-        messageId: response.messageId ?? 'a-$clientId',
-        sessionId: response.sessionId,
-        reasoning: response.reasoning,
-        reply: response.reply,
-      );
-      if (token != _requestToken || !streamed) return;
+        _currentSessionId = response.sessionId;
+        final streamed = await _playChatGptStream(
+          token: token,
+          index: messages.indexWhere((m) => m.id == thinking.id),
+          messageId: response.messageId ?? 'a-$clientId',
+          sessionId: response.sessionId,
+          reasoning: response.reasoning,
+          reply: response.reply,
+        );
+        if (token != _requestToken || !streamed) return;
+      } else {
+        await _consumeLiveStream(
+          token: token,
+          thinkingId: thinking.id,
+          clientId: clientId,
+          apiMessage: apiMessage,
+        );
+        if (token != _requestToken) return;
+      }
       await loadSessions();
       scrollToBottom();
     } catch (e) {
@@ -390,9 +404,67 @@ class ChatbotController extends GetxController {
       inputController.text = text;
       pendingAttachments.assignAll(attachments);
     } finally {
+      _activeStreamRequestId = null;
+      _streamCancelToken = null;
       if (token == _requestToken) {
         isGenerating.value = false;
         _sendLocked = false;
+      }
+    }
+  }
+
+  Future<void> _consumeLiveStream({
+    required int token,
+    required String thinkingId,
+    required String clientId,
+    required String apiMessage,
+  }) async {
+    _streamCancelToken = CancelToken();
+    var assistantId = thinkingId;
+    var index = messages.indexWhere((m) => m.id == assistantId);
+    if (index < 0) return;
+
+    var buffer = '';
+    await for (final event in _aiRepository.streamMessage(
+      message: apiMessage,
+      sessionId: _currentSessionId,
+      topic: _selectedTopic,
+      clientMessageId: clientId,
+      cancelToken: _streamCancelToken,
+    )) {
+      if (token != _requestToken || isClosed) return;
+      index = messages.indexWhere((m) => m.id == assistantId);
+      if (index < 0) return;
+
+      switch (event) {
+        case AiStreamMeta(:final sessionId, :final requestId, :final messageId):
+          _currentSessionId = sessionId.isNotEmpty ? sessionId : _currentSessionId;
+          _activeStreamRequestId = requestId;
+          final current = messages[index];
+          assistantId = messageId ?? current.id;
+          messages[index] = current.copyWith(
+            id: assistantId,
+            status: AiMessageStatus.streaming,
+          );
+        case AiStreamToken(:final text):
+          buffer += text;
+          final current = messages[index];
+          messages[index] = current.copyWith(
+            content: buffer,
+            status: AiMessageStatus.streaming,
+          );
+          scrollToBottom();
+        case AiStreamDone(:final sessionId, :final messageId, :final cancelled):
+          if (sessionId.isNotEmpty) _currentSessionId = sessionId;
+          final current = messages[index];
+          messages[index] = current.copyWith(
+            id: messageId ?? current.id,
+            content: buffer.isEmpty ? current.content : buffer,
+            status: cancelled ? AiMessageStatus.stopped : AiMessageStatus.complete,
+          );
+          return;
+        case AiStreamError(:final message):
+          throw AiServiceException(message);
       }
     }
   }
@@ -504,6 +576,9 @@ class ChatbotController extends GetxController {
 
   void stopGenerating() {
     if (!isGenerating.value) return;
+    final requestId = _activeStreamRequestId;
+    _streamCancelToken?.cancel('stopped');
+    _streamCancelToken = null;
     _requestToken++;
     isGenerating.value = false;
     _sendLocked = false;
@@ -519,6 +594,10 @@ class ChatbotController extends GetxController {
         status: AiMessageStatus.stopped,
       );
     }
+    if (requestId != null && !_aiRepository.useMockApi) {
+      _aiRepository.cancelChatRequest(requestId).catchError((_) {});
+    }
+    _activeStreamRequestId = null;
   }
 
   Future<void> regenerateMessage(AiMessage assistantMessage) async {

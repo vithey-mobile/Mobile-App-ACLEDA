@@ -168,7 +168,10 @@ class AppBindings {
     chatRealtimeHub.start();
     await Get.find<FcmService>().init();
 
-    Get.put<AiService>(AiService(Get.find<ApiService>()), permanent: true);
+    Get.put<AiService>(
+      AiService(Get.find<ApiService>(), Get.find<DioClient>()),
+      permanent: true,
+    );
     Get.put<AiRepository>(AiRepository(Get.find<AiService>(), featureFlags), permanent: true);
     Get.put<NotificationRepository>(
       NotificationRepository(Get.find<NotificationService>(), featureFlags),

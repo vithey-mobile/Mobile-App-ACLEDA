@@ -41,7 +41,6 @@ mvn test -Dtest='!*SmokeIT'
 
 | Base class | Containers | Used by |
 |------------|------------|---------|
-| `AbstractPostgresSmokeTestBase` | PostgreSQL | ai-service |
 | `AbstractPostgresRabbitSmokeTestBase` | PostgreSQL + RabbitMQ | auth, profile, content, career, finance, notification |
 | `AbstractPostgresRabbitRedisSmokeTestBase` | PostgreSQL + RabbitMQ + Redis | chat-service |
 | `AbstractPostgresMinioSmokeTestBase` | PostgreSQL + MinIO | file-service |
@@ -70,4 +69,4 @@ cd backend/scripts
 | `Could not find a valid Docker environment` | Start Docker Desktop |
 | Smoke test timeout on first run | Image pull; retry or pre-pull `postgres:16-alpine` |
 | Health `DOWN` for Rabbit/Redis | Ensure base class matches service dependencies |
-| Port conflicts in live checks | Stop local instances on 8080–8089, 8761, 8888 |
+| Port conflicts in live checks | Stop local instances on 8080–8090, 8100, 8761, 8888 |

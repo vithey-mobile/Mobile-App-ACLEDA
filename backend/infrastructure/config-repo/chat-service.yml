@@ -16,6 +16,6 @@ spring:
 
 vithey:
   jwt:
-    secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
+    secret: ${VITHEY_JWT_SECRET}
   events:
     exchange: ${VITHEY_EVENTS_EXCHANGE:vithey.events}

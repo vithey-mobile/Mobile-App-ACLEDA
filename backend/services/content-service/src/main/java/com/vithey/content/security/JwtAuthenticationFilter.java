@@ -55,9 +55,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
     } catch (JwtException | IllegalArgumentException exception) {
+      // Bearer may be present but unreadable by this service; fall back to gateway identity headers.
       SecurityContextHolder.clearContext();
-      writeUnauthorized(response);
-      return;
+      try {
+        CurrentUser fromGateway = resolveFromGatewayHeaders(request);
+        if (fromGateway != null) {
+          List<SimpleGrantedAuthority> authorities = fromGateway.roles().stream()
+              .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+              .toList();
+          SecurityContextHolder.getContext().setAuthentication(
+              new UsernamePasswordAuthenticationToken(fromGateway, null, authorities)
+          );
+        } else {
+          writeUnauthorized(response);
+          return;
+        }
+      } catch (RuntimeException ignored) {
+        writeUnauthorized(response);
+        return;
+      }
     }
 
     filterChain.doFilter(request, response);
@@ -77,7 +93,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
       return jwtProvider.parseAccessToken(authorization.substring(7));
     }
+    return resolveFromGatewayHeaders(request);
+  }
 
+  private CurrentUser resolveFromGatewayHeaders(HttpServletRequest request) {
     String gatewayUserId = request.getHeader("X-User-Id");
     if (!StringUtils.hasText(gatewayUserId)) {
       return null;

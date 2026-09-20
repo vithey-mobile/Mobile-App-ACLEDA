@@ -23,6 +23,88 @@ class ChatService {
     return response.data!;
   }
 
+  Future<List<MessageRequestModel>> fetchMessageRequests() async {
+    final response = await _api.get<List<MessageRequestModel>>(
+      ApiEndpoints.messageRequests,
+      fromJson: (json) {
+        final list = json as List<dynamic>? ?? [];
+        return list
+            .map((item) => _parseMessageRequest(item as Map<String, dynamic>))
+            .toList();
+      },
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw ChatServiceException(
+        response.error?.message ?? 'Failed to load message requests',
+      );
+    }
+    return response.data!;
+  }
+
+  Future<ConversationModel> createConversationRequest({
+    required String toUserId,
+    required String initialMessage,
+  }) async {
+    final response = await _api.post<ConversationModel>(
+      ApiEndpoints.conversationsRequest,
+      data: {
+        'to_user_id': toUserId,
+        'initial_message': initialMessage,
+      },
+      fromJson: (json) => _parseConversation(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw ChatServiceException(
+        response.error?.message ?? 'Failed to create conversation request',
+      );
+    }
+    return response.data!;
+  }
+
+  Future<void> acceptConversation(String conversationId) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.conversationAccept(conversationId),
+      data: const {},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw ChatServiceException(response.error?.message ?? 'Failed to accept request');
+    }
+  }
+
+  Future<void> declineConversation(String conversationId) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.conversationDecline(conversationId),
+      data: const {},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw ChatServiceException(response.error?.message ?? 'Failed to decline request');
+    }
+  }
+
+  Future<void> blockConversation(String conversationId) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.conversationBlock(conversationId),
+      data: const {},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw ChatServiceException(response.error?.message ?? 'Failed to block conversation');
+    }
+  }
+
+  Future<void> reportUser(String userId, {required String reason}) async {
+    final response = await _api.post<void>(
+      ApiEndpoints.userReport(userId),
+      data: {'reason': reason},
+      fromJson: (_) {},
+    );
+    if (!response.isSuccess) {
+      throw ChatServiceException(response.error?.message ?? 'Failed to report user');
+    }
+  }
+
   Future<List<ChatMessage>> fetchMessages({
     required String conversationId,
     required int page,
@@ -76,12 +158,37 @@ class ChatService {
   }
 
   ConversationModel _parseConversation(Map<String, dynamic> json) {
+    final last = json['last_message'] as Map<String, dynamic>?;
     return ConversationModel(
       id: json['conversation_id']?.toString() ?? json['id']?.toString() ?? '',
-      participant: ChatParticipant.fromJson(json['participant'] as Map<String, dynamic>? ?? {}),
-      lastMessagePreview: json['last_message_preview'] as String? ?? '',
-      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      participant: ChatParticipant.fromJson(
+        json['participant'] as Map<String, dynamic>? ?? {},
+      ),
+      lastMessagePreview: json['last_message_preview'] as String? ??
+          last?['text'] as String? ??
+          '',
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.tryParse(last?['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       unreadCount: json['unread_count'] as int? ?? 0,
+    );
+  }
+
+  MessageRequestModel _parseMessageRequest(Map<String, dynamic> json) {
+    final last = json['last_message'] as Map<String, dynamic>?;
+    final createdAt = DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+        DateTime.tryParse(last?['created_at']?.toString() ?? '') ??
+        DateTime.now();
+    return MessageRequestModel(
+      id: json['conversation_id']?.toString() ?? json['id']?.toString() ?? '',
+      requester: ChatParticipant.fromJson(
+        json['participant'] as Map<String, dynamic>? ?? {},
+      ),
+      initialMessage: last?['text'] as String? ??
+          json['initial_message'] as String? ??
+          json['last_message_preview'] as String? ??
+          '',
+      createdAt: createdAt,
     );
   }
 

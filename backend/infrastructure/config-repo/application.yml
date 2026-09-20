@@ -1,4 +1,8 @@
 spring:
+  datasource:
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:5}
+      minimum-idle: ${DB_POOL_MIN:1}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -15,6 +19,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        concurrency: ${RABBIT_CONCURRENCY:1}
+        max-concurrency: ${RABBIT_MAX_CONCURRENCY:2}
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -42,7 +50,7 @@ management:
 
 vithey:
   jwt:
-    secret: ${VITHEY_JWT_SECRET:change-me-to-a-strong-256-bit-secret-for-local-dev}
+    secret: ${VITHEY_JWT_SECRET}
     access-token-ttl: ${VITHEY_ACCESS_TOKEN_TTL:15m}
     refresh-token-ttl: ${VITHEY_REFRESH_TOKEN_TTL:7d}
   events:

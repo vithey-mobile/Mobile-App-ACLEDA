@@ -12,8 +12,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
-  Page<Notification> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
-
   @Query("SELECT n FROM Notification n WHERE n.userId = :userId "
       + "AND (:isRead IS NULL OR n.read = :isRead) ORDER BY n.createdAt DESC")
   Page<Notification> findByUserIdFilteringRead(

@@ -216,7 +216,7 @@ class ChatRepository {
       await Future<void>.delayed(const Duration(milliseconds: 300));
       return ChatFixtures.buildMessageRequests();
     }
-    return [];
+    return _chatService.fetchMessageRequests();
   }
 
   Future<List<ChatParticipant>> fetchRecentContacts() async {
@@ -462,26 +462,61 @@ class ChatRepository {
       await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(conv));
       return id;
     }
-    return participantId;
+    final existing = await _isar.getAllConversations();
+    for (final local in existing) {
+      if (local.participantId == participantId) return local.conversationId;
+    }
+    try {
+      final remote = await _chatService.fetchConversations(page: 1);
+      final match = remote.where((c) => c.participant.id == participantId);
+      if (match.isNotEmpty) {
+        final conv = match.first;
+        await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(conv));
+        return conv.id;
+      }
+    } catch (_) {
+      // Fall through to create a request.
+    }
+    final created = await _chatService.createConversationRequest(
+      toUserId: participantId,
+      initialMessage: 'Hi',
+    );
+    await _isar.upsertConversation(ChatIsarMapper.toLocalConversation(created));
+    return created.id;
   }
 
   Future<void> acceptMessageRequest(String requestId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      return;
+    }
+    await _chatService.acceptConversation(requestId);
   }
 
   Future<void> declineMessageRequest(String requestId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      return;
+    }
+    await _chatService.declineConversation(requestId);
   }
 
   Future<void> blockConversation(String conversationId) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
     if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       _mockConversations.removeWhere((c) => c.id == conversationId);
+      return;
     }
+    await _chatService.blockConversation(conversationId);
+    await _isar.deleteConversation(conversationId);
   }
 
   Future<void> reportUser(String userId, String reason) async {
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (useMockApi) {
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      return;
+    }
+    await _chatService.reportUser(userId, reason: reason);
   }
 
   Future<void> clearCache() => _isar.clearAll();

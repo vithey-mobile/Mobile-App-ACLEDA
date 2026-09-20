@@ -131,7 +131,7 @@ class PlaceRepository {
     if (useMockApi) {
       return List<Map<String, dynamic>>.from(_mockHistory.reversed);
     }
-    return const [];
+    return _service.history();
   }
 
   void _recordHistory({

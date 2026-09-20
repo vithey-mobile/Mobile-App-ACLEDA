@@ -31,7 +31,6 @@
     <module>services/finance-service</module>
     <module>services/chat-service</module>
     <module>services/notification-service</module>
-    <module>services/ai-service</module>
     <module>services/map-service</module>
   </modules>
 

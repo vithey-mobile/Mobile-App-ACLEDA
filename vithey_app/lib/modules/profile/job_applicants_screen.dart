@@ -42,8 +42,9 @@ class JobApplicantsController extends GetxController {
     isLoading.value = true;
     try {
       final loaded = await _repository.getJobApplicants(_jobPostId!);
-      if (Get.find<FeatureFlags>().useAiJobMatch && _jobPostId != null) {
-        // AI-JOB-09: poster sees highest AI match first (mock, rule-based).
+      final flags = Get.find<FeatureFlags>();
+      // Fixture-based sort only when mocks are on; live mode keeps API order.
+      if (flags.useAiJobMatch && flags.useMockAi && _jobPostId != null) {
         loaded.sort((a, b) => AiJobMatchFixtures.scoreForApplicant(
                   jobPostId: _jobPostId!,
                   applicantUserId: b.applicantUserId,
@@ -200,8 +201,9 @@ class _ApplicantCard extends StatelessWidget {
                 ),
               ],
             ),
-            // AI-JOB-08/09: mock AI match badge on each applicant card.
-            if (Get.find<FeatureFlags>().useAiJobMatch)
+            // AI match badge: fixture scores only when mocks are on.
+            if (Get.find<FeatureFlags>().useAiJobMatch &&
+                Get.find<FeatureFlags>().useMockAi)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: AiMatchBadge(
