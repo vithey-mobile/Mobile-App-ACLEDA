@@ -388,11 +388,11 @@ Frame `type` values: `MESSAGE`, `READ_RECEIPT`, `TYPING`, `PRESENCE`
 
 ## 10. AI / Chatbot
 
-**Service:** ai-service (`:8089` via gateway `/api/v1/ai/**`)
+**Service:** `ai_core` (Python, `:8100`, via gateway `/api/v1/ai/**`). The Java `ai-service` has been retired.
 
 Demo mode:
 - Chat = **topic stub** (no GDCE / RAG)
-- CV generate = **`ai_core` → DeepSeek** (Flutter never calls `ai_core` directly)
+- CV generate = **`ai_core` → LLM** (Flutter never calls `ai_core` directly)
 
 ### Chat
 
@@ -611,7 +611,7 @@ No single `/search` aggregator — Flutter fans out:
 | `/api/v1/conversations/**`, `/messages/**`, `/message-requests/**` | chat-service |
 | `/ws/**` | chat-service (STOMP) |
 | `/api/v1/notifications/**` | notification-service |
-| `/api/v1/ai/**` | ai-service |
+| `/api/v1/ai/**` | ai_core (Python) |
 | `/api/v1/places/**` | map-service |
 
 ---
@@ -636,7 +636,6 @@ No single `/search` aggregator — Flutter fans out:
 | Service | URL |
 |---------|-----|
 | Gateway | http://localhost:8080/actuator/health |
-| ai-service | http://localhost:8089/actuator/health |
 | ai_core | http://localhost:8100/health |
 | Eureka | http://localhost:8761 |
 

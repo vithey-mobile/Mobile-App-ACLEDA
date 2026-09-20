@@ -2,7 +2,6 @@ package com.vithey.content.repository;
 
 import com.vithey.content.entity.Follow;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,8 +13,6 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
 
   @Query("SELECT f.followingId FROM Follow f WHERE f.followerId = :followerId")
   List<UUID> findFollowingIdsByFollowerId(@Param("followerId") UUID followerId);
-
-  Optional<Follow> findByFollowerIdAndFollowingId(UUID followerId, UUID followingId);
 
   boolean existsByFollowerIdAndFollowingId(UUID followerId, UUID followingId);
 

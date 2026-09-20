@@ -2,7 +2,7 @@ groups:
   - name: vithey-service-alerts
     rules:
       - alert: ServiceDown
-        expr: up{job=~"api-gateway|auth-service|user-profile-service|file-service|content-service|career-service|finance-service|chat-service|notification-service|ai-service"} == 0
+        expr: up{job=~"api-gateway|auth-service|user-profile-service|file-service|content-service|career-service|finance-service|chat-service|notification-service"} == 0
         for: 1m
         labels:
           severity: critical

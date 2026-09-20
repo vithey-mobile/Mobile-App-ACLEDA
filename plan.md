@@ -8,11 +8,19 @@
 **How to run now (from** `backend/`**):**
 
 ```powershell
-# 1) Set DeepSeek key in ai_core/.env (copy from .env.example)
-# 2) Start Profile M demo stack
+# 1) Set the LLM key in ai_core/.env (copy from .env.example)
+# 2) copy .env.example .env      # tune resource caps / profiles (optional)
+# 3) Start the lean demo stack
 .\scripts\docker-up-demo.ps1
 # Docs: DEMO.md
 ```
+
+> **Update (lean / Python-only AI):** the Java `ai-service` is retired. Python
+> `ai_core` now serves the whole `/api/v1/ai/**` surface (chat + CV) directly
+> behind the gateway. Resource caps are env-driven via `backend/.env` (no
+> hardcoded limits), and `map-service` / `monitoring` are opt-in Compose
+> profiles (`map`, `monitoring`). Sections below describing a Spring AI facade
+> are historical.
 
 ---
 

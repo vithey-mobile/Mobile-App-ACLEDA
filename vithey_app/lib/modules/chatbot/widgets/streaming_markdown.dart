@@ -279,35 +279,3 @@ bool _isSeparator(String line) {
   final t = line.trim();
   return RegExp(r'^\|?(\s*:?-{2,}:?\s*\|)+\s*:?-{2,}:?\s*\|?\s*$').hasMatch(t);
 }
-
-int _tableColumns(String row) {
-  final t = row.trim();
-  var inner = t.startsWith('|') ? t.substring(1) : t;
-  if (inner.endsWith('|')) inner = inner.substring(0, inner.length - 1);
-  if (inner.trim().isEmpty) return 1;
-  return inner.split('|').length;
-}
-
-String _closeTableRow(String row) {
-  var t = row.trimRight();
-  if (!t.trimLeft().startsWith('|')) t = '| $t';
-  if (!t.trimRight().endsWith('|')) t = '$t |';
-  return t;
-}
-
-String _separatorRow(int columns) {
-  final cells = List.filled(columns.clamp(1, 12), '---');
-  return '| ${cells.join(' | ')} |';
-}
-
-String _padTableRow(String row, int columns) {
-  final closed = _closeTableRow(row);
-  final count = _tableColumns(closed);
-  if (count >= columns) return closed;
-  final extra = List.filled(columns - count, ' ');
-  final trimmed = closed.trimRight();
-  final core = trimmed.endsWith('|')
-      ? trimmed.substring(0, trimmed.length - 1)
-      : trimmed;
-  return '$core| ${extra.join(' | ')} |';
-}

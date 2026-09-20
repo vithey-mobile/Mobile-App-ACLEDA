@@ -125,6 +125,9 @@ services:
       SERVER_PORT: 8888
       CONFIG_REPO_LOCATION: file:/app/config-repo
       EUREKA_URL: http://eureka-server:8761/eureka/
+    volumes:
+      # Live config so gateway AI route updates without rebuilding config-server
+      - ./infrastructure/config-repo:/app/config-repo:ro
     ports:
       - "8888:8888"
     depends_on:
@@ -351,26 +354,43 @@ services:
       - vithey-network
     restart: unless-stopped
 
-  ai-service:
+  ai-core:
     build:
-      context: .
-      dockerfile: services/ai-service/Dockerfile
-      args:
-        SERVICE_PORT: 8089
-    image: vithey-ai-service:local
-    container_name: vithey-ai-service
+      context: ../ai_core
+      dockerfile: Dockerfile
+    image: vithey-ai-core:local
+    container_name: vithey-ai-core
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://openrouter.ai/api/v1}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-z-ai/glm-5.3-flash}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_db
+      VITHEY_JWT_SECRET: ${VITHEY_JWT_SECRET:-change-me-to-a-strong-256-bit-secret-for-local-dev}
+      USER_PROFILE_BASE_URL: http://user-profile-service:8082
+      CONTENT_BASE_URL: http://content-service:8084
+      AI_CHAT_MODE: stub
+      AI_CV_MAX_POSTS: "20"
+      MAX_POSTS_PER_BUILD: "20"
+      MAX_CONTENT_CHARS: "2000"
+      MAX_TOKENS: "2000"
+      TIMEOUT_SECONDS: "60"
+      API_RATE_LIMIT_PER_MINUTE: "20"
+      CACHE_MAX_SIZE: "128"
+      LOG_LEVEL: INFO
     env_file:
-      - services/ai-service/.env.example
+      - path: ../ai_core/.env
+        required: false
     ports:
-      - "8089:8089"
+      - "8100:8100"
     depends_on:
       postgres:
         condition: service_healthy
-      config-server:
-        condition: service_healthy
     healthcheck:
-      <<: *service-health
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8089/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 40s
+      retries: 8
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health')\""]
     networks:
       - vithey-network
     restart: unless-stopped
@@ -392,24 +412,6 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
-      auth-service:
-        condition: service_started
-      user-profile-service:
-        condition: service_started
-      file-service:
-        condition: service_started
-      content-service:
-        condition: service_started
-      career-service:
-        condition: service_started
-      finance-service:
-        condition: service_started
-      chat-service:
-        condition: service_started
-      notification-service:
-        condition: service_started
-      ai-service:
-        condition: service_started
     healthcheck:
       <<: *service-health
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]

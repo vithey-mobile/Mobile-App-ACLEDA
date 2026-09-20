@@ -1,6 +1,6 @@
 # Checks /actuator/health for Vithey backend services (Docker Compose or local).
 # Usage: .\check-service-health.ps1 [-BaseHost localhost]
-# map-service (8090) and ai_core (8100) are optional (demo overlay).
+# map-service (8090) is optional (demo overlay).
 
 param(
     [string]$BaseHost = "localhost"
@@ -19,8 +19,7 @@ $services = @(
     @{ Name = "career-service";       Port = 8085 },
     @{ Name = "finance-service";      Port = 8086 },
     @{ Name = "chat-service";         Port = 8087 },
-    @{ Name = "notification-service"; Port = 8088 },
-    @{ Name = "ai-service";           Port = 8089 }
+    @{ Name = "notification-service"; Port = 8088 }
 )
 
 $demoOptional = @(

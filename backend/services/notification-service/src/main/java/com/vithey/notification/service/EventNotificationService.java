@@ -11,9 +11,7 @@ import com.vithey.notification.event.payload.JobApplicationSubmittedEvent;
 import com.vithey.notification.event.payload.MentionCreatedEvent;
 import com.vithey.notification.event.payload.PaymentDueEvent;
 import com.vithey.notification.event.payload.PaymentOverdueEvent;
-import com.vithey.notification.event.payload.PostSharedEvent;
 import com.vithey.notification.event.payload.ReactionAddedEvent;
-import com.vithey.notification.event.payload.AiResponseReadyEvent;
 import feign.FeignException;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,24 +67,6 @@ public class EventNotificationService {
         null,
         postDestination(event.postId(), null),
         "reaction.added:" + event.reactionId()
-    );
-  }
-
-  public void onPostShared(PostSharedEvent event) {
-    if (event.originalAuthorId() == null || event.originalAuthorId().equals(event.actorId())) {
-      return;
-    }
-    notificationService.createAndPush(
-        event.originalAuthorId(),
-        NotificationType.POST_SHARE,
-        "post.shared",
-        "New share",
-        "Someone shared your post.",
-        event.actorId(),
-        null,
-        null,
-        postDestination(event.postId(), null),
-        "post.shared:" + event.shareId()
     );
   }
 
@@ -216,21 +196,6 @@ public class EventNotificationService {
         null,
         jobApplicationDestination(event.applicationId(), event.jobPostId()),
         "job.application.status_changed:" + event.applicationId() + ":" + event.newStatus()
-    );
-  }
-
-  public void onAiResponseReady(AiResponseReadyEvent event) {
-    notificationService.createAndPush(
-        event.userId(),
-        NotificationType.AI,
-        "ai.response.ready",
-        "Vithey AI",
-        "Vithey AI finished your request.",
-        null,
-        null,
-        null,
-        destination("AI_THREAD", event.threadId(), "ai_thread_id", event.threadId()),
-        "ai.response.ready:" + event.threadId()
     );
   }
 

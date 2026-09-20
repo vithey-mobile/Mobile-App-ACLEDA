@@ -19,8 +19,14 @@ RUN pip install --upgrade pip \
       "python-dotenv>=1.0,<2" \
       "fastapi>=0.110,<1" \
       "uvicorn[standard]>=0.29,<1" \
+      "httpx>=0.27,<1" \
+      "PyJWT>=2.8,<3" \
+      "psycopg[binary]>=3.1,<4" \
     && pip install --no-deps -e .
 
 EXPOSE 8100
 
-CMD ["uvicorn", "vithey_ai.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100", "--workers", "1"]
+# Worker count is env-driven so the stack can scale without rebuilding.
+ENV AI_CORE_WORKERS=1
+
+CMD uvicorn vithey_ai.api.app:create_app --factory --host 0.0.0.0 --port 8100 --workers ${AI_CORE_WORKERS:-1}

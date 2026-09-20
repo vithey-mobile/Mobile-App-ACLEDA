@@ -20,13 +20,12 @@ $services = @(
     "vithey-chat-service",
     "vithey-notification-service",
     "vithey-api-gateway",
-    "vithey-ai-service"
+    "vithey-ai-core"
 )
 
-# Present when started with docker-compose.demo.yml
+# Opt-in via COMPOSE_PROFILES=map (docker-up-demo.ps1 -Profiles map)
 $demoOptional = @(
-    "vithey-map-service",
-    "vithey-ai-core"
+    "vithey-map-service"
 )
 
 function Test-ContainerRunning($name) {
@@ -45,7 +44,7 @@ function Test-ContainerOptional($name) {
         Write-Host "[OK]   $name (demo)" -ForegroundColor Green
         return $true
     }
-    Write-Host "[SKIP] $name (not running - start demo overlay for map/ai_core)" -ForegroundColor DarkYellow
+    Write-Host "[SKIP] $name (not running - start with -Profiles map)" -ForegroundColor DarkYellow
     return $false
 }
 
@@ -86,7 +85,7 @@ foreach ($c in $infra) { if (Test-ContainerRunning $c) { $ok++ } }
 Write-Host "`n=== Microservices ===" -ForegroundColor Cyan
 foreach ($c in $services) { if (Test-ContainerRunning $c) { $ok++ } }
 
-Write-Host "`n=== Demo optional (map + ai_core) ===" -ForegroundColor Cyan
+Write-Host "`n=== Demo optional (map) ===" -ForegroundColor Cyan
 $demoOk = 0
 foreach ($c in $demoOptional) { if (Test-ContainerOptional $c) { $demoOk++ } }
 
@@ -96,23 +95,22 @@ $healthRequired = 4
 if (Test-Http "Eureka" "http://localhost:8761/actuator/health" '"status"') { $healthOk++ }
 if (Test-Http "Gateway" "http://localhost:8080/actuator/health" '"status"') { $healthOk++ }
 if (Test-Http "Auth" "http://localhost:8081/actuator/health" '"status"') { $healthOk++ }
-if (Test-Http "AI service" "http://localhost:8089/actuator/health" '"status"') { $healthOk++ }
+if (Test-Http "ai_core" "http://localhost:8100/health" "healthy|status") { $healthOk++ }
 $demoHealth = 0
 if (Test-HttpOptional "map-service" "http://localhost:8090/actuator/health" '"status"') { $demoHealth++ }
-if (Test-HttpOptional "ai_core" "http://localhost:8100/health" "healthy|status") { $demoHealth++ }
 
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
 $requiredTotal = $infra.Count + $services.Count
 Write-Host "Required containers OK: $ok / $requiredTotal"
 Write-Host "Demo containers OK: $demoOk / $($demoOptional.Count)"
 Write-Host "Required health checks: $healthOk / $healthRequired"
-Write-Host "Demo health checks: $demoHealth / 2"
+Write-Host "Demo health checks: $demoHealth / 1"
 Write-Host ""
 
 if ($healthOk -eq $healthRequired -and $ok -eq $requiredTotal) {
     Write-Host "Core stack looks healthy." -ForegroundColor Green
     if ($demoOk -lt $demoOptional.Count) {
-        Write-Host "Demo overlay incomplete - run .\scripts\docker-up-demo.ps1 for map + ai_core." -ForegroundColor Yellow
+        Write-Host "map-service not running (optional) - start with -Profiles map." -ForegroundColor Yellow
     }
     exit 0
 }

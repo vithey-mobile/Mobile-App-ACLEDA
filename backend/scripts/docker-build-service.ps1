@@ -17,9 +17,9 @@ $ErrorActionPreference = "Stop"
 $backendRoot = Split-Path $PSScriptRoot -Parent
 
 if ($Service -eq "ai-core") {
-    Write-Host "ai-core is built via the demo overlay (not a per-service compose folder)." -ForegroundColor Cyan
-    Write-Host "  cd backend; .\scripts\docker-up-demo.ps1" -ForegroundColor Green
-    Write-Host "  or: docker compose -f docker-compose.yml -f docker-compose.demo.yml build ai-core" -ForegroundColor Green
+    Write-Host "ai-core is built from the monorepo root compose files." -ForegroundColor Cyan
+    Write-Host "  cd backend; docker compose -f docker-compose.yml build ai-core" -ForegroundColor Green
+    Write-Host "  or: .\scripts\docker-up-demo.ps1" -ForegroundColor Green
     exit 0
 }
 
@@ -35,7 +35,6 @@ $serviceMap = @{
     "finance-service"      = @{ Path = "services\finance-service"; Port = 8086 }
     "chat-service"         = @{ Path = "services\chat-service"; Port = 8087 }
     "notification-service" = @{ Path = "services\notification-service"; Port = 8088 }
-    "ai-service"           = @{ Path = "services\ai-service"; Port = 8089 }
     "map-service"          = @{ Path = "services\map-service"; Port = 8090 }
 }
 

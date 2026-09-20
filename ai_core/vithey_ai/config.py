@@ -42,8 +42,8 @@ class Config:
 
     # --- DeepSeek / LLM -----------------------------------------------------
     DEEPSEEK_API_KEY = _env_str("DEEPSEEK_API_KEY", "")
-    DEEPSEEK_BASE_URL = _env_str("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    DEEPSEEK_MODEL = _env_str("DEEPSEEK_MODEL", "deepseek-chat")
+    DEEPSEEK_BASE_URL = _env_str("DEEPSEEK_BASE_URL", "https://openrouter.ai/api/v1")
+    DEEPSEEK_MODEL = _env_str("DEEPSEEK_MODEL", "z-ai/glm-5.3-flash")
     TEMPERATURE = _env_float("TEMPERATURE", 0.2)
     MAX_TOKENS = _env_int("MAX_TOKENS", 3000)
     TIMEOUT_SECONDS = _env_int("TIMEOUT_SECONDS", 30)
@@ -81,5 +81,18 @@ class Config:
         ).split(",")
         if origin.strip()
     ]
+
+    # --- Flutter /api/v1/ai/** (gateway-facing) ------------------------------------
+    VITHEY_JWT_SECRET = _env_str(
+        "VITHEY_JWT_SECRET",
+        "change-me-to-a-strong-256-bit-secret-for-local-dev",
+    )
+    DATABASE_URL = _env_str("DATABASE_URL", "")
+    USER_PROFILE_BASE_URL = _env_str(
+        "USER_PROFILE_BASE_URL", "http://user-profile-service:8082"
+    )
+    CONTENT_BASE_URL = _env_str("CONTENT_BASE_URL", "http://content-service:8084")
+    AI_CHAT_MODE = _env_str("AI_CHAT_MODE", "stub").strip().lower()
+    AI_CV_MAX_POSTS = _env_int("AI_CV_MAX_POSTS", 20)
 
     VERSION = "0.2.0"

@@ -18,10 +18,11 @@
 #   docker compose -f docker-compose.yml -f docker-compose.demo.yml down
 #
 # Notes:
-#   - All Vithey Java services + map + ai_core
-#   - NO GDCE / general-service (Vithey AI chat = stub)
-#   - Memory caps applied via docker-compose.demo.yml
-#   - ai-service talks to ai-core at http://ai-core:8100 (override with host.docker.internal if ai_core runs on the host)
+#   - All Vithey Java services + ai_core (Python owns /api/v1/ai/**); map-service is opt-in
+#   - NO Java ai-service; NO GDCE / general-service (chat = stub)
+#   - Resource caps are env-driven: copy .env.example → .env and tune (defaults for ~3 users)
+#   - Optional map-service: .\scripts\docker-up-demo.ps1 -Profiles map (or COMPOSE_PROFILES=map)
+#   - Gateway routes /api/v1/ai/** → http://ai-core:8100
 #   - Flutter: API_BASE_URL=http://10.0.2.2:8080/api/v1 (emulator) or http://<LAN-IP>:8080/api/v1
 #   - Set USE_MOCK_AI=false after stack is healthy to use live CV generate + stub chat
 
@@ -30,8 +31,7 @@
 | Service | URL |
 |---------|-----|
 | Gateway | http://localhost:8080/actuator/health |
-| ai-service | http://localhost:8089/actuator/health |
-| map-service | http://localhost:8090/actuator/health |
+| map-service (only with `-Profiles map`) | http://localhost:8090/actuator/health |
 | ai_core | http://localhost:8100/health |
 | Eureka | http://localhost:8761 |
 
@@ -43,29 +43,12 @@ From `backend/`:
 .\scripts\smoke-api.ps1
 ```
 
-Covers auth, profile, posts, AI chat/CV, student verify + fees/payments, peer chat request/accept, notifications, logout. Map history is optional until `map-service` is up.
+Expect AI chat, regenerate, sessions, cv/generate, cv/suggest, and places to PASS. Confirm no container `vithey-ai-service`.
 
-## Flyway recovery
-
-If `content-service` or `finance-service` fail to start with a Flyway **checksum mismatch**, the applied migration files were edited after they ran on your volume. Prefer adding a new migration version next time — do not edit applied ones.
-
-Recovery options:
-
-1. **Wipe local DBs** (destroys data):
-
-```powershell
-.\scripts\docker-down-demo.ps1 -v
-.\scripts\docker-up-demo.ps1
-```
-
-2. **Repair checksum** in the affected database (`content_db`, `finance_db`, …) via `flyway_schema_history`, then restart the service.
-
-## CV generate (after login)
+## Manual AI probes
 
 ```http
+POST http://localhost:8080/api/v1/ai/chat
 POST http://localhost:8080/api/v1/ai/cv/generate
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{ "target_role": "Software Engineer Intern", "language": "en" }
+GET  http://localhost:8100/health
 ```

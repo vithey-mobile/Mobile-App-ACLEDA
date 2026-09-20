@@ -108,10 +108,9 @@ public class FcmPushService {
   private String channelFor(NotificationType type) {
     return switch (type) {
       case CHAT, CHAT_REQUEST -> "chat";
-      case LIKE, COMMENT, MENTION, POST_SHARE, FOLLOW -> "social";
+      case LIKE, COMMENT, MENTION, FOLLOW -> "social";
       case JOB -> "jobs";
       case PAYMENT -> "payments";
-      case AI -> "ai";
       case SYSTEM, STUDENT_VERIFICATION -> "system";
       default -> "system";
     };

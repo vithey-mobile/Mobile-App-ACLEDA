@@ -283,6 +283,10 @@ Add-Result "GET /places/history" $history.Ok ("status=$($history.Status) map_up=
 $logout = Invoke-Api POST "/auth/logout" -Headers $authH -Body @{ refresh_token = $refresh } -ExpectStatus @(200, 204)
 Add-Result "POST /auth/logout" $logout.Ok ("status=$($logout.Status)")
 
+$aiSvc = docker inspect -f "{{.State.Status}}" vithey-ai-service 2>$null
+$noJavaAi = [string]::IsNullOrWhiteSpace($aiSvc) -or $aiSvc -eq "exited"
+Add-Result "No vithey-ai-service container" $noJavaAi ("state=$aiSvc")
+
 Write-Host ""
 $pass = @($results | Where-Object { $_.Pass }).Count
 $fail = @($results | Where-Object { -not $_.Pass }).Count

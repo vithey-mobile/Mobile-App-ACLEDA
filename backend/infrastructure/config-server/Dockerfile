@@ -17,7 +17,6 @@ COPY services/career-service/pom.xml services/career-service/pom.xml
 COPY services/finance-service/pom.xml services/finance-service/pom.xml
 COPY services/chat-service/pom.xml services/chat-service/pom.xml
 COPY services/notification-service/pom.xml services/notification-service/pom.xml
-COPY services/ai-service/pom.xml services/ai-service/pom.xml
 COPY services/map-service/pom.xml services/map-service/pom.xml
 COPY infrastructure/config-server/src infrastructure/config-server/src
 
@@ -46,4 +45,6 @@ EXPOSE ${SERVICE_PORT}
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD wget -qO- "http://localhost:${SERVER_PORT}/actuator/health" | grep -q '"status":"UP"' || exit 1
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Heap is env-driven: JAVA_TOOL_OPTIONS (compose/backend .env) overrides this default.
+ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

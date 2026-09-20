@@ -6,12 +6,18 @@ or via the CLI:
     python main.py serve
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from ..chat_service import ChatService
 from ..config import Config
+from ..cv_app_service import CvAppService
+from ..db import build_database
 from ..logging_conf import get_logger
 from .deps import build_ai
+from .flutter_envelope import fail
+from .flutter_routes import flutter_router
 from .middleware import (
     BodySizeLimitMiddleware,
     PerClientRateLimitMiddleware,
@@ -28,15 +34,26 @@ def create_app(config: Config | None = None, ai=None) -> FastAPI:
     app = FastAPI(
         title="Vithey AI Core",
         description=(
-            "CV generation service for the Vithey superapp: extracts "
-            "structured activities from user posts and turns them into a "
-            "standard, evidence-backed CV."
+            "CV generation and Flutter AI chat for the Vithey superapp."
         ),
         version=Config.VERSION,
     )
 
-    # App-scoped AI facade (overridable in tests).
-    app.state.ai = ai if ai is not None else build_ai(config)
+    app.state.config = config
+
+    if ai is not None:
+        app.state.ai = ai
+    else:
+        try:
+            app.state.ai = build_ai(config)
+        except ValueError as exc:
+            logger.warning("CV engine disabled: %s", exc)
+            app.state.ai = None
+
+    db = build_database(config)
+    app.state.db = db
+    app.state.chat_service = ChatService(db)
+    app.state.cv_app_service = CvAppService(app.state.ai, config, db)
 
     # Middleware (order matters: outermost first).
     app.add_middleware(RequestContextMiddleware)
@@ -56,7 +73,25 @@ def create_app(config: Config | None = None, ai=None) -> FastAPI:
         expose_headers=["X-Request-ID", "X-Process-Time-Ms", "X-RateLimit-Remaining"],
     )
 
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException):
+        # Flutter routes expect {data, meta, error}; keep legacy engine routes unchanged.
+        if request.url.path.startswith("/api/v1/ai/"):
+            detail = exc.detail
+            message = detail if isinstance(detail, str) else str(detail)
+            code = "UNAUTHORIZED" if exc.status_code == 401 else "HTTP_ERROR"
+            return fail(exc.status_code, code, message)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
+
     app.include_router(health_router)
     app.include_router(router)
-    logger.info("vithey-ai HTTP app created (version %s)", Config.VERSION)
+    app.include_router(flutter_router)
+    logger.info(
+        "vithey-ai HTTP app created (version %s, chat_mode=%s)",
+        Config.VERSION,
+        config.AI_CHAT_MODE,
+    )
     return app

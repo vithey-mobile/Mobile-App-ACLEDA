@@ -12,7 +12,7 @@ Docker Compose stack for metrics (Prometheus + Grafana) and logs (Loki + Promtai
 | Prometheus | http://localhost:9090 | Metrics + alerts |
 | Loki | http://localhost:3100 | Log storage |
 | Node Exporter | http://localhost:9100/metrics | Host CPU, RAM, disk, network |
-| cAdvisor | http://localhost:8090 | Container CPU, memory |
+| cAdvisor | http://localhost:8095 | Container CPU, memory |
 
 ## Prerequisites
 
@@ -22,17 +22,22 @@ Docker Compose stack for metrics (Prometheus + Grafana) and logs (Loki + Promtai
 
 ## Quick Start
 
+The stack is opt-in: services declare `profiles: ["monitoring"]`, so a plain
+`docker compose up` starts nothing. Enable the profile explicitly:
+
 ```powershell
 cd monitoring
 copy .env.example .env
-docker compose up -d
-docker compose ps
+docker compose --profile monitoring up -d
+docker compose --profile monitoring ps
 ```
+
+Leave the profile off for the lean 3-user phase; it is a dev/observability tool.
 
 ## Stop
 
 ```powershell
-docker compose down
+docker compose --profile monitoring down
 ```
 
 ## Grafana Login
@@ -52,7 +57,6 @@ Folder **Vithey App** in Grafana:
 | Infrastructure | Host CPU, RAM, disk, network |
 | Docker Containers | Per-container CPU, memory, status |
 | Chat Service | WebSocket, message rate, Redis, error logs |
-| AI Service | Request rate, latency, errors, error logs |
 
 ## Log Search (Grafana Explore → Loki)
 

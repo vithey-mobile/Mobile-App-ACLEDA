@@ -11,6 +11,4 @@ public interface PlaceFavoriteRepository extends JpaRepository<PlaceFavorite, UU
   List<PlaceFavorite> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
   Optional<PlaceFavorite> findByUserIdAndGooglePlaceId(UUID userId, String googlePlaceId);
-
-  void deleteByUserIdAndGooglePlaceId(UUID userId, String googlePlaceId);
 }

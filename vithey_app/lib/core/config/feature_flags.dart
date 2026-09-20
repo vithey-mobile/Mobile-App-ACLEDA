@@ -4,8 +4,8 @@ import 'package:aub_connect_app/core/config/environment.dart';
 
 /// Central feature flags — repositories must read mock/real mode from here only.
 ///
-/// Live API is the default. Mocks are opt-in via `USE_MOCK_*=true` (never on
-/// in production builds).
+/// Live API is the default. Mocks are opt-in via `USE_MOCK_*=true` and are
+/// hard-disabled in production builds.
 class FeatureFlags {
   FeatureFlags({AppConfig? config}) : _config = config ?? AppConfig.instance;
 
@@ -51,17 +51,16 @@ class FeatureFlags {
     return useMockApi;
   }
 
-  /// AI product flags. Default ON in dev; set `USE_AI_*=false` to hide UI.
-  /// `useMockAi` decides fixture vs live for chat/CV; feed/skills/job-match
-  /// stay empty until those backend endpoints exist.
-  bool get useAiCv => !_isFalse(dotenv.env['USE_AI_CV']) && !isProduction;
+  /// AI product flags (backed by `ai_core`). Default ON; set `USE_AI_*=false`
+  /// to hide the UI. These are real backend features, so they stay enabled in
+  /// production.
+  bool get useAiCv => !_isFalse(dotenv.env['USE_AI_CV']);
 
-  bool get useAiFeed => !_isFalse(dotenv.env['USE_AI_FEED']) && !isProduction;
+  bool get useAiFeed => !_isFalse(dotenv.env['USE_AI_FEED']);
 
-  bool get useAiSkills => !_isFalse(dotenv.env['USE_AI_SKILLS']) && !isProduction;
+  bool get useAiSkills => !_isFalse(dotenv.env['USE_AI_SKILLS']);
 
-  bool get useAiJobMatch =>
-      !_isFalse(dotenv.env['USE_AI_JOB_MATCH']) && !isProduction;
+  bool get useAiJobMatch => !_isFalse(dotenv.env['USE_AI_JOB_MATCH']);
 
   bool get enableGoogleAuth => _isTrue(dotenv.env['ENABLE_GOOGLE_AUTH']);
 
