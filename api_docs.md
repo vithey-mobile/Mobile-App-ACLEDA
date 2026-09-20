@@ -4,9 +4,9 @@ Single reference for Flutter (`vithey_app`) ↔ API Gateway (`:8080`) integratio
 All JSON fields are **snake_case**. Paths in Flutter are **relative to** `API_BASE_URL` (already includes `/api/v1`).
 
 Source of truth also lives in:
-- `prompt/Prompt Frontend/api-intergration/integration-contract.md`
+- `docs/Prompt Frontend/api-intergration/integration-contract.md`
 - `vithey_app/lib/core/constants/api_endpoints.dart`
-- `prompt/Prompt Backend/services/*/API_ENDPOINTS.md`
+- `docs/Prompt Backend/services/*/API_ENDPOINTS.md`
 
 ---
 
@@ -96,7 +96,7 @@ Start backend demo stack from `backend/`:
 | Screen / feature | Primary endpoints (relative) |
 |------------------|------------------------------|
 | Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` |
-| Splash / session | `GET /users/me` (+ refresh on 401) |
+| Splash / session | `GET /auth/me` (+ refresh on 401) |
 | Student verify | `POST /students/verify` |
 | Home feed | `GET /posts`, reactions, follow |
 | Create post | `POST /files/upload` → `POST /posts` |
@@ -173,7 +173,7 @@ Start backend demo stack from `backend/`:
 | `POST` | `/auth/verify-email` | `{ "token" }` | |
 | `GET` | `/auth/me` | — | auth identity |
 | `PATCH` | `/auth/me/password` | `{ "current_password", "new_password" }` | JWT |
-| `POST` | `/students/verify` | `{ "student_id", "university_email" }` | JWT → role `STUDENT` |
+| `POST` | `/students/verify` | `{ "student_id", "university_email" }` | JWT → role `STUDENT`; extra fields (e.g. `document_file_id`) are ignored |
 
 ---
 
@@ -240,6 +240,7 @@ Start backend demo stack from `backend/`:
 | `GET` | `/posts` | `page`, `limit`; optional `search`, `type` |
 | `POST` | `/posts` | create (see below) → `201` |
 | `GET` | `/posts/{post_id}` | — |
+| `PATCH` | `/posts/{post_id}` | **not implemented** — `PostController` has no PATCH mapping; Flutter `updatePost` gets `404` |
 | `DELETE` | `/posts/{post_id}` | owner → `204` |
 | `GET` | `/users/{user_id}/posts` | `type?`, `page`, `limit` |
 
@@ -297,7 +298,7 @@ Job **listings** are content posts: `GET /posts?type=JOB`.
 
 | Method | Path | Body / query | Notes |
 |--------|------|--------------|-------|
-| `POST` | `/job-applications` | `{ "job_post_id", "cv_file_id", "cover_note?" }` | `201`; optional `Idempotency-Key` |
+| `POST` | `/job-applications` | `{ "job_post_id", "cv_file_id", "application_note?" }` | `201`; optional `Idempotency-Key`; backend also accepts `cover_note` (alias) |
 | `GET` | `/job-applications` | `page`, `limit`, optional `job_post_id` | applicants when `job_post_id` set |
 | `GET` | `/job-applications/{id}` | — | detail |
 | `GET` | `/job-applications/{id}/cv-preview` | — | `cv_file_id`, `download_url` |
@@ -341,10 +342,12 @@ Job **listings** are content posts: `GET /posts?type=JOB`.
 | Method | Path | Body / query |
 |--------|------|--------------|
 | `GET` | `/conversations` | `page`, `limit` |
-| `POST` | `/conversations/request` | `{ "to_user_id", "initial_message" }` |
+| `POST` | `/message-requests` | `{ "to_user_id", "initial_message" }` — create pending request |
+| `POST` | `/conversations/start` | `{ "to_user_id", "initial_message" }` — server alias, not used by Flutter |
 | `POST` | `/conversations/{id}/accept` | — |
 | `POST` | `/conversations/{id}/decline` | — |
 | `POST` | `/conversations/{id}/block` | — |
+| `GET` | `/conversations/{id}/presence` | `{ partner_id, status }` |
 | `GET` | `/message-requests` | pending inbox |
 | `GET` | `/conversations/{id}/messages` | `page`, `limit`, `before?` |
 | `POST` | `/conversations/{id}/messages` | see below |
@@ -509,7 +512,9 @@ All fields optional. Body may be omitted (`{}` or empty). Server aggregates prof
 
 ### Not implemented (do not call yet)
 
-`PATCH /ai/sessions/{id}` · `POST /ai/messages/{id}/feedback` · `POST /ai/jobs/{jobPostId}/match`
+`PATCH /ai/sessions/{id}` · `POST /ai/messages/{id}/feedback` · `POST /ai/jobs/{jobPostId}/match` · `GET /ai/skills/score` · `GET /ai/feed/recommendations`
+
+Flutter gates these behind mock/feature flags and returns neutral values in live mode.
 
 ---
 
@@ -527,9 +532,11 @@ All fields optional. Body may be omitted (`{}` or empty). Server aggregates prof
 | `POST` | `/notifications/devices` | `{ "fcm_token", "platform" }` — `ANDROID` \| `IOS` |
 | `DELETE` | `/notifications/devices/{token}` | unregister |
 
-**Item fields:** `id` (alias `notification_id`), `type`, `event`, `title`, `body`, `is_read`, `created_at`, `read_at`, `actor`, `destination`, `dedupe_key`
+**Item fields:** `id` (alias `notification_id`), `type`, `event`, `title`, `body`, `is_read`, `created_at`, `read_at`, `reference_id`, `reference_type`, `actor`, `destination`, `dedupe_key`
 
-**Types:** `LIKE`, `COMMENT`, `MENTION`, `POST_SHARE`, `FOLLOW`, `CHAT`, `CHAT_REQUEST`, `JOB`, `PAYMENT`, `AI`, `SYSTEM`, `STUDENT_VERIFICATION`
+**Types (backend `NotificationType`):** `LIKE`, `COMMENT`, `MENTION`, `FOLLOW`, `CHAT`, `CHAT_REQUEST`, `JOB`, `PAYMENT`, `SYSTEM`, `STUDENT_VERIFICATION`
+
+> Flutter's `NotificationType` enum also defines `postShare` and `aiAssistantResponse`, but the backend never emits them.
 
 ---
 
@@ -606,13 +613,25 @@ No single `/search` aggregator — Flutter fans out:
 | `/api/v1/users/**` (else) | user-profile-service |
 | `/api/v1/files/**` | file-service |
 | `/api/v1/posts/**`, comments, reactions | content-service |
+| `/api/v1/jobs/**` | career-service (route exists; **no controller** — job listings are `POST /posts?type=JOB`) |
 | `/api/v1/job-applications/**` | career-service |
 | `/api/v1/fees/**`, `/api/v1/payments/**` | finance-service |
 | `/api/v1/conversations/**`, `/messages/**`, `/message-requests/**` | chat-service |
 | `/ws/**` | chat-service (STOMP) |
 | `/api/v1/notifications/**` | notification-service |
-| `/api/v1/ai/**` | ai_core (Python) |
-| `/api/v1/places/**` | map-service |
+| `/api/v1/ai/**` | ai_core (Python, direct `http://ai-core:8100` — not via Eureka) |
+| `/api/v1/places/**` | map-service (optional Compose profile `map`) |
+
+### Known contract gaps (current code)
+
+| Item | Status |
+|------|--------|
+| `PATCH /posts/{post_id}` | Flutter calls it; **no backend mapping** → `404` |
+| `POST /conversations/request` | Does not exist; use `POST /message-requests` |
+| `GET /api/v1/jobs/**` | Gateway route exists but no controller |
+| `POST /ai/jobs/{id}/match`, `GET /ai/skills/score`, `GET /ai/feed/recommendations` | Not shipped; Flutter stubs only |
+| Google sign-in | Stubbed in Flutter (`ENABLE_GOOGLE_AUTH`); no endpoint |
+| `GET /users/me/settings` `fcm_token` field | Device tokens use `POST /notifications/devices` instead |
 
 ---
 

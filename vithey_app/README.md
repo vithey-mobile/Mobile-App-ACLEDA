@@ -134,7 +134,7 @@ lib/
 
 ## Build order (from prompts)
 
-1. ✅ Foundation (`Screen prompt/00-foundation-prompt.md`)
+1. ✅ Foundation (`docs/Prompt Frontend/Screen prompt/00-foundation-prompt.md`)
 2. ✅ Auth flow (`auth/01-splash` → `09-startup-3`)
 3. ✅ Media feed — Home, poster/video/job cards, comments, share, create post
 4. ✅ Post detail — full post, comments, @mentions, video player, Apply CV

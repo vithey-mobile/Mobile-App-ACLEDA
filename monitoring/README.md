@@ -2,7 +2,7 @@
 
 Docker Compose stack for metrics (Prometheus + Grafana) and logs (Loki + Promtail).
 
-**Prompt:** `prompt/Prompt Devops/v1/08-monitoring-observability-prompt.md`
+**Prompt:** `docs/Prompt Devops/v1/08-monitoring-observability-prompt.md`
 
 ## Stack
 

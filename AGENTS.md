@@ -10,7 +10,7 @@ Monorepo for **Vithey** (AUB student superapp): Flutter app + Spring Boot micros
 | `backend/` | Maven multi-module Spring Cloud stack | Java 21 / Maven |
 | `ai_core/` | Python CV engine (FastAPI, LLM-backed) | Python 3.10+ |
 | `monitoring/` | Prometheus / Grafana / Loki stack | Docker Compose |
-| `prompt/` | Original build specs and prompts (reference only) | — |
+| `docs/` | Original build specs and prompts (reference only) | — |
 | `plan.md` | Locked demo ("Profile M") architecture + runbook | — |
 | `api_docs.md` | Flutter ↔ gateway API contract | — |
 
