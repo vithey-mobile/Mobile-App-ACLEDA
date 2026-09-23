@@ -44,8 +44,39 @@ class PostServiceTest {
   private PostService postService;
 
   @Test
-  void createPost_rejectsMediaPostWithoutFileId() {
-    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "hello", null, null);
+  void createPost_allowsTextOnlyPosterPost() {
+    UUID authorId = UUID.randomUUID();
+    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "hello world", null, null);
+    when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(postEnrichmentService.enrich(any(Post.class), any(UUID.class)))
+        .thenReturn(new PostResponse(
+            UUID.randomUUID(), null, PostType.POSTER, "hello world", null, null, 0, 0, false, null
+        ));
+
+    PostResponse response = postService.createPost(authorId, request);
+
+    assertEquals(PostType.POSTER, response.type());
+    assertEquals("hello world", response.content());
+    verify(postRepository).save(any(Post.class));
+    verify(fileServiceClient, never()).getFile(any());
+  }
+
+  @Test
+  void createPost_rejectsVideoPostWithoutFileId() {
+    CreatePostRequest request = new CreatePostRequest(PostType.VIDEO, "my reel", null, null);
+
+    ApiException exception = assertThrows(
+        ApiException.class,
+        () -> postService.createPost(UUID.randomUUID(), request)
+    );
+
+    assertEquals(ErrorCode.VALIDATION_ERROR, exception.getErrorCode());
+    verify(postRepository, never()).save(any());
+  }
+
+  @Test
+  void createPost_rejectsEmptyPostWithoutContentOrMedia() {
+    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "   ", null, null);
 
     ApiException exception = assertThrows(
         ApiException.class,

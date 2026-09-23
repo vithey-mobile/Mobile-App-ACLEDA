@@ -1,4 +1,3 @@
-import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/data/models/post_author.dart';
 
 enum PostType { poster, video, job }
@@ -276,22 +275,25 @@ class FeedPost {
       applicationState = JobApplicationState.applied;
     }
 
-    final singleMedia =
-        MediaUrlResolver.resolveUrl(json['media_url'] as String?);
+    final singleMedia = (json['media_url'] as String?)?.trim();
     final rawUrls = json['media_urls'];
     final parsedUrls = <String>[];
     if (rawUrls is List) {
       for (final item in rawUrls) {
         final value = item?.toString().trim() ?? '';
         if (value.isNotEmpty) {
-          final resolved = MediaUrlResolver.resolveUrl(value) ?? value;
-          parsedUrls.add(resolved);
+          parsedUrls.add(value);
         }
       }
     }
+    if (parsedUrls.isEmpty && singleMedia != null && singleMedia.isNotEmpty) {
+      parsedUrls.add(singleMedia);
+    }
 
-    final rawThumb = json['thumbnail_url'] as String?;
-    final resolvedThumb = MediaUrlResolver.resolveUrl(rawThumb) ?? singleMedia;
+    final rawThumb = (json['thumbnail_url'] as String?)?.trim();
+    final resolvedThumb = (rawThumb != null && rawThumb.isNotEmpty)
+        ? rawThumb
+        : singleMedia;
 
     return FeedPost(
       id: json['post_id']?.toString() ?? json['id']?.toString() ?? '',

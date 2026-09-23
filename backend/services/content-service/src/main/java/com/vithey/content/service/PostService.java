@@ -55,14 +55,15 @@ public class PostService {
     post.setCreatedAt(now);
     post.setUpdatedAt(now);
 
+    post.setMediaFileId(request.mediaFileId());
     if (request.type() == PostType.JOB) {
       CreatePostRequest.JobMetaRequest jobMeta = request.jobMeta();
       post.setJobTitle(jobMeta.title());
       post.setJobDescription(jobMeta.description());
       post.setJobRequirement(jobMeta.requirement());
       post.setJobDeadline(jobMeta.deadline());
-    } else {
-      post.setMediaFileId(request.mediaFileId());
+    }
+    if (request.mediaFileId() != null) {
       validateMediaFile(request.type(), request.mediaFileId());
     }
 
@@ -129,8 +130,16 @@ public class PostService {
       }
       return;
     }
-    if (request.mediaFileId() == null) {
-      throw new ApiException(ErrorCode.VALIDATION_ERROR, "Media posts require media_file_id");
+    if (request.type() == PostType.VIDEO) {
+      if (request.mediaFileId() == null) {
+        throw new ApiException(ErrorCode.VALIDATION_ERROR, "Video posts require media_file_id");
+      }
+      return;
+    }
+    boolean hasContent = request.content() != null && !request.content().isBlank();
+    boolean hasMedia = request.mediaFileId() != null;
+    if (!hasContent && !hasMedia) {
+      throw new ApiException(ErrorCode.VALIDATION_ERROR, "Post must have text content or an image");
     }
   }
 

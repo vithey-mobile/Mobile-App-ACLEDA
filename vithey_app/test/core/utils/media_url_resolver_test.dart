@@ -73,6 +73,20 @@ void main() {
       expect(res.headers!['Host'], 'minio:9000');
     });
 
+    test('remaps LAN IP MinIO URL and preserves signed Host header', () {
+      const lanMinioUrl =
+          'http://192.168.110.29:19000/posters/user-1/file-1/img.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=fedcba&X-Amz-SignedHeaders=host';
+      final res = MediaUrlResolver.resolve(lanMinioUrl);
+      expect(res.isNetwork, isTrue);
+
+      final uri = Uri.parse(res.url);
+      expect(uri.path, '/posters/user-1/file-1/img.jpg');
+      expect(uri.port, 19000);
+
+      expect(res.headers, isNotNull);
+      expect(res.headers!['Host'], '192.168.110.29:19000');
+    });
+
     test('resolveUrl helper returns the resolved URL string', () {
       const publicUrl = 'https://picsum.photos/600/400';
       expect(MediaUrlResolver.resolveUrl(publicUrl), publicUrl);

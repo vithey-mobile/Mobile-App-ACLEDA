@@ -102,8 +102,8 @@ class MediaUrlResolver {
     final originalHost = uri.host.toLowerCase();
     final originalPort = uri.hasPort ? uri.port : null;
 
-    if (!_localOrDockerHosts.contains(originalHost)) {
-      // Remote public URL (e.g. https://picsum.photos or cloud storage)
+    if (!_isLocalOrDevHost(originalHost, originalPort, uri.path)) {
+      // Remote public URL (e.g. https://picsum.photos or public cloud storage)
       return ResolvedMedia(url: url);
     }
 
@@ -117,7 +117,8 @@ class MediaUrlResolver {
     // If the URL used Docker-internal minio:9000 and targetHost is external,
     // point to 19000 on the host machine.
     int? targetPort = originalPort;
-    if (originalPort == 9000 && originalHost.contains('minio')) {
+    if ((originalPort == 9000 || originalPort == 19000) &&
+        (originalHost.contains('minio') || targetHost != 'minio')) {
       targetPort = 19000;
     }
 
@@ -143,6 +144,42 @@ class MediaUrlResolver {
       url: rewrittenUri.toString(),
       headers: headers,
     );
+  }
+
+  static bool _isLocalOrDevHost(String host, int? port, String path) {
+    if (_localOrDockerHosts.contains(host)) return true;
+    if (port == 19000 || port == 9000) return true;
+    if (_isPrivateIp(host)) return true;
+    if (_isMinioBucketPath(path) && (port != null && port > 1024)) return true;
+    return false;
+  }
+
+  static bool _isPrivateIp(String host) {
+    final parts = host.split('.');
+    if (parts.length != 4) return false;
+    final octets = parts.map(int.tryParse).toList();
+    if (octets.any((o) => o == null || o < 0 || o > 255)) return false;
+
+    final o1 = octets[0]!;
+    final o2 = octets[1]!;
+
+    if (o1 == 10) return true; // 10.0.0.0/8 (includes Android emulator 10.0.2.2)
+    if (o1 == 127) return true; // 127.0.0.0/8 (loopback)
+    if (o1 == 192 && o2 == 168) return true; // 192.168.0.0/16
+    if (o1 == 172 && o2 >= 16 && o2 <= 31) return true; // 172.16.0.0/12
+
+    return false;
+  }
+
+  static bool _isMinioBucketPath(String path) {
+    final lower = path.toLowerCase();
+    return lower.startsWith('/posters/') ||
+        lower.startsWith('/chat-media/') ||
+        lower.startsWith('/reels/') ||
+        lower.startsWith('/avatars/') ||
+        lower.startsWith('/cvs/') ||
+        lower.startsWith('/videos/') ||
+        lower.startsWith('/files/');
   }
 
   static String _getTargetHost() {
