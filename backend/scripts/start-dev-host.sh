@@ -241,6 +241,34 @@ set_host_env() {
     esac
 }
 
+print_service_guide() {
+    local svc="$1"
+    local port="8080"
+    case "$svc" in
+        "api-gateway") port="8080" ;;
+        "auth-service") port="8081" ;;
+        "user-profile-service") port="8082" ;;
+        "file-service") port="8083" ;;
+        "content-service") port="8084" ;;
+        "career-service") port="8085" ;;
+        "finance-service") port="8086" ;;
+        "chat-service") port="8087" ;;
+        "notification-service") port="8088" ;;
+        "map-service") port="8090" ;;
+    esac
+
+    echo ""
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+    echo -e "  ${BOLD}🚀 Starting Service:${NC}  ${GREEN}${svc}${NC}"
+    echo -e "  ${BOLD}📍 Direct URL:${NC}        ${CYAN}http://localhost:${port}${NC}"
+    echo -e "  ${BOLD}🩺 Health URL:${NC}        ${CYAN}http://localhost:${port}/actuator/health${NC}"
+    echo -e "  ${BOLD}🌐 Gateway Route:${NC}     ${CYAN}http://localhost:8080/api/v1/...${NC}"
+    echo -e "  ${BOLD}🐳 Docker Infra:${NC}      Postgres (15432) • Redis (16379) • Eureka (8761)"
+    echo -e "  ${BOLD}💡 To Stop:${NC}           Press ${YELLOW}Ctrl+C${NC} anytime"
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+    echo ""
+}
+
 # Run a single service in foreground
 run_single_service() {
     local svc="$1"
@@ -249,9 +277,7 @@ run_single_service() {
 
     local jvm_args="-Xms64m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dspring.jmx.enabled=false"
 
-    echo -e "${GREEN}🚀 Starting ${BOLD}${svc}${NC}${GREEN} on host JVM (code execution)...${NC}"
-    echo -e "${GRAY}   Press Ctrl+C to stop.${NC}"
-    echo ""
+    print_service_guide "$svc"
 
     mvn -pl "services/${svc}" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}"
 }
