@@ -2,22 +2,9 @@
 # ==============================================================================
 # Vithey Host-Dev Runner (macOS / Linux)
 # ==============================================================================
-# ONE COMMAND TO RUN EVERYTHING:
-#   ./run-backend-dev.sh
-#
-# Runs required infrastructure (Postgres, Redis, RabbitMQ, MinIO, Eureka, Config,
-# AI Core) inside Docker containers, and boots all Spring Boot microservices
-# directly on the host JVM (instant compilation, live logs, no container bloat).
-#
-# Usage:
-#   ./run-backend-dev.sh                     # ONE COMMAND: Runs all needed containers & services
-#   ./run-backend-dev.sh content-service     # Run a single service in foreground
-#   ./run-backend-dev.sh auth-service gateway# Run a specific subset
-#   ./run-backend-dev.sh --infra-only        # Start only required Docker containers
-#   ./run-backend-dev.sh --stop              # Stop everything (services & containers)
-#   ./run-backend-dev.sh --status            # Check health of containers & services
-#   ./run-backend-dev.sh --list              # List available services
-#   ./run-backend-dev.sh --menu              # Interactive selection menu
+# Executes shared infrastructure in Docker (Postgres, Redis, RabbitMQ, MinIO,
+# Eureka, Config Server, AI Core) while compiling and executing Spring Boot
+# microservices directly on the host JVM for high speed and instant iteration.
 # ==============================================================================
 
 set -eo pipefail
@@ -28,16 +15,19 @@ LOG_DIR="${BACKEND_DIR}/.logs"
 
 cd "${BACKEND_DIR}"
 
-# ANSI colors
+# ANSI Colors
 BOLD='\033[1m'
+DIM='\033[2m'
 GREEN='\033[0;32m'
+B_GREEN='\033[1;32m'
 CYAN='\033[0;36m'
+B_CYAN='\033[1;36m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 GRAY='\033[0;90m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# ── Auto-detect JDK 21 and Maven on macOS / Linux ─────────────────────────────
+# Auto-detect JDK 21 and Maven on macOS / Linux
 detect_java() {
     if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
         if "$JAVA_HOME/bin/java" -version 2>&1 | grep -q '"21'; then
@@ -74,8 +64,8 @@ detect_java() {
         return 0
     fi
 
-    echo -e "${RED}❌ Java 21 is required but could not be located.${NC}"
-    echo -e "   Please install it via: ${CYAN}brew install openjdk@21 maven${NC}"
+    echo -e "${RED}[ERROR] Java 21 required but not found in PATH.${NC}"
+    echo -e "        Install via: ${CYAN}brew install openjdk@21 maven${NC}"
     exit 1
 }
 
@@ -85,7 +75,6 @@ fi
 
 detect_java
 
-# Available services
 ALL_SERVICES=(
     "auth-service"
     "user-profile-service"
@@ -99,7 +88,6 @@ ALL_SERVICES=(
     "map-service"
 )
 
-# Default services to run when launching ALL
 DEFAULT_SERVICES=(
     "auth-service"
     "user-profile-service"
@@ -112,11 +100,9 @@ DEFAULT_SERVICES=(
     "api-gateway"
 )
 
-# Docker Compose files & required infra containers
 COMPOSE_FILES=("-f" "docker-compose.yml" "-f" "docker-compose.demo.yml")
 INFRA_CONTAINERS=("postgres" "redis" "rabbitmq" "minio" "eureka-server" "config-server" "ai-core")
 
-# Get service port
 get_service_port() {
     case "$1" in
         "api-gateway"|"gateway") echo "8080" ;;
@@ -141,36 +127,33 @@ show_list() {
 }
 
 stop_all() {
-    echo -e "${YELLOW}Stopping all running host services and Docker containers...${NC}"
-    # Kill any lingering spring-boot runs from this project
+    echo -e "${YELLOW}[STOP] Terminating host microservices and Docker containers...${NC}"
     pkill -f "vithey-backend" 2>/dev/null || true
     pkill -f "spring-boot:run" 2>/dev/null || true
     docker compose "${COMPOSE_FILES[@]}" stop "${INFRA_CONTAINERS[@]}" 2>/dev/null || true
-    echo -e "${GREEN}✅ All services and infra stopped.${NC}"
+    echo -e "${GREEN}[OK] All services and containers stopped.${NC}"
 }
 
 check_status() {
-    echo -e "${BOLD}── Infra Containers (Docker) ──${NC}"
+    echo -e "${BOLD}── Docker Infrastructure ──${NC}"
     docker compose "${COMPOSE_FILES[@]}" ps "${INFRA_CONTAINERS[@]}" || true
     echo ""
-    echo -e "${BOLD}── Service Health / Discovery ──${NC}"
+    echo -e "${BOLD}── Service Health ──${NC}"
     echo -n "Config Server (:8888): "
-    curl -sf http://localhost:8888/actuator/health | grep -q "UP" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
+    curl -sf http://localhost:8888/actuator/health | grep -q "UP" && echo -e "${GREEN}[UP]${NC}" || echo -e "${RED}[DOWN]${NC}"
     echo -n "Eureka Server (:8761): "
-    curl -sf http://localhost:8761/actuator/health | grep -q "UP" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
+    curl -sf http://localhost:8761/actuator/health | grep -q "UP" && echo -e "${GREEN}[UP]${NC}" || echo -e "${RED}[DOWN]${NC}"
     echo -n "AI Core       (:8100): "
-    curl -sf http://localhost:8100/health | grep -qi "healthy" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
+    curl -sf http://localhost:8100/health | grep -qi "healthy" && echo -e "${GREEN}[UP]${NC}" || echo -e "${RED}[DOWN]${NC}"
     echo -n "API Gateway   (:8080): "
-    curl -sf http://localhost:8080/actuator/health | grep -q "UP" && echo -e "${GREEN}UP${NC}" || echo -e "${GRAY}NOT RUNNING${NC}"
+    curl -sf http://localhost:8080/actuator/health | grep -q "UP" && echo -e "${GREEN}[UP]${NC}" || echo -e "${GRAY}[DOWN]${NC}"
 }
 
 start_infra() {
-    echo -e "${CYAN}🐳 Ensuring required infra containers are running in Docker...${NC}"
-    echo -e "   (${INFRA_CONTAINERS[*]})${NC}"
+    echo -e "${CYAN}[INFRA] Ensuring Docker infrastructure is running...${NC}"
     docker compose "${COMPOSE_FILES[@]}" up -d "${INFRA_CONTAINERS[@]}"
 
-    echo -e "${GRAY}Waiting for config-server (:8888) and eureka-server (:8761)...${NC}"
-    local max_retries=45
+    local max_retries=30
     local config_up=false
     local eureka_up=false
 
@@ -182,13 +165,13 @@ start_infra() {
             eureka_up=true
         fi
         if [ "$config_up" = true ] && [ "$eureka_up" = true ]; then
-            echo -e "${GREEN}✅ Config Server and Eureka are healthy and ready.${NC}"
+            echo -e "${GREEN}[OK] Config Server and Eureka ready.${NC}"
             return 0
         fi
-        sleep 2
+        sleep 1
     done
 
-    echo -e "${YELLOW}⚠️  Timed out waiting for full health. Proceeding anyway...${NC}"
+    echo -e "${YELLOW}[WARN] Infra startup check completed.${NC}"
 }
 
 ensure_no_container_conflict() {
@@ -196,21 +179,21 @@ ensure_no_container_conflict() {
     local running
     running=$(docker compose "${COMPOSE_FILES[@]}" ps -q "$svc" 2>/dev/null || true)
     if [ -n "$running" ]; then
-        echo -e "${YELLOW}Stopping docker container '$svc' to prevent port conflict with host JVM...${NC}"
+        echo -e "${YELLOW}[DOCKER] Stopping container '$svc' to release host port...${NC}"
         docker compose "${COMPOSE_FILES[@]}" stop "$svc" >/dev/null 2>&1 || true
     fi
 
-    # Free the host port if any stray process is still holding it
+    # Release host port if an external process is holding it
     local port
     port=$(get_service_port "$svc")
     local pids
     pids=$(lsof -ti :"$port" 2>/dev/null || true)
     if [ -n "$pids" ]; then
-        echo -e "${YELLOW}Freeing port ${port} (occupied by PID: ${pids}) for ${svc}...${NC}"
+        echo -e "${YELLOW}[PORT] Freeing port ${port} (PID: ${pids}) for ${svc}...${NC}"
         for p in $pids; do
             kill -9 "$p" 2>/dev/null || true
         done
-        sleep 0.5
+        sleep 0.2
     fi
 }
 
@@ -282,20 +265,32 @@ set_host_env() {
     esac
 }
 
+ensure_fast_dependencies() {
+    local m2_parent="$HOME/.m2/repository/com/vithey/vithey-backend/0.0.1-SNAPSHOT/vithey-backend-0.0.1-SNAPSHOT.pom"
+    local m2_test="$HOME/.m2/repository/com/vithey/vithey-test-support/0.0.1-SNAPSHOT/vithey-test-support-0.0.1-SNAPSHOT.jar"
+
+    if [ ! -f "$m2_parent" ]; then
+        mvn -N install -DskipTests -q 2>/dev/null || true
+    fi
+    if [ ! -f "$m2_test" ]; then
+        mvn -pl shared/vithey-test-support install -DskipTests -q 2>/dev/null || true
+    fi
+}
+
 print_service_guide() {
     local svc="$1"
     local port
     port=$(get_service_port "$svc")
 
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
-    echo -e "  ${BOLD}🚀 Starting Service:${NC}  ${GREEN}${svc}${NC}"
-    echo -e "  ${BOLD}📍 Direct URL:${NC}        ${CYAN}http://localhost:${port}${NC}"
-    echo -e "  ${BOLD}🩺 Health URL:${NC}        ${CYAN}http://localhost:${port}/actuator/health${NC}"
-    echo -e "  ${BOLD}🌐 Gateway Route:${NC}     ${CYAN}http://localhost:8080/api/v1/...${NC}"
-    echo -e "  ${BOLD}🐳 Docker Infra:${NC}      Postgres (15432) • Redis (16379) • Eureka (8761) • AI Core (8100)"
-    echo -e "  ${BOLD}💡 To Stop:${NC}           Press ${YELLOW}Ctrl+C${NC} anytime"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Service:${NC}        ${GREEN}${svc}${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Direct URL:${NC}     ${B_CYAN}http://localhost:${port}${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Health URL:${NC}     ${B_CYAN}http://localhost:${port}/actuator/health${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Gateway:${NC}        ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Infra (Docker):${NC} Postgres (15432) | Redis (16379) | Eureka (8761) | AI"
+    echo -e "${CYAN}│${NC} ${BOLD}Control:${NC}        Press ${YELLOW}Ctrl+C${NC} to stop"
+    echo -e "${CYAN}└────────────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
 }
 
@@ -304,10 +299,7 @@ run_single_service() {
     local svc="$1"
     ensure_no_container_conflict "$svc"
     set_host_env "$svc"
-
-    # Ensure parent pom and shared test support are in local repository
-    mvn -N install -DskipTests -q 2>/dev/null || true
-    mvn -pl shared/vithey-test-support install -DskipTests -q 2>/dev/null || true
+    ensure_fast_dependencies
 
     local jvm_args="-Xms64m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dspring.jmx.enabled=false"
 
@@ -316,35 +308,31 @@ run_single_service() {
     mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}"
 }
 
-# Run multiple services as background processes with centralized cleanup & health monitoring
+# Run multiple services as background processes
 run_multiple_services() {
     local services=("$@")
     mkdir -p "${LOG_DIR}"
 
-    echo -e "\n${CYAN}🔨 Ensuring shared libraries and dependencies are ready...${NC}"
-    mvn -N install -DskipTests -q 2>/dev/null || true
-    mvn -pl shared/vithey-test-support install -DskipTests -q 2>/dev/null || true
-    mvn compile -DskipTests -q 2>/dev/null || mvn compile -DskipTests
+    ensure_fast_dependencies
 
     local pids=()
     cleanup() {
-        echo -e "\n\n${YELLOW}🛑 Shutting down host microservices...${NC}"
+        echo -e "\n\n${YELLOW}[STOP] Terminating host microservices...${NC}"
         for pid in "${pids[@]}"; do
             kill "$pid" 2>/dev/null || true
         done
         wait 2>/dev/null || true
-        echo -e "${GREEN}✅ All host microservices stopped cleanly.${NC}"
+        echo -e "${GREEN}[OK] All host microservices stopped cleanly.${NC}"
         exit 0
     }
     trap cleanup SIGINT SIGTERM
 
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
-    echo -e "  ${BOLD}🌟 Vithey Full Stack Running (Docker Infra + Host Services)${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
-    echo -e "  ${BOLD}🐳 Docker Infra:${NC}      Postgres (15432) • Redis (16379) • RabbitMQ (5672)"
-    echo -e "                         MinIO (19000) • Eureka (8761) • AI Core (8100)"
-    echo -e "  ${BOLD}☕ Launching Host Microservices:${NC}"
+    echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}VITHEY FULL STACK ACTIVE${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Docker Infra:  Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI    ${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Host Services: Launching ${#services[@]} Spring Boot JVMs                      ${NC}"
+    echo -e "${CYAN}└────────────────────────────────────────────────────────────────────────┘${NC}"
 
     for svc in "${services[@]}"; do
         ensure_no_container_conflict "$svc"
@@ -357,28 +345,26 @@ run_multiple_services() {
         ) &
         local pid=$!
         pids+=("$pid")
-        echo -e "     • ${GREEN}${svc}${NC} (Port ${port}, PID ${pid}) -> Log: ${GRAY}.logs/${svc}.log${NC}"
-        sleep 0.8
+        echo -e "  -> ${B_GREEN}${svc:<22}${NC} :${port:<5} (PID ${pid}) [Log: .logs/${svc}.log]"
+        sleep 0.15
     done
 
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
-    echo -e "  ${BOLD}🌐 Gateway Entrypoint:${NC} ${CYAN}http://localhost:8080/api/v1/...${NC}"
-    echo -e "  ${BOLD}📁 Live Logs:${NC}          ${CYAN}tail -f .logs/*.log${NC}"
-    echo -e "  ${BOLD}💡 To Stop Everything:${NC} Press ${YELLOW}Ctrl+C${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "${GRAY}Monitoring service health...${NC}"
+    echo -e "${CYAN}Gateway:  ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
+    echo -e "${CYAN}Live Log: ${B_CYAN}tail -f .logs/*.log${NC}"
+    echo -e "${DIM}Press Ctrl+C to terminate all services.${NC}"
+    echo ""
 
-    # Poll service health in background and notify when they become UP
+    # Monitor health
     local pending=("${services[@]}")
     while [ ${#pending[@]} -gt 0 ]; do
-        sleep 3
+        sleep 2
         local next_pending=()
         for svc in "${pending[@]}"; do
             local port
             port=$(get_service_port "$svc")
             if curl -sf "http://localhost:${port}/actuator/health" | grep -q "UP" 2>/dev/null; then
-                echo -e "  ${GREEN}✔ ${svc} is UP${NC} (http://localhost:${port})"
+                echo -e "  [UP] ${B_GREEN}${svc}${NC} (http://localhost:${port})"
             else
                 next_pending+=("$svc")
             fi
@@ -386,13 +372,12 @@ run_multiple_services() {
         pending=("${next_pending[@]}")
     done
 
-    echo -e "\n${BOLD}${GREEN}🎉 All services are UP and ready!${NC}\n"
+    echo -e "\n${BOLD}${B_GREEN}All requested services are UP and operational.${NC}\n"
 
-    # Keep alive until Ctrl+C
     wait
 }
 
-# ── Argument Parsing ──────────────────────────────────────────────────────────
+# ── Argument Dispatcher ───────────────────────────────────────────────────────
 if [ "$1" = "--list" ] || [ "$1" = "-l" ]; then
     show_list
     exit 0
@@ -410,7 +395,7 @@ fi
 
 if [ "$1" = "--infra-only" ]; then
     start_infra
-    echo -e "${GREEN}✅ Infra is ready! You can now run any service from source.${NC}"
+    echo -e "${GREEN}[OK] Infrastructure containers running.${NC}"
     exit 0
 fi
 
@@ -418,55 +403,18 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo -e "${BOLD}Vithey Host-Dev Runner${NC}"
     echo ""
     echo "Usage:"
-    echo "  $0                              ONE COMMAND: Run all needed containers & services"
-    echo "  $0 all                          Run all needed containers & services"
+    echo "  $0 all                          Run all infra + all 9 host services"
     echo "  $0 <service-name>               Run single service in foreground (e.g. content-service)"
     echo "  $0 <svc1> <svc2> ...            Run specific services on host"
-    echo "  $0 --infra-only                 Start only required Docker infra"
-    echo "  $0 --stop                       Stop Docker infra & host services"
+    echo "  $0 --infra-only                 Start Docker infra containers only"
+    echo "  $0 --stop                       Stop all services and containers"
     echo "  $0 --status                     Show health of containers and services"
-    echo "  $0 --list                       List all available service names"
-    echo "  $0 --menu                       Interactive menu"
+    echo "  $0 --list                       List all available services"
     exit 0
 fi
 
-# Interactive menu only if explicitly requested
-if [ "$1" = "--menu" ] || [ "$1" = "-m" ]; then
-    echo -e "${BOLD}================================================${NC}"
-    echo -e "${BOLD}      🌟 Vithey Microservices Host-Dev Runner   ${NC}"
-    echo -e "${BOLD}================================================${NC}"
-    echo "Select an option:"
-    echo "  1) Run ALL services + needed infra (Full Stack)"
-    echo "  2) Run content-service (Feed, Posts, Comments, Stories)"
-    echo "  3) Run auth-service + user-profile-service + api-gateway"
-    echo "  4) Run career-service (Job Applications, CV)"
-    echo "  5) Run chat-service"
-    echo "  6) Run api-gateway only"
-    echo "  7) Start minimal infra containers only (Docker)"
-    echo "  8) Check status & health"
-    echo "  9) Stop everything"
-    echo "  0) Exit"
-    echo ""
-    read -rp "Enter choice [1-9]: " choice
-
-    case "$choice" in
-        1) set -- "all" ;;
-        2) set -- "content-service" ;;
-        3) set -- "auth-service" "user-profile-service" "api-gateway" ;;
-        4) set -- "career-service" ;;
-        5) set -- "chat-service" ;;
-        6) set -- "api-gateway" ;;
-        7) start_infra; exit 0 ;;
-        8) check_status; exit 0 ;;
-        9) stop_all; exit 0 ;;
-        *) echo "Exiting."; exit 0 ;;
-    esac
-fi
-
-# Start the required Docker infrastructure first
 start_infra
 
-# If no arguments passed or "all", run all services!
 if [ $# -eq 0 ] || [ "$1" = "all" ] || [ "$1" = "--all" ]; then
     run_multiple_services "${DEFAULT_SERVICES[@]}"
 elif [ $# -eq 1 ]; then
