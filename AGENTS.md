@@ -55,7 +55,8 @@ copy .env.example .env           # env-driven resource limits / profiles
 .\scripts\docker-up-demo.ps1 -Services auth-service,user-profile-service,api-gateway  # subset
 .\scripts\smoke-api.ps1          # end-to-end API smoke
 .\scripts\docker-down-demo.ps1   # add -v to wipe volumes (DB reset)
-.\scripts\start-dev-host.ps1     # infra in Docker, selected JVMs on host (leanest dev loop)
+.\scripts\start-dev-host.ps1     # Windows: infra in Docker, selected JVMs on host (leanest dev loop)
+./scripts/start-dev-host.sh <svc> # macOS/Linux: infra in Docker, service on host JVM (or ./run-backend-dev.sh)
 .\scripts\set-docker-limits.ps1  # cap Docker Desktop/WSL2 RAM+CPU
 ```
 Requires `ai_core/.env` with an API key first. See `DEMO.md`, `DOCKER.md`, `TESTING.md`.
