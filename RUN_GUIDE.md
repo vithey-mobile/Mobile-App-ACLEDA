@@ -54,7 +54,30 @@ The interactive dashboard launches with arrow-key navigation:
 ### 1. Launch Full Stack (Command 1)
 - Verifies and starts all Docker infrastructure containers (`vithey-postgres`, `vithey-redis`, `vithey-rabbitmq`, `vithey-minio`, `vithey-eureka-server`, `vithey-config-server`, `vithey-ai-core`).
 - Pre-checks Maven dependencies and launches all 9 Spring Boot microservices on host JVMs concurrently.
-- Automatically monitors HTTP actuator health probes and reports when all services are `[UP]`.
+- Automatically launches the **Live Real-time Runtime Monitor** displaying live CPU %, RAM (RSS in MB) per service, total stack memory vs machine RAM (24.0 GB), and actuator health:
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ VITHEY LIVE RUNTIME MONITOR                              [Refresh: 2s] │
+│ Hardware: Apple M4 Pro (12 cores) | 24.0 GB RAM                        │
+│ Stack: ALL 9 SERVICES UP | Total RAM: 1.15 GB (4.8%) | CPU: 12.3%      │
+├───────────────────────┬───────┬──────────┬───────────┬─────────────────┤
+│ SERVICE               │ PORT  │ STATUS   │ RAM (RSS) │ CPU             │
+├───────────────────────┼───────┼──────────┼───────────┼─────────────────┤
+│ api-gateway           │ :8080 │ UP       │ 142.1 MB  │ 0.8%            │
+│ auth-service          │ :8081 │ UP       │ 148.5 MB  │ 0.2%            │
+│ user-profile-service  │ :8082 │ UP       │ 126.3 MB  │ 0.1%            │
+│ file-service          │ :8083 │ UP       │ 118.0 MB  │ 0.1%            │
+│ content-service       │ :8084 │ UP       │ 132.4 MB  │ 0.4%            │
+│ career-service        │ :8085 │ UP       │ 122.8 MB  │ 0.1%            │
+│ finance-service       │ :8086 │ UP       │ 115.6 MB  │ 0.1%            │
+│ chat-service          │ :8087 │ UP       │ 120.2 MB  │ 0.2%            │
+│ notification-service  │ :8088 │ UP       │ 109.4 MB  │ 0.1%            │
+└───────────────────────┴───────┴──────────┴───────────┴─────────────────┘
+ Gateway:  http://localhost:8080/api/v1/...
+ Logs:     tail -f backend/.logs/*.log
+ Control:  Press Ctrl+C to terminate all services.
+```
 - Press `Ctrl+C` to gracefully terminate all 9 services at once.
 
 ### 2. Run Single Service (Command 2)

@@ -327,8 +327,11 @@ run_multiple_services() {
     cleanup() {
         echo -e "\n\n${YELLOW}[STOP] Terminating host microservices...${NC}"
         for pid in "${pids[@]}"; do
+            pkill -P "$pid" 2>/dev/null || true
             kill "$pid" 2>/dev/null || true
         done
+        pkill -f "vithey-backend" 2>/dev/null || true
+        pkill -f "spring-boot:run" 2>/dev/null || true
         wait 2>/dev/null || true
         echo -e "${GREEN}[OK] All host microservices stopped cleanly.${NC}"
         exit 0
@@ -350,6 +353,7 @@ run_multiple_services() {
     echo -e "${CYAN}│${NC} ${DIM}Docker Infra:   Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI     ${NC}"
     echo -e "${CYAN}└────────────────────────────────────────────────────────────────────────┘${NC}"
 
+    local targets=()
     for svc in "${services[@]}"; do
         ensure_no_container_conflict "$svc"
         local port
@@ -361,36 +365,18 @@ run_multiple_services() {
         ) &
         local pid=$!
         pids+=("$pid")
+        targets+=("${svc}:${port}:${pid}")
         printf "  -> ${B_GREEN}%-22s${NC} :%-5s (PID %s) [Log: .logs/%s.log]\n" "$svc" "$port" "$pid" "$svc"
         sleep 0.15
     done
 
     echo ""
-    echo -e "${CYAN}Gateway:  ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
-    echo -e "${CYAN}Live Log: ${B_CYAN}tail -f .logs/*.log${NC}"
-    echo -e "${DIM}Press Ctrl+C to terminate all services.${NC}"
+    echo -e "${CYAN}[MONITOR] Launching real-time resource & health monitor...${NC}"
     echo ""
 
-    # Monitor health
-    local pending=("${services[@]}")
-    while [ ${#pending[@]} -gt 0 ]; do
-        sleep 2
-        local next_pending=()
-        for svc in "${pending[@]}"; do
-            local port
-            port=$(get_service_port "$svc")
-            if curl -sf "http://localhost:${port}/actuator/health" | grep -q "UP" 2>/dev/null; then
-                echo -e "  [UP] ${B_GREEN}${svc}${NC} (http://localhost:${port})"
-            else
-                next_pending+=("$svc")
-            fi
-        done
-        pending=("${next_pending[@]}")
-    done
+    python3 "$SCRIPT_DIR/dev-cli.py" --monitor "${targets[@]}"
 
-    echo -e "\n${BOLD}${B_GREEN}All requested services are UP and operational.${NC}\n"
-
-    wait
+    cleanup
 }
 
 # ── Argument Dispatcher ───────────────────────────────────────────────────────
