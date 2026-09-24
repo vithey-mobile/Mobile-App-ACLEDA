@@ -10,13 +10,20 @@ import os
 import sys
 import time
 import shutil
-import termios
-import tty
 import socket
 import subprocess
+import platform
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+# Cross-platform keyboard handling
+IS_WINDOWS = sys.platform == "win32"
+if IS_WINDOWS:
+    import msvcrt
+else:
+    import termios
+    import tty
 
 # Paths
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -24,6 +31,7 @@ BACKEND_DIR = SCRIPT_DIR.parent
 ROOT_DIR = BACKEND_DIR.parent
 LOG_DIR = BACKEND_DIR / ".logs"
 SH_RUNNER = SCRIPT_DIR / "start-dev-host.sh"
+PS_RUNNER = SCRIPT_DIR / "start-dev-host.ps1"
 
 # ANSI Styles
 RESET = "\033[0m"
@@ -64,19 +72,37 @@ INFRA_CONTAINERS = [
 
 
 def get_system_specs():
+    cpu = "Host CPU"
+    if sys.platform == "darwin":
+        try:
+            cpu = subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
+        except Exception:
+            cpu = platform.processor() or "Apple Silicon"
+    elif sys.platform.startswith("linux"):
+        try:
+            with open("/proc/cpuinfo") as f:
+                for line in f:
+                    if "model name" in line:
+                        cpu = line.split(":", 1)[1].strip()
+                        break
+        except Exception:
+            cpu = platform.processor() or "Linux CPU"
+    elif sys.platform == "win32":
+        cpu = platform.processor() or "Windows CPU"
+
+    cores = os.cpu_count() or 4
+
     try:
-        cpu = subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
-    except Exception:
-        cpu = "Host CPU"
-    try:
-        cores = subprocess.check_output(["sysctl", "-n", "hw.ncpu"], text=True).strip()
-    except Exception:
-        cores = str(os.cpu_count() or 4)
-    try:
-        mem_bytes = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"], text=True).strip())
+        if sys.platform == "darwin":
+            mem_bytes = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"], text=True).strip())
+        elif sys.platform.startswith("linux"):
+            mem_bytes = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+        else:
+            mem_bytes = 16 * (1024**3)
         mem_gb = round(mem_bytes / (1024**3), 1)
     except Exception:
-        mem_gb = "Host"
+        mem_gb = 16.0
+
     return f"{cpu} ({cores} cores) | {mem_gb} GB RAM"
 
 
@@ -99,38 +125,61 @@ def print_banner():
 
 
 def get_key():
-    """Read a single keypress or escape sequence from stdin."""
+    """Read a single keypress or escape sequence from stdin across all operating systems."""
     if not sys.stdin.isatty():
         line = sys.stdin.readline()
         return line.strip() if line else "QUIT"
 
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        ch = sys.stdin.read(1)
-        if ch == "\x1b":
-            ch2 = sys.stdin.read(1)
-            if ch2 == "[":
-                ch3 = sys.stdin.read(1)
-                if ch3 == "A":
+    if IS_WINDOWS:
+        try:
+            ch = msvcrt.getch()
+            if ch in (b"\x00", b"\xe0"):
+                ch2 = msvcrt.getch()
+                if ch2 == b"H":
                     return "UP"
-                elif ch3 == "B":
+                elif ch2 == b"P":
                     return "DOWN"
-                elif ch3 == "C":
-                    return "RIGHT"
-                elif ch3 == "D":
+                elif ch2 == b"K":
                     return "LEFT"
-            return "ESC"
-        elif ch in ("\r", "\n"):
-            return "ENTER"
-        elif ch == "\x03":  # Ctrl+C
-            return "QUIT"
-        elif ch == " ":
-            return "SPACE"
-        return ch
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                elif ch2 == b"M":
+                    return "RIGHT"
+            elif ch in (b"\r", b"\n"):
+                return "ENTER"
+            elif ch == b"\x03":
+                return "QUIT"
+            elif ch == b" ":
+                return "SPACE"
+            return ch.decode("utf-8", errors="ignore")
+        except Exception:
+            return ""
+    else:
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+            if ch == "\x1b":
+                ch2 = sys.stdin.read(1)
+                if ch2 == "[":
+                    ch3 = sys.stdin.read(1)
+                    if ch3 == "A":
+                        return "UP"
+                    elif ch3 == "B":
+                        return "DOWN"
+                    elif ch3 == "C":
+                        return "RIGHT"
+                    elif ch3 == "D":
+                        return "LEFT"
+                return "ESC"
+            elif ch in ("\r", "\n"):
+                return "ENTER"
+            elif ch == "\x03":  # Ctrl+C
+                return "QUIT"
+            elif ch == " ":
+                return "SPACE"
+            return ch
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 
 def probe_port(port):
@@ -223,7 +272,11 @@ def interactive_select(options, prompt="Select command:"):
 def run_command_interactive(cmd_args):
     clear_screen()
     try:
-        subprocess.run(cmd_args, cwd=str(BACKEND_DIR))
+        if IS_WINDOWS and cmd_args and cmd_args[0].endswith(".sh"):
+            translated = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(PS_RUNNER)] + cmd_args[1:]
+            subprocess.run(translated, cwd=str(BACKEND_DIR))
+        else:
+            subprocess.run(cmd_args, cwd=str(BACKEND_DIR))
     except KeyboardInterrupt:
         print(f"\n{YELLOW}Interrupted.{RESET}")
     print(f"\n{DIM}Press any key to return to menu...{RESET}")

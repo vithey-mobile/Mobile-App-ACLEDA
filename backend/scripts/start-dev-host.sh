@@ -40,6 +40,9 @@ detect_java() {
         "/usr/local/opt/openjdk@21"
         "/opt/homebrew/opt/openjdk"
         "/usr/local/opt/openjdk"
+        "/usr/lib/jvm/java-21-openjdk"
+        "/usr/lib/jvm/java-21-openjdk-amd64"
+        "/usr/lib/jvm/java-21-openjdk-arm64"
     )
 
     for p in "${candidate_paths[@]}"; do
@@ -65,7 +68,8 @@ detect_java() {
     fi
 
     echo -e "${RED}[ERROR] Java 21 required but not found in PATH.${NC}"
-    echo -e "        Install via: ${CYAN}brew install openjdk@21 maven${NC}"
+    echo -e "        macOS: brew install openjdk@21 maven"
+    echo -e "        Linux: sudo apt install openjdk-21-jdk maven"
     exit 1
 }
 
@@ -74,6 +78,21 @@ if ! command -v mvn >/dev/null 2>&1; then
 fi
 
 detect_java
+
+detect_host_specs() {
+    if [ "$(uname)" = "Darwin" ]; then
+        HOST_CPU=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Host CPU")
+        HOST_MEM_GB=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 / 1024 / 1024 ))
+        HOST_NCPU=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    else
+        HOST_CPU=$(grep -m1 "model name" /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^[ \t]*//' || uname -m)
+        HOST_MEM_GB=$(( $(free -m 2>/dev/null | awk '/^Mem:/{print $2}') / 1024 ))
+        HOST_NCPU=$(nproc 2>/dev/null || echo 4)
+    fi
+    [ "$HOST_MEM_GB" -le 0 ] && HOST_MEM_GB=16
+}
+
+detect_host_specs
 
 ALL_SERVICES=(
     "auth-service"
@@ -311,18 +330,12 @@ print_service_guide() {
     local svc="$1"
     local port
     port=$(get_service_port "$svc")
-    local cpu_info
-    cpu_info=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Host CPU")
-    local mem_gb
-    mem_gb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 / 1024 / 1024 ))
-    local ncpu
-    ncpu=$(sysctl -n hw.ncpu 2>/dev/null || echo "multi-core")
 
     echo ""
     echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Service:${NC}        ${GREEN}${svc}${NC}"
-    echo -e "${CYAN}│${NC} ${BOLD}Hardware Specs:${NC} ${cpu_info} (${ncpu} cores) | ${mem_gb} GB RAM"
-    echo -e "${CYAN}│${NC} ${BOLD}Memory Budget:${NC}  -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m"
+    echo -e "${CYAN}│${NC} ${BOLD}Hardware Specs:${NC} ${HOST_CPU} (${HOST_NCPU} cores) | ${HOST_MEM_GB} GB RAM"
+    echo -e "${CYAN}│${NC} ${BOLD}Memory Budget:${NC}  -Xmx160m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
     echo -e "${CYAN}│${NC} ${BOLD}Direct URL:${NC}     ${B_CYAN}http://localhost:${port}${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Health URL:${NC}     ${B_CYAN}http://localhost:${port}/actuator/health${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Gateway:${NC}        ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
@@ -368,18 +381,11 @@ run_multiple_services() {
     }
     trap cleanup SIGINT SIGTERM
 
-    local cpu_info
-    cpu_info=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Host CPU")
-    local mem_gb
-    mem_gb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 / 1024 / 1024 ))
-    local ncpu
-    ncpu=$(sysctl -n hw.ncpu 2>/dev/null || echo "multi-core")
-
     echo ""
     echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}VITHEY FULL STACK ACTIVE${NC}"
-    echo -e "${CYAN}│${NC} ${DIM}Hardware Specs: ${cpu_info} (${ncpu} cores) | ${mem_gb} GB RAM${NC}"
-    echo -e "${CYAN}│${NC} ${DIM}Memory Budget:  ~160MB max/service (~1.4 GB total heap / ${mem_gb} GB RAM)${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Hardware Specs: ${HOST_CPU} (${HOST_NCPU} cores) | ${HOST_MEM_GB} GB RAM${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Memory Budget:  ~160MB max/service (~1.4 GB total heap / ${HOST_MEM_GB} GB RAM)${NC}"
     echo -e "${CYAN}│${NC} ${DIM}Docker Infra:   Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI     ${NC}"
     echo -e "${CYAN}└────────────────────────────────────────────────────────────────────────┘${NC}"
 
