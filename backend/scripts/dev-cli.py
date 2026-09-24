@@ -2,8 +2,7 @@
 """
 Vithey Microservices Dev CLI / TUI
 ===================================
-A high-performance terminal interface for managing Vithey backend microservices.
-Runs shared infrastructure in Docker and Spring Boot services on the host JVM.
+A high-performance, minimalist terminal interface for Vithey microservices.
 Zero external dependencies (uses standard library only).
 """
 
@@ -37,32 +36,30 @@ B_GREEN = "\033[92m"
 YELLOW = "\033[33m"
 B_YELLOW = "\033[93m"
 RED = "\033[31m"
-B_RED = "\033[91m"
 WHITE = "\033[37m"
-B_WHITE = "\033[97m"
 
 # Services metadata
 SERVICES = [
-    {"name": "api-gateway", "port": 8080, "desc": "API Gateway Entrypoint"},
-    {"name": "auth-service", "port": 8081, "desc": "Authentication & JWT"},
-    {"name": "user-profile-service", "port": 8082, "desc": "Profiles & Identity"},
-    {"name": "file-service", "port": 8083, "desc": "MinIO S3 Coordinator"},
-    {"name": "content-service", "port": 8084, "desc": "Feed, Posts, & Stories"},
-    {"name": "career-service", "port": 8085, "desc": "Jobs & CV Engine"},
-    {"name": "finance-service", "port": 8086, "desc": "Wallets & Transactions"},
-    {"name": "chat-service", "port": 8087, "desc": "Real-time Chat & WS"},
-    {"name": "notification-service", "port": 8088, "desc": "Push Notifications"},
-    {"name": "map-service", "port": 8090, "desc": "Campus Map & Places"},
+    {"name": "api-gateway", "port": 8080},
+    {"name": "auth-service", "port": 8081},
+    {"name": "user-profile-service", "port": 8082},
+    {"name": "file-service", "port": 8083},
+    {"name": "content-service", "port": 8084},
+    {"name": "career-service", "port": 8085},
+    {"name": "finance-service", "port": 8086},
+    {"name": "chat-service", "port": 8087},
+    {"name": "notification-service", "port": 8088},
+    {"name": "map-service", "port": 8090},
 ]
 
 INFRA_CONTAINERS = [
-    {"name": "vithey-postgres", "port": 15432, "desc": "PostgreSQL 16 DB"},
-    {"name": "vithey-redis", "port": 16379, "desc": "Redis 7 Cache"},
-    {"name": "vithey-rabbitmq", "port": 5672, "desc": "RabbitMQ Broker"},
-    {"name": "vithey-minio", "port": 19000, "desc": "MinIO S3 Storage"},
-    {"name": "vithey-eureka-server", "port": 8761, "desc": "Eureka Registry"},
-    {"name": "vithey-config-server", "port": 8888, "desc": "Config Server"},
-    {"name": "vithey-ai-core", "port": 8100, "desc": "Python AI Engine"},
+    {"name": "vithey-postgres", "port": 15432},
+    {"name": "vithey-redis", "port": 16379},
+    {"name": "vithey-rabbitmq", "port": 5672},
+    {"name": "vithey-minio", "port": 19000},
+    {"name": "vithey-eureka-server", "port": 8761},
+    {"name": "vithey-config-server", "port": 8888},
+    {"name": "vithey-ai-core", "port": 8100},
 ]
 
 
@@ -71,18 +68,11 @@ def clear_screen():
     sys.stdout.flush()
 
 
-def get_terminal_width():
-    return min(shutil.get_terminal_size((80, 24)).columns, 88)
-
-
 def print_banner():
-    w = get_terminal_width()
+    w = 52
     line = "─" * (w - 2)
     print(f"{B_CYAN}┌{line}┐{RESET}")
-    title = "VITHEY MICROSERVICES RUNNER"
-    sub = "Docker Infrastructure  |  Host JVM Microservices"
-    print(f"{B_CYAN}│{BOLD}{title.center(w - 2)}{RESET}{B_CYAN}│{RESET}")
-    print(f"{B_CYAN}│{DIM}{sub.center(w - 2)}{RESET}{B_CYAN}│{RESET}")
+    print(f"{B_CYAN}│{BOLD}{'VITHEY RUNNER':^50}{RESET}{B_CYAN}│{RESET}")
     print(f"{B_CYAN}└{line}┘{RESET}")
 
 
@@ -123,14 +113,14 @@ def get_key():
 
 def probe_port(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.settimeout(0.15)
+        s.settimeout(0.12)
         return s.connect_ex(("localhost", port)) == 0
 
 
 def probe_http(url):
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "vithey-cli"})
-        with urllib.request.urlopen(req, timeout=0.3) as resp:
+        with urllib.request.urlopen(req, timeout=0.25) as resp:
             return resp.status == 200
     except Exception:
         return False
@@ -138,7 +128,7 @@ def probe_http(url):
 
 def probe_infra(infra):
     is_open = probe_port(infra["port"])
-    return (infra["name"], infra["port"], infra["desc"], is_open)
+    return (infra["name"], infra["port"], is_open)
 
 
 def probe_service(svc):
@@ -146,26 +136,31 @@ def probe_service(svc):
     url = f"http://localhost:{port}/actuator/health"
     is_up = probe_http(url)
     is_open = probe_port(port) if not is_up else True
-    return (svc["name"], port, svc["desc"], is_up, is_open)
+    return (svc["name"], port, is_up, is_open)
 
 
 def render_menu(options, selected_idx, prompt="Select command:"):
     clear_screen()
     print_banner()
     print()
-    print(f" {BOLD}{prompt}{RESET}  {DIM}(navigate: [↑/↓] or [1-7], select: [Enter], quit: [q]){RESET}")
+    print(f" {BOLD}{prompt}{RESET}")
     print()
 
     for idx, opt in enumerate(options):
         is_sel = idx == selected_idx
-        num = f"[{idx + 1}]" if idx < 6 else "[q]"
+        num = f"[{idx + 1}]" if idx < len(options) - 1 else "[q]"
         title = opt["label"]
         hint = opt.get("hint", "")
 
         if is_sel:
-            print(f"  {B_CYAN}>{RESET} {BOLD}{B_GREEN}{num:<4} {title:<28}{RESET} {B_CYAN}{hint}{RESET}")
+            hint_str = f"  {DIM}{hint}{RESET}" if hint else ""
+            print(f"  {B_CYAN}>{RESET} {BOLD}{B_GREEN}{num:<4} {title:<24}{RESET}{hint_str}")
         else:
-            print(f"    {DIM}{num:<4} {title:<28}{RESET} {DIM}{hint}{RESET}")
+            hint_str = f"  {DIM}{hint}{RESET}" if hint else ""
+            print(f"    {num:<4} {title:<24}{hint_str}")
+
+    print()
+    print(f" {DIM}[↑/↓] Navigate  •  [Enter] Select  •  [q] Quit{RESET}")
     print()
 
 
@@ -202,43 +197,37 @@ def show_status_screen():
     clear_screen()
     print_banner()
     print()
-    print(f" {BOLD}STATUS & HEALTH MATRIX{RESET}  {DIM}(live probes via parallel worker threads){RESET}\n")
+    print(f" {BOLD}STATUS MATRIX{RESET}\n")
 
-    # Fast parallel probes
     with ThreadPoolExecutor(max_workers=16) as pool:
         infra_results = list(pool.map(probe_infra, INFRA_CONTAINERS))
         svc_results = list(pool.map(probe_service, SERVICES))
 
-    # Print Docker Infra Table
-    print(f" {BOLD}{B_CYAN}── Docker Infrastructure ───────────────────────────────────────────────────{RESET}")
-    for name, port, desc, is_open in infra_results:
-        if is_open:
-            status = f"{B_GREEN}[RUNNING]{RESET}"
-        else:
-            status = f"{DIM}[STOPPED]{RESET}"
-        print(f"   {status:<18} {BOLD}{name:<24}{RESET} Port: {port:<6} {DIM}{desc}{RESET}")
+    print(f" {BOLD}{CYAN}Docker Infrastructure:{RESET}")
+    for name, port, is_open in infra_results:
+        status = f"{B_GREEN}[RUNNING]{RESET}" if is_open else f"{DIM}[STOPPED]{RESET}"
+        print(f"   {status:<18} {BOLD}{name:<22}{RESET} :{port}")
 
     print()
-    # Print Microservices Table
-    print(f" {BOLD}{B_CYAN}── Host Microservices (Spring Boot JVM) ───────────────────────────────────{RESET}")
-    for name, port, desc, is_up, is_open in svc_results:
+    print(f" {BOLD}{CYAN}Host Microservices:{RESET}")
+    for name, port, is_up, is_open in svc_results:
         if is_up:
             status = f"{B_GREEN}[UP]{RESET}     "
-            port_str = f"{B_GREEN}http://localhost:{port}{RESET}"
+            port_str = f":{port}"
         elif is_open:
             status = f"{B_YELLOW}[BUSY]{RESET}   "
-            port_str = f"{B_YELLOW}http://localhost:{port} (busy/starting){RESET}"
+            port_str = f":{port} (starting/busy)"
         else:
             status = f"{DIM}[DOWN]{RESET}   "
-            port_str = f"{DIM}http://localhost:{port}{RESET}"
+            port_str = f":{port}"
 
-        print(f"   {status} {BOLD}{name:<24}{RESET} {port_str:<42} {DIM}{desc}{RESET}")
+        print(f"   {status} {BOLD}{name:<22}{RESET} {port_str}")
 
     print()
     if not sys.stdin.isatty():
         return
 
-    print(f" {DIM}[r] Refresh  •  [b/q] Return to Menu{RESET}")
+    print(f" {DIM}[r] Refresh  •  [b/q] Back{RESET}")
     while True:
         k = get_key()
         if k in ("r", "R"):
@@ -253,12 +242,12 @@ def show_single_service_menu():
     for s in SERVICES:
         opts.append({
             "label": s["name"],
-            "hint": f":{s['port']} - {s['desc']}",
+            "hint": f":{s['port']}",
             "value": s["name"]
         })
-    opts.append({"label": "Back to Main Menu", "hint": "", "value": None})
+    opts.append({"label": "Back", "hint": "", "value": None})
 
-    choice = interactive_select(opts, prompt="Select Microservice to Run on Host JVM:")
+    choice = interactive_select(opts, prompt="Select service to run:")
     if choice is not None and opts[choice]["value"] is not None:
         svc_name = opts[choice]["value"]
         run_command_interactive([str(SH_RUNNER), svc_name])
@@ -269,25 +258,25 @@ def show_log_viewer_menu():
     for s in SERVICES:
         log_file = LOG_DIR / f"{s['name']}.log"
         has_log = log_file.exists()
-        size_str = f"({log_file.stat().st_size // 1024} KB)" if has_log else "(empty)"
+        size_str = f"{log_file.stat().st_size // 1024} KB" if has_log else "empty"
         opts.append({
             "label": s["name"],
             "hint": size_str,
             "value": s["name"]
         })
-    opts.append({"label": "Back to Main Menu", "hint": "", "value": None})
+    opts.append({"label": "Back", "hint": "", "value": None})
 
-    choice = interactive_select(opts, prompt="Select Microservice Log to View:")
+    choice = interactive_select(opts, prompt="Select log to tail:")
     if choice is not None and opts[choice]["value"] is not None:
         svc_name = opts[choice]["value"]
         log_file = LOG_DIR / f"{svc_name}.log"
         clear_screen()
         if not log_file.exists():
             print(f"\n{YELLOW}Log file not found: {log_file}{RESET}")
-            print(f"{DIM}Press any key to go back...{RESET}")
+            print(f"{DIM}Press any key to return...{RESET}")
             get_key()
             return
-        print(f"{B_CYAN}Streaming {svc_name} log ({log_file}) -- Ctrl+C to return.{RESET}\n")
+        print(f"{B_CYAN}Tailing {svc_name}.log (Ctrl+C to return)...{RESET}\n")
         try:
             subprocess.run(["tail", "-n", "50", "-f", str(log_file)])
         except KeyboardInterrupt:
@@ -318,17 +307,17 @@ Usage:
             sys.exit(0)
 
     main_options = [
-        {"label": "Launch Full Stack", "hint": "Docker infra + all 9 host microservices", "action": "full_stack"},
-        {"label": "Run Single Service", "hint": "Run 1 service in foreground with live logs", "action": "single_service"},
-        {"label": "Start Docker Infra", "hint": "Postgres, Redis, RabbitMQ, MinIO, Eureka, Config, AI", "action": "infra_only"},
-        {"label": "Status Matrix", "hint": "Inspect live port bindings and health", "action": "status"},
-        {"label": "Tail Service Logs", "hint": "Stream output from background services", "action": "logs"},
-        {"label": "Stop All Services", "hint": "Stop host JVMs and Docker containers", "action": "stop"},
-        {"label": "Exit", "hint": "Close runner", "action": "exit"}
+        {"label": "Launch Full Stack", "hint": "", "action": "full_stack"},
+        {"label": "Run Single Service", "hint": "", "action": "single_service"},
+        {"label": "Start Docker Infra", "hint": "", "action": "infra_only"},
+        {"label": "Status Matrix", "hint": "", "action": "status"},
+        {"label": "Tail Logs", "hint": "", "action": "logs"},
+        {"label": "Stop All", "hint": "", "action": "stop"},
+        {"label": "Quit", "hint": "", "action": "exit"}
     ]
 
     while True:
-        choice = interactive_select(main_options, prompt="Vithey Dev Menu (Select an action):")
+        choice = interactive_select(main_options, prompt="Select command:")
         if choice is None:
             break
 
@@ -347,7 +336,7 @@ Usage:
             run_command_interactive([str(SH_RUNNER), "--stop"])
         elif action == "exit":
             clear_screen()
-            print(f"\n{GREEN}Vithey runner exited.{RESET}\n")
+            print(f"\n{GREEN}Exited.{RESET}\n")
             break
 
 

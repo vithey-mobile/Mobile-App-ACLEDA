@@ -17,20 +17,21 @@ From the project root:
 The interactive dashboard launches with arrow-key navigation:
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         VITHEY MICROSERVICES RUNNER                          │
-│               Docker Infrastructure  |  Host JVM Microservices               │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│                  VITHEY RUNNER                   │
+└──────────────────────────────────────────────────┘
 
- Select command:  (navigate: [↑/↓] or [1-7], select: [Enter], quit: [q])
+ Select command:
 
-  > [1]  Launch Full Stack            Docker infra + all 9 host microservices
-    [2]  Run Single Service           Run 1 service in foreground with live logs
-    [3]  Start Docker Infra           Postgres, Redis, RabbitMQ, MinIO, Eureka, Config, AI
-    [4]  Status Matrix                Inspect live port bindings and health
-    [5]  Tail Service Logs            Stream output from background services
-    [6]  Stop All Services            Stop host JVMs and Docker containers
-    [q]  Exit                         Close runner
+  > [1]  Launch Full Stack
+    [2]  Run Single Service
+    [3]  Start Docker Infra
+    [4]  Status Matrix
+    [5]  Tail Logs
+    [6]  Stop All
+    [q]  Quit
+
+ [↑/↓] Navigate  •  [Enter] Select  •  [q] Quit
 ```
 
 ---
