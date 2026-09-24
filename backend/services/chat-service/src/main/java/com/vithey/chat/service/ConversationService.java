@@ -26,6 +26,7 @@ import com.vithey.chat.util.ApiResponseWrapper;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -121,7 +122,8 @@ public class ConversationService {
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
     Conversation conversation = new Conversation();
     conversation.setId(UUID.randomUUID());
-    conversation.setStatus(ConversationStatus.PENDING);
+    boolean hasInitial = request.initialMessage() != null && !request.initialMessage().trim().isEmpty();
+    conversation.setStatus(hasInitial ? ConversationStatus.PENDING : ConversationStatus.ACTIVE);
     conversation.setCreatedAt(now);
     conversation.setUpdatedAt(now);
     conversationRepository.save(conversation);
@@ -129,23 +131,25 @@ public class ConversationService {
     saveParticipant(conversation.getId(), requesterId, ParticipantRole.REQUESTER, now);
     saveParticipant(conversation.getId(), request.toUserId(), ParticipantRole.RECIPIENT, now);
 
-    Message message = new Message();
-    message.setId(UUID.randomUUID());
-    message.setConversationId(conversation.getId());
-    message.setSenderId(requesterId);
-    message.setText(request.initialMessage());
-    message.setMessageType(MessageType.TEXT);
-    message.setStatus(MessageStatus.SENT);
-    message.setCreatedAt(now);
-    messageRepository.save(message);
+    if (hasInitial) {
+      Message message = new Message();
+      message.setId(UUID.randomUUID());
+      message.setConversationId(conversation.getId());
+      message.setSenderId(requesterId);
+      message.setText(request.initialMessage().trim());
+      message.setMessageType(MessageType.TEXT);
+      message.setStatus(MessageStatus.SENT);
+      message.setCreatedAt(now);
+      messageRepository.save(message);
 
-    chatEventPublisher.publishRequestReceived(new ChatRequestReceivedEvent(
-        conversation.getId(),
-        requesterId,
-        request.toUserId(),
-        request.initialMessage(),
-        now
-    ));
+      chatEventPublisher.publishRequestReceived(new ChatRequestReceivedEvent(
+          conversation.getId(),
+          requesterId,
+          request.toUserId(),
+          request.initialMessage().trim(),
+          now
+      ));
+    }
 
     return toResponse(conversation, requesterId);
   }

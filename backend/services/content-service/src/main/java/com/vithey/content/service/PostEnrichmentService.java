@@ -7,6 +7,7 @@ import com.vithey.content.dto.response.PostResponse;
 import com.vithey.content.entity.Post;
 import com.vithey.content.mapper.PostMapper;
 import com.vithey.content.repository.CommentRepository;
+import com.vithey.content.repository.FollowRepository;
 import com.vithey.content.repository.ReactionRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,19 +26,22 @@ public class PostEnrichmentService {
   private final FileServiceClient fileServiceClient;
   private final ReactionRepository reactionRepository;
   private final CommentRepository commentRepository;
+  private final FollowRepository followRepository;
 
   public PostEnrichmentService(
       PostMapper postMapper,
       UserProfileClient userProfileClient,
       FileServiceClient fileServiceClient,
       ReactionRepository reactionRepository,
-      CommentRepository commentRepository
+      CommentRepository commentRepository,
+      FollowRepository followRepository
   ) {
     this.postMapper = postMapper;
     this.userProfileClient = userProfileClient;
     this.fileServiceClient = fileServiceClient;
     this.reactionRepository = reactionRepository;
     this.commentRepository = commentRepository;
+    this.followRepository = followRepository;
   }
 
   public PostResponse enrich(Post post, UUID viewerId) {
@@ -53,8 +57,10 @@ public class PostEnrichmentService {
     Map<UUID, Long> reactionCounts = toCountMap(reactionRepository.countGroupedByPostId(postIds));
     Map<UUID, Long> commentCounts = toCountMap(commentRepository.countGroupedByPostId(postIds));
     Set<UUID> reactedPostIds = new HashSet<>();
+    Set<UUID> followingAuthorIds = new HashSet<>();
     if (viewerId != null) {
       reactedPostIds.addAll(reactionRepository.findReactedPostIds(viewerId, postIds));
+      followingAuthorIds.addAll(followRepository.findFollowingIdsByFollowerId(viewerId));
     }
 
     Map<UUID, AuthorSummaryResponse> authorCache = new HashMap<>();
@@ -68,6 +74,7 @@ public class PostEnrichmentService {
       if (post.getMediaFileId() != null) {
         mediaUrl = mediaUrlCache.computeIfAbsent(post.getMediaFileId(), this::resolveMediaUrl);
       }
+      boolean isFollowingAuthor = viewerId != null && followingAuthorIds.contains(post.getAuthorId());
       enriched.add(new PostResponse(
           base.postId(),
           author,
@@ -78,22 +85,27 @@ public class PostEnrichmentService {
           reactionCounts.getOrDefault(post.getId(), 0L),
           commentCounts.getOrDefault(post.getId(), 0L),
           reactedPostIds.contains(post.getId()),
-          base.createdAt()
+          isFollowingAuthor,
+          base.createdAt(),
+          base.scheduledAt()
       ));
     }
     return enriched;
   }
 
   public AuthorSummaryResponse resolveAuthor(UUID userId) {
-    var response = userProfileClient.getProfile(userId);
-    if (response.data() == null) {
-      return new AuthorSummaryResponse(userId, "Unknown User", null);
+    try {
+      var response = userProfileClient.getProfile(userId);
+      if (response != null && response.data() != null) {
+        return new AuthorSummaryResponse(
+            response.data().userId(),
+            response.data().fullName(),
+            response.data().avatarUrl()
+        );
+      }
+    } catch (Exception ignored) {
     }
-    return new AuthorSummaryResponse(
-        response.data().userId(),
-        response.data().fullName(),
-        response.data().avatarUrl()
-    );
+    return new AuthorSummaryResponse(userId, "User", null);
   }
 
   public List<AuthorSummaryResponse> resolveAuthors(List<UUID> userIds) {

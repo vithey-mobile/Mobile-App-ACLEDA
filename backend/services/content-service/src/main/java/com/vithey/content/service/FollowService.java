@@ -68,6 +68,11 @@ public class FollowService {
   }
 
   @Transactional(readOnly = true)
+  public boolean isFollowing(UUID followerId, UUID followingId) {
+    return followRepository.existsByFollowerIdAndFollowingId(followerId, followingId);
+  }
+
+  @Transactional(readOnly = true)
   public ApiResponseWrapper<List<AuthorSummaryResponse>> getFollowers(UUID userId, int page, int limit) {
     return paginatedUsers(
         followRepository.findByFollowingIdOrderByCreatedAtDesc(userId, pageable(page, limit)),

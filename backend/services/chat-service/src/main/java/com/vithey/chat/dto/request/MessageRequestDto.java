@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public record MessageRequestDto(
     @NotNull UUID toUserId,
-    @NotBlank String initialMessage
+    String initialMessage
 ) {
 }

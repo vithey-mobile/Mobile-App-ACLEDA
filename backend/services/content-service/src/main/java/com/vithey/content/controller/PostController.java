@@ -52,7 +52,7 @@ public class PostController {
   @GetMapping("/posts")
   @Operation(
       summary = "Home feed or search",
-      description = "Without search: posts from followed users plus the current user, newest first. With search: global content search. Paginated. Requires JWT."
+      description = "Without search: all published posts, with followed users and current user prioritized first, newest first. With search: global content search. Paginated. Requires JWT."
   )
   @ApiResponse(responseCode = "200", description = "Feed or search page")
   @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
@@ -68,7 +68,7 @@ public class PostController {
     if (StringUtils.hasText(search)) {
       return ResponseEntity.ok(postSearchService.search(search, type, viewerId, page, limit));
     }
-    return ResponseEntity.ok(feedService.getFeed(viewerId, page, limit));
+    return ResponseEntity.ok(feedService.getFeed(viewerId, type, page, limit));
   }
 
   @PostMapping("/posts")

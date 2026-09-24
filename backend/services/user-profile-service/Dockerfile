@@ -23,11 +23,10 @@ COPY services/user-profile-service/src services/user-profile-service/src
 RUN mvn -B -q -pl services/user-profile-service -am -Dmaven.test.skip=true package && \
     cp services/user-profile-service/target/*.jar app.jar
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM bellsoft/liberica-runtime-container:jre-21-musl AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache wget grep && \
-    addgroup -S vithey && adduser -S vithey -G vithey
+RUN addgroup -S vithey && adduser -S vithey -G vithey
 
 LABEL org.opencontainers.image.title="vithey-user-profile-service" \
       org.opencontainers.image.vendor="Vithey App"

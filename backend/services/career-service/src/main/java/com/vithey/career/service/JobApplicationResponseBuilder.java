@@ -87,11 +87,14 @@ public class JobApplicationResponseBuilder {
   }
 
   private ApplicantSummaryResponse resolveApplicant(UUID applicantId) {
-    var response = userProfileClient.getProfile(applicantId);
-    if (response.data() == null) {
-      return new ApplicantSummaryResponse(applicantId, "Unknown User");
+    try {
+      var response = userProfileClient.getProfile(applicantId);
+      if (response != null && response.data() != null) {
+        return new ApplicantSummaryResponse(response.data().userId(), response.data().fullName());
+      }
+    } catch (Exception ignored) {
     }
-    return new ApplicantSummaryResponse(response.data().userId(), response.data().fullName());
+    return new ApplicantSummaryResponse(applicantId, "Applicant");
   }
 
   private String resolveCvFileName(UUID cvFileId) {

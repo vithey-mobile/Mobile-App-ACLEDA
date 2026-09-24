@@ -19,6 +19,8 @@ public record CreateCommentRequest(
     @Schema(example = "Great post!", requiredMode = Schema.RequiredMode.REQUIRED)
     String text,
     @Schema(example = "[\"018a4379-a9e0-4391-8285-c231aeea577c\"]")
-    List<UUID> mentionUserIds
+    List<UUID> mentionUserIds,
+    @Schema(example = "c0ffee00-0000-4000-8000-000000000001")
+    UUID parentCommentId
 ) {
 }

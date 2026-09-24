@@ -46,8 +46,14 @@ public class Post {
   @Column(name = "job_deadline")
   private LocalDate jobDeadline;
 
+  @Column(name = "job_cv_limit")
+  private Integer jobCvLimit;
+
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;
+
+  @Column(name = "scheduled_at")
+  private OffsetDateTime scheduledAt;
 
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;

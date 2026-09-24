@@ -23,11 +23,10 @@ COPY infrastructure/config-server/src infrastructure/config-server/src
 RUN mvn -B -q -pl infrastructure/config-server -am -Dmaven.test.skip=true package && \
     cp infrastructure/config-server/target/*.jar app.jar
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM bellsoft/liberica-runtime-container:jre-21-musl AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache wget grep && \
-    addgroup -S vithey && adduser -S vithey -G vithey
+RUN addgroup -S vithey && adduser -S vithey -G vithey
 
 LABEL org.opencontainers.image.title="vithey-config-server" \
       org.opencontainers.image.vendor="Vithey App"

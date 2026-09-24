@@ -29,4 +29,7 @@ public class Comment {
 
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;
+
+  @Column(name = "parent_comment_id")
+  private UUID parentCommentId;
 }

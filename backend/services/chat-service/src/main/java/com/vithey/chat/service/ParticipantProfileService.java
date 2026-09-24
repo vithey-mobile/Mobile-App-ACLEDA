@@ -14,14 +14,17 @@ public class ParticipantProfileService {
   }
 
   public ParticipantSummaryResponse resolve(java.util.UUID userId) {
-    var response = userProfileClient.getProfile(userId);
-    if (response.data() == null) {
-      return new ParticipantSummaryResponse(userId, "Unknown User", null);
+    try {
+      var response = userProfileClient.getProfile(userId);
+      if (response != null && response.data() != null) {
+        return new ParticipantSummaryResponse(
+            response.data().userId(),
+            response.data().fullName(),
+            response.data().avatarUrl()
+        );
+      }
+    } catch (Exception ignored) {
     }
-    return new ParticipantSummaryResponse(
-        response.data().userId(),
-        response.data().fullName(),
-        response.data().avatarUrl()
-    );
+    return new ParticipantSummaryResponse(userId, "User", null);
   }
 }

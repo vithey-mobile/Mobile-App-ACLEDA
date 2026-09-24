@@ -2,6 +2,7 @@ package com.vithey.content.service;
 
 import com.vithey.content.dto.response.PostResponse;
 import com.vithey.content.entity.Post;
+import com.vithey.content.entity.PostType;
 import com.vithey.content.repository.FollowRepository;
 import com.vithey.content.repository.PostRepository;
 import com.vithey.content.util.ApiResponseWrapper;
@@ -32,15 +33,31 @@ public class FeedService {
     this.postEnrichmentService = postEnrichmentService;
   }
 
-  public ApiResponseWrapper<List<PostResponse>> getFeed(UUID viewerId, int page, int limit) {
+  public ApiResponseWrapper<List<PostResponse>> getFeed(UUID viewerId, PostType type, int page, int limit) {
     int safePage = Math.max(page, 1);
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
 
-    List<UUID> authorIds = new ArrayList<>(followRepository.findFollowingIdsByFollowerId(viewerId));
-    authorIds.add(viewerId);
+    List<UUID> prioritizedAuthorIds = new ArrayList<>();
+    if (viewerId != null) {
+      prioritizedAuthorIds.addAll(followRepository.findFollowingIdsByFollowerId(viewerId));
+      prioritizedAuthorIds.add(viewerId);
+    }
 
-    Page<Post> posts = postRepository.findByAuthorIdInAndDeletedAtIsNullOrderByCreatedAtDesc(authorIds, pageable);
+    Page<Post> posts;
+    if (type != null) {
+      if (!prioritizedAuthorIds.isEmpty()) {
+        posts = postRepository.findPublishedByTypeWithPriority(type, prioritizedAuthorIds, viewerId, pageable);
+      } else {
+        posts = postRepository.findPublishedByType(type, viewerId, pageable);
+      }
+    } else {
+      if (!prioritizedAuthorIds.isEmpty()) {
+        posts = postRepository.findAllPublishedWithPriority(prioritizedAuthorIds, viewerId, pageable);
+      } else {
+        posts = postRepository.findAllPublished(viewerId, pageable);
+      }
+    }
     List<PostResponse> content = postEnrichmentService.enrichAll(posts.getContent(), viewerId);
 
     return ApiResponseWrapper.paginated(

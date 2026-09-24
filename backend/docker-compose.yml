@@ -155,7 +155,7 @@ services:
     env_file:
       - services/auth-service/.env.example
     ports:
-      - "8081:8081"
+      - "${AUTH_PORT:-18081}:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -181,7 +181,7 @@ services:
     env_file:
       - services/user-profile-service/.env.example
     ports:
-      - "8082:8082"
+      - "${USER_PORT:-18082}:8082"
     depends_on:
       postgres:
         condition: service_healthy
@@ -210,7 +210,7 @@ services:
       # Overridden at runtime by start-all.ps1 (detected LAN IP for phone/emulator testing)
       MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:19000}
     ports:
-      - "8083:8083"
+      - "${FILE_PORT:-18083}:8083"
     depends_on:
       postgres:
         condition: service_healthy
@@ -236,7 +236,7 @@ services:
     env_file:
       - services/content-service/.env.example
     ports:
-      - "8084:8084"
+      - "${CONTENT_PORT:-18084}:8084"
     depends_on:
       postgres:
         condition: service_healthy
@@ -342,7 +342,7 @@ services:
     env_file:
       - services/notification-service/.env.example
     ports:
-      - "8088:8088"
+      - "${NOTIFICATION_PORT:-18088}:8088"
     depends_on:
       postgres:
         condition: service_healthy

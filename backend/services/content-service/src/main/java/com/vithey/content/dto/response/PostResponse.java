@@ -1,5 +1,6 @@
 package com.vithey.content.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vithey.content.entity.PostType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
@@ -17,7 +18,9 @@ public record PostResponse(
     @Schema(example = "3") long reactionCount,
     @Schema(example = "1") long commentCount,
     @Schema(example = "true") boolean userReacted,
-    @Schema(example = "2026-07-28T02:00:00Z") OffsetDateTime createdAt
+    @JsonProperty("is_following_author") @Schema(example = "false") boolean isFollowingAuthor,
+    @Schema(example = "2026-07-28T02:00:00Z") OffsetDateTime createdAt,
+    @Schema(example = "2026-07-29T10:00:00Z") OffsetDateTime scheduledAt
 ) {
 
   @Schema(name = "JobMetaResponse")
@@ -25,7 +28,11 @@ public record PostResponse(
       @Schema(example = "Flutter Intern") String title,
       @Schema(example = "Build mobile features") String description,
       @Schema(example = "Year 3+ CS") String requirement,
-      @Schema(example = "2026-08-01") LocalDate deadline
+      @Schema(example = "2026-08-01") LocalDate deadline,
+      @Schema(example = "30") Integer cvLimit
   ) {
+    public JobMetaResponse(String title, String description, String requirement, LocalDate deadline) {
+      this(title, description, requirement, deadline, null);
+    }
   }
 }

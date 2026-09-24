@@ -15,18 +15,21 @@ public interface PostMapper {
   @Mapping(target = "reactionCount", ignore = true)
   @Mapping(target = "commentCount", ignore = true)
   @Mapping(target = "userReacted", ignore = true)
+  @Mapping(target = "isFollowingAuthor", ignore = true)
   PostResponse toBaseResponse(Post post);
 
   default PostResponse.JobMetaResponse toJobMeta(Post post) {
     if (post.getJobTitle() == null && post.getJobDescription() == null
-        && post.getJobRequirement() == null && post.getJobDeadline() == null) {
+        && post.getJobRequirement() == null && post.getJobDeadline() == null
+        && post.getJobCvLimit() == null) {
       return null;
     }
     return new PostResponse.JobMetaResponse(
         post.getJobTitle(),
         post.getJobDescription(),
         post.getJobRequirement(),
-        post.getJobDeadline()
+        post.getJobDeadline(),
+        post.getJobCvLimit()
     );
   }
 }

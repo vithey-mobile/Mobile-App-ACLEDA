@@ -4,6 +4,7 @@ import com.vithey.career.dto.request.ApplyJobRequest;
 import com.vithey.career.dto.request.UpdateApplicationStatusRequest;
 import com.vithey.career.dto.response.CvPreviewResponse;
 import com.vithey.career.dto.response.JobApplicationResponse;
+import com.vithey.career.dto.response.PostSummaryResponse;
 import com.vithey.career.entity.ApplicationStatus;
 import com.vithey.career.entity.JobApplication;
 import com.vithey.career.event.payload.JobApplicationStatusChangedEvent;
@@ -13,6 +14,7 @@ import com.vithey.career.exception.ApiException;
 import com.vithey.career.exception.ErrorCode;
 import com.vithey.career.repository.JobApplicationRepository;
 import com.vithey.career.util.ApiResponseWrapper;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -56,11 +58,23 @@ public class JobApplicationService {
       }
     }
 
-    upstreamValidationService.requireJobPost(request.jobPostId());
+    PostSummaryResponse post = upstreamValidationService.requireJobPost(request.jobPostId());
     upstreamValidationService.requireCvFile(request.cvFileId());
 
     if (jobApplicationRepository.existsByJobPostIdAndApplicantId(request.jobPostId(), applicantId)) {
       throw new ApiException(ErrorCode.CONFLICT, "You have already applied to this job");
+    }
+
+    if (post != null && post.jobMeta() != null) {
+      if (post.jobMeta().deadline() != null && LocalDate.now(ZoneOffset.UTC).isAfter(post.jobMeta().deadline())) {
+        throw new ApiException(ErrorCode.CONFLICT, "This job application deadline has passed");
+      }
+      if (post.jobMeta().cvLimit() != null && post.jobMeta().cvLimit() > 0) {
+        long currentCount = jobApplicationRepository.countByJobPostId(request.jobPostId());
+        if (currentCount >= post.jobMeta().cvLimit()) {
+          throw new ApiException(ErrorCode.CONFLICT, "This job has reached its maximum CV application limit");
+        }
+      }
     }
 
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);

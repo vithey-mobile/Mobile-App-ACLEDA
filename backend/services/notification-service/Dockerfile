@@ -23,11 +23,10 @@ COPY services/notification-service/src services/notification-service/src
 RUN mvn -B -q -pl services/notification-service -am -Dmaven.test.skip=true package && \
     cp services/notification-service/target/*.jar app.jar
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM bellsoft/liberica-runtime-container:jre-21-musl AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache wget grep && \
-    addgroup -S vithey && adduser -S vithey -G vithey
+RUN addgroup -S vithey && adduser -S vithey -G vithey
 
 LABEL org.opencontainers.image.title="vithey-notification-service" \
       org.opencontainers.image.vendor="Vithey App"

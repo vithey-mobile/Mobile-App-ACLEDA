@@ -51,10 +51,16 @@ public class PostService {
     post.setId(UUID.randomUUID());
     post.setAuthorId(authorId);
     post.setType(request.type());
-    post.setContent(request.content());
-    post.setCreatedAt(now);
+    post.setScheduledAt(request.scheduledAt());
+    boolean isScheduled = request.scheduledAt() != null && request.scheduledAt().isAfter(now);
+    if (isScheduled) {
+      post.setCreatedAt(request.scheduledAt());
+    } else {
+      post.setCreatedAt(now);
+    }
     post.setUpdatedAt(now);
 
+    post.setContent(request.content());
     post.setMediaFileId(request.mediaFileId());
     if (request.type() == PostType.JOB) {
       CreatePostRequest.JobMetaRequest jobMeta = request.jobMeta();
@@ -62,24 +68,32 @@ public class PostService {
       post.setJobDescription(jobMeta.description());
       post.setJobRequirement(jobMeta.requirement());
       post.setJobDeadline(jobMeta.deadline());
+      post.setJobCvLimit(jobMeta.cvLimit());
     }
     if (request.mediaFileId() != null) {
       validateMediaFile(request.type(), request.mediaFileId());
     }
 
     Post saved = postRepository.save(post);
-    contentEventPublisher.publishPostCreated(new PostCreatedEvent(
-        saved.getId(),
-        saved.getAuthorId(),
-        saved.getType(),
-        saved.getCreatedAt()
-    ));
+    if (!isScheduled) {
+      contentEventPublisher.publishPostCreated(new PostCreatedEvent(
+          saved.getId(),
+          saved.getAuthorId(),
+          saved.getType(),
+          saved.getCreatedAt()
+      ));
+    }
     return postEnrichmentService.enrich(saved, authorId);
   }
 
   @Transactional(readOnly = true)
   public PostResponse getPost(UUID postId, UUID viewerId) {
     Post post = requireActivePost(postId);
+    if (post.getScheduledAt() != null && post.getScheduledAt().isAfter(OffsetDateTime.now(ZoneOffset.UTC))) {
+      if (viewerId == null || !post.getAuthorId().equals(viewerId)) {
+        throw new ApiException(ErrorCode.NOT_FOUND);
+      }
+    }
     return postEnrichmentService.enrich(post, viewerId);
   }
 
@@ -106,9 +120,10 @@ public class PostService {
     int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
     PageRequest pageable = PageRequest.of(safePage - 1, safeLimit);
 
+    boolean isOwner = userId != null && userId.equals(viewerId);
     Page<Post> posts = type == null
-        ? postRepository.findByAuthorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, pageable)
-        : postRepository.findByAuthorIdAndTypeAndDeletedAtIsNullOrderByCreatedAtDesc(userId, type, pageable);
+        ? postRepository.findByAuthorIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId, isOwner, pageable)
+        : postRepository.findByAuthorIdAndTypeAndDeletedAtIsNullOrderByCreatedAtDesc(userId, type, isOwner, pageable);
 
     java.util.List<PostResponse> content = postEnrichmentService.enrichAll(posts.getContent(), viewerId);
 

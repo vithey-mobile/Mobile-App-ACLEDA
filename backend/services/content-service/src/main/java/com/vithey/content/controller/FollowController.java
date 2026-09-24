@@ -64,6 +64,21 @@ public class FollowController {
     return ResponseEntity.noContent().build();
   }
 
+  @GetMapping("/follow")
+  @Operation(
+      summary = "Check follow status",
+      description = "Checks if the current user is following the target user. Requires JWT."
+  )
+  @ApiResponse(responseCode = "200", description = "Follow status")
+  ResponseEntity<ApiResponseWrapper<java.util.Map<String, Boolean>>> checkFollowing(
+      @Parameter(description = "Target user UUID", example = "018a4379-a9e0-4391-8285-c231aeea577c")
+      @PathVariable UUID userId
+  ) {
+    UUID followerId = currentUserProvider.requireCurrentUser().userId();
+    boolean following = followService.isFollowing(followerId, userId);
+    return ResponseEntity.ok(ApiResponseWrapper.success(java.util.Map.of("is_following", following)));
+  }
+
   @GetMapping("/followers")
   @Operation(
       summary = "List followers",

@@ -15,16 +15,40 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
   Optional<Post> findByIdAndDeletedAtIsNull(UUID id);
 
+  @Query("""
+      SELECT post
+      FROM Post post
+      WHERE post.deletedAt IS NULL
+        AND post.authorId IN :authorIds
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+      ORDER BY post.createdAt DESC
+      """)
   Page<Post> findByAuthorIdInAndDeletedAtIsNullOrderByCreatedAtDesc(
-      Collection<UUID> authorIds,
+      @Param("authorIds") Collection<UUID> authorIds,
+      @Param("viewerId") UUID viewerId,
       Pageable pageable
   );
 
-  Page<Post> findByAuthorIdAndDeletedAtIsNullOrderByCreatedAtDesc(UUID authorId, Pageable pageable);
-
-  Page<Post> findByAuthorIdAndTypeAndDeletedAtIsNullOrderByCreatedAtDesc(
-      UUID authorId,
-      PostType type,
+  @Query(
+      value = """
+          SELECT post
+          FROM Post post
+          WHERE post.deletedAt IS NULL
+            AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+          ORDER BY
+            CASE WHEN post.authorId IN :prioritizedAuthorIds THEN 0 ELSE 1 END ASC,
+            post.createdAt DESC
+          """,
+      countQuery = """
+          SELECT count(post)
+          FROM Post post
+          WHERE post.deletedAt IS NULL
+            AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+          """
+  )
+  Page<Post> findAllPublishedWithPriority(
+      @Param("prioritizedAuthorIds") Collection<UUID> prioritizedAuthorIds,
+      @Param("viewerId") UUID viewerId,
       Pageable pageable
   );
 
@@ -32,6 +56,89 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
       SELECT post
       FROM Post post
       WHERE post.deletedAt IS NULL
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+      ORDER BY post.createdAt DESC
+      """)
+  Page<Post> findAllPublished(
+      @Param("viewerId") UUID viewerId,
+      Pageable pageable
+  );
+
+  @Query("""
+      SELECT post
+      FROM Post post
+      WHERE post.deletedAt IS NULL
+        AND post.authorId = :authorId
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR :isOwner = true)
+      ORDER BY post.createdAt DESC
+      """)
+  Page<Post> findByAuthorIdAndDeletedAtIsNullOrderByCreatedAtDesc(
+      @Param("authorId") UUID authorId,
+      @Param("isOwner") boolean isOwner,
+      Pageable pageable
+  );
+
+  @Query("""
+      SELECT post
+      FROM Post post
+      WHERE post.deletedAt IS NULL
+        AND post.authorId = :authorId
+        AND post.type = :type
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR :isOwner = true)
+      ORDER BY post.createdAt DESC
+      """)
+  Page<Post> findByAuthorIdAndTypeAndDeletedAtIsNullOrderByCreatedAtDesc(
+      @Param("authorId") UUID authorId,
+      @Param("type") PostType type,
+      @Param("isOwner") boolean isOwner,
+      Pageable pageable
+  );
+
+  @Query(
+      value = """
+          SELECT post
+          FROM Post post
+          WHERE post.deletedAt IS NULL
+            AND post.type = :type
+            AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+          ORDER BY
+            CASE WHEN post.authorId IN :prioritizedAuthorIds THEN 0 ELSE 1 END ASC,
+            post.createdAt DESC
+          """,
+      countQuery = """
+          SELECT count(post)
+          FROM Post post
+          WHERE post.deletedAt IS NULL
+            AND post.type = :type
+            AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+          """
+  )
+  Page<Post> findPublishedByTypeWithPriority(
+      @Param("type") PostType type,
+      @Param("prioritizedAuthorIds") Collection<UUID> prioritizedAuthorIds,
+      @Param("viewerId") UUID viewerId,
+      Pageable pageable
+  );
+
+  @Query("""
+      SELECT post
+      FROM Post post
+      WHERE post.deletedAt IS NULL
+        AND post.type = :type
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP OR post.authorId = :viewerId)
+      ORDER BY post.createdAt DESC
+      """)
+  Page<Post> findPublishedByType(
+      @Param("type") PostType type,
+      @Param("viewerId") UUID viewerId,
+      Pageable pageable
+  );
+
+  @Query("""
+      SELECT post
+      FROM Post post
+      WHERE post.deletedAt IS NULL
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP)
         AND (
           LOWER(post.content) LIKE LOWER(CONCAT('%', :search, '%'))
           OR LOWER(post.jobTitle) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -46,6 +153,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
       FROM Post post
       WHERE post.deletedAt IS NULL
         AND post.type = :type
+        AND (post.scheduledAt IS NULL OR post.scheduledAt <= CURRENT_TIMESTAMP)
         AND (
           LOWER(post.content) LIKE LOWER(CONCAT('%', :search, '%'))
           OR LOWER(post.jobTitle) LIKE LOWER(CONCAT('%', :search, '%'))

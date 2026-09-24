@@ -76,7 +76,8 @@ public class CommentService {
           base.postId(),
           authors.get(i),
           base.text(),
-          base.createdAt()
+          base.createdAt(),
+          comment.getParentCommentId()
       ));
     }
 
@@ -97,6 +98,10 @@ public class CommentService {
     comment.setAuthorId(authorId);
     comment.setText(request.text());
     comment.setCreatedAt(now);
+    if (request.parentCommentId() != null) {
+      requireCommentOnPost(postId, request.parentCommentId());
+      comment.setParentCommentId(request.parentCommentId());
+    }
     Comment saved = commentRepository.save(comment);
 
     contentEventPublisher.publishCommentAdded(new CommentAddedEvent(
@@ -169,7 +174,8 @@ public class CommentService {
         base.postId(),
         postEnrichmentService.resolveAuthor(comment.getAuthorId()),
         base.text(),
-        base.createdAt()
+        base.createdAt(),
+        comment.getParentCommentId()
     );
   }
 }

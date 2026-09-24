@@ -46,11 +46,11 @@ class PostServiceTest {
   @Test
   void createPost_allowsTextOnlyPosterPost() {
     UUID authorId = UUID.randomUUID();
-    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "hello world", null, null);
+    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "hello world", null, null, null);
     when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(postEnrichmentService.enrich(any(Post.class), any(UUID.class)))
         .thenReturn(new PostResponse(
-            UUID.randomUUID(), null, PostType.POSTER, "hello world", null, null, 0, 0, false, null
+            UUID.randomUUID(), null, PostType.POSTER, "hello world", null, null, 0, 0, false, false, null, null
         ));
 
     PostResponse response = postService.createPost(authorId, request);
@@ -63,7 +63,7 @@ class PostServiceTest {
 
   @Test
   void createPost_rejectsVideoPostWithoutFileId() {
-    CreatePostRequest request = new CreatePostRequest(PostType.VIDEO, "my reel", null, null);
+    CreatePostRequest request = new CreatePostRequest(PostType.VIDEO, "my reel", null, null, null);
 
     ApiException exception = assertThrows(
         ApiException.class,
@@ -76,7 +76,7 @@ class PostServiceTest {
 
   @Test
   void createPost_rejectsEmptyPostWithoutContentOrMedia() {
-    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "   ", null, null);
+    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "   ", null, null, null);
 
     ApiException exception = assertThrows(
         ApiException.class,
@@ -93,7 +93,8 @@ class PostServiceTest {
         PostType.JOB,
         "hiring",
         null,
-        new CreatePostRequest.JobMetaRequest(null, "desc", "req", null)
+        new CreatePostRequest.JobMetaRequest(null, "desc", "req", null),
+        null
     );
 
     ApiException exception = assertThrows(
@@ -112,12 +113,13 @@ class PostServiceTest {
         PostType.JOB,
         "hiring",
         null,
-        new CreatePostRequest.JobMetaRequest("Intern", "desc", "req", null)
+        new CreatePostRequest.JobMetaRequest("Intern", "desc", "req", null),
+        null
     );
     when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(postEnrichmentService.enrich(any(Post.class), any(UUID.class)))
         .thenReturn(new PostResponse(
-            UUID.randomUUID(), null, PostType.JOB, "hiring", null, null, 0, 0, false, null
+            UUID.randomUUID(), null, PostType.JOB, "hiring", null, null, 0, 0, false, false, null, null
         ));
 
     PostResponse response = postService.createPost(authorId, request);
@@ -128,9 +130,27 @@ class PostServiceTest {
   }
 
   @Test
+  void createPost_scheduledPostDoesNotPublishEventImmediately() {
+    UUID authorId = UUID.randomUUID();
+    java.time.OffsetDateTime future = java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).plusDays(1);
+    CreatePostRequest request = new CreatePostRequest(PostType.POSTER, "future post", null, null, future);
+    when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    when(postEnrichmentService.enrich(any(Post.class), any(UUID.class)))
+        .thenReturn(new PostResponse(
+            UUID.randomUUID(), null, PostType.POSTER, "future post", null, null, 0, 0, false, false, future, future
+        ));
+
+    PostResponse response = postService.createPost(authorId, request);
+
+    assertEquals(PostType.POSTER, response.type());
+    verify(postRepository).save(any(Post.class));
+    verify(contentEventPublisher, never()).publishPostCreated(any());
+  }
+
+  @Test
   void createPost_rejectsMismatchedMediaType() {
     UUID fileId = UUID.randomUUID();
-    CreatePostRequest request = new CreatePostRequest(PostType.VIDEO, "clip", fileId, null);
+    CreatePostRequest request = new CreatePostRequest(PostType.VIDEO, "clip", fileId, null, null);
     when(fileServiceClient.getFile(fileId)).thenReturn(ApiResponseWrapper.success(
         new FileMetadataResponse(fileId, "POSTER", "http://x")
     ));

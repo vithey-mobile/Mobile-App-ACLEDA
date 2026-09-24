@@ -23,11 +23,10 @@ COPY services/chat-service/src services/chat-service/src
 RUN mvn -B -q -pl services/chat-service -am -Dmaven.test.skip=true package && \
     cp services/chat-service/target/*.jar app.jar
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM bellsoft/liberica-runtime-container:jre-21-musl AS runtime
 WORKDIR /app
 
-RUN apk add --no-cache wget grep && \
-    addgroup -S vithey && adduser -S vithey -G vithey
+RUN addgroup -S vithey && adduser -S vithey -G vithey
 
 LABEL org.opencontainers.image.title="vithey-chat-service" \
       org.opencontainers.image.vendor="Vithey App"

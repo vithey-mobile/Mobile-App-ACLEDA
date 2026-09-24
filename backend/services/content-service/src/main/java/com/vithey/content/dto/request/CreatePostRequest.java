@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Schema(
@@ -18,7 +19,8 @@ import java.util.UUID;
             "description": "Build mobile features",
             "requirement": "Year 3+ CS",
             "deadline": "2026-08-01"
-          }
+          },
+          "scheduled_at": "2026-09-25T12:00:00Z"
         }
         """
 )
@@ -28,7 +30,8 @@ public record CreatePostRequest(
     PostType type,
     @Schema(example = "Check out my project poster") String content,
     @Schema(example = "f6efaa58-4dbd-4a08-8a6c-7bb59b15f589") UUID mediaFileId,
-    @Valid JobMetaRequest jobMeta
+    @Valid JobMetaRequest jobMeta,
+    @Schema(example = "2026-09-25T12:00:00Z") OffsetDateTime scheduledAt
 ) {
 
   @Schema(name = "JobMetaRequest")
@@ -36,7 +39,11 @@ public record CreatePostRequest(
       @Schema(example = "Flutter Intern") String title,
       @Schema(example = "Build mobile features") String description,
       @Schema(example = "Year 3+ CS") String requirement,
-      @Schema(example = "2026-08-01") LocalDate deadline
+      @Schema(example = "2026-08-01") LocalDate deadline,
+      @Schema(example = "30") Integer cvLimit
   ) {
+    public JobMetaRequest(String title, String description, String requirement, LocalDate deadline) {
+      this(title, description, requirement, deadline, null);
+    }
   }
 }

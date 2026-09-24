@@ -21,7 +21,11 @@ public record PostSummaryResponse(
       String title,
       String description,
       String requirement,
-      LocalDate deadline
+      LocalDate deadline,
+      Integer cvLimit
   ) {
+    public JobMetaResponse(String title, String description, String requirement, LocalDate deadline) {
+      this(title, description, requirement, deadline, null);
+    }
   }
 }
