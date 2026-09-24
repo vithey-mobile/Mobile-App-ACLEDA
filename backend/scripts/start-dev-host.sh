@@ -159,7 +159,7 @@ check_status() {
     echo -n "Eureka Server (:8761): "
     curl -sf http://localhost:8761/actuator/health | grep -q "UP" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
     echo -n "AI Core       (:8100): "
-    curl -sf http://localhost:8100/health | grep -q "ok" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
+    curl -sf http://localhost:8100/health | grep -qi "healthy" && echo -e "${GREEN}UP${NC}" || echo -e "${RED}DOWN${NC}"
     echo -n "API Gateway   (:8080): "
     curl -sf http://localhost:8080/actuator/health | grep -q "UP" && echo -e "${GREEN}UP${NC}" || echo -e "${GRAY}NOT RUNNING${NC}"
 }
@@ -198,6 +198,19 @@ ensure_no_container_conflict() {
     if [ -n "$running" ]; then
         echo -e "${YELLOW}Stopping docker container '$svc' to prevent port conflict with host JVM...${NC}"
         docker compose "${COMPOSE_FILES[@]}" stop "$svc" >/dev/null 2>&1 || true
+    fi
+
+    # Free the host port if any stray process is still holding it
+    local port
+    port=$(get_service_port "$svc")
+    local pids
+    pids=$(lsof -ti :"$port" 2>/dev/null || true)
+    if [ -n "$pids" ]; then
+        echo -e "${YELLOW}Freeing port ${port} (occupied by PID: ${pids}) for ${svc}...${NC}"
+        for p in $pids; do
+            kill -9 "$p" 2>/dev/null || true
+        done
+        sleep 0.5
     fi
 }
 
@@ -292,11 +305,15 @@ run_single_service() {
     ensure_no_container_conflict "$svc"
     set_host_env "$svc"
 
+    # Ensure parent pom and shared test support are in local repository
+    mvn -N install -DskipTests -q 2>/dev/null || true
+    mvn -pl shared/vithey-test-support install -DskipTests -q 2>/dev/null || true
+
     local jvm_args="-Xms64m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dspring.jmx.enabled=false"
 
     print_service_guide "$svc"
 
-    mvn -pl "services/${svc}" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}"
+    mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}"
 }
 
 # Run multiple services as background processes with centralized cleanup & health monitoring
@@ -304,7 +321,9 @@ run_multiple_services() {
     local services=("$@")
     mkdir -p "${LOG_DIR}"
 
-    echo -e "\n${CYAN}🔨 Pre-compiling backend modules to ensure instant startup...${NC}"
+    echo -e "\n${CYAN}🔨 Ensuring shared libraries and dependencies are ready...${NC}"
+    mvn -N install -DskipTests -q 2>/dev/null || true
+    mvn -pl shared/vithey-test-support install -DskipTests -q 2>/dev/null || true
     mvn compile -DskipTests -q 2>/dev/null || mvn compile -DskipTests
 
     local pids=()
@@ -334,7 +353,7 @@ run_multiple_services() {
         (
             set_host_env "$svc"
             local jvm_args="-Xms48m -Xmx160m -XX:+UseSerialGC -XX:MaxMetaspaceSize=80m -Dspring.jmx.enabled=false"
-            mvn -pl "services/${svc}" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}" > "${LOG_DIR}/${svc}.log" 2>&1
+            mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}" > "${LOG_DIR}/${svc}.log" 2>&1
         ) &
         local pid=$!
         pids+=("$pid")
