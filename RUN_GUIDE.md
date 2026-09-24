@@ -4,21 +4,15 @@ The **Vithey Dev Runner** provides an interactive CLI execution engine and statu
 
 ---
 
-## Quick Start: Interactive CLI Runner
+## Quick Start: Universal Dev Runner (All OS)
 
 From the project root:
 
 ```bash
-# macOS / Linux
 ./run-backend-dev.sh
-
-# Windows (PowerShell or Command Prompt)
-.\run-backend-dev.ps1
-# or
-.\run-backend-dev.bat
 ```
 
-The interactive runner launches with instant keyboard navigation:
+Works out of the box on **macOS**, **Linux**, and **Windows** (Git Bash / WSL / MSYS2). The interactive runner launches with instant keyboard navigation:
 
 ```text
 ┌────────────────────────────────────────────────────────┐
