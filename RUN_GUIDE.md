@@ -4,20 +4,30 @@ This guide explains how to run Vithey backend services with **minimum resources*
 
 ---
 
-## ⚡ Quick Start (One Command)
+## ⚡ One Command to Run Everything
 
 From the project root:
 
 ```bash
-# Run a specific service directly from source code
+./run-backend-dev.sh
+```
+
+**What this one command does automatically:**
+1. Starts the needed Docker infrastructure containers (`postgres`, `redis`, `rabbitmq`, `minio`, `eureka-server`, `config-server`, `ai-core`).
+2. Stops any conflicting Docker microservice containers.
+3. Pre-compiles modules and launches all 9 Spring Boot microservices on your host JVM.
+4. Shows live health status and provides centralized shutdown on `Ctrl+C`.
+
+---
+
+## 🎯 Run a Specific Single Service
+
+If you only want to work on one service:
+
+```bash
 ./run-backend-dev.sh content-service
 ```
 *(Or `auth-service`, `career-service`, `chat-service`, `api-gateway`, etc.)*
-
-Or run the interactive menu:
-```bash
-./run-backend-dev.sh
-```
 
 ---
 
