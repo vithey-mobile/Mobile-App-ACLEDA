@@ -281,10 +281,18 @@ print_service_guide() {
     local svc="$1"
     local port
     port=$(get_service_port "$svc")
+    local cpu_info
+    cpu_info=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Host CPU")
+    local mem_gb
+    mem_gb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 / 1024 / 1024 ))
+    local ncpu
+    ncpu=$(sysctl -n hw.ncpu 2>/dev/null || echo "multi-core")
 
     echo ""
     echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Service:${NC}        ${GREEN}${svc}${NC}"
+    echo -e "${CYAN}│${NC} ${BOLD}Hardware Specs:${NC} ${cpu_info} (${ncpu} cores) | ${mem_gb} GB RAM"
+    echo -e "${CYAN}│${NC} ${BOLD}Memory Budget:${NC}  -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m"
     echo -e "${CYAN}│${NC} ${BOLD}Direct URL:${NC}     ${B_CYAN}http://localhost:${port}${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Health URL:${NC}     ${B_CYAN}http://localhost:${port}/actuator/health${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}Gateway:${NC}        ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
@@ -327,11 +335,19 @@ run_multiple_services() {
     }
     trap cleanup SIGINT SIGTERM
 
+    local cpu_info
+    cpu_info=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Host CPU")
+    local mem_gb
+    mem_gb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1024 / 1024 / 1024 ))
+    local ncpu
+    ncpu=$(sysctl -n hw.ncpu 2>/dev/null || echo "multi-core")
+
     echo ""
     echo -e "${CYAN}┌────────────────────────────────────────────────────────────────────────┐${NC}"
     echo -e "${CYAN}│${NC} ${BOLD}VITHEY FULL STACK ACTIVE${NC}"
-    echo -e "${CYAN}│${NC} ${DIM}Docker Infra:  Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI    ${NC}"
-    echo -e "${CYAN}│${NC} ${DIM}Host Services: Launching ${#services[@]} Spring Boot JVMs                      ${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Hardware Specs: ${cpu_info} (${ncpu} cores) | ${mem_gb} GB RAM${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Memory Budget:  ~160MB max/service (~1.4 GB total heap / ${mem_gb} GB RAM)${NC}"
+    echo -e "${CYAN}│${NC} ${DIM}Docker Infra:   Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI     ${NC}"
     echo -e "${CYAN}└────────────────────────────────────────────────────────────────────────┘${NC}"
 
     for svc in "${services[@]}"; do
@@ -345,7 +361,7 @@ run_multiple_services() {
         ) &
         local pid=$!
         pids+=("$pid")
-        echo -e "  -> ${B_GREEN}${svc:<22}${NC} :${port:<5} (PID ${pid}) [Log: .logs/${svc}.log]"
+        printf "  -> ${B_GREEN}%-22s${NC} :%-5s (PID %s) [Log: .logs/%s.log]\n" "$svc" "$port" "$pid" "$svc"
         sleep 0.15
     done
 

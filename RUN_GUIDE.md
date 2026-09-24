@@ -17,9 +17,10 @@ From the project root:
 The interactive dashboard launches with arrow-key navigation:
 
 ```text
-┌──────────────────────────────────────────────────┐
-│                  VITHEY RUNNER                   │
-└──────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│                     VITHEY RUNNER                      │
+│         Apple M4 Pro (12 cores) | 24.0 GB RAM          │
+└────────────────────────────────────────────────────────┘
 
  Select command:
 

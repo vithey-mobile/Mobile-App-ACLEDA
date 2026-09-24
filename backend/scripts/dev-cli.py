@@ -63,16 +63,38 @@ INFRA_CONTAINERS = [
 ]
 
 
+def get_system_specs():
+    try:
+        cpu = subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
+    except Exception:
+        cpu = "Host CPU"
+    try:
+        cores = subprocess.check_output(["sysctl", "-n", "hw.ncpu"], text=True).strip()
+    except Exception:
+        cores = str(os.cpu_count() or 4)
+    try:
+        mem_bytes = int(subprocess.check_output(["sysctl", "-n", "hw.memsize"], text=True).strip())
+        mem_gb = round(mem_bytes / (1024**3), 1)
+    except Exception:
+        mem_gb = "Host"
+    return f"{cpu} ({cores} cores) | {mem_gb} GB RAM"
+
+
+SYSTEM_SPECS = get_system_specs()
+
+
 def clear_screen():
     sys.stdout.write("\033[2J\033[H")
     sys.stdout.flush()
 
 
 def print_banner():
-    w = 52
-    line = "─" * (w - 2)
+    w = 58
+    inner = w - 2
+    line = "─" * inner
     print(f"{B_CYAN}┌{line}┐{RESET}")
-    print(f"{B_CYAN}│{BOLD}{'VITHEY RUNNER':^50}{RESET}{B_CYAN}│{RESET}")
+    print(f"{B_CYAN}│{BOLD}{'VITHEY RUNNER':^{inner}}{RESET}{B_CYAN}│{RESET}")
+    print(f"{B_CYAN}│{DIM}{SYSTEM_SPECS:^{inner}}{RESET}{B_CYAN}│{RESET}")
     print(f"{B_CYAN}└{line}┘{RESET}")
 
 
