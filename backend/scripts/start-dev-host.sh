@@ -150,6 +150,28 @@ check_status() {
 }
 
 start_infra() {
+    if ! docker info >/dev/null 2>&1; then
+        echo -e "${YELLOW}[DOCKER] Docker daemon is not running!${NC}"
+        echo -e "${CYAN}[DOCKER] Launching Docker Desktop...${NC}"
+        open -a Docker 2>/dev/null || true
+        echo -n "[DOCKER] Waiting for Docker to become ready..."
+        local docker_retries=45
+        local docker_ready=false
+        for ((d=1; d<=docker_retries; d++)); do
+            if docker info >/dev/null 2>&1; then
+                docker_ready=true
+                echo -e " ${GREEN}[READY]${NC}"
+                break
+            fi
+            echo -n "."
+            sleep 1
+        done
+        if [ "$docker_ready" = false ]; then
+            echo -e "\n${RED}[ERROR] Docker Desktop failed to start. Please open Docker Desktop manually.${NC}"
+            return 1
+        fi
+    fi
+
     echo -e "${CYAN}[INFRA] Ensuring Docker infrastructure is running...${NC}"
     docker compose "${COMPOSE_FILES[@]}" up -d "${INFRA_CONTAINERS[@]}"
 
