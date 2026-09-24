@@ -178,16 +178,24 @@ start_infra() {
     local max_retries=30
     local config_up=false
     local eureka_up=false
+    local pg_up=false
+    local redis_up=false
 
     for ((i=1; i<=max_retries; i++)); do
+        if [ "$pg_up" = false ] && nc -z localhost 15432 2>/dev/null; then
+            pg_up=true
+        fi
+        if [ "$redis_up" = false ] && nc -z localhost 16379 2>/dev/null; then
+            redis_up=true
+        fi
         if [ "$config_up" = false ] && curl -sf http://localhost:8888/actuator/health | grep -q "UP" 2>/dev/null; then
             config_up=true
         fi
         if [ "$eureka_up" = false ] && curl -sf http://localhost:8761/actuator/health | grep -q "UP" 2>/dev/null; then
             eureka_up=true
         fi
-        if [ "$config_up" = true ] && [ "$eureka_up" = true ]; then
-            echo -e "${GREEN}[OK] Config Server and Eureka ready.${NC}"
+        if [ "$config_up" = true ] && [ "$eureka_up" = true ] && [ "$pg_up" = true ] && [ "$redis_up" = true ]; then
+            echo -e "${GREEN}[OK] Postgres, Redis, Config Server, and Eureka ready.${NC}"
             return 0
         fi
         sleep 1
@@ -331,11 +339,11 @@ run_single_service() {
     set_host_env "$svc"
     ensure_fast_dependencies
 
-    local jvm_args="-Xms64m -Xmx256m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dspring.jmx.enabled=false"
+    local jvm_args="-Xms48m -Xmx160m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -XX:TieredStopAtLevel=1 -Dspring.jmx.enabled=false"
 
     print_service_guide "$svc"
 
-    mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}"
+    mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}" -nsu
 }
 
 # Run multiple services as background processes
@@ -382,14 +390,14 @@ run_multiple_services() {
         port=$(get_service_port "$svc")
         (
             set_host_env "$svc"
-            local jvm_args="-Xms48m -Xmx160m -XX:+UseSerialGC -XX:MaxMetaspaceSize=80m -Dspring.jmx.enabled=false"
-            mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}" > "${LOG_DIR}/${svc}.log" 2>&1
+            local jvm_args="-Xms48m -Xmx160m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -XX:TieredStopAtLevel=1 -Dspring.jmx.enabled=false"
+            exec mvn -f "services/${svc}/pom.xml" spring-boot:run -Dspring-boot.run.jvmArguments="${jvm_args}" -nsu -q > "${LOG_DIR}/${svc}.log" 2>&1
         ) &
         local pid=$!
         pids+=("$pid")
         targets+=("${svc}:${port}:${pid}")
         printf "  -> ${B_GREEN}%-22s${NC} :%-5s (PID %s) [Log: .logs/%s.log]\n" "$svc" "$port" "$pid" "$svc"
-        sleep 0.15
+        sleep 0.25
     done
 
     echo ""

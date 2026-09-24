@@ -362,17 +362,18 @@ def run_live_monitor(target_args):
                 is_up = probe_http(f"http://localhost:{t['port']}/actuator/health")
                 is_open = probe_port(t["port"]) if not is_up else True
 
-                is_alive = False
-                try:
-                    os.kill(svc_pid, 0)
-                    is_alive = True
-                except OSError:
+                is_alive = is_open or is_up
+                if not is_alive:
                     try:
-                        os.kill(t["mvn_pid"], 0)
+                        os.kill(svc_pid, 0)
                         is_alive = True
-                        svc_pid = t["mvn_pid"]
                     except OSError:
-                        pass
+                        try:
+                            os.kill(t["mvn_pid"], 0)
+                            is_alive = True
+                            svc_pid = t["mvn_pid"]
+                        except OSError:
+                            pass
 
                 cpu = 0.0
                 rss_mb = 0.0
@@ -471,19 +472,18 @@ def run_live_monitor(target_args):
             out_lines.append(f" {CYAN}Logs:{RESET}     {DIM}tail -f backend/.logs/*.log{RESET}")
             out_lines.append(f" {CYAN}Control:{RESET}  {YELLOW}Press Ctrl+C to terminate all services.{RESET}")
 
-            if not first_render and num_rendered_lines > 0:
-                sys.stdout.write(f"\033[{num_rendered_lines}A\r")
-
+            # Cursor to top-left, overwrite each line with line clear, clear remaining lines
+            sys.stdout.write("\033[H")
             for line in out_lines:
-                sys.stdout.write("\033[K" + line + "\n")
+                sys.stdout.write("\033[2K" + line + "\n")
+            sys.stdout.write("\033[J")
             sys.stdout.flush()
 
-            first_render = False
-            num_rendered_lines = len(out_lines)
             time.sleep(2)
 
     except KeyboardInterrupt:
-        pass
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
 
 def main():
