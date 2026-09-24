@@ -1,20 +1,24 @@
-# Vithey Microservices Dev Runner & CLI Dashboard
+# Vithey Microservices Dev Runner & CLI
 
-![Vithey Dev Runner Dashboard](docs/images/vithey_tui_dashboard.jpg)
-
-The **Vithey Dev Runner** provides a high-performance Terminal User Interface (TUI) and rapid CLI execution engine. It coordinates shared infrastructure (PostgreSQL, Redis, RabbitMQ, MinIO, Eureka, Config Server, and AI Core) in **lightweight Docker containers** while executing Spring Boot microservices directly on the **host Mac/Linux JVM** for sub-second iteration and minimal memory footprint.
+The **Vithey Dev Runner** provides an interactive CLI execution engine and status dashboard. It coordinates shared infrastructure (PostgreSQL, Redis, RabbitMQ, MinIO, Eureka, Config Server, and AI Core) in **lightweight Docker containers** while executing Spring Boot microservices directly on the **host JVM** (macOS, Linux, and Windows) for rapid iteration and minimal memory footprint.
 
 ---
 
-## Quick Start: Interactive CLI Dashboard
+## Quick Start: Interactive CLI Runner
 
 From the project root:
 
 ```bash
+# macOS / Linux
 ./run-backend-dev.sh
+
+# Windows (PowerShell or Command Prompt)
+.\run-backend-dev.ps1
+# or
+.\run-backend-dev.bat
 ```
 
-The interactive dashboard launches with arrow-key navigation:
+The interactive runner launches with instant keyboard navigation:
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -52,31 +56,44 @@ The interactive dashboard launches with arrow-key navigation:
 ## Commands & Workflows
 
 ### 1. Launch Full Stack (Command 1)
-- Verifies and starts all Docker infrastructure containers (`vithey-postgres`, `vithey-redis`, `vithey-rabbitmq`, `vithey-minio`, `vithey-eureka-server`, `vithey-config-server`, `vithey-ai-core`).
-- Pre-checks Maven dependencies and launches all 9 Spring Boot microservices on host JVMs concurrently.
-- Automatically launches the **Live Real-time Runtime Monitor** displaying live CPU %, RAM (RSS in MB) per service, total stack memory vs machine RAM (24.0 GB), and actuator health:
+- Starts Docker infrastructure containers (`vithey-postgres`, `vithey-redis`, `vithey-rabbitmq`, `vithey-minio`, `vithey-eureka-server`, `vithey-config-server`, `vithey-ai-core`).
+- Probes and verifies database readiness (`Postgres:15432` and `Redis:16379`) before starting any JVM to eliminate connection refused errors.
+- Pre-checks ports, frees lingering orphan processes, and launches all 9 Spring Boot microservices concurrently using Tiered Compilation (`-XX:TieredStopAtLevel=1`) for fast ~3-second startup.
+- Displays sequential startup progress and live readiness tracking:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ VITHEY LIVE RUNTIME MONITOR                              [Refresh: 2s] │
-│ Hardware: Apple M4 Pro (12 cores) | 24.0 GB RAM                        │
-│ Stack: ALL 9 SERVICES UP | Total RAM: 1.15 GB (4.8%) | CPU: 12.3%      │
-├───────────────────────┬───────┬──────────┬───────────┬─────────────────┤
-│ SERVICE               │ PORT  │ STATUS   │ RAM (RSS) │ CPU             │
-├───────────────────────┼───────┼──────────┼───────────┼─────────────────┤
-│ api-gateway           │ :8080 │ UP       │ 142.1 MB  │ 0.8%            │
-│ auth-service          │ :8081 │ UP       │ 148.5 MB  │ 0.2%            │
-│ user-profile-service  │ :8082 │ UP       │ 126.3 MB  │ 0.1%            │
-│ file-service          │ :8083 │ UP       │ 118.0 MB  │ 0.1%            │
-│ content-service       │ :8084 │ UP       │ 132.4 MB  │ 0.4%            │
-│ career-service        │ :8085 │ UP       │ 122.8 MB  │ 0.1%            │
-│ finance-service       │ :8086 │ UP       │ 115.6 MB  │ 0.1%            │
-│ chat-service          │ :8087 │ UP       │ 120.2 MB  │ 0.2%            │
-│ notification-service  │ :8088 │ UP       │ 109.4 MB  │ 0.1%            │
-└───────────────────────┴───────┴──────────┴───────────┴─────────────────┘
- Gateway:  http://localhost:8080/api/v1/...
- Logs:     tail -f backend/.logs/*.log
- Control:  Press Ctrl+C to terminate all services.
+│ VITHEY FULL STACK ACTIVE
+│ Hardware Specs: Apple M4 Pro (12 cores) | 24 GB RAM
+│ Memory Budget:  ~160MB max/service (~1.4 GB total heap / 24 GB RAM)
+│ Docker Infra:   Postgres (15432), Redis (16379), RabbitMQ, MinIO, AI     
+└────────────────────────────────────────────────────────────────────────┘
+  -> auth-service           :8081  (PID 98871) [Log: .logs/auth-service.log]
+  -> user-profile-service   :8082  (PID 98912) [Log: .logs/user-profile-service.log]
+  -> file-service           :8083  (PID 98947) [Log: .logs/file-service.log]
+  -> content-service        :8084  (PID 98983) [Log: .logs/content-service.log]
+  -> career-service         :8085  (PID 99017) [Log: .logs/career-service.log]
+  -> finance-service        :8086  (PID 99051) [Log: .logs/finance-service.log]
+  -> chat-service          :8087  (PID 99085) [Log: .logs/chat-service.log]
+  -> notification-service  :8088  (PID 99119) [Log: .logs/notification-service.log]
+  -> api-gateway           :8080  (PID 99153) [Log: .logs/api-gateway.log]
+
+Gateway:  http://localhost:8080/api/v1/...
+Live Log: tail -f .logs/*.log
+Waiting for microservices to initialize health endpoints...
+
+  [UP]      auth-service           http://localhost:8081
+  [UP]      user-profile-service   http://localhost:8082
+  [UP]      file-service           http://localhost:8083
+  [UP]      content-service        http://localhost:8084
+  [UP]      career-service         http://localhost:8085
+  [UP]      finance-service        http://localhost:8086
+  [UP]      chat-service           http://localhost:8087
+  [UP]      notification-service   http://localhost:8088
+  [UP]      api-gateway            http://localhost:8080
+
+All requested services are UP and ready!
+Press Ctrl+C to stop all services.
 ```
 - Press `Ctrl+C` to gracefully terminate all 9 services at once.
 

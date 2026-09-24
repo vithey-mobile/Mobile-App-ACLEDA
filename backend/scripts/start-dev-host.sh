@@ -407,12 +407,33 @@ run_multiple_services() {
     done
 
     echo ""
-    echo -e "${CYAN}[MONITOR] Launching real-time resource & health monitor...${NC}"
+    echo -e "${CYAN}Gateway:  ${B_CYAN}http://localhost:8080/api/v1/...${NC}"
+    echo -e "${CYAN}Live Log: ${B_CYAN}tail -f .logs/*.log${NC}"
+    echo -e "${DIM}Waiting for microservices to initialize health endpoints...${NC}"
     echo ""
 
-    python3 "$SCRIPT_DIR/dev-cli.py" --monitor "${targets[@]}"
+    local pending=("${services[@]}")
+    while [ ${#pending[@]} -gt 0 ]; do
+        sleep 2
+        local next_pending=()
+        for svc in "${pending[@]}"; do
+            local port
+            port=$(get_service_port "$svc")
+            if curl -sf "http://localhost:${port}/actuator/health" | grep -q "UP" 2>/dev/null; then
+                printf "  ${B_GREEN}[UP]${NC}      %-22s http://localhost:%s\n" "$svc" "$port"
+            else
+                next_pending+=("$svc")
+            fi
+        done
+        pending=("${next_pending[@]}")
+    done
 
-    cleanup
+    echo ""
+    echo -e "${BOLD}${B_GREEN}All requested services are UP and ready!${NC}"
+    echo -e "${DIM}Press Ctrl+C to stop all services.${NC}"
+    echo ""
+
+    wait
 }
 
 # ── Argument Dispatcher ───────────────────────────────────────────────────────
