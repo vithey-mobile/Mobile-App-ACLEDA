@@ -82,6 +82,8 @@ class PostRepository {
     _mockDeletedPostIds
       ..clear()
       ..addAll(ids);
+    final followedIds = await _localStorage.readMockFollowedAuthorIds();
+    _followedAuthors.addAll(followedIds);
   }
 
   Future<FeedPageResult> fetchUserPosts({
@@ -141,12 +143,17 @@ class PostRepository {
       limit: limit,
       currentUserId: _mockUserId,
     );
+    for (final post in posts) {
+      if (post.isFollowingAuthor) {
+        _followedAuthors.add(post.author.id);
+      }
+    }
     return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
   }
 
   Future<FeedPageResult> fetchFeed({required int page, int limit = 10}) async {
     if (useMockApi) {
-      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
       await _ensureMockReady();
       if (page < 1) return const FeedPageResult(posts: [], hasMore: false);
       if (page > 2) return const FeedPageResult(posts: [], hasMore: false);
@@ -174,6 +181,11 @@ class PostRepository {
 
     final posts = await _postService.fetchFeed(
         page: page, limit: limit, currentUserId: _mockUserId);
+    for (final post in posts) {
+      if (post.isFollowingAuthor) {
+        _followedAuthors.add(post.author.id);
+      }
+    }
     return FeedPageResult(posts: posts, hasMore: posts.length >= limit);
   }
 
@@ -208,6 +220,11 @@ class PostRepository {
       currentUserId: _mockUserId,
       type: PostType.video,
     );
+    for (final post in posts) {
+      if (post.isFollowingAuthor) {
+        _followedAuthors.add(post.author.id);
+      }
+    }
     final reels = posts.where((p) => p.isReelVideo).toList();
     return FeedPageResult(posts: reels, hasMore: posts.length >= limit);
   }
@@ -233,16 +250,36 @@ class PostRepository {
       } else {
         _followedAuthors.remove(authorId);
       }
+      await _localStorage.saveMockFollowedAuthorIds(_followedAuthors);
       return;
     }
     if (follow) {
       await _postService.followUser(authorId);
+      _followedAuthors.add(authorId);
     } else {
       await _postService.unfollowUser(authorId);
+      _followedAuthors.remove(authorId);
     }
   }
 
   bool isFollowing(String authorId) => _followedAuthors.contains(authorId);
+
+  Future<bool> checkIsFollowing(String authorId) async {
+    if (useMockApi) {
+      return _followedAuthors.contains(authorId);
+    }
+    try {
+      final following = await _postService.checkIsFollowing(authorId);
+      if (following) {
+        _followedAuthors.add(authorId);
+      } else {
+        _followedAuthors.remove(authorId);
+      }
+      return following;
+    } catch (_) {
+      return _followedAuthors.contains(authorId);
+    }
+  }
 
   Future<FeedPost?> fetchPost(String postId) async {
     if (useMockApi) {
@@ -394,6 +431,7 @@ class PostRepository {
             : const JobMeta(),
         createdAt: DateTime.now(),
         currentUserId: _mockUserId,
+        scheduledAt: scheduledAt,
       );
       _mockCreatedPosts[post.id] = post;
       return post;
@@ -410,6 +448,12 @@ class PostRepository {
               if (jobMeta.title != null) 'title': jobMeta.title,
               if (jobMeta.description != null)
                 'description': jobMeta.description,
+              if (jobMeta.requirement != null)
+                'requirement': jobMeta.requirement,
+              if (jobMeta.deadline != null)
+                'deadline': jobMeta.deadline!.toIso8601String().split('T').first,
+              if (jobMeta.cvLimit != null)
+                'cv_limit': jobMeta.cvLimit,
             }
           : null,
       currentUserId: _mockUserId,
@@ -472,6 +516,10 @@ class PostRepository {
                 'description': jobMeta.description,
               if (jobMeta.requirement != null)
                 'requirement': jobMeta.requirement,
+              if (jobMeta.deadline != null)
+                'deadline': jobMeta.deadline!.toIso8601String().split('T').first,
+              if (jobMeta.cvLimit != null)
+                'cv_limit': jobMeta.cvLimit,
             }
           : null,
       currentUserId: _mockUserId,

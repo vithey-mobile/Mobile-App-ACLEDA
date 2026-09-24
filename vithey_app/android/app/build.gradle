@@ -79,3 +79,31 @@ flutter {
 }
 
 dependencies {}
+
+tasks.register("syncEnvLanIp") {
+    doLast {
+        try {
+            def envFile = rootProject.file("../.env")
+            def exampleFile = rootProject.file("../.env.example")
+            if (!envFile.exists() && exampleFile.exists()) {
+                envFile.text = exampleFile.text
+            }
+            def os = System.getProperty("os.name", "").toLowerCase()
+            if (envFile.exists() && os.contains("mac")) {
+                def ip = "ipconfig getifaddr en0".execute().text.trim()
+                if (ip.isEmpty()) {
+                    ip = "ipconfig getifaddr en1".execute().text.trim()
+                }
+                if (!ip.isEmpty()) {
+                    def content = envFile.text
+                    content = content.replaceAll(/(?m)^API_BASE_URL=.*$/, "API_BASE_URL=http://${ip}:8080/api/v1")
+                    content = content.replaceAll(/(?m)^WS_BASE_URL=.*$/, "WS_BASE_URL=ws://${ip}:8080/ws")
+                    envFile.text = content
+                    println(">> [Vithey] Auto-synced vithey_app/.env with Mac LAN IP: http://${ip}:8080/api/v1")
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+}
+preBuild.dependsOn syncEnvLanIp
+

@@ -247,7 +247,11 @@ class PostDetailController extends GetxController {
         parentCommentId: parentId,
       );
       final index = comments.indexWhere((c) => c.id == temp.id);
-      if (index >= 0) comments[index] = saved;
+      if (index >= 0) {
+        comments[index] = saved.copyWith(
+          parentCommentId: saved.parentCommentId ?? parentId,
+        );
+      }
     } catch (_) {
       final index = comments.indexWhere((c) => c.id == temp.id);
       if (index >= 0) {

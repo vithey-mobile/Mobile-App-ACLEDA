@@ -5,13 +5,15 @@
       "name": "Vithey (Android emulator)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "preLaunchTask": "Sync LAN IP to .env"
     },
     {
       "name": "Vithey (Android — pick device)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main.dart"
+      "program": "lib/main.dart",
+      "preLaunchTask": "Sync LAN IP to .env"
     }
   ]
 }

@@ -117,6 +117,9 @@ class CreatePostController extends GetxController {
         jobTitleController.text = original.jobMeta.title ?? 'Job announcement!';
         jobCompanyController.text = original.jobMeta.description ?? '';
         jobRequirementController.text = original.jobMeta.requirement ?? '';
+        if (original.jobMeta.cvLimit != null && original.jobMeta.cvLimit! > 0) {
+          cvLimit.value = original.jobMeta.cvLimit!;
+        }
       }
     }
     contentController.addListener(_onContentChanged);
@@ -317,6 +320,7 @@ class CreatePostController extends GetxController {
               requirement: jobRequirementController.text.trim().isEmpty
                   ? null
                   : jobRequirementController.text.trim(),
+              cvLimit: cvLimit.value,
             )
           : null;
       final post = isEditing

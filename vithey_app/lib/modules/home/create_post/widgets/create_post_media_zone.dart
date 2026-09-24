@@ -93,212 +93,286 @@ class _CreatePostMediaZoneState extends State<CreatePostMediaZone> {
   Widget build(BuildContext context) {
     final paths = widget.mediaPaths;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: context.appColors.inputFill,
-      ),
-      child: paths.isEmpty
-          ? GestureDetector(
-              onTap: widget.isUploading ? null : widget.onPick,
-              child: SizedBox(
-                height: 120,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    VitheyIcon(
-                      LucideIcons.imagePlus,
-                      size: 36,
-                      color: context.appColors.muted,
+    if (paths.isEmpty) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: context.appColors.inputFill,
+        ),
+        child: GestureDetector(
+          onTap: widget.isUploading ? null : widget.onPick,
+          child: SizedBox(
+            height: 120,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                VitheyIcon(
+                  LucideIcons.imagePlus,
+                  size: 36,
+                  color: context.appColors.muted,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.isVideo
+                      ? 'Tap to add video'
+                      : 'Tap to add photos',
+                  style: TextStyle(color: context.appColors.muted),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return widget.isVideo
+        ? _buildVideoPreview(context, paths.first)
+        : paths.length == 1
+            ? _buildSingleImage(context, paths.first)
+            : _buildImageGallery(context, paths);
+  }
+
+  Widget _buildSingleImage(BuildContext context, String path) {
+    final isRemote = path.startsWith('http://') || path.startsWith('https://');
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(VitheyRadii.media),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 460),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: double.infinity,
+              color: context.appColors.inputFill,
+              child: isRemote
+                  ? Image.network(
+                      path,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: VitheyIcon(
+                          LucideIcons.imageOff,
+                          color: context.appColors.muted,
+                          size: 36,
+                        ),
+                      ),
+                    )
+                  : Image.file(
+                      File(path),
+                      fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.isVideo
-                          ? 'Tap to add video'
-                          : 'Tap to add photos',
-                      style: TextStyle(color: context.appColors.muted),
-                    ),
-                  ],
+            ),
+            Positioned(
+              top: 10,
+              left: 10,
+              child: _CircleIconButton(
+                icon: LucideIcons.x,
+                onPressed: widget.isUploading
+                    ? null
+                    : () => widget.onRemoveAt(0),
+              ),
+            ),
+            if (widget.isUploading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black38,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
                 ),
               ),
-            )
-          : widget.isVideo
-              ? _buildVideoPreview(context, paths.first)
-              : _buildImageGallery(context, paths),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildVideoPreview(BuildContext context, String mediaPath) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (_videoController != null && _videoController!.value.isInitialized)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: AspectRatio(
-              aspectRatio: _videoController!.value.aspectRatio == 0
-                  ? 16 / 9
-                  : _videoController!.value.aspectRatio,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  VideoPlayer(_videoController!),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (_videoController!.value.isPlaying) {
-                          _videoController!.pause();
-                        } else {
-                          _videoController!.play();
-                        }
-                      });
-                    },
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _videoController!.value.isPlaying ? 0 : 0.85,
-                      child: Container(
-                        width: 52,
-                        height: 52,
-                        decoration: const BoxDecoration(
-                          color: Colors.black54,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          LucideIcons.play,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+    return AspectRatio(
+      aspectRatio: (_videoController != null &&
+              _videoController!.value.isInitialized &&
+              _videoController!.value.aspectRatio > 0)
+          ? _videoController!.value.aspectRatio
+          : 16 / 9,
+      child: Stack(
+        alignment: Alignment.center,
+        fit: StackFit.expand,
+        children: [
+          if (_videoController != null && _videoController!.value.isInitialized)
+            VideoPlayer(_videoController!)
+          else
+            Container(
+              color: Colors.black87,
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white70),
               ),
             ),
-          )
-        else
-          Container(
-            height: 220,
-            width: double.infinity,
-            color: Colors.black87,
-            child: const Center(
-              child: CircularProgressIndicator(color: Colors.white70),
+          if (_videoController != null && _videoController!.value.isInitialized)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                setState(() {
+                  if (_videoController!.value.isPlaying) {
+                    _videoController!.pause();
+                  } else {
+                    _videoController!.play();
+                  }
+                });
+              },
+              child: Center(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _videoController!.value.isPlaying ? 0 : 0.85,
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: const BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.play,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (widget.isUploading)
+            const Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black45,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+          Positioned(
+            top: 10,
+            left: 10,
+            child: _CircleIconButton(
+              icon: LucideIcons.x,
+              onPressed: widget.isUploading ? null : widget.onClearAll,
             ),
           ),
-        if (widget.isUploading)
-          const Positioned.fill(
-            child: ColoredBox(
-              color: Colors.black45,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ),
-        Positioned(
-          top: 10,
-          left: 10,
-          child: _CircleIconButton(
-            icon: LucideIcons.x,
-            onPressed: widget.isUploading ? null : widget.onClearAll,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildImageGallery(BuildContext context, List<String> paths) {
     final count = paths.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: 280,
-          child: PageView.builder(
-            itemCount: count,
-            onPageChanged: (i) => setState(() => _page = i),
-            itemBuilder: (context, index) {
-              final path = paths[index];
-              final isRemote =
-                  path.startsWith('http://') || path.startsWith('https://');
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  isRemote
-                      ? Image.network(
-                          path,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: VitheyIcon(LucideIcons.imageOff),
-                          ),
-                        )
-                      : Image.file(
-                          File(path),
-                          fit: BoxFit.cover,
-                        ),
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: _CircleIconButton(
-                      icon: LucideIcons.x,
-                      onPressed: widget.isUploading
-                          ? null
-                          : () => widget.onRemoveAt(index),
-                    ),
-                  ),
-                  if (count > 1)
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius:
-                              BorderRadius.circular(VitheyRadii.pill),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          child: Text(
-                            '${index + 1}/$count',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+    final activeIndex = _page.clamp(0, count - 1);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(VitheyRadii.media),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 460),
+        child: AspectRatio(
+          aspectRatio: 1.0,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              PageView.builder(
+                itemCount: count,
+                onPageChanged: (i) => setState(() => _page = i),
+                itemBuilder: (context, index) {
+                  final path = paths[index];
+                  final isRemote =
+                      path.startsWith('http://') || path.startsWith('https://');
+                  return ColoredBox(
+                    color: context.appColors.inputFill,
+                    child: isRemote
+                        ? Image.network(
+                            path,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Center(
+                              child: VitheyIcon(
+                                LucideIcons.imageOff,
+                                color: context.appColors.muted,
+                                size: 36,
+                              ),
                             ),
+                          )
+                        : Image.file(
+                            File(path),
+                            fit: BoxFit.contain,
                           ),
-                        ),
+                  );
+                },
+              ),
+              // Delete / Close button for active image
+              Positioned(
+                top: 10,
+                left: 10,
+                child: _CircleIconButton(
+                  icon: LucideIcons.x,
+                  onPressed: widget.isUploading
+                      ? null
+                      : () => widget.onRemoveAt(activeIndex),
+                ),
+              ),
+              // Page counter (e.g. 1/3)
+              if (count > 1)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                    ),
+                    child: Text(
+                      '${activeIndex + 1}/$count',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
                     ),
-                ],
-              );
-            },
-          ),
-        ),
-        if (widget.isUploading)
-          const LinearProgressIndicator(minHeight: 2),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-          child: Row(
-            children: [
+                  ),
+                ),
+              // Pagination indicator dots
               if (count > 1)
-                Expanded(
-                  child: Text(
-                    '$count photos selected',
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.appColors.muted,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 12,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(count, (i) {
+                      final active = i == activeIndex;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: active ? 16 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              // Uploading overlay scrim
+              if (widget.isUploading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black38,
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
                     ),
                   ),
-                )
-              else
-                const Spacer(),
-              TextButton.icon(
-                onPressed: widget.isUploading ? null : widget.onPick,
-                icon: const VitheyIcon(LucideIcons.imagePlus, size: 18),
-                label: const Text('Add photos'),
-              ),
+                ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -312,15 +386,15 @@ class _CircleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 36,
-      height: 36,
+      width: 32,
+      height: 32,
       child: IconButton.filled(
         style: IconButton.styleFrom(
-          backgroundColor: Colors.black54,
+          backgroundColor: Colors.black.withValues(alpha: 0.55),
           shape: const CircleBorder(),
           padding: EdgeInsets.zero,
         ),
-        icon: VitheyIcon(icon, color: Colors.white, size: 18),
+        icon: VitheyIcon(icon, color: Colors.white, size: 16),
         onPressed: onPressed,
       ),
     );

@@ -35,6 +35,7 @@ class ChatbotController extends GetxController {
 
   final inputController = TextEditingController();
   final scrollController = ScrollController();
+  final focusNode = FocusNode();
 
   String? _currentSessionId;
   AiTopic? _selectedTopic;
@@ -312,6 +313,7 @@ class ChatbotController extends GetxController {
 
   Future<void> sendStarterPrompt(String prompt) async {
     fillStarterPrompt(prompt);
+    focusNode.unfocus();
     await sendMessage();
   }
 
@@ -791,6 +793,7 @@ class ChatbotController extends GetxController {
     _requestToken++;
     isGenerating.value = false;
     _sendLocked = false;
+    focusNode.dispose();
     inputController.dispose();
     scrollController.dispose();
     super.onClose();

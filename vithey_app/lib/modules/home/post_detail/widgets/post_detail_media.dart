@@ -17,13 +17,33 @@ class PostDetailMedia extends StatefulWidget {
   State<PostDetailMedia> createState() => _PostDetailMediaState();
 }
 
-class _PostDetailMediaState extends State<PostDetailMedia> {
+class _PostDetailMediaState extends State<PostDetailMedia>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool _initializing = false;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      if (_controller != null && _controller!.value.isPlaying) {
+        _controller!.pause();
+        if (mounted) setState(() {});
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller?.dispose();
     super.dispose();
   }

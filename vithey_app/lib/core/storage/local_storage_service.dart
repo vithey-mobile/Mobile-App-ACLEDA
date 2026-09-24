@@ -29,6 +29,18 @@ class LocalStorageService {
   static const _mockApplicationStatusesKey = 'mock_application_statuses_json';
   static const _mockSubmittedApplicationsKey = 'mock_submitted_applications_json';
   static const _mockCatalogRestoredKey = 'mock_catalog_restored_v1';
+  static const _mockFollowedAuthorIdsKey = 'mock_followed_author_ids';
+
+  Future<void> saveMockFollowedAuthorIds(Set<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_mockFollowedAuthorIdsKey, ids.toList());
+  }
+
+  Future<Set<String>> readMockFollowedAuthorIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return prefs.getStringList(_mockFollowedAuthorIdsKey)?.toSet() ?? {};
+  }
 
   Future<void> saveMockDeletedPostIds(Set<String> ids) async {
     final prefs = await SharedPreferences.getInstance();

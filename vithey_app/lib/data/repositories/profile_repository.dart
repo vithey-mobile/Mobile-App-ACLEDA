@@ -69,6 +69,8 @@ class ProfileRepository {
 
   bool isFollowing(String userId) => _postRepository.isFollowing(userId);
 
+  Future<bool> checkIsFollowing(String userId) => _postRepository.checkIsFollowing(userId);
+
   Future<CvMetadataModel?> getOwnCv() async {
     if (useMockApi) {
       await Future<void>.delayed(const Duration(milliseconds: 300));

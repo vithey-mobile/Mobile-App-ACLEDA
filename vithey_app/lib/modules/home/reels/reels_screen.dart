@@ -14,6 +14,8 @@ import 'package:aub_connect_app/core/widgets/loading_widget.dart';
 import 'package:aub_connect_app/core/widgets/vithey_icon_button.dart';
 import 'package:aub_connect_app/modules/home/reels/reels_controller.dart';
 import 'package:aub_connect_app/modules/home/reels/widgets/reel_video_page.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
+
 class ReelsScreen extends GetView<ReelsController> {
   const ReelsScreen({super.key, this.embedded = false});
 
@@ -65,6 +67,10 @@ class ReelsScreen extends GetView<ReelsController> {
           final posts = controller.posts.toList();
           final current = controller.currentIndex.value;
           final muted = controller.isMuted.value;
+          final isReelTabActive = !embedded ||
+              (!Get.isRegistered<MainShellController>() ||
+                  Get.find<MainShellController>().currentIndex.value ==
+                      MainTabNavigation.reel);
 
           return Stack(
             fit: StackFit.expand,
@@ -79,7 +85,7 @@ class ReelsScreen extends GetView<ReelsController> {
                   return ReelVideoPage(
                     key: ValueKey(post.id),
                     post: post,
-                    isActive: index == current,
+                    isActive: isReelTabActive && index == current,
                     muted: muted,
                     onToggleMute: controller.toggleMute,
                     onLike: () => controller.toggleLike(post.id),

@@ -95,7 +95,11 @@ class _CommentSheetState extends State<CommentSheet> {
         parentCommentId: parentId,
       );
       final index = _comments.indexWhere((c) => c.id == temp.id);
-      if (index >= 0) _comments[index] = saved;
+      if (index >= 0) {
+        _comments[index] = saved.copyWith(
+          parentCommentId: saved.parentCommentId ?? parentId,
+        );
+      }
     } catch (_) {
       final index = _comments.indexWhere((c) => c.id == temp.id);
       if (index >= 0) {
@@ -561,10 +565,20 @@ class _CommentSheetState extends State<CommentSheet> {
       final likeCount = _likeCounts[comment.id] ?? 0;
 
       return Padding(
-        padding: EdgeInsets.fromLTRB(isReply ? 38 : 4, 8, 4, 10),
+        padding: EdgeInsets.fromLTRB(isReply ? 40 : 4, 8, 4, 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (isReply) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 8, right: 6),
+                child: VitheyIcon(
+                  LucideIcons.cornerDownRight,
+                  size: 14,
+                  color: colors.muted.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
             GestureDetector(
               onTap: () {
                 if (Get.isBottomSheetOpen ?? false) Get.back();
@@ -573,7 +587,7 @@ class _CommentSheetState extends State<CommentSheet> {
               child: UserAvatar(
                 name: comment.author.fullName,
                 imageUrl: comment.author.avatarUrl,
-                radius: isReply ? 14 : 18,
+                radius: isReply ? 13 : 18,
               ),
             ),
             const SizedBox(width: 10),

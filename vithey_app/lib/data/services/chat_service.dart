@@ -2,6 +2,7 @@ import 'package:aub_connect_app/core/constants/api_endpoints.dart';
 import 'package:aub_connect_app/core/network/api_service.dart';
 import 'package:aub_connect_app/data/models/chat_message_model.dart';
 import 'package:aub_connect_app/data/models/chat_participant.dart';
+import 'package:aub_connect_app/data/repositories/chat_repository.dart';
 
 class ChatService {
   ChatService(this._api);
@@ -43,14 +44,17 @@ class ChatService {
 
   Future<ConversationModel> createConversationRequest({
     required String toUserId,
-    required String initialMessage,
+    String? initialMessage,
   }) async {
+    final data = <String, dynamic>{
+      'to_user_id': toUserId,
+    };
+    if (initialMessage != null && initialMessage.trim().isNotEmpty) {
+      data['initial_message'] = initialMessage.trim();
+    }
     final response = await _api.post<ConversationModel>(
       ApiEndpoints.conversationsRequest,
-      data: {
-        'to_user_id': toUserId,
-        'initial_message': initialMessage,
-      },
+      data: data,
       fromJson: (json) => _parseConversation(json as Map<String, dynamic>),
     );
     if (!response.isSuccess || response.data == null) {
@@ -197,17 +201,32 @@ class ChatService {
     String conversationId, {
     bool isOwn = false,
   }) {
+    final senderId = json['sender_id']?.toString() ?? '';
+    final currentUserId = ChatRepository.currentUserId;
+    final computedIsOwn = isOwn ||
+        (json['is_own'] as bool? ?? false) ||
+        (senderId.isNotEmpty && senderId == currentUserId);
     return ChatMessage(
       id: json['message_id']?.toString() ?? json['id']?.toString() ?? '',
       conversationId: conversationId,
-      senderId: json['sender_id']?.toString() ?? '',
+      senderId: senderId,
       text: json['text'] as String? ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
-      isOwn: isOwn || (json['is_own'] as bool? ?? false),
+      status: _parseMessageStatus(json['status']),
+      isOwn: computedIsOwn,
       replyToMessageId: json['reply_to_message_id']?.toString(),
       replyToPreview: (json['reply_to'] as Map<String, dynamic>?)?['text'] as String?,
       isDeleted: json['deleted_at'] != null,
     );
+  }
+
+  MessageDeliveryStatus _parseMessageStatus(dynamic raw) {
+    if (raw == null) return MessageDeliveryStatus.sent;
+    final str = raw.toString().toUpperCase();
+    if (str == 'READ') return MessageDeliveryStatus.read;
+    if (str == 'DELIVERED') return MessageDeliveryStatus.delivered;
+    if (str == 'FAILED') return MessageDeliveryStatus.failed;
+    return MessageDeliveryStatus.sent;
   }
 }
 

@@ -14,6 +14,7 @@ class ChatbotComposer extends StatelessWidget {
   const ChatbotComposer({
     super.key,
     required this.controller,
+    this.focusNode,
     required this.isGenerating,
     required this.onSend,
     required this.onStop,
@@ -23,6 +24,7 @@ class ChatbotComposer extends StatelessWidget {
   });
 
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final bool isGenerating;
   final VoidCallback onSend;
   final VoidCallback onStop;
@@ -93,6 +95,7 @@ class ChatbotComposer extends StatelessWidget {
                           ),
                           child: TextField(
                             controller: controller,
+                            focusNode: focusNode,
                             minLines: 1,
                             maxLines: 8,
                             enabled: !isGenerating,

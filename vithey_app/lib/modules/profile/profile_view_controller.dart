@@ -102,8 +102,9 @@ class ProfileViewController extends GetxController
     hasError.value = false;
     try {
       var loaded = await _profileRepository.getProfile(_userId);
+      final following = await _profileRepository.checkIsFollowing(loaded.id);
       loaded = loaded.copyWith(
-        isFollowing: _profileRepository.isFollowing(loaded.id),
+        isFollowing: following,
       );
       profile.value = loaded;
       await ensureAllPostsLoaded();
@@ -118,8 +119,9 @@ class ProfileViewController extends GetxController
   Future<void> refreshProfile() async {
     try {
       var loaded = await _profileRepository.getProfile(_userId);
+      final following = await _profileRepository.checkIsFollowing(loaded.id);
       loaded = loaded.copyWith(
-        isFollowing: _profileRepository.isFollowing(loaded.id),
+        isFollowing: following,
       );
       profile.value = loaded;
     } catch (_) {

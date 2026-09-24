@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
+import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 import 'package:aub_connect_app/modules/home/widgets/feed_action_bar.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_author_header.dart';
@@ -49,6 +51,43 @@ class PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (post.isScheduled && post.scheduledAt != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.scheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                  border: Border.all(
+                    color: context.scheme.primary.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    VitheyIcon(
+                      LucideIcons.calendarClock,
+                      size: 14,
+                      color: context.scheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Scheduled to publish ${RelativeTime.formatScheduled(post.scheduledAt!)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: context.scheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           PostAuthorHeader(
               post: post, trailing: headerTrailing, onAuthorTap: onAuthorTap),
           if (caption != null)

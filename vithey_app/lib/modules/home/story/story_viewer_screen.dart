@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/theme/vithey_system_ui.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/story_item.dart';
@@ -77,6 +78,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   bool _isPaused = false;
   double _dragOffsetY = 0.0;
   final _replyController = TextEditingController();
+  final _replyFocusNode = FocusNode();
   final List<_FlyingReaction> _flyingReactions = [];
 
   static const Duration _storyDuration = Duration(seconds: 5);
@@ -93,6 +95,14 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void initState() {
     super.initState();
     _currentGroupIndex = widget.initialGroupIndex.clamp(0, widget.storyGroups.length - 1);
+
+    _replyFocusNode.addListener(() {
+      if (_replyFocusNode.hasFocus) {
+        _pause();
+      } else {
+        _resume();
+      }
+    });
 
     _progressController = AnimationController(
       vsync: this,
@@ -173,6 +183,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   }
 
   void _handleTap(TapUpDetails details) {
+    if (_replyFocusNode.hasFocus) {
+      _replyFocusNode.unfocus();
+      return;
+    }
     if (_isPaused) return;
     final screenWidth = MediaQuery.of(context).size.width;
     final tapX = details.globalPosition.dx;
@@ -262,6 +276,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void dispose() {
     _progressController.dispose();
     _replyController.dispose();
+    _replyFocusNode.dispose();
     super.dispose();
   }
 
@@ -297,6 +312,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             });
             _resume();
           }
+        },
+        onVerticalDragCancel: () {
+          setState(() {
+            _dragOffsetY = 0.0;
+          });
+          _resume();
         },
         child: Transform.translate(
           offset: Offset(0, _dragOffsetY),
@@ -361,6 +382,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                       onTapUp: _handleTap,
                       onLongPressStart: (_) => _pause(),
                       onLongPressEnd: (_) => _resume(),
+                      onLongPressCancel: () => _resume(),
                     ),
                   ),
 
@@ -574,10 +596,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                                             Expanded(
                                               child: TextField(
                                                 controller: _replyController,
-                                                onTap: _pause,
+                                                focusNode: _replyFocusNode,
                                                 onSubmitted: (_) {
                                                   _sendReply();
-                                                  _resume();
                                                 },
                                                 style: const TextStyle(color: Colors.white, fontSize: 14),
                                                 decoration: InputDecoration(
@@ -713,26 +734,50 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   Widget _buildStoryContent(StoryItem story) {
     // 1) Photo / Media Story
     if (story.isMediaImage) {
-      final url = story.mediaUrl!;
+      final rawUrl = story.mediaUrl!;
+      final resolved = MediaUrlResolver.resolve(rawUrl);
       Widget imageWidget;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        imageWidget = CachedNetworkImage(
-          imageUrl: url,
+      if (resolved.isAsset) {
+        imageWidget = Image.asset(
+          resolved.url,
           fit: BoxFit.cover,
-          placeholder: (_, __) => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          errorBuilder: (_, __, ___) => _buildFallbackBackground(),
+        );
+      } else if (resolved.isLocalFile) {
+        imageWidget = Image.file(
+          File(resolved.url),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallbackBackground(),
+        );
+      } else if (resolved.isNetwork) {
+        imageWidget = CachedNetworkImage(
+          imageUrl: resolved.url,
+          httpHeaders: resolved.headers,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => Container(
+            color: const Color(0xFF0F172A),
+            child: const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           ),
           errorWidget: (_, __, ___) => _buildFallbackBackground(),
         );
-      } else if (url.startsWith('assets/')) {
-        imageWidget = Image.asset(url, fit: BoxFit.cover);
       } else {
-        imageWidget = Image.file(File(url), fit: BoxFit.cover);
+        imageWidget = _buildFallbackBackground();
       }
 
       return Stack(
         fit: StackFit.expand,
         children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+              ),
+            ),
+          ),
           imageWidget,
           if (story.hasVignette)
             IgnorePointer(

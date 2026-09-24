@@ -69,12 +69,18 @@ class MainShellController extends GetxController {
 
   Future<void> selectTab(int index) async {
     if (index == MainTabNavigation.chatbot) {
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().setActiveVideo(null);
+      }
       Get.toNamed(AppRoutes.chatbot);
       return;
     }
     // Always reveal nav when switching tabs.
     navVisible.value = true;
     if (index == currentIndex.value) return;
+    if (Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().setActiveVideo(null);
+    }
     currentIndex.value = index;
     if (!pageController.hasClients) return;
     await pageController.animateToPage(
@@ -85,7 +91,13 @@ class MainShellController extends GetxController {
   }
 
   void onPageChanged(int pageIndex) {
-    currentIndex.value = _tabForPage(pageIndex);
+    final newTab = _tabForPage(pageIndex);
+    if (newTab != currentIndex.value) {
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().setActiveVideo(null);
+      }
+      currentIndex.value = newTab;
+    }
     navVisible.value = true;
   }
 

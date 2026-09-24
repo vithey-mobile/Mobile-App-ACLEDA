@@ -245,11 +245,16 @@ class JobApplicationRepository {
         message: 'You posted this job. Manage applicants from your profile.',
       );
     }
-    if (job.lifecycleState != JobLifecycleState.open) {
+    final limitReached = job.jobMeta.cvLimit != null &&
+        job.jobMeta.cvLimit! > 0 &&
+        job.applicantCount >= job.jobMeta.cvLimit!;
+    if (job.lifecycleState != JobLifecycleState.open || limitReached) {
       return JobEligibilityResult(
         eligibility: JobEligibility.closed,
         job: job,
-        message: 'This job is no longer accepting applications',
+        message: limitReached
+            ? 'This job has reached its maximum CV application limit'
+            : 'This job is no longer accepting applications',
       );
     }
 

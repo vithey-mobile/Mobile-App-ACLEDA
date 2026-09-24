@@ -172,13 +172,15 @@ class _AdaptiveEditor extends StatelessWidget {
             TextField(
               key: const ValueKey('media-composer-editor'),
               controller: controller.contentController,
-              minLines: 4,
-              maxLines: 12,
+              minLines: 1,
+              maxLines: 8,
               style: _editorStyle(context),
-              decoration: _editorDecoration(context),
+              decoration: _editorDecoration(context).copyWith(
+                contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(VitheyRadii.media),
                 child: CreatePostMediaZone(

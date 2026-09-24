@@ -472,7 +472,7 @@ class ChatRepository {
   }) async {
     final message = (initialMessage != null && initialMessage.trim().isNotEmpty)
         ? initialMessage.trim()
-        : 'Hi';
+        : null;
 
     if (useMockApi) {
       await _ensureMockSeed();
@@ -486,7 +486,7 @@ class ChatRepository {
       final conv = ConversationModel(
         id: id,
         participant: contact,
-        lastMessagePreview: message,
+        lastMessagePreview: message ?? '',
         updatedAt: DateTime.now(),
       );
       _mockConversations.insert(0, conv);

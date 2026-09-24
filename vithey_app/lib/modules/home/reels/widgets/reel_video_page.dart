@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
+import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -40,7 +41,7 @@ class ReelVideoPage extends StatefulWidget {
   State<ReelVideoPage> createState() => _ReelVideoPageState();
 }
 
-class _ReelVideoPageState extends State<ReelVideoPage> {
+class _ReelVideoPageState extends State<ReelVideoPage> with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   Timer? _controlsTimer;
   bool _initializing = false;
@@ -58,9 +59,21 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _post = widget.post;
     if (widget.isActive) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _initPlayer());
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _pause();
+    } else if (state == AppLifecycleState.resumed && widget.isActive) {
+      _play();
     }
   }
 
@@ -93,6 +106,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controlsTimer?.cancel();
     _disposePlayer();
     super.dispose();
@@ -142,19 +156,27 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
     });
 
     try {
+      final resolved = MediaUrlResolver.resolve(url);
+      if (resolved.isEmpty) {
+        throw Exception('Could not resolve video URL');
+      }
+
       VideoPlayerController? controller;
 
-      Future<VideoPlayerController?> tryInit(String src) async {
+      Future<VideoPlayerController?> tryInit(ResolvedMedia media) async {
         VideoPlayerController c;
-        if (src.startsWith('http://') || src.startsWith('https://')) {
-          c = VideoPlayerController.networkUrl(Uri.parse(src));
-        } else if (src.startsWith('assets/')) {
-          c = VideoPlayerController.asset(src);
+        if (media.isAsset) {
+          c = VideoPlayerController.asset(media.url);
+        } else if (media.isLocalFile) {
+          c = VideoPlayerController.file(File(media.url));
         } else {
-          c = VideoPlayerController.file(File(src));
+          c = VideoPlayerController.networkUrl(
+            Uri.parse(media.url),
+            httpHeaders: media.headers ?? const {},
+          );
         }
         try {
-          await c.initialize().timeout(const Duration(seconds: 8));
+          await c.initialize().timeout(const Duration(seconds: 10));
           return c;
         } catch (_) {
           await c.dispose();
@@ -174,7 +196,7 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
         return;
       }
 
-      controller = await tryInit(url);
+      controller = await tryInit(resolved);
 
       if (controller == null) {
         throw Exception('Could not initialize video player');
@@ -666,9 +688,21 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
     // transparent gap that exposes the unrendered video texture below.
     if (url.isEmpty) return fallbackPoster();
 
-    if (url.startsWith('assets/')) {
+    final resolved = MediaUrlResolver.resolve(url);
+    if (resolved.isEmpty) return fallbackPoster();
+
+    if (resolved.isAsset) {
       return Image.asset(
-        url,
+        resolved.url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (_, __, ___) => fallbackPoster(),
+      );
+    }
+    if (resolved.isLocalFile) {
+      return Image.file(
+        File(resolved.url),
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
@@ -676,7 +710,8 @@ class _ReelVideoPageState extends State<ReelVideoPage> {
       );
     }
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: resolved.url,
+      httpHeaders: resolved.headers,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
+import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
 import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/data/models/ai_feed_recommendation.dart';
@@ -41,6 +42,7 @@ class HomeController extends GetxController {
   final errorMessage = ''.obs;
   final paginationError = false.obs;
   final activeVideoId = RxnString();
+  final isVideoMuted = false.obs;
   final currentTab = MainTabNavigation.home.obs;
 
   int _page = 1;
@@ -131,64 +133,6 @@ class HomeController extends GetxController {
       );
     }
 
-    // 2) Feed author stories
-    final seenAuthors = <String>{me.id};
-    for (final post in posts) {
-      if (post.type == PostType.job) continue;
-      final preview =
-          post.thumbnailUrl ?? post.mediaUrl ?? post.author.avatarUrl;
-      if (preview == null || preview.isEmpty) {
-        if (post.author.avatarUrl == null || post.author.avatarUrl!.isEmpty) {
-          continue;
-        }
-      }
-      if (!seenAuthors.add(post.author.id)) continue;
-
-      final authorStories = <StoryItem>[
-        StoryItem(
-          id: 'story_post_${post.id}',
-          authorId: post.author.id,
-          authorName: post.author.fullName,
-          authorAvatar: post.author.avatarUrl,
-          mediaUrl: post.mediaUrl ?? post.thumbnailUrl,
-          text: post.content.isNotEmpty ? post.content : null,
-          fontStyle: 'modern',
-          sticker: post.type == PostType.video ? '🎥 Reel Story' : '✨ Campus Life',
-          createdAt: post.createdAt,
-          isSeen: false,
-        ),
-      ];
-
-      // Second diverse story for rich experience
-      if (post.content.length > 20) {
-        authorStories.add(
-          StoryItem(
-            id: 'story_text_${post.id}',
-            authorId: post.author.id,
-            authorName: post.author.fullName,
-            authorAvatar: post.author.avatarUrl,
-            gradientColors: const [Color(0xFF0D9488), Color(0xFF042F2E)],
-            text: post.content,
-            fontStyle: 'bold',
-            sticker: '📍 Phnom Penh',
-            createdAt: post.createdAt.subtract(const Duration(hours: 1)),
-            isSeen: false,
-          ),
-        );
-      }
-
-      groups.add(
-        UserStoryGroup(
-          authorId: post.author.id,
-          authorName: post.author.fullName,
-          authorAvatar: post.author.avatarUrl,
-          stories: authorStories,
-          isOwn: false,
-        ),
-      );
-      if (groups.length >= 12) break;
-    }
-
     return groups;
   }
 
@@ -223,6 +167,7 @@ class HomeController extends GetxController {
 
       final name = post.author.fullName.trim();
       final label = name.split(RegExp(r'\s+')).first;
+      final hasRealStory = storyGroups.any((g) => g.authorId == post.author.id && !g.isOwn);
       items.add(
         HomeMediaItem(
           id: 'media-${post.author.id}',
@@ -230,7 +175,7 @@ class HomeController extends GetxController {
           imageUrl: preview ?? post.author.avatarUrl,
           postId: post.id,
           authorId: post.author.id,
-          hasUnseen: true,
+          hasUnseen: hasRealStory,
         ),
       );
       if (items.length >= 12) break;
@@ -239,6 +184,7 @@ class HomeController extends GetxController {
   }
 
   void openMediaItem(HomeMediaItem item) {
+    setActiveVideo(null);
     final context = Get.context;
     if (context == null) return;
 
@@ -500,6 +446,7 @@ class HomeController extends GetxController {
   }
 
   void openComments(String postId) {
+    setActiveVideo(null);
     final post = posts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
     Get.bottomSheet(
@@ -525,6 +472,7 @@ class HomeController extends GetxController {
   }
 
   void openShareSheet(String postId) {
+    setActiveVideo(null);
     final post = posts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
     Get.bottomSheet(
@@ -541,6 +489,7 @@ class HomeController extends GetxController {
   }
 
   void openPost(String postId) {
+    setActiveVideo(null);
     Get.toNamed(AppRoutes.postDetail, arguments: postId)?.then((result) async {
       if (result is PostMutationResult) {
         posts.removeWhere((post) => post.id == result.postId);
@@ -557,13 +506,27 @@ class HomeController extends GetxController {
   }
 
   void openCreatePost({PostType? type}) {
+    setActiveVideo(null);
     Get.toNamed(AppRoutes.createPost, arguments: type)?.then((result) {
-      if (result is FeedPost) insertCreatedPost(result);
+      if (result is FeedPost) {
+        insertCreatedPost(result);
+        if (result.isScheduled && result.scheduledAt != null) {
+          Get.snackbar(
+            'Post Scheduled',
+            'Your post is scheduled to publish on ${RelativeTime.formatScheduled(result.scheduledAt!)}',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFF1E293B),
+            colorText: const Color(0xFFF8FAFC),
+            duration: const Duration(seconds: 4),
+          );
+        }
+      }
     });
   }
 
   void editPost(FeedPost post) {
     if (!post.isOwnPost) return;
+    setActiveVideo(null);
     Get.toNamed(
       AppRoutes.createPost,
       arguments: CreatePostArgs(editingPost: post),
@@ -605,7 +568,10 @@ class HomeController extends GetxController {
 
   void setActiveVideo(String? postId) => activeVideoId.value = postId;
 
+  void toggleVideoMute() => isVideoMuted.toggle();
+
   void openAuthorProfile(String authorId) {
+    setActiveVideo(null);
     openUserProfile(authorId);
   }
 
@@ -614,6 +580,7 @@ class HomeController extends GetxController {
   }
 
   void openJobApplication(FeedPost jobPost) {
+    setActiveVideo(null);
     Get.toNamed(
       AppRoutes.applyCv,
       arguments: ApplyCvArgs(jobPostId: jobPost.id, jobPreview: jobPost),
@@ -628,6 +595,7 @@ class HomeController extends GetxController {
   }
 
   void openJobApplicants(FeedPost jobPost) {
+    setActiveVideo(null);
     Get.toNamed(
       AppRoutes.jobApplicants,
       arguments: JobApplicantsArgs(

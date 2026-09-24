@@ -85,20 +85,31 @@ class _FollowButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: context.scheme.primary,
+      color: post.isFollowingAuthor
+          ? context.scheme.surfaceContainerHighest
+          : context.scheme.primary,
       borderRadius: BorderRadius.circular(VitheyRadii.pill),
       child: InkWell(
         onTap: onFollow,
         borderRadius: BorderRadius.circular(VitheyRadii.pill),
-        child: SizedBox(
+        child: Container(
           height: 28,
           width: post.isFollowingAuthor ? 70 : 58,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(VitheyRadii.pill),
+            border: post.isFollowingAuthor
+                ? Border.all(color: context.scheme.outlineVariant)
+                : null,
+          ),
           child: Center(
             child: Text(
               post.isFollowingAuthor ? 'Following'.tr : 'Follow'.tr,
               style: context.text.labelLarge?.copyWith(
                 fontSize: 12,
-                color: context.scheme.onPrimary,
+                fontWeight: FontWeight.w600,
+                color: post.isFollowingAuthor
+                    ? context.scheme.onSurfaceVariant
+                    : context.scheme.onPrimary,
               ),
             ),
           ),

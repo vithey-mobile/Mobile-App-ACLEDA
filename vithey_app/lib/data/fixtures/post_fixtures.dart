@@ -380,6 +380,14 @@ abstract final class PostFixtures {
       reactedPosts: reactedPosts,
       followedAuthors: followedAuthors,
     );
+    if (followedAuthors.isNotEmpty) {
+      all.sort((a, b) {
+        final aPriority = (followedAuthors.contains(a.author.id) || a.author.id == currentUserId) ? 0 : 1;
+        final bPriority = (followedAuthors.contains(b.author.id) || b.author.id == currentUserId) ? 0 : 1;
+        if (aPriority != bPriority) return aPriority.compareTo(bPriority);
+        return b.createdAt.compareTo(a.createdAt);
+      });
+    }
     if (page < 1) return [];
     final start = (page - 1) * feedPageSize;
     if (start >= all.length) return [];

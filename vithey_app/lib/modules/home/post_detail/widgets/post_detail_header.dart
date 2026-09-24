@@ -61,21 +61,32 @@ class PostDetailHeader extends StatelessWidget {
         else if (post.type != PostType.job) ...[
           const SizedBox(width: 8),
           Material(
-            color: context.scheme.primary,
+            color: post.isFollowingAuthor
+                ? context.scheme.surfaceContainerHighest
+                : context.scheme.primary,
             borderRadius: BorderRadius.circular(VitheyRadii.pill),
             child: InkWell(
               onTap: onFollow,
               borderRadius: BorderRadius.circular(VitheyRadii.pill),
-              child: Padding(
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                  border: post.isFollowingAuthor
+                      ? Border.all(color: context.scheme.outlineVariant)
+                      : null,
                 ),
                 child: Text(
                   post.isFollowingAuthor ? 'Following' : 'Follow',
                   style: context.text.labelLarge?.copyWith(
                     fontSize: 12,
-                    color: context.scheme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                    color: post.isFollowingAuthor
+                        ? context.scheme.onSurfaceVariant
+                        : context.scheme.onPrimary,
                   ),
                 ),
               ),

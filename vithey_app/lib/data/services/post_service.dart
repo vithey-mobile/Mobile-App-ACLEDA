@@ -109,6 +109,17 @@ class PostService {
     }
   }
 
+  Future<bool> checkIsFollowing(String userId) async {
+    final response = await _api.get<Map<String, dynamic>>(
+      ApiEndpoints.userFollow(userId),
+      fromJson: (json) => json is Map<String, dynamic> ? json : {},
+    );
+    if (!response.isSuccess || response.data == null) {
+      return false;
+    }
+    return response.data!['is_following'] as bool? ?? false;
+  }
+
   Future<List<CommentModel>> fetchComments({
     required String postId,
     required int page,

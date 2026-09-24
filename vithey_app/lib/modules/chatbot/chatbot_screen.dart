@@ -63,34 +63,72 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           onBackHome: _backToHome,
           backgroundColor: surface,
         ),
-        body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                Obx(() {
-                  if (controller.isLoadingMessages.value) {
-                    return const ChatbotLoadingView();
-                  }
-                  if (!controller.hasMessages) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Expanded(
-                          child: Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 24),
-                              child: ChatbotEmptyHero(),
-                            ),
-                          ),
-                        ),
-                        ChatbotSuggestionList(
-                          items: ChatbotSuggestionList.defaultItems,
-                          onPromptTap: controller.sendStarterPrompt,
-                        ),
-                      ],
-                    );
-                  }
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    Obx(() {
+                      if (controller.isLoadingMessages.value) {
+                        return const ChatbotLoadingView();
+                      }
+                      if (!controller.hasMessages) {
+                        return ListenableBuilder(
+                          listenable: controller.focusNode,
+                          builder: (context, _) {
+                            final isKeyboardOpen =
+                                MediaQuery.viewInsetsOf(context).bottom > 0;
+                            final isFocused = controller.focusNode.hasFocus;
+                            final showSuggestions =
+                                !isKeyboardOpen && !isFocused;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Expanded(
+                                  child: Center(
+                                    child: SingleChildScrollView(
+                                      physics: ClampingScrollPhysics(),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 8,
+                                      ),
+                                      child: ChatbotEmptyHero(),
+                                    ),
+                                  ),
+                                ),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SizeTransition(
+                                        sizeFactor: animation,
+                                        alignment: Alignment.topCenter,
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: showSuggestions
+                                      ? ChatbotSuggestionList(
+                                          key: const ValueKey('suggestions'),
+                                          items:
+                                              ChatbotSuggestionList.defaultItems,
+                                          onPromptTap:
+                                              controller.sendStarterPrompt,
+                                        )
+                                      : const SizedBox.shrink(
+                                          key: ValueKey('empty'),
+                                        ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                   final items =
                       controller.messages.toList(growable: false);
                   return ListView.builder(
@@ -144,6 +182,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 Obx(
                   () => ChatbotComposer(
                     controller: controller.inputController,
+                    focusNode: controller.focusNode,
                     isGenerating: controller.isGenerating.value,
                     onSend: controller.sendMessage,
                     onStop: controller.stopGenerating,
@@ -172,6 +211,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
         ],
+      ),
       ),
       ),
     );

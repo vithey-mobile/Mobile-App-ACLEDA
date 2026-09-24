@@ -64,4 +64,31 @@ class RelativeTime {
     }
     return 'last seen ${format(dateTime)}';
   }
+
+  /// Scheduled post date/time format — e.g. `Today at 2:30 PM`, `Tomorrow at 10:00 AM`, `Sep 25 at 12:00 PM`.
+  static String formatScheduled(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final targetDay = DateTime(local.year, local.month, local.day);
+
+    final hour = local.hour == 0 ? 12 : (local.hour > 12 ? local.hour - 12 : local.hour);
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour >= 12 ? 'PM' : 'AM';
+    final timeStr = '$hour:$minute $period';
+
+    if (targetDay == today) {
+      return 'Today at $timeStr';
+    } else if (targetDay == tomorrow) {
+      return 'Tomorrow at $timeStr';
+    } else {
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final monthName = months[local.month - 1];
+      return '$monthName ${local.day} at $timeStr';
+    }
+  }
 }

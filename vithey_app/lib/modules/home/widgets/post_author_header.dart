@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 import 'package:aub_connect_app/core/utils/relative_time.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
@@ -18,6 +19,8 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isScheduled = post.isScheduled && post.scheduledAt != null;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
       child: Row(
@@ -43,11 +46,36 @@ class PostAuthorHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: context.text.titleSmall,
                   ),
-                  Text(
-                    RelativeTime.format(post.createdAt),
-                    style: context.text.bodyMedium
-                        ?.copyWith(color: context.appColors.muted, fontSize: 12),
-                  ),
+                  if (isScheduled)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        VitheyIcon(
+                          LucideIcons.calendarClock,
+                          size: 12,
+                          color: context.scheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Scheduled · ${RelativeTime.formatScheduled(post.scheduledAt!)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: context.scheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      RelativeTime.format(post.createdAt),
+                      style: context.text.bodyMedium
+                          ?.copyWith(color: context.appColors.muted, fontSize: 12),
+                    ),
                 ],
               ),
             ),

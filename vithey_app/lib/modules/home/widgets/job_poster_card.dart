@@ -125,8 +125,11 @@ class _JobActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (post.isOwnPost) {
+      final countLabel = post.jobMeta.cvLimit != null && post.jobMeta.cvLimit! > 0
+          ? '${post.applicantCount}/${post.jobMeta.cvLimit}'
+          : '${post.applicantCount}';
       return VitheyTextLink(
-        label: '${'Applicants'.tr} (${post.applicantCount})',
+        label: '${'Applicants'.tr} ($countLabel)',
         onPressed: onViewApplicants,
         fontSize: 10.5,
       );
@@ -149,7 +152,10 @@ class _JobActionButton extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2)),
         );
       case JobApplicationState.notApplied:
-        if (post.lifecycleState != JobLifecycleState.open) {
+        final limitReached = post.jobMeta.cvLimit != null &&
+            post.jobMeta.cvLimit! > 0 &&
+            post.applicantCount >= post.jobMeta.cvLimit!;
+        if (post.lifecycleState != JobLifecycleState.open || limitReached) {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Text('Closed'.tr,

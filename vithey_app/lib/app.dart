@@ -48,6 +48,8 @@ class VitheyApp extends StatelessWidget {
             .copyWith(
               primary: () => Theme.of(context).colorScheme.primary,
               primaryForeground: () => Colors.white,
+              destructive: () => const Color(0xFFE11D48),
+              destructiveForeground: () => Colors.white,
               ring: () => Theme.of(context).colorScheme.primary,
             );
 

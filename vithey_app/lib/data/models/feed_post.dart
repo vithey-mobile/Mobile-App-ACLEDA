@@ -39,12 +39,14 @@ class JobMeta {
     this.description,
     this.requirement,
     this.deadline,
+    this.cvLimit,
   });
 
   final String? title;
   final String? description;
   final String? requirement;
   final DateTime? deadline;
+  final int? cvLimit;
 
   factory JobMeta.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const JobMeta();
@@ -55,6 +57,7 @@ class JobMeta {
       deadline: json['deadline'] != null
           ? DateTime.tryParse(json['deadline'].toString())
           : null,
+      cvLimit: (json['cv_limit'] as num?)?.toInt(),
     );
   }
 }
@@ -85,6 +88,7 @@ class FeedPost {
     this.userReaction,
     this.isFollowingAuthor = false,
     this.currentUserId,
+    this.scheduledAt,
   }) : mediaUrls = List<String>.unmodifiable(
           _normalizeMediaUrls(mediaUrls, mediaUrl),
         );
@@ -113,6 +117,10 @@ class FeedPost {
   final PostReactionType? userReaction;
   final bool isFollowingAuthor;
   final String? currentUserId;
+  final DateTime? scheduledAt;
+
+  bool get isScheduled =>
+      scheduledAt != null && scheduledAt!.isAfter(DateTime.now());
 
   bool get isOwnPost => currentUserId != null && currentUserId == author.id;
 
@@ -189,6 +197,7 @@ class FeedPost {
     bool? isFollowingAuthor,
     JobApplicationState? applicationState,
     VideoProcessingState? processingState,
+    Object? scheduledAt = _unset,
   }) {
     final nextMediaUrl = identical(mediaUrl, _unset)
         ? this.mediaUrl
@@ -223,6 +232,9 @@ class FeedPost {
           : userReaction as PostReactionType?,
       isFollowingAuthor: isFollowingAuthor ?? this.isFollowingAuthor,
       currentUserId: currentUserId,
+      scheduledAt: identical(scheduledAt, _unset)
+          ? this.scheduledAt
+          : scheduledAt as DateTime?,
     );
   }
 
@@ -320,6 +332,9 @@ class FeedPost {
       userReaction: _parseReaction(json['user_reaction']?.toString()),
       isFollowingAuthor: json['is_following_author'] as bool? ?? false,
       currentUserId: currentUserId,
+      scheduledAt: json['scheduled_at'] != null
+          ? DateTime.tryParse(json['scheduled_at'].toString())
+          : null,
     );
   }
 

@@ -12,6 +12,8 @@ import 'package:aub_connect_app/modules/home/widgets/post_card.dart';
 import 'package:aub_connect_app/modules/home/widgets/post_owner_actions.dart';
 import 'package:aub_connect_app/core/theme/app_semantic_colors.dart';
 import 'package:aub_connect_app/core/theme/vithey_radii.dart';
+import 'package:aub_connect_app/core/navigation/main_tab_navigation.dart';
+import 'package:aub_connect_app/modules/home/shell/main_shell_screen.dart';
 import 'package:aub_connect_app/core/icons/vithey_icons.dart';
 
 class VideoPostCard extends StatefulWidget {
@@ -44,7 +46,7 @@ class VideoPostCard extends StatefulWidget {
   State<VideoPostCard> createState() => _VideoPostCardState();
 }
 
-class _VideoPostCardState extends State<VideoPostCard> {
+class _VideoPostCardState extends State<VideoPostCard> with WidgetsBindingObserver {
   VideoPlayerController? _playerController;
   bool _isPlayerInitialized = false;
 
@@ -54,7 +56,57 @@ class _VideoPostCardState extends State<VideoPostCard> {
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
-  void _initPlayer(String videoUrl) {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final videoUrl = widget.post.mediaUrl ?? widget.post.thumbnailUrl;
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final controller = Get.find<HomeController>();
+          final isHomeTabActive = !Get.isRegistered<MainShellController>() ||
+              Get.find<MainShellController>().currentIndex.value ==
+                  MainTabNavigation.home;
+          final isPlaying = isHomeTabActive && controller.activeVideoId.value == widget.post.id;
+          _initPlayer(videoUrl, autoPlay: isPlaying);
+        }
+      });
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _playerController?.pause();
+      if (Get.isRegistered<HomeController>()) {
+        final controller = Get.find<HomeController>();
+        if (controller.activeVideoId.value == widget.post.id) {
+          controller.setActiveVideo(null);
+        }
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant VideoPostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldUrl = oldWidget.post.mediaUrl ?? oldWidget.post.thumbnailUrl;
+    final newUrl = widget.post.mediaUrl ?? widget.post.thumbnailUrl;
+    if (oldUrl != newUrl) {
+      if (newUrl != null && newUrl.isNotEmpty) {
+        final controller = Get.find<HomeController>();
+        final isPlaying = controller.activeVideoId.value == widget.post.id;
+        _initPlayer(newUrl, autoPlay: isPlaying);
+      } else {
+        _disposePlayer();
+      }
+    }
+  }
+
+  void _initPlayer(String videoUrl, {bool autoPlay = false}) {
     _disposePlayer();
     final resolved = MediaUrlResolver.resolve(videoUrl);
     if (resolved.isEmpty) return;
@@ -74,10 +126,17 @@ class _VideoPostCardState extends State<VideoPostCard> {
           _isPlayerInitialized = true;
         });
         controller.setLooping(true);
-        controller.play();
+        if (Get.isRegistered<HomeController>()) {
+          final homeCtrl = Get.find<HomeController>();
+          controller.setVolume(homeCtrl.isVideoMuted.value ? 0 : 1);
+        }
+        if (autoPlay) {
+          controller.play();
+        }
       }
-    }).catchError((_) {
-      if (mounted) {
+    }).catchError((err) {
+      debugPrint('VideoPostCard init error: $err');
+      if (mounted && _playerController == controller) {
         setState(() {
           _isPlayerInitialized = false;
         });
@@ -94,6 +153,7 @@ class _VideoPostCardState extends State<VideoPostCard> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _disposePlayer();
     super.dispose();
   }
@@ -104,17 +164,26 @@ class _VideoPostCardState extends State<VideoPostCard> {
     final post = widget.post;
 
     return Obx(() {
-      final isPlaying = controller.activeVideoId.value == post.id;
+      final isHomeTabActive = !Get.isRegistered<MainShellController>() ||
+          Get.find<MainShellController>().currentIndex.value ==
+              MainTabNavigation.home;
+      final isPlaying = isHomeTabActive && controller.activeVideoId.value == post.id;
+      final isMuted = controller.isVideoMuted.value;
       final videoUrl = post.mediaUrl ?? post.thumbnailUrl;
 
-      if (isPlaying && videoUrl != null && videoUrl.isNotEmpty) {
-        if (_playerController == null) {
-          _initPlayer(videoUrl);
-        } else if (_isPlayerInitialized && !_playerController!.value.isPlaying) {
+      if (_playerController == null && videoUrl != null && videoUrl.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _playerController == null) {
+            _initPlayer(videoUrl, autoPlay: isPlaying);
+          }
+        });
+      } else if (_isPlayerInitialized && _playerController != null) {
+        _playerController!.setVolume(isMuted ? 0 : 1);
+        if (isPlaying && !_playerController!.value.isPlaying) {
           _playerController!.play();
+        } else if (!isPlaying && _playerController!.value.isPlaying) {
+          _playerController!.pause();
         }
-      } else if (!isPlaying && _playerController != null) {
-        _disposePlayer();
       }
 
       final hasMedia = (post.thumbnailUrl?.isNotEmpty == true) ||
@@ -136,15 +205,26 @@ class _VideoPostCardState extends State<VideoPostCard> {
           ),
         );
       } else if (hasMedia) {
+        // Full height based on video as before (defaulting to 9/16, or video's actual ratio)
+        double videoRatio = 9 / 16;
+        if (_isPlayerInitialized &&
+            _playerController != null &&
+            _playerController!.value.isInitialized) {
+          final r = _playerController!.value.aspectRatio;
+          if (r > 0 && !r.isNaN && !r.isInfinite) {
+            videoRatio = r;
+          }
+        }
+
         body = AspectRatio(
-          aspectRatio: 9 / 16,
+          aspectRatio: videoRatio,
           child: Container(
             color: Colors.black,
             child: Stack(
               fit: StackFit.expand,
               alignment: Alignment.center,
               children: [
-                if (isPlaying && _isPlayerInitialized && _playerController != null)
+                if (_isPlayerInitialized && _playerController != null)
                   FittedBox(
                     fit: BoxFit.cover,
                     clipBehavior: Clip.hardEdge,
@@ -158,12 +238,34 @@ class _VideoPostCardState extends State<VideoPostCard> {
                       child: VideoPlayer(_playerController!),
                     ),
                   )
+                else if (post.thumbnailUrl != null &&
+                    post.thumbnailUrl!.isNotEmpty &&
+                    FeedPost.looksLikeImageUrl(post.thumbnailUrl!))
+                  VitheyMediaImage(
+                    url: post.thumbnailUrl!,
+                    fit: BoxFit.cover,
+                    fallbackColor: Colors.black,
+                    iconColor: Colors.white54,
+                  )
                 else
-                  _buildPreviewImage(post.thumbnailUrl ?? post.mediaUrl),
+                  Container(
+                    color: const Color(0xFF0F172A),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
+                  ),
 
-                // Play / Pause Overlay Button
-                Center(
+                // Tap handler to toggle play / pause inline
+                Positioned.fill(
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       if (isPlaying) {
                         controller.setActiveVideo(null);
@@ -171,17 +273,63 @@ class _VideoPostCardState extends State<VideoPostCard> {
                         controller.setActiveVideo(post.id);
                       }
                     },
+                  ),
+                ),
+
+                // Single Play / Pause Button Overlay (hidden when playing)
+                if (!isPlaying)
+                  IgnorePointer(
+                    child: Center(
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: VitheyIcon(
+                            LucideIcons.play,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Fullscreen button in top right
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      final url = post.mediaUrl ?? post.thumbnailUrl;
+                      if (url == null || url.isEmpty) {
+                        widget.onOpen();
+                        return;
+                      }
+                      showMediaFullscreen(
+                        context,
+                        post,
+                        onLike: widget.onLike,
+                        onComment: widget.onComment,
+                        onShare: widget.onShare,
+                        onFollow: widget.onFollow,
+                        onAuthorTap: widget.onAuthorTap,
+                      );
+                    },
                     child: Container(
-                      width: 58,
-                      height: 58,
+                      padding: const EdgeInsets.all(6),
                       decoration: const BoxDecoration(
                         color: Colors.black54,
                         shape: BoxShape.circle,
                       ),
-                      child: VitheyIcon(
-                        isPlaying ? LucideIcons.pause : LucideIcons.play,
+                      child: const VitheyIcon(
+                        LucideIcons.maximize2,
                         color: Colors.white,
-                        size: 32,
+                        size: 16,
                       ),
                     ),
                   ),
@@ -190,7 +338,7 @@ class _VideoPostCardState extends State<VideoPostCard> {
                 // Duration Pill
                 if (post.durationSeconds > 0)
                   Positioned(
-                    right: 12,
+                    left: 12,
                     bottom: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -208,6 +356,33 @@ class _VideoPostCardState extends State<VideoPostCard> {
                       ),
                     ),
                   ),
+
+                // Mute / Unmute Button in bottom right
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      controller.toggleVideoMute();
+                      if (_playerController != null && _isPlayerInitialized) {
+                        _playerController!.setVolume(controller.isVideoMuted.value ? 0 : 1);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: VitheyIcon(
+                        isMuted ? LucideIcons.volumeX : LucideIcons.volume2,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -219,20 +394,31 @@ class _VideoPostCardState extends State<VideoPostCard> {
         headerTrailing: post.isOwnPost
             ? PostOwnerActions(onEdit: widget.onEdit, onDelete: widget.onDelete)
             : Material(
-                color: context.scheme.primary,
+                color: post.isFollowingAuthor
+                    ? context.scheme.surfaceContainerHighest
+                    : context.scheme.primary,
                 borderRadius: BorderRadius.circular(VitheyRadii.pill),
                 child: InkWell(
                   onTap: widget.onFollow,
                   borderRadius: BorderRadius.circular(VitheyRadii.pill),
-                  child: SizedBox(
+                  child: Container(
                     height: 28,
                     width: post.isFollowingAuthor ? 70 : 58,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(VitheyRadii.pill),
+                      border: post.isFollowingAuthor
+                          ? Border.all(color: context.scheme.outlineVariant)
+                          : null,
+                    ),
                     child: Center(
                       child: Text(
                         post.isFollowingAuthor ? 'Following' : 'Follow',
                         style: context.text.labelLarge?.copyWith(
                           fontSize: 12,
-                          color: context.scheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                          color: post.isFollowingAuthor
+                              ? context.scheme.onSurfaceVariant
+                              : context.scheme.onPrimary,
                         ),
                       ),
                     ),
@@ -246,6 +432,7 @@ class _VideoPostCardState extends State<VideoPostCard> {
         onShare: widget.onShare,
         onBodyTap: () {
           final url = post.mediaUrl ?? post.thumbnailUrl;
+          controller.setActiveVideo(null);
           if (url == null || url.isEmpty) {
             widget.onOpen();
             return;
@@ -263,22 +450,5 @@ class _VideoPostCardState extends State<VideoPostCard> {
         onAuthorTap: widget.onAuthorTap,
       );
     });
-  }
-
-  Widget _buildPreviewImage(String? url) {
-    return VitheyMediaImage(
-      url: url,
-      fit: BoxFit.cover,
-      fallbackColor: Colors.black87,
-      iconColor: Colors.white54,
-      errorWidget: const ColoredBox(
-        color: Colors.black87,
-        child: Center(child: VitheyIcon(LucideIcons.video, size: 48, color: Colors.white54)),
-      ),
-      placeholder: const ColoredBox(
-        color: Colors.black87,
-        child: Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
-      ),
-    );
   }
 }

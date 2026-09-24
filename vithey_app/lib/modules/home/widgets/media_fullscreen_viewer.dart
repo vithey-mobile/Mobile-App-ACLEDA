@@ -12,6 +12,8 @@ import 'package:aub_connect_app/core/utils/media_url_resolver.dart';
 import 'package:aub_connect_app/core/widgets/user_avatar.dart';
 import 'package:aub_connect_app/core/widgets/vithey_action_sheet.dart';
 import 'package:aub_connect_app/core/widgets/vithey_media_image.dart';
+import 'package:get/get.dart';
+import 'package:aub_connect_app/modules/home/home_controller.dart';
 import 'package:aub_connect_app/data/models/feed_post.dart';
 /// Opens poster image / video in an immersive detail stage (TikTok-style).
 Future<void> showMediaFullscreen(
@@ -75,6 +77,7 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
   bool _captionExpanded = false;
   String? _error;
   int _imagePage = 0;
+  bool _isMuted = false;
 
   bool get _isVideo {
     if (_post.type != PostType.video) return false;
@@ -186,6 +189,10 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
         _initializing = false;
       });
       await controller.setLooping(true);
+      if (Get.isRegistered<HomeController>()) {
+        _isMuted = Get.find<HomeController>().isVideoMuted.value;
+      }
+      await controller.setVolume(_isMuted ? 0 : 1);
       await controller.play();
       controller.addListener(() {
         if (mounted) setState(() {});
@@ -253,20 +260,45 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
                   ],
                 ),
               ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black26,
-                      shape: const CircleBorder(),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black26,
+                        shape: const CircleBorder(),
+                      ),
+                      icon: const VitheyIcon(LucideIcons.arrowLeft,
+                          color: Colors.white),
                     ),
-                    icon: const VitheyIcon(LucideIcons.arrowLeft,
-                        color: Colors.white),
                   ),
-                ),
+                  const Spacer(),
+                  if (_isVideo)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _isMuted = !_isMuted;
+                            _controller?.setVolume(_isMuted ? 0 : 1);
+                            if (Get.isRegistered<HomeController>()) {
+                              Get.find<HomeController>().isVideoMuted.value = _isMuted;
+                            }
+                          });
+                        },
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black26,
+                          shape: const CircleBorder(),
+                        ),
+                        icon: VitheyIcon(
+                          _isMuted ? LucideIcons.volumeX : LucideIcons.volume2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

@@ -126,13 +126,34 @@ class ConfirmDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CustomButton(
-                      label: confirmLabel,
-                      variant: isDestructive
-                          ? CustomButtonVariant.destructive
-                          : CustomButtonVariant.primary,
-                      onPressed: () => _pop(context, true),
-                    ),
+                    child: isDestructive
+                        ? Material(
+                            color: confirmColor ?? const Color(0xFFE11D48),
+                            borderRadius: BorderRadius.circular(12),
+                            elevation: 0,
+                            child: InkWell(
+                              onTap: () => _pop(context, true),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                height: 48,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  confirmLabel.tr,
+                                  style: TextStyle(
+                                    color:
+                                        confirmForegroundColor ?? Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : CustomButton(
+                            label: confirmLabel,
+                            variant: CustomButtonVariant.primary,
+                            onPressed: () => _pop(context, true),
+                          ),
                   ),
                 ],
               ),
