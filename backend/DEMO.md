@@ -17,6 +17,11 @@
 # Or:
 #   docker compose -f docker-compose.yml -f docker-compose.demo.yml down
 #
+# Host-Run Dev Mode (Minimal Infra in Docker + JVM on Mac/Linux host):
+#   ./scripts/start-dev-host.sh <service-name>      # e.g. content-service
+#   ./scripts/start-dev-host.sh --infra-only        # starts postgres, redis, rabbitmq, minio, eureka, config
+#   ./scripts/start-dev-host.sh --stop              # stops infra containers
+#
 # Notes:
 #   - All Vithey Java services + ai_core (Python owns /api/v1/ai/**); map-service is opt-in
 #   - NO Java ai-service; NO GDCE / general-service (chat = stub)

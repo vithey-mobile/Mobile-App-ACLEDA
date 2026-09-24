@@ -59,12 +59,19 @@ cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
 .\scripts\start-all.ps1 -Down
 ```
 
-## Build without Docker (Java)
+## Build & Run without Docker (Host JVM Dev Mode)
 
-```powershell
-cd D:\Projects\Mobile\Mobile-App-ACLEDA\backend
-mvn clean install
-mvn -pl services/auth-service spring-boot:run
+Runs only the needed shared infrastructure (Postgres, Redis, RabbitMQ, MinIO, Eureka, Config) in Docker, while running the selected microservice directly on your host JVM.
+
+**macOS / Linux:**
+```bash
+./run-backend-dev.sh <service-name>    # e.g., ./run-backend-dev.sh content-service
+./run-backend-dev.sh --infra-only      # start only the required docker containers
+./run-backend-dev.sh --stop            # stop the infra containers
 ```
 
-Non-Docker JVM runs still need shared infrastructure containers on localhost (or `start-dev-host.ps1`).
+**Windows (PowerShell):**
+```powershell
+.\scripts\start-dev-host.ps1 -Services auth-service,api-gateway
+.\scripts\start-dev-host.ps1 -Down     # stop infra
+```

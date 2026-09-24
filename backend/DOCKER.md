@@ -89,13 +89,25 @@ Common useful subsets:
 
 **Host-run dev mode** — infra in Docker, selected JVMs on the host with tiny heaps and hot logs. Lowest overhead and fastest iteration:
 
+**macOS / Linux:**
+```bash
+# Run from backend/ or repo root (./run-backend-dev.sh)
+./scripts/start-dev-host.sh content-service              # Single service in foreground
+./scripts/start-dev-host.sh auth-service api-gateway     # Multiple services (logs in .logs/)
+./scripts/start-dev-host.sh --infra-only                 # Start only required Docker infra
+./scripts/start-dev-host.sh --status                     # Check infra and discovery health
+./scripts/start-dev-host.sh --stop                       # Stop infra containers
+./scripts/start-dev-host.sh                              # Interactive menu
+```
+
+**Windows (PowerShell):**
 ```powershell
 .\scripts\start-dev-host.ps1
 .\scripts\start-dev-host.ps1 -Services auth-service,api-gateway -Heap 128m
 .\scripts\start-dev-host.ps1 -Down   # stop infra
 ```
 
-Each service opens in its own PowerShell window; close it to stop that service.
+Each service runs on the host JVM using your local Java 21, automatically binding to Docker Postgres (port 15432), Redis (port 16379), and Eureka (port 8761).
 
 **Cap Docker Desktop itself (WSL2)** — the host-level guarantee that containers cannot starve Windows:
 
