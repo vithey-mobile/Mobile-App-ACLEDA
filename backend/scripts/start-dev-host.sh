@@ -7,7 +7,7 @@
 # microservices directly on the host JVM for high speed and instant iteration.
 # ==============================================================================
 
-set -eo pipefail
+set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -89,7 +89,9 @@ detect_host_specs() {
         HOST_MEM_GB=$(( $(free -m 2>/dev/null | awk '/^Mem:/{print $2}') / 1024 ))
         HOST_NCPU=$(nproc 2>/dev/null || echo 4)
     fi
-    [ "$HOST_MEM_GB" -le 0 ] && HOST_MEM_GB=16
+    if [ "$HOST_MEM_GB" -le 0 ]; then
+        HOST_MEM_GB=16
+    fi
 }
 
 detect_host_specs

@@ -276,7 +276,11 @@ def run_command_interactive(cmd_args):
             translated = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(PS_RUNNER)] + cmd_args[1:]
             subprocess.run(translated, cwd=str(BACKEND_DIR))
         else:
-            subprocess.run(cmd_args, cwd=str(BACKEND_DIR))
+            if cmd_args and cmd_args[0].endswith(".sh"):
+                run_cmd = ["bash"] + cmd_args
+            else:
+                run_cmd = cmd_args
+            subprocess.run(run_cmd, cwd=str(BACKEND_DIR))
     except KeyboardInterrupt:
         print(f"\n{YELLOW}Interrupted.{RESET}")
     print(f"\n{DIM}Press any key to return to menu...{RESET}")
@@ -398,7 +402,7 @@ Usage:
                 translated = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(PS_RUNNER)] + sys.argv[1:]
                 subprocess.run(translated, cwd=str(BACKEND_DIR))
             else:
-                subprocess.run([str(SH_RUNNER)] + sys.argv[1:], cwd=str(BACKEND_DIR))
+                subprocess.run(["bash", str(SH_RUNNER)] + sys.argv[1:], cwd=str(BACKEND_DIR))
             sys.exit(0)
 
     main_options = [
