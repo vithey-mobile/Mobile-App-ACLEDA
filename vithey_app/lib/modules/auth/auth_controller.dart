@@ -1,18 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:aub_connect_app/core/config/feature_flags.dart';
 import 'package:get/get.dart';
 import 'package:aub_connect_app/core/constants/app_colors.dart';
 import 'package:aub_connect_app/core/constants/app_routes.dart';
 import 'package:aub_connect_app/core/constants/app_strings.dart';
-import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/utils/auth_navigation.dart';
 import 'package:aub_connect_app/core/utils/validators.dart';
-import 'package:aub_connect_app/core/widgets/confirm_dialog.dart';
 import 'package:aub_connect_app/core/widgets/form_error_host.dart';
 import 'package:aub_connect_app/data/repositories/auth_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:aub_connect_app/data/services/google_auth_service.dart';
 import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
 import 'package:aub_connect_app/modules/auth/onboarding/intro_morph.dart';
 import 'package:intl/intl.dart';
@@ -43,8 +40,6 @@ class AuthController extends GetxController {
   final forgotPasswordError = ''.obs;
   final authIntent = AuthIntent.signIn.obs;
 
-  Completer<String?>? _emailChangeCompleter;
-
   final forgotPasswordFormKey = GlobalKey<FormState>();
   final forgotPasswordEmailController = TextEditingController();
 
@@ -63,8 +58,6 @@ class AuthController extends GetxController {
   final isBusy = false.obs;
 
   DateTime? dateOfBirth;
-
-  GoogleAccountSummary? selectedGoogleAccount;
 
   /// Keep Google UI visible; set ENABLE_GOOGLE_AUTH=true in .env when ready.
   bool get isGoogleAuthEnabled => Get.find<FeatureFlags>().enableGoogleAuth;
@@ -224,85 +217,23 @@ class AuthController extends GetxController {
     }
   }
 
-  void beginGoogleAuth({required AuthIntent intent}) {
-    // UI chooser/confirmation is always available (mock or pre-Auth0).
-    // Real provider handoff remains behind adapter / mock auth repository.
+  /// Runs the real Google sign-in flow, then exchanges the Google ID token for
+  /// a Vithey session via the backend.
+  ///
+  /// User cancellation returns cleanly to the login screen with no error.
+  Future<void> continueWithGoogle({required AuthIntent intent}) async {
+    if (isGoogleLoading.value) return;
     authIntent.value = intent;
-    selectedGoogleAccount = null;
-    Get.toNamed(AppRoutes.googleAccountChooser);
-  }
-
-  /// Opens the same Google chooser used at sign-up, but returns the chosen
-  /// email to Account → Edit (does not sign the user out / re-auth session).
-  Future<String?> beginGoogleEmailChange() {
-    authIntent.value = AuthIntent.changeEmail;
-    selectedGoogleAccount = null;
-    _emailChangeCompleter = Completer<String?>();
-    Get.toNamed(AppRoutes.googleAccountChooser);
-    return _emailChangeCompleter!.future;
-  }
-
-  Future<void> selectGoogleAccount(GoogleAccountSummary account) async {
-    selectedGoogleAccount = account;
-    await Get.toNamed(AppRoutes.googleAuthConfirmation);
-  }
-
-  /// Success dialog only (3s). Caller fades then navigates to Screen 2.
-  Future<void> promptGoogleAccountAdded() async {
-    final context = Get.overlayContext;
-    if (context != null) {
-      showConfirmDialog(
-        context: context,
-        title: 'Success',
-        message: 'New account added successfully.',
-        confirmLabel: AppStrings.confirm,
-        barrierDismissible: false,
-      );
-    }
-    await Future<void>.delayed(const Duration(seconds: 3));
-    if (Get.isDialogOpen ?? false) {
-      Get.back<void>();
-    }
-    selectedGoogleAccount = const GoogleAccountSummary(
-      displayName: MockIdentities.mockUserFullName,
-      email: 'molika.ops@aub.edu.kh',
-    );
-  }
-
-  /// Add Account (legacy): dialog then Screen 2.
-  Future<void> addGoogleAccount() async {
-    await promptGoogleAccountAdded();
-    Get.toNamed(AppRoutes.googleAuthConfirmation);
-  }
-
-  /// Bottom primary path — confirm with fixture account.
-  Future<void> newGoogleSignIn() async {
-    await selectGoogleAccount(
-      const GoogleAccountSummary(
-        displayName: MockIdentities.mockUserFullName,
-        email: 'molika.ops@aub.edu.kh',
-      ),
-    );
-  }
-
-  Future<void> completeGoogleAuth() async {
-    final account = selectedGoogleAccount;
-    if (account == null) return;
     isGoogleLoading.value = true;
     clearError();
     try {
-      if (authIntent.value == AuthIntent.changeEmail) {
-        _finishEmailChange(account.email);
-        return;
-      }
-
-      await _authRepository.completeGoogleAuth(
-        email: account.email,
-        displayName: account.displayName,
-      );
-      final isRegister = authIntent.value == AuthIntent.register;
-      await AuthNavigation.goAfterAuth(isNewUser: isRegister);
+      await _authRepository.signInWithGoogle();
+      await AuthNavigation.goAfterAuth(isNewUser: intent == AuthIntent.register);
+    } on GoogleSignInCancelledException {
+      // User dismissed the Google sheet — no error, stay on the auth screen.
     } on AuthServiceException catch (e) {
+      errorMessage.value = e.message;
+    } on GoogleAuthException catch (e) {
       errorMessage.value = e.message;
     } catch (_) {
       errorMessage.value = AppStrings.errorGeneric;
@@ -311,46 +242,19 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Cancel confirmation → back to chooser (Screen 1).
-  void backToGoogleChooser() {
-    if (Get.currentRoute == AppRoutes.googleAuthConfirmation) {
-      Get.back();
-      return;
+  /// Opens the real Google chooser and returns the selected account email for
+  /// the Account → Edit "change email" affordance (no new auth session).
+  Future<String?> beginGoogleEmailChange() async {
+    authIntent.value = AuthIntent.changeEmail;
+    clearError();
+    try {
+      return await _authRepository.googleEmailForAccountChange();
+    } on GoogleAuthException catch (e) {
+      errorMessage.value = e.message;
+      return null;
+    } catch (_) {
+      return null;
     }
-    cancelGoogleAuth();
-  }
-
-  /// Exit Google UI flow → Sign In / Register, or Account edit for email change.
-  void cancelGoogleAuth() {
-    selectedGoogleAccount = null;
-    if (authIntent.value == AuthIntent.changeEmail) {
-      _finishEmailChange(null);
-      return;
-    }
-    Get.until((route) => _isIntroRibbonRoute(route.settings.name));
-  }
-
-  static bool _isIntroRibbonRoute(String? name) {
-    return name == AppRoutes.login ||
-        name == AppRoutes.register ||
-        name == AppRoutes.auth ||
-        name == AppRoutes.selectLanguage ||
-        name == AppRoutes.onboarding;
-  }
-
-  void _finishEmailChange(String? email) {
-    selectedGoogleAccount = null;
-    final completer = _emailChangeCompleter;
-    _emailChangeCompleter = null;
-    if (completer != null && !completer.isCompleted) {
-      completer.complete(email);
-    }
-    Get.until(
-      (route) =>
-          route.settings.name == AppRoutes.settingsEditAccount ||
-          route.settings.name == AppRoutes.settingsAccount ||
-          route.isFirst,
-    );
   }
 
   Future<void> requestPasswordReset() async {
@@ -386,22 +290,5 @@ class AuthController extends GetxController {
     dateOfBirthController.dispose();
     forgotPasswordEmailController.dispose();
     super.onClose();
-  }
-}
-
-class GoogleAccountSummary {
-  const GoogleAccountSummary({
-    required this.displayName,
-    required this.email,
-    this.photoUrl,
-  });
-
-  final String displayName;
-  final String email;
-  final String? photoUrl;
-
-  String get firstName {
-    final parts = displayName.trim().split(RegExp(r'\s+'));
-    return parts.isEmpty ? displayName : parts.first;
   }
 }

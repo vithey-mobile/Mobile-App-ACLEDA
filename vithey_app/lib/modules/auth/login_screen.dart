@@ -313,7 +313,7 @@ class AuthSignInForm extends GetView<AuthController> {
                   isLoading: controller.isGoogleLoading.value,
                   onPressed: () {
                     FormErrorHost.clearAll();
-                    controller.beginGoogleAuth(intent: AuthIntent.signIn);
+                    controller.continueWithGoogle(intent: AuthIntent.signIn);
                   },
                 ),
               ),
@@ -429,7 +429,7 @@ class AuthSignUpForm extends GetView<AuthController> {
                 isLoading: controller.isGoogleLoading.value,
                 onPressed: () {
                   FormErrorHost.clearAll();
-                  controller.beginGoogleAuth(intent: AuthIntent.register);
+                  controller.continueWithGoogle(intent: AuthIntent.register);
                 },
               );
             }

@@ -11,6 +11,7 @@ class DioClient {
   static const _publicAuthPaths = {
     '/auth/register',
     '/auth/login',
+    '/auth/google',
     '/auth/refresh',
     '/auth/forgot-password',
     '/auth/reset-password',

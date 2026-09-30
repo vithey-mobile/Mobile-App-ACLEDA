@@ -1,12 +1,21 @@
-# Vithey monitoring — opt-in profile.
+# Vithey monitoring — opt-in, minimal: Prometheus + Grafana only.
 #
 #   docker compose --profile monitoring up -d
 #
 # Services declare profiles: ["monitoring"], so a plain `docker compose up`
-# starts nothing here. Leave the profile off for the lean 3-user phase.
+# starts nothing here. Keep it off for the lean local phase.
+#
+# Requires the external network `vithey-network`, created by the backend stack
+# (backend/docker-compose.yml). Start that first.
 
 x-monitoring: &monitoring
   profiles: ["monitoring"]
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "2"
 
 services:
   prometheus:
@@ -17,12 +26,14 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - vithey-prometheus-data:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
-      - --web.enable-lifecycle
+      # Short local retention (default 6h) keeps CPU/RAM/disk low for dev.
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-6h}
+    mem_limit: ${PROMETHEUS_MEM_LIMIT:-512m}
+    logging: *logging
     networks:
       - vithey-network
     restart: unless-stopped
@@ -33,11 +44,9 @@ services:
     container_name: vithey-grafana
     ports:
       - "3000:3000"
-    env_file:
-      - .env
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - vithey-grafana-data:/var/lib/grafana
@@ -45,74 +54,8 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
     depends_on:
       - prometheus
-      - loki
-    networks:
-      - vithey-network
-    restart: unless-stopped
-
-  loki:
-    <<: *monitoring
-    image: grafana/loki:latest
-    container_name: vithey-loki
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
-      - vithey-loki-data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - vithey-network
-    restart: unless-stopped
-
-  promtail:
-    <<: *monitoring
-    image: grafana/promtail:latest
-    container_name: vithey-promtail
-    volumes:
-      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/config.yml
-    depends_on:
-      - loki
-    networks:
-      - vithey-network
-    restart: unless-stopped
-
-  node-exporter:
-    <<: *monitoring
-    image: prom/node-exporter:latest
-    container_name: vithey-node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - --path.procfs=/host/proc
-      - --path.sysfs=/host/sys
-      - --path.rootfs=/rootfs
-      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
-    networks:
-      - vithey-network
-    restart: unless-stopped
-
-  cadvisor:
-    <<: *monitoring
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: vithey-cadvisor
-    ports:
-      - "8095:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    privileged: true
-    devices:
-      - /dev/kmsg
+    mem_limit: ${GRAFANA_MEM_LIMIT:-384m}
+    logging: *logging
     networks:
       - vithey-network
     restart: unless-stopped
@@ -120,7 +63,6 @@ services:
 volumes:
   vithey-prometheus-data:
   vithey-grafana-data:
-  vithey-loki-data:
 
 networks:
   vithey-network:

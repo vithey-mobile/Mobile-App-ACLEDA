@@ -2,6 +2,7 @@ package com.vithey.auth.controller;
 
 import com.vithey.auth.dto.request.ChangePasswordRequest;
 import com.vithey.auth.dto.request.ForgotPasswordRequest;
+import com.vithey.auth.dto.request.GoogleLoginRequest;
 import com.vithey.auth.dto.request.LoginRequest;
 import com.vithey.auth.dto.request.LogoutRequest;
 import com.vithey.auth.dto.request.RefreshTokenRequest;
@@ -14,6 +15,7 @@ import com.vithey.auth.dto.response.TokenResponse;
 import com.vithey.auth.dto.response.UserAuthResponse;
 import com.vithey.auth.security.CurrentUserProvider;
 import com.vithey.auth.service.AuthService;
+import com.vithey.auth.service.GoogleAuthService;
 import com.vithey.auth.service.PasswordResetService;
 import com.vithey.auth.util.ApiResponseWrapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,15 +37,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthService authService;
+  private final GoogleAuthService googleAuthService;
   private final PasswordResetService passwordResetService;
   private final CurrentUserProvider currentUserProvider;
 
   public AuthController(
       AuthService authService,
+      GoogleAuthService googleAuthService,
       PasswordResetService passwordResetService,
       CurrentUserProvider currentUserProvider
   ) {
     this.authService = authService;
+    this.googleAuthService = googleAuthService;
     this.passwordResetService = passwordResetService;
     this.currentUserProvider = currentUserProvider;
   }
@@ -59,6 +64,15 @@ public class AuthController {
   @Operation(summary = "Login", description = "Logs in by email or phone and returns JWT tokens.")
   public ResponseEntity<ApiResponseWrapper<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
     return ResponseEntity.ok(ApiResponseWrapper.success(authService.login(request)));
+  }
+
+  @PostMapping("/google")
+  @Operation(
+      summary = "Login with Google",
+      description = "Verifies a Google ID token, finds/creates/links the Vithey account, and returns JWT tokens."
+  )
+  public ResponseEntity<ApiResponseWrapper<AuthResponse>> google(@Valid @RequestBody GoogleLoginRequest request) {
+    return ResponseEntity.ok(ApiResponseWrapper.success(googleAuthService.authenticate(request)));
   }
 
   @PostMapping("/refresh")

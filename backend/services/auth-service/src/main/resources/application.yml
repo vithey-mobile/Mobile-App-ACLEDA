@@ -66,6 +66,11 @@ vithey:
     refresh-token-ttl: ${VITHEY_REFRESH_TOKEN_TTL:7d}
   events:
     exchange: ${VITHEY_EVENTS_EXCHANGE:vithey.events}
+  oauth:
+    google:
+      # Web OAuth client ID; the ID token audience must match this value.
+      web-client-id: ${GOOGLE_WEB_CLIENT_ID:}
+      jwk-set-uri: ${GOOGLE_JWK_SET_URI:https://www.googleapis.com/oauth2/v3/certs}
   mail:
     mode: ${VITHEY_MAIL_MODE:log}
     from: ${VITHEY_MAIL_FROM:noreply@vithey.local}

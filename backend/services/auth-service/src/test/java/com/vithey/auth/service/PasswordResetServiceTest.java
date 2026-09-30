@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.vithey.auth.entity.PasswordResetToken;
-import com.vithey.auth.entity.Role;
 import com.vithey.auth.entity.User;
 import com.vithey.auth.mail.AuthMailSender;
 import com.vithey.auth.repository.PasswordResetTokenRepository;

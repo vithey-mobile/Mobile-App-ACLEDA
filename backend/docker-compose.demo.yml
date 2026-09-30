@@ -110,6 +110,10 @@ services:
     mem_limit: ${SERVICE_MEM_LIMIT:-320m}
     logging: *logging
 
+  fake-payment-service:
+    mem_limit: ${FAKE_PAYMENT_MEM_LIMIT:-192m}
+    logging: *logging
+
   finance-service:
     environment:
       <<: *java-demo

@@ -1,38 +1,38 @@
-# Vithey App — Monitoring & Observability
+# Vithey App — Monitoring (minimal)
 
-Docker Compose stack for metrics (Prometheus + Grafana) and logs (Loki + Promtail).
-
-**Prompt:** `docs/Prompt Devops/v1/08-monitoring-observability-prompt.md`
-
-## Stack
+Low-resource local development monitoring: **Prometheus + Grafana only**.
 
 | Service | URL | Purpose |
 | --- | --- | --- |
-| Grafana | http://localhost:3000 | Dashboards + log search |
-| Prometheus | http://localhost:9090 | Metrics + alerts |
-| Loki | http://localhost:3100 | Log storage |
-| Node Exporter | http://localhost:9100/metrics | Host CPU, RAM, disk, network |
-| cAdvisor | http://localhost:8095 | Container CPU, memory |
+| Prometheus | http://localhost:9090 | Metrics + target status |
+| Grafana | http://localhost:3000 | Dashboards |
+
+There is no log aggregation and no host/container exporter stack (no Loki,
+Promtail, node-exporter, or cAdvisor). Docker logs stay in Docker; use
+`docker logs <container>` if you need them.
+
+> Historical reference: `docs/Prompt Devops/v1/08-monitoring-observability-prompt.md`.
 
 ## Prerequisites
 
-1. `vithey-network` exists (start `backend/infrastructure/docker-compose.yml` first)
-2. Microservices running with Actuator + Micrometer Prometheus registry
-3. Each service exposes `/actuator/prometheus`
+1. The external network `vithey-network` exists — start the backend stack first:
+   `cd backend && docker compose up -d` (or `.\scripts\docker-up-demo.ps1`).
+2. The Spring Boot services are running and expose `/actuator/prometheus`.
 
-## Quick Start
+## Quick start
 
-The stack is opt-in: services declare `profiles: ["monitoring"]`, so a plain
-`docker compose up` starts nothing. Enable the profile explicitly:
+The stack is opt-in (`profiles: ["monitoring"]`), so a plain `docker compose up`
+starts nothing here.
 
 ```powershell
 cd monitoring
-copy .env.example .env
 docker compose --profile monitoring up -d
 docker compose --profile monitoring ps
 ```
 
-Leave the profile off for the lean 3-user phase; it is a dev/observability tool.
+Grafana admin credentials default to `admin` / `admin123`; override with
+`GRAFANA_USER` / `GRAFANA_PASSWORD` (see `.env.example`). No `.env` file is
+required.
 
 ## Stop
 
@@ -40,113 +40,81 @@ Leave the profile off for the lean 3-user phase; it is a dev/observability tool.
 docker compose --profile monitoring down
 ```
 
-## Grafana Login
+## What is monitored
 
-Credentials come from `.env` (default in `.env.example`):
+Prometheus scrapes **only** Vithey services that actually expose Micrometer
+metrics at `/actuator/prometheus` (30s interval):
 
-- User: `GRAFANA_USER`
-- Password: `GRAFANA_PASSWORD`
+| Job | Target | Service port |
+| --- | --- | --- |
+| `prometheus` | `localhost:9090` | 9090 |
+| `api-gateway` | `vithey-api-gateway:8080` | 8080 |
+| `auth-service` | `vithey-auth-service:8081` | 8081 |
+| `user-profile-service` | `vithey-user-profile-service:8082` | 8082 |
+| `file-service` | `vithey-file-service:8083` | 8083 |
+| `content-service` | `vithey-content-service:8084` | 8084 |
+| `career-service` | `vithey-career-service:8085` | 8085 |
+| `finance-service` | `vithey-finance-service:8086` | 8086 |
+| `chat-service` | `vithey-chat-service:8087` | 8087 |
+| `notification-service` | `vithey-notification-service:8088` | 8088 |
 
-## Dashboards
+Not monitored (no Prometheus metrics endpoint / not always running):
 
-Folder **Vithey App** in Grafana:
+- `ai_core` (FastAPI) — no `/metrics`.
+- `eureka-server`, `config-server` — no `micrometer-registry-prometheus`.
+- `map-service` — opt-in `map` profile; add a job in `prometheus/prometheus.yml`
+  (`vithey-map-service:8090`) if you run it.
 
-| Dashboard | Contents |
-| --- | --- |
-| Spring Boot Microservices | Request rate, latency, 5xx, JVM memory/CPU, threads, GC |
-| Infrastructure | Host CPU, RAM, disk, network |
-| Docker Containers | Per-container CPU, memory, status |
-| Chat Service | WebSocket, message rate, Redis, error logs |
+Backend metrics endpoint security: each servlet service permits
+`/actuator/prometheus` (in addition to `/actuator/health` and `/actuator/info`)
+so Prometheus can scrape without a JWT. The gateway already treats
+`/actuator/**` as public. `application-prod.yml` only exposes `health,info`, so
+nothing new is exposed in production.
 
-## Log Search (Grafana Explore → Loki)
+## Dashboard
 
-```logql
-{service="auth-service"}
-{service="chat-service"} |= "ERROR"
-{service=~"api-gateway|auth-service"}
-```
+One dashboard, folder **Vithey App**: `Vithey Backend`
+(`grafana/dashboards/vithey-backend.json`):
 
-Promtail labels Docker containers matching `vithey-*` as `service` (prefix stripped).
+- Services up (stat) and per-service availability (`up`)
+- HTTP request rate (`http_server_requests_seconds_count`)
+- HTTP 5xx error rate and error ratio
+- Response time p95 (`http_server_requests_seconds_bucket`)
+- JVM heap used (`jvm_memory_used_bytes`) and JVM process CPU (`process_cpu_usage`)
 
-## Prometheus Targets
+Use the **Service** variable at the top to filter to one or more jobs.
 
-Open http://localhost:9090/targets — microservice jobs show **UP** only when containers are running on `vithey-network`.
-
-## Alerts
-
-Rules in `prometheus/alerts.yml`:
-
-| Alert | Trigger |
-| --- | --- |
-| ServiceDown | Microservice scrape target down 1m |
-| HighCpuUsage | Host CPU > 80% for 5m |
-| HighMemoryUsage | Host memory > 85% for 5m |
-| HighHttp5xxRate | 5xx > 5% of requests for 5m |
-| DatabaseConnectionsHigh | HikariCP pool > 85% for 5m |
-
-View on Prometheus → **Alerts** tab.
-
-## Spring Boot Setup (per microservice)
-
-### Maven (`pom.xml`)
-
-```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-  <groupId>io.micrometer</groupId>
-  <artifactId>micrometer-registry-prometheus</artifactId>
-</dependency>
-```
-
-### `application.yml`
-
-```yaml
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,prometheus,info
-  metrics:
-    tags:
-      application: ${spring.application.name}
-```
-
-Verify locally:
+## Verify
 
 ```powershell
-curl http://localhost:8081/actuator/prometheus
+# targets and their health
+curl http://localhost:9090/api/v1/targets
+
+# a sample query
+curl "http://localhost:9090/api/v1/query?query=up"
 ```
 
-## Architecture
+Open http://localhost:9090/targets — each job should be **UP** while the
+matching container runs on `vithey-network`.
 
-```text
-Spring Boot services (/actuator/prometheus)
-        │
-        ▼
-   Prometheus ──► Grafana
-        │
-   node-exporter / cAdvisor
+## Resource usage
 
-Docker container logs
-        │
-        ▼
-    Promtail ──► Loki ──► Grafana
-```
+Defaults (override via env): Prometheus `512m`, Grafana `384m`, 30s scrape
+interval, 6h TSDB retention (`PROMETHEUS_RETENTION`), json-file logs capped at
+10m x 2. No exporters or log shipper are run.
 
 ## Troubleshooting
 
 | Issue | Fix |
 | --- | --- |
-| `vithey-network` not found | `cd backend/infrastructure && docker compose up -d` |
-| Targets DOWN | Start the matching service compose under `backend/services/` |
-| No logs in Loki | Ensure Promtail has Docker socket access; container name starts with `vithey-` |
-| Empty JVM panels | Add `micrometer-registry-prometheus` and rebuild service images |
+| `vithey-network` not found | Start the backend stack first (`backend/docker-compose.yml`). |
+| A target is DOWN | Start that service; check `docker logs vithey-<service>`. |
+| `401`/`403` when curling `/actuator/prometheus` | That service's `SecurityConfig` must permit `/actuator/prometheus`. |
+| Empty JVM panels | The service image lacks `micrometer-registry-prometheus`; rebuild it. |
+| Grafana login fails | Set `GRAFANA_USER` / `GRAFANA_PASSWORD` and recreate the container. |
 
-## Security Notes
+## Security notes
 
-- Do not commit `monitoring/.env`
-- Restrict Grafana port in production; use strong passwords
-- Block public access to `/actuator/**` via API Gateway in production
+- Do not commit `monitoring/.env`; keep real credentials out of the repo.
+- In production, expose only `health,info` (already the case) and keep Grafana
+  off the public network.

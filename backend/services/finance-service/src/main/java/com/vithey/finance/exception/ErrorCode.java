@@ -7,6 +7,9 @@ public enum ErrorCode {
   UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Authentication is required"),
   NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
   FORBIDDEN(HttpStatus.FORBIDDEN, "You do not have permission to perform this action"),
+  CONFLICT(HttpStatus.CONFLICT, "Request conflicts with the current state"),
+  UPSTREAM_ERROR(HttpStatus.BAD_GATEWAY, "Payment provider error"),
+  UPSTREAM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "Payment provider timed out"),
   INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");
 
   private final HttpStatus status;

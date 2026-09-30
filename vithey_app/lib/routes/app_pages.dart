@@ -5,7 +5,6 @@ import 'package:aub_connect_app/core/storage/local_storage_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/modules/auth/auth_binding.dart';
 import 'package:aub_connect_app/modules/auth/forgot_password_screen.dart';
-import 'package:aub_connect_app/modules/auth/google_auth_screen.dart';
 import 'package:aub_connect_app/modules/auth/intro_ribbon_binding.dart';
 import 'package:aub_connect_app/modules/auth/intro_ribbon_controller.dart';
 import 'package:aub_connect_app/modules/auth/intro_ribbon_screen.dart';
@@ -143,20 +142,6 @@ class AppPages {
       name: AppRoutes.forgotPassword,
       page: () => const ForgotPasswordScreen(),
       binding: AuthBinding(),
-    ),
-    GetPage(
-      name: AppRoutes.googleAccountChooser,
-      page: () => const GoogleAccountChooserScreen(),
-      binding: AuthBinding(),
-      transition: Transition.downToUp,
-      transitionDuration: const Duration(milliseconds: 320),
-    ),
-    GetPage(
-      name: AppRoutes.googleAuthConfirmation,
-      page: () => const GoogleAuthConfirmationScreen(),
-      binding: AuthBinding(),
-      transition: Transition.downToUp,
-      transitionDuration: const Duration(milliseconds: 320),
     ),
     GetPage(
       name: AppRoutes.startupSkills,

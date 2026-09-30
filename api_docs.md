@@ -35,7 +35,7 @@ X-Request-ID: <optional-uuid>
 
 ### Public endpoints (no JWT)
 
-`POST /auth/register` · `POST /auth/login` · `POST /auth/refresh` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `POST /auth/verify-email`
+`POST /auth/register` · `POST /auth/login` · `POST /auth/google` · `POST /auth/refresh` · `POST /auth/forgot-password` · `POST /auth/reset-password` · `POST /auth/verify-email`
 
 ### Response envelope
 
@@ -166,6 +166,7 @@ Start backend demo stack from `backend/`:
 
 | Method | Path | Body | Notes |
 |--------|------|------|-------|
+| `POST` | `/auth/google` | `{ "id_token" }` | Public. Verifies the Google ID token, returns standard `{user, tokens}`. See [`docs/10-security/12-google-sign-in.md`](docs/10-security/12-google-sign-in.md). |
 | `POST` | `/auth/refresh` | `{ "refresh_token" }` | returns new tokens |
 | `POST` | `/auth/logout` | `{ "refresh_token" }` | `204`, JWT required |
 | `POST` | `/auth/forgot-password` | `{ "email" }` | generic message |

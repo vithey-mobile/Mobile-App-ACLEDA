@@ -16,6 +16,7 @@ public class PublicPathMatcher {
     this.publicPatterns = List.of(
         parser.parse("/api/v1/auth/register"),
         parser.parse("/api/v1/auth/login"),
+        parser.parse("/api/v1/auth/google"),
         parser.parse("/api/v1/auth/refresh"),
         parser.parse("/api/v1/auth/forgot-password"),
         parser.parse("/api/v1/auth/reset-password"),

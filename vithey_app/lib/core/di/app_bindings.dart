@@ -32,6 +32,7 @@ import 'package:aub_connect_app/data/services/chat_realtime_hub.dart';
 import 'package:aub_connect_app/data/services/chat_service.dart';
 import 'package:aub_connect_app/data/services/chat_stomp_service.dart';
 import 'package:aub_connect_app/data/services/finance_service.dart';
+import 'package:aub_connect_app/data/services/google_auth_service.dart';
 import 'package:aub_connect_app/data/services/job_application_service.dart';
 import 'package:aub_connect_app/data/services/notification_service.dart';
 import 'package:aub_connect_app/data/services/place_service.dart';
@@ -61,6 +62,10 @@ class AppBindings {
     Get.put<ApiService>(ApiService(dioClient), permanent: true);
 
     Get.put<AuthService>(AuthService(Get.find<ApiService>()), permanent: true);
+    Get.put<GoogleAuthService>(
+      GoogleAuthService(serverClientId: AppConfig.instance.googleWebClientId),
+      permanent: true,
+    );
     Get.put<CurrentUserService>(
       CurrentUserService(secureStorage, Get.find<AuthService>(), featureFlags),
       permanent: true,
@@ -68,6 +73,7 @@ class AppBindings {
     Get.put<AuthRepository>(
       AuthRepository(
         Get.find<AuthService>(),
+        Get.find<GoogleAuthService>(),
         secureStorage,
         Get.find<CurrentUserService>(),
         featureFlags,

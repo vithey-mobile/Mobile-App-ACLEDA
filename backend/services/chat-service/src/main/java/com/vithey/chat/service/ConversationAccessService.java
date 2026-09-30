@@ -1,6 +1,5 @@
 package com.vithey.chat.service;
 
-import com.vithey.chat.dto.response.MessageResponse;
 import com.vithey.chat.entity.Conversation;
 import com.vithey.chat.entity.ConversationParticipant;
 import com.vithey.chat.entity.ConversationStatus;
@@ -10,7 +9,6 @@ import com.vithey.chat.exception.ErrorCode;
 import com.vithey.chat.repository.BlockRepository;
 import com.vithey.chat.repository.ConversationParticipantRepository;
 import com.vithey.chat.repository.ConversationRepository;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

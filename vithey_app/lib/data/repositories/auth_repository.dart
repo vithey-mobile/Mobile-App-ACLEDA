@@ -1,4 +1,5 @@
 import 'package:aub_connect_app/core/config/feature_flags.dart';
+import 'package:aub_connect_app/core/constants/mock_identities.dart';
 import 'package:aub_connect_app/core/session/current_user_service.dart';
 import 'package:aub_connect_app/core/storage/secure_storage_service.dart';
 import 'package:aub_connect_app/data/models/auth_result_model.dart';
@@ -6,17 +7,20 @@ import 'package:aub_connect_app/data/models/auth_token_model.dart';
 import 'package:aub_connect_app/data/fixtures/user_fixtures.dart';
 import 'package:aub_connect_app/data/repositories/student_verification_repository.dart';
 import 'package:aub_connect_app/data/services/auth_service.dart';
+import 'package:aub_connect_app/data/services/google_auth_service.dart';
 import 'package:get/get.dart';
 
 class AuthRepository {
   AuthRepository(
     this._authService,
+    this._googleAuthService,
     this._secureStorage,
     this._currentUser,
     this._flags,
   );
 
   final AuthService _authService;
+  final GoogleAuthService _googleAuthService;
   final SecureStorageService _secureStorage;
   final CurrentUserService _currentUser;
   final FeatureFlags _flags;
@@ -54,17 +58,29 @@ class AuthRepository {
     return result;
   }
 
-  Future<AuthResultModel> completeGoogleAuth({
-    required String email,
-    required String displayName,
-  }) async {
+  /// Runs the real Google flow, exchanges the Google ID token for Vithey
+  /// tokens via the backend, and persists the Vithey session.
+  ///
+  /// Propagates [GoogleSignInCancelledException] on user cancel and
+  /// [AuthServiceException] when the backend rejects the token or is
+  /// unreachable.
+  Future<AuthResultModel> signInWithGoogle() async {
     if (useMockAuth) {
-      return _mockAuth(email: email, fullName: displayName);
+      return _mockAuth(
+        email: MockIdentities.mockUserEmail,
+        fullName: MockIdentities.mockUserFullName,
+      );
     }
-    throw AuthServiceException(
-      'Google sign-in is not configured yet. Set ENABLE_GOOGLE_AUTH=true when ready.',
-    );
+    final idToken = await _googleAuthService.obtainIdToken();
+    final result = await _authService.googleLogin(idToken: idToken);
+    await _saveTokens(result);
+    return result;
   }
+
+  /// Google account email for the account "change email" affordance.
+  ///
+  /// Client-side only; it is never used as proof of identity.
+  Future<String?> googleEmailForAccountChange() => _googleAuthService.obtainEmail();
 
   Future<bool> validateSession() async {
     if (useMockAuth) {

@@ -8,8 +8,6 @@ class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/auth/forgot-password';
-  static const googleAccountChooser = '/auth/google';
-  static const googleAuthConfirmation = '/auth/google/confirm';
   static const startupSkills = '/startup/skills';
   static const startupInterests = '/startup/interests';
   static const startupDiscovery = '/startup/discovery';

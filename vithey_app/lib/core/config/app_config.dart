@@ -10,6 +10,7 @@ class AppConfig {
     required this.connectTimeout,
     required this.receiveTimeout,
     required this.fcmDebugToken,
+    required this.googleWebClientId,
   });
 
   static AppConfig? _instance;
@@ -31,6 +32,12 @@ class AppConfig {
   final Duration receiveTimeout;
   final String? fcmDebugToken;
 
+  /// Google Web OAuth client ID used as `serverClientId` for Google Sign-In.
+  ///
+  /// This is a public client identifier (not a secret); it must match the
+  /// audience the backend is configured to accept (`GOOGLE_WEB_CLIENT_ID`).
+  final String googleWebClientId;
+
   static Future<void> init({String envFileName = '.env'}) async {
     await dotenv.load(fileName: envFileName);
     _instance = AppConfig._fromEnv();
@@ -51,6 +58,7 @@ class AppConfig {
         seconds: int.tryParse(dotenv.env['API_RECEIVE_TIMEOUT_SECONDS'] ?? '') ?? 30,
       ),
       fcmDebugToken: dotenv.env['FCM_DEBUG_TOKEN']?.trim(),
+      googleWebClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID']?.trim() ?? '',
     );
   }
 }

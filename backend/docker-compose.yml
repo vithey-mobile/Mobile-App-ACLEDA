@@ -154,6 +154,9 @@ services:
     container_name: vithey-auth-service
     env_file:
       - services/auth-service/.env.example
+    environment:
+      # Google Sign-In: Web OAuth client ID (public). Set in backend/.env.
+      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
     ports:
       - "8081:8081"
     depends_on:
@@ -274,6 +277,31 @@ services:
       - vithey-network
     restart: unless-stopped
 
+  # Fake external payment provider (Python/FastAPI) — DEV/DEMO/UAT ONLY.
+  # Container listens on 8090; host port defaults to 8110 to avoid clashing
+  # with map-service (host 8090).
+  fake-payment-service:
+    build:
+      context: ../fake-payment-service
+      dockerfile: Dockerfile
+    image: vithey-fake-payment-service:local
+    container_name: vithey-fake-payment-service
+    env_file:
+      - ../fake-payment-service/.env.example
+    environment:
+      FAKE_PAYMENT_API_KEY: ${FAKE_PAYMENT_API_KEY:-change-me}
+    ports:
+      - "${FAKE_PAYMENT_HOST_PORT:-8110}:8090"
+    healthcheck:
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health')\""]
+    networks:
+      - vithey-network
+    restart: unless-stopped
+
   finance-service:
     build:
       context: .
@@ -284,6 +312,9 @@ services:
     container_name: vithey-finance-service
     env_file:
       - services/finance-service/.env.example
+    environment:
+      FAKE_PAYMENT_BASE_URL: ${FAKE_PAYMENT_BASE_URL:-http://fake-payment-service:8090}
+      FAKE_PAYMENT_API_KEY: ${FAKE_PAYMENT_API_KEY:-change-me}
     ports:
       - "8086:8086"
     depends_on:
@@ -292,6 +323,8 @@ services:
       rabbitmq:
         condition: service_healthy
       config-server:
+        condition: service_healthy
+      fake-payment-service:
         condition: service_healthy
     healthcheck:
       <<: *service-health

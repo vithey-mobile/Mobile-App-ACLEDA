@@ -25,6 +25,18 @@ class AuthService {
     return response.data!;
   }
 
+  Future<AuthResultModel> googleLogin({required String idToken}) async {
+    final response = await _api.post(
+      ApiEndpoints.authGoogle,
+      data: {'id_token': idToken},
+      fromJson: (json) => AuthResultModel.fromJson(json as Map<String, dynamic>),
+    );
+    if (!response.isSuccess || response.data == null) {
+      throw AuthServiceException(_formatError(response.error, 'Google sign-in failed'));
+    }
+    return response.data!;
+  }
+
   String _formatError(ApiError? error, String fallback) {
     if (error == null) return fallback;
     final details = error.details;

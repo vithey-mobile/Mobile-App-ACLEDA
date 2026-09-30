@@ -26,9 +26,7 @@ class AppStrings {
   static const signUp = 'Sign Up';
   static const signInWith = 'Sign in with';
   static const continueWithGoogle = 'Continue with Google';
-  static const googleAuthComingSoon = 'Google sign-in is coming soon';
-  static const googleAuthEnvHint =
-      'Set ENABLE_GOOGLE_AUTH=true in .env when OAuth is ready';
+  static const googleSignInFailed = 'Could not sign in with Google. Please try again.';
   static const forgotPassword = 'Forgot password?';
   static const forgotPasswordTitle = 'Reset password';
   static const forgotPasswordSubtitle =

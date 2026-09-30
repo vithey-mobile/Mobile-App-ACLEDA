@@ -1,6 +1,5 @@
 package com.vithey.chat.service;
 
-import com.vithey.chat.client.FileServiceClient;
 import com.vithey.chat.dto.request.BatchReadRequest;
 import com.vithey.chat.dto.request.SendMessageRequest;
 import com.vithey.chat.dto.response.FileMetadataResponse;

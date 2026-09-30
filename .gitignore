@@ -1,6 +1,19 @@
 # Environment (keep .env.example)
 .env
+.env.*
 !.env.example
+
+# Secrets & credentials (never commit)
+client_secret*.json
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+**/Secrets.xcconfig
 
 # Java / Maven
 **/target/
@@ -24,9 +37,15 @@ Thumbs.db
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
+venv/
+*.egg-info/
 **/.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Gradle
 **/.gradle/

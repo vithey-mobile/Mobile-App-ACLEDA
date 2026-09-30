@@ -109,6 +109,26 @@ public class NearbySearchRequest {
     return limit == null ? 20 : limit;
   }
 
+  public void setRadius_m(Integer radiusM) {
+    this.radiusM = radiusM;
+  }
+
+  public void setOpen_now(Boolean openNow) {
+    this.openNow = openNow;
+  }
+
+  public void setMin_rating(Double minRating) {
+    this.minRating = minRating;
+  }
+
+  public void setPrice_level(Integer priceLevel) {
+    this.priceLevel = priceLevel;
+  }
+
+  public void setPage_token(String pageToken) {
+    this.pageToken = pageToken;
+  }
+
   public void setLimit(Integer limit) {
     this.limit = limit;
   }

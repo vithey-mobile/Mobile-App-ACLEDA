@@ -1,6 +1,5 @@
 package com.vithey.finance.service;
 
-import com.vithey.finance.entity.CurrencyCode;
 import com.vithey.finance.entity.Fee;
 import com.vithey.finance.entity.Payment;
 import com.vithey.finance.entity.PaymentStatus;
@@ -9,7 +8,6 @@ import com.vithey.finance.event.payload.StudentVerifiedEvent;
 import com.vithey.finance.repository.FeeRepository;
 import com.vithey.finance.repository.PaymentRepository;
 import com.vithey.finance.repository.StudentFinanceAccountRepository;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

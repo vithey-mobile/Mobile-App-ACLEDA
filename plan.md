@@ -46,7 +46,7 @@
 | AI focus                    | **Auto-Create CV** via `ai_core` (P0) → stub Vithey AI chatbot (P1) → optional rule match/skills (P2)         |
 | Architecture                | Full microservice set on one PC with **tight memory caps**, 1 shared Postgres                                 |
 | Persistence                 | Single Postgres, small volumes, short retention                                                               |
-| Not in demo                 | GDCE RAG, K8s, local GPU LLM, OCR/PDF, Google OAuth, production HA                                            |
+| Not in demo                 | GDCE RAG, K8s, local GPU LLM, OCR/PDF, production HA (Google OAuth is now implemented — see `docs/10-security/12-google-sign-in.md`) |
 
 
 **Approve checklist (you):**
@@ -621,7 +621,7 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml down
 - Skipping Vithey domain services (Profile S) — **not allowed**; all must run  
 - PDF/OCR CV parsing  
 - Real production FCM scale, HA Redis/Postgres  
-- Google OAuth / 2FA  
+- Google OAuth is implemented (see `docs/10-security/12-google-sign-in.md`); 2FA remains out of scope  
 - map-service Google Places  
 - Full feed ML recommendations  
 - Expanding `ai_core` into chat/RAG  
