@@ -4,14 +4,14 @@ All Flutter AI prompts and the **frontend↔backend API contract** live here.
 
 ## UI status
 
-Screen prompts are organized under `Screen prompt/`. Where `v0/` + `v1/` exist, **`v1` is the current implemented UI**. See the status table in [`Screen prompt/README.md`](Screen%20prompt/README.md).
+Screen prompts are organized under flat folders in `Screen prompt/`. See the status table in [`Screen prompt/README.md`](Screen%20prompt/README.md).
 
 ## Start
 
 1. Read `KICKOFF_PROMPT.md`
 2. Read `COMMON_CONTEXT.md`
 3. Read `api-intergration/integration-contract.md`
-4. For a new screen, follow `Screen prompt/README.md` (**v1** paths).
+4. For a new screen, follow [`Screen prompt/README.md`](Screen%20prompt/README.md).
 5. For an audit, reusable-widget refactor, hard-code cleanup, or safe unused
    code removal, run `03-flutter-code-audit-and-refactor.md`.
 

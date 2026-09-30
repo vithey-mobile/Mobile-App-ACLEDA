@@ -36,7 +36,10 @@ services:
     image: vithey-map-service:local
     container_name: vithey-map-service
     env_file:
-      - .env
+      - path: .env
+        required: false
+      - path: .env.example
+        required: false
     environment:
       MAP_DB_URL: jdbc:postgresql://map-postgres:5432/map_db
     depends_on:

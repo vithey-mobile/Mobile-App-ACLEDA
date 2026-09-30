@@ -20,7 +20,8 @@ COPY services/notification-service/pom.xml services/notification-service/pom.xml
 COPY services/map-service/pom.xml services/map-service/pom.xml
 COPY infrastructure/eureka-server/src infrastructure/eureka-server/src
 
-RUN mvn -B -q -pl infrastructure/eureka-server -am -Dmaven.test.skip=true package && \
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -q -pl infrastructure/eureka-server -am -Dmaven.test.skip=true package && \
     cp infrastructure/eureka-server/target/*.jar app.jar
 
 FROM eclipse-temurin:21-jre-alpine AS runtime

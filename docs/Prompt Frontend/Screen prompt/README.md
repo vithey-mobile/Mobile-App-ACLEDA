@@ -65,12 +65,12 @@ See the dedicated [`media/README.md`](media/README.md).
 | Prompt | Purpose |
 |---|---|
 | [`chat/README.md`](chat/README.md) | Private chat — list, thread, profile, Isar, STOMP, FCM |
-| [`profile/README.md`](profile/README.md) | Profile — use **`v1/`** prompts |
+| [`profile/README.md`](profile/README.md) | Profile — shell, cover, stats, 5 tabs, skills, job applications |
 | [`job_apply/README.md`](job_apply/README.md) | Apply Job wizard + Apply Status |
 | [`notification/README.md`](notification/README.md) | Notification center |
 | [`search/README.md`](search/README.md) | Global search |
 | [`chatbot/README.md`](chatbot/README.md) | Vithey AI chatbot |
-| [`finance/README.md`](finance/README.md) | Verification + Finance — use **`v1/`** prompts |
+| [`finance/README.md`](finance/README.md) | Verification + Finance — balance card, receipts, invoices |
 | [`setting/README.md`](setting/README.md) | Settings home, account, privacy, security, notifications prefs, about |
 | [`map/README.md`](map/README.md) | Nearby shops map, location icon, filters |
 

@@ -57,7 +57,7 @@ services:
       - vithey-network
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: vithey-minio
     env_file:
       - .env.example

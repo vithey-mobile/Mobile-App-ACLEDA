@@ -143,6 +143,21 @@ WebSocket: STOMP at `/ws` — subscribe `/user/queue/messages`
 |--------|------|------|
 | GET | `/notifications` | JWT |
 | PATCH | `/notifications/{id}/read` | JWT |
+| PATCH | `/notifications/read-all` | JWT |
+| GET | `/notifications/unread-count` | JWT |
+| POST | `/notifications/devices` | JWT |
+
+## Map & Places (`map-service`)
+
+| Method | Path | Auth |
+|--------|------|------|
+| GET | `/places/nearby` | JWT / Optional |
+| GET | `/places/search` | JWT / Optional |
+| GET | `/places/autocomplete` | JWT / Optional |
+| GET | `/places/{id}` | JWT / Optional |
+| GET/POST | `/places/favorites` | JWT |
+| DELETE | `/places/favorites/{id}` | JWT |
+| GET/DELETE | `/places/history` | JWT |
 
 ## Screen → API map
 
@@ -158,10 +173,12 @@ WebSocket: STOMP at `/ws` — subscribe `/user/queue/messages`
 | Finance | `GET /payments`, `/payments/alerts`, `/fees` |
 | Verification | `POST /students/verify` |
 | Chat | `GET /conversations`, `GET /message-requests` |
-| Chat Detail | `GET/POST /conversations/{id}/messages` |
-| AI Chatbot | `POST /ai/chat`, `GET /ai/sessions/{id}/messages` |
-| Notifications | `GET /notifications` |
+| Chat Detail | `GET/POST /conversations/{id}/messages`, WebSocket `/ws` |
+| AI Chatbot | `POST /ai/chat`, `POST /ai/chat/stream`, `POST /ai/cv/suggest` |
+| Notifications | `GET /notifications`, `PATCH /notifications/read-all` |
+| Map & Places | `GET /places/nearby`, `GET /places/search`, `GET /places/autocomplete` |
 | Settings | `GET/PATCH /users/me/settings`, `POST /auth/logout` |
 | Applicant CV | `GET /job-applications?job_post_id=` |
 
-Full service detail: each `Prompt Backend/services/<service>/` folder now includes `API_ENDPOINTS.md`, `FOLDER_STRUCTURE.md`, `SERVICE_LOGIC.md`, `DB_SCHEMA.md`, `KICKOFF_PROMPT.md`, `COMMON_CONTEXT.md`, and `SERVICE_PROMPT.md`.
+Detailed per-service request/response schemas and JSON payloads live under [`services/`](services/).
+
