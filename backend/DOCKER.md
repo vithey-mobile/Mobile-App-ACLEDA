@@ -7,7 +7,7 @@ Three ways to run the stack. Prefer the **full stack** or **Profile M demo** for
 ```
 backend/
   .env.example                    # env-tunable resource limits / profiles
-  docker-compose.yml              # full Java stack + infra + Python ai_core
+  docker-compose.yml              # full Java stack + infra + Python ai-core (external-services/)
   docker-compose.demo.yml         # Profile M overlay (env-driven caps; map opt-in)
   DEMO.md                         # demo prerequisites and smoke
   infrastructure/docker-compose.yml   # infra-only (legacy / incremental)
@@ -28,11 +28,11 @@ From `backend/`:
 
 Stops with `.\scripts\docker-down.ps1`.
 
-Includes Postgres, Redis, RabbitMQ, MinIO, Eureka, Config Server, all Java microservices (the Java `ai-service` is retired), Python `ai_core`, and the API gateway. Does **not** include `map-service` (gateway `/places/**` returns 503 until map is started with the `map` profile).
+Includes Postgres, Redis, RabbitMQ, MinIO, Eureka, Config Server, all Java microservices (the Java `ai-service` is retired), Python `ai-core` (`external-services/ai-core`), and the API gateway. Does **not** include `map-service` (gateway `/places/**` returns 503 until map is started with the `map` profile).
 
 ## Option B — Profile M demo (recommended for Flutter live API)
 
-Adds env-driven JVM/memory caps and Python AI (`ai_core`, chat stub, no GDCE):
+Adds env-driven JVM/memory caps and Python AI (`external-services/ai-core`, chat stub, no GDCE):
 
 ```powershell
 copy .env.example .env          # tune limits / profiles (optional)
@@ -44,7 +44,7 @@ copy .env.example .env          # tune limits / profiles (optional)
 
 Details: [DEMO.md](DEMO.md). Smoke: `.\scripts\smoke-api.ps1`.
 
-Gateway routes `/api/v1/ai/**` to `http://ai-core:8100`. Python `ai_core` owns the whole AI surface (chat + CV), so no Java AI service is needed.
+Gateway routes `/api/v1/ai/**` to `http://ai-core:8100`. Python `ai-core` (`external-services/ai-core`) owns the whole AI surface (chat + CV), so no Java AI service is needed.
 
 ### Lean / 3-user mode (no hardcoding)
 
@@ -58,7 +58,7 @@ All resource limits are read from `backend/.env` (Compose auto-loads it). Copy `
 | `PG_*`, `REDIS_*`, `RABBITMQ_MEM_LIMIT`, `MINIO_MEM_LIMIT` | infra | see `.env.example` |
 | `DB_POOL_MAX`, `DB_POOL_MIN` | Hikari pool per service | `5` / `1` |
 | `RABBIT_CONCURRENCY` / `RABBIT_MAX_CONCURRENCY` | listener pool | `1` / `2` |
-| `AI_CORE_MEM_LIMIT`, `AI_CORE_WORKERS` | ai_core | `256m` / `1` |
+| `AI_CORE_MEM_LIMIT`, `AI_CORE_WORKERS` | external-services/ai-core | `256m` / `1` |
 
 Optional services are opt-in through Compose profiles:
 
@@ -143,7 +143,7 @@ Maven build context remains the backend monorepo root (`context: .` or `../..` d
 | chat | 8087 |
 | notification | 8088 |
 | map-service (demo) | 8090 |
-| ai_core | 8100 |
+| ai-core | 8100 |
 | Eureka | 8761 |
 | Config Server | 8888 |
 | PostgreSQL | 15432 |

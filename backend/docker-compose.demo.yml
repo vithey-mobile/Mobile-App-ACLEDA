@@ -8,7 +8,7 @@
 # Goals (plan.md):
 #   - All Vithey services live on one PC
 #   - Env-tunable RAM / JVM heaps (defaults sized for ~3 users)
-#   - ai_core (Python) is the only AI engine (no Java ai-service)
+#   - external-services/ai-core (Python) is the only AI engine (no Java ai-service)
 #   - No GDCE / general-service
 #   - map-service on shared Postgres (map_db), opt-in via COMPOSE_PROFILES=map
 
@@ -186,7 +186,7 @@ services:
   # ── Python AI engine (CV generation + Flutter AI chat) ───────────────────
   ai-core:
     build:
-      context: ../ai_core
+      context: ../external-services/ai-core
       dockerfile: Dockerfile
     image: vithey-ai-core:local
     container_name: vithey-ai-core
@@ -203,7 +203,7 @@ services:
       CACHE_MAX_SIZE: "128"
       LOG_LEVEL: INFO
     env_file:
-      - path: ../ai_core/.env
+      - path: ../external-services/ai-core/.env
         required: false
     ports:
       - "8100:8100"

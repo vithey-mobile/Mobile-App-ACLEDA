@@ -60,7 +60,7 @@ metrics at `/actuator/prometheus` (30s interval):
 
 Not monitored (no Prometheus metrics endpoint / not always running):
 
-- `ai_core` (FastAPI) — no `/metrics`.
+- `external-services/ai-core` (FastAPI) — no `/metrics`.
 - `eureka-server`, `config-server` — no `micrometer-registry-prometheus`.
 - `map-service` — opt-in `map` profile; add a job in `prometheus/prometheus.yml`
   (`vithey-map-service:8090`) if you run it.

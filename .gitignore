@@ -4,6 +4,7 @@
 !.env.example
 
 # Secrets & credentials (never commit)
+vithey-secrets/
 client_secret*.json
 *.keystore
 *.jks

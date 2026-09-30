@@ -1,13 +1,13 @@
 # Document Index (Master Documentation Homepage)
 
 > Status: Verified (structure) · Last reviewed: 2026-09-30 · Product: **Vithey**
-> This is the single entry point for the Vithey documentation package. All statements are drawn from repository evidence; verification/status tags follow the documentation conventions kept in the repository at `docs/_meta/` (not published to the site).
+> This is the single entry point for the Vithey documentation package. All statements are drawn from repository evidence; verification/status tags follow the documented conventions.
 
 ## How to use this index
 
 - **Status** values: `Verified` (evidence-based), `Partially complete` (has TBDs), `Not executed` (governance artefact only), `Template` (to be filled by stakeholders).
 - Every document carries its own `> Status:` header and inline `[VERIFIED] / [INFERRED] / [PLANNED] / [TBD]` tags.
-- Legacy prompt/spec reference material (kept in the repository under `docs/Prompt *` and `docs/_shared`) is **preserved in the repository** and treated as *planned* input, not as implemented truth.
+- Legacy reference material (kept in the repository under `docs/_shared`) is **preserved in the repository** and treated as *planned* input, not as implemented truth.
 
 ## Recommended reading order
 

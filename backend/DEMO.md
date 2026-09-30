@@ -2,7 +2,7 @@
 #
 # Prerequisites:
 #   1. Docker Desktop running
-#   2. Copy ai_core/.env.example → ai_core/.env and set DEEPSEEK_API_KEY
+#   2. Copy external-services/ai-core/.env.example → external-services/ai-core/.env and set DEEPSEEK_API_KEY
 #   3. Optional: set GOOGLE_PLACES_API_KEY in services/map-service/.env.example (or a real .env)
 #
 # Start (from backend/):
@@ -18,7 +18,7 @@
 #   docker compose -f docker-compose.yml -f docker-compose.demo.yml down
 #
 # Notes:
-#   - All Vithey Java services + ai_core (Python owns /api/v1/ai/**); map-service is opt-in
+#   - All Vithey Java services + external-services/ai-core (Python owns /api/v1/ai/**); map-service is opt-in
 #   - NO Java ai-service; NO GDCE / general-service (chat = stub)
 #   - Resource caps are env-driven: copy .env.example → .env and tune (defaults for ~3 users)
 #   - Optional map-service: .\scripts\docker-up-demo.ps1 -Profiles map (or COMPOSE_PROFILES=map)
@@ -32,7 +32,7 @@
 |---------|-----|
 | Gateway | http://localhost:8080/actuator/health |
 | map-service (only with `-Profiles map`) | http://localhost:8090/actuator/health |
-| ai_core | http://localhost:8100/health |
+| ai-core | http://localhost:8100/health |
 | Eureka | http://localhost:8761 |
 
 ## Full API smoke (recommended)

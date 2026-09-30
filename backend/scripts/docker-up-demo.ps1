@@ -1,4 +1,4 @@
-# Start Vithey Profile M demo stack (env-tunable caps + ai_core; map is opt-in)
+# Start Vithey Profile M demo stack (env-tunable caps + external-services/ai-core; map is opt-in)
 #
 # Usage (from backend/):
 #   copy .env.example .env        # then tune resource knobs
@@ -16,9 +16,9 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
-$aiEnv = Join-Path (Resolve-Path "..\ai_core") ".env"
+$aiEnv = Join-Path (Resolve-Path "..\external-services\ai-core") ".env"
 if (-not (Test-Path $aiEnv)) {
-  Write-Host "Missing ai_core/.env - copy .env.example and set DEEPSEEK_API_KEY" -ForegroundColor Red
+  Write-Host "Missing external-services/ai-core/.env - copy .env.example and set DEEPSEEK_API_KEY" -ForegroundColor Red
   exit 1
 }
 

@@ -5,7 +5,7 @@
 # backend/docker-compose.yml on the shared `vithey-network`.
 #
 # Excluded on purpose (no Prometheus metrics endpoint):
-#   - ai_core (FastAPI) has no /metrics
+#   - external-services/ai-core (FastAPI) has no /metrics
 #   - eureka-server / config-server (no micrometer-registry-prometheus)
 #   - map-service (opt-in `map` profile; add a job when it runs)
 

@@ -282,12 +282,12 @@ services:
   # with map-service (host 8090).
   fake-payment-service:
     build:
-      context: ../fake-payment-service
+      context: ../external-services/fake-payment-service
       dockerfile: Dockerfile
     image: vithey-fake-payment-service:local
     container_name: vithey-fake-payment-service
     env_file:
-      - ../fake-payment-service/.env.example
+      - ../external-services/fake-payment-service/.env.example
     environment:
       FAKE_PAYMENT_API_KEY: ${FAKE_PAYMENT_API_KEY:-change-me}
     ports:
@@ -389,7 +389,7 @@ services:
 
   ai-core:
     build:
-      context: ../ai_core
+      context: ../external-services/ai-core
       dockerfile: Dockerfile
     image: vithey-ai-core:local
     container_name: vithey-ai-core
@@ -411,7 +411,7 @@ services:
       CACHE_MAX_SIZE: "128"
       LOG_LEVEL: INFO
     env_file:
-      - path: ../ai_core/.env
+      - path: ../external-services/ai-core/.env
         required: false
     ports:
       - "8100:8100"
